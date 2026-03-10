@@ -45,14 +45,14 @@ function App() {
               <button
                 onClick={() => setIsNotificationModalOpen(true)}
                 className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
-                title="Notifications"
+                title="Notifikasi"
               >
                 <span className="material-symbols-outlined text-primary">notifications</span>
               </button>
               <button
                 onClick={() => setIsStoreProfileModalOpen(true)}
                 className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
-                title="Store Profile"
+                title="Profil Toko"
               >
                 <span className="material-symbols-outlined text-primary">account_circle</span>
               </button>
@@ -100,10 +100,10 @@ function App() {
                 </div>
                 <div className="text-right">
                   <span className={`text-xs font-bold px-2 py-1 rounded ${item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10' :
-                      item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10' :
-                        'text-emerald-500 bg-emerald-500/10'
+                    item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10' :
+                      'text-emerald-500 bg-emerald-500/10'
                     }`}>
-                    {item.status}
+                    {item.status === 'KRITIS' ? 'KRITIS' : item.status === 'HABIS' ? 'HABIS' : 'NORMAL'}
                   </span>
                   <p className="text-sm font-bold mt-1">
                     {item.currentStock}{item.unit} <span className="text-slate-400 dark:text-primary/40 font-normal">/ {item.systemStock}{item.unit}</span>
@@ -112,8 +112,8 @@ function App() {
               </div>
               <div className="w-full bg-slate-100 dark:bg-primary/10 h-2.5 rounded-full overflow-hidden">
                 <div className={`${item.status === 'KRITIS' ? 'bg-red-500' :
-                    item.status === 'HABIS' ? 'bg-slate-500' :
-                      'bg-emerald-500'
+                  item.status === 'HABIS' ? 'bg-slate-500' :
+                    'bg-emerald-500'
                   } h-full rounded-full transition-all duration-500`}
                   style={{ width: `${Math.min(100, (item.currentStock / item.systemStock) * 100)}%` }}>
                 </div>

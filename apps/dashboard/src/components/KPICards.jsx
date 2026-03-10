@@ -11,7 +11,7 @@ export default function KPICards() {
                 {/* Pemasukan */}
                 <div className="flex flex-col gap-1 rounded-xl p-5 bg-emerald-500/10 border border-emerald-500/20">
                     <div className="flex items-center justify-between mb-1">
-                        <p className="text-emerald-500 dark:text-emerald-400 text-sm font-semibold uppercase tracking-wider">Pemasukan (Sales)</p>
+                        <p className="text-emerald-500 dark:text-emerald-400 text-sm font-semibold uppercase tracking-wider">Penjualan</p>
                         <span className="material-symbols-outlined text-emerald-500 text-lg">trending_up</span>
                     </div>
                     <p className="text-slate-900 dark:text-white text-2xl font-bold leading-tight">Rp {totalSales.toLocaleString('id-ID')}</p>
@@ -26,9 +26,9 @@ export default function KPICards() {
                     </div>
                     {/* Net Profit */}
                     <div className="flex flex-col gap-1 rounded-xl p-4 bg-primary/10 border border-primary/20">
-                        <p className="text-primary text-[11px] font-semibold uppercase tracking-wider">Profit</p>
+                        <p className="text-primary text-[11px] font-semibold uppercase tracking-wider">Profit Bersih</p>
                         <p className="text-slate-900 dark:text-white text-lg font-bold">Rp {profit.toLocaleString('id-ID')}</p>
-                        <p className="text-primary text-[10px] font-medium">+18% grow</p>
+                        <p className="text-primary text-[10px] font-medium">+18% naik</p>
                     </div>
                 </div>
             </div>

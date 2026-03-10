@@ -1,13 +1,13 @@
 export const NAV_LINKS = [
-    { label: 'Dashboard', icon: 'dashboard', port: 5173 },
-    { label: 'Inventory', icon: 'inventory_2', port: 5174 },
-    { label: 'Reports (P&L)', icon: 'bar_chart', port: 5175 },
-    { label: 'HPP Analysis', icon: 'analytics', port: 5176 },
-    { label: 'Stock Opname', icon: 'fact_check', port: 5177 },
-    { label: 'Employees', icon: 'badge', port: 5178 },
-    { label: 'Settings', icon: 'settings', port: 5179 },
-    { label: 'COGS Analysis', icon: 'donut_small', port: 5180 },
-    { label: 'Expenses', icon: 'payments', port: 5181 },
+    { label: 'Dasbor', icon: 'dashboard', port: 5173 },
+    { label: 'Inventori', icon: 'inventory_2', port: 5174 },
+    { label: 'Laporan (Laba Rugi)', icon: 'bar_chart', port: 5175 },
+    { label: 'Analisis HPP', icon: 'analytics', port: 5176 },
+    { label: 'Stok Opname', icon: 'fact_check', port: 5177 },
+    { label: 'Karyawan', icon: 'badge', port: 5178 },
+    { label: 'Pengaturan', icon: 'settings', port: 5179 },
+    { label: 'Analisis COGS', icon: 'donut_small', port: 5180 },
+    { label: 'Pengeluaran', icon: 'payments', port: 5181 },
     { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182 },
 ];
 

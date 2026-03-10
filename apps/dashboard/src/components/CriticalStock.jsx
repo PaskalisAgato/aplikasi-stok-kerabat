@@ -22,7 +22,7 @@ export default function CriticalStock() {
                             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</h3>
                             <p className="text-xs text-slate-500 mt-0.5">Sisa: <span className="text-red-500 font-bold">{item.currentStock} {item.unit}</span></p>
                         </div>
-                        <button className="bg-primary hover:bg-primary/90 transition-colors text-white text-xs font-bold px-3 py-1.5 rounded-lg">Restock</button>
+                        <button className="bg-primary hover:bg-primary/90 transition-colors text-white text-xs font-bold px-3 py-1.5 rounded-lg">Stok Ulang</button>
                     </div>
                 )) : (
                     <div className="bg-emerald-500/10 p-6 rounded-xl border border-emerald-500/20 text-center">
