@@ -9,9 +9,6 @@ export const NAV_LINKS = [
     { label: 'COGS Analysis', icon: 'donut_small', port: 5180 },
     { label: 'Expenses', icon: 'payments', port: 5181 },
     { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182 },
-    { label: 'Detail Pemborosan', icon: 'manage_search', port: 5183 },
-    { label: 'Kelola Resep', icon: 'restaurant_menu', port: 5184 },
-    { label: 'Edit Resep', icon: 'edit_note', port: 5185 },
 ];
 
 const REPO_NAME = 'aplikasi-stok-kerabat';

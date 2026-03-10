@@ -79,7 +79,9 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                 className="flex items-center justify-center p-2 hover:bg-primary/10 rounded-full transition-colors active:scale-95">
                                 <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
                             </button>
-                            <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate w-[200px]">Edit: {recipe.name}</h1>
+                            <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate w-[200px]">
+                                {recipe.name ? `Edit: ${recipe.name}` : 'Tambah Resep Baru'}
+                            </h1>
                         </div>
                         <button
                             className="text-primary font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 transition-colors active:scale-95"
@@ -216,7 +218,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                         <p className="text-3xl font-black text-primary tracking-tight">{margin}%</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Laba per Cap</p>
+                                        <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Laba bersih</p>
                                         <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">{formatRp(laba)}</p>
                                     </div>
                                 </div>

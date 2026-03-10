@@ -8,6 +8,14 @@ import EditRecipeModal from './components/EditRecipeModal';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+    const [filterCategory, setFilterCategory] = useState<string>('Semua');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredRecipes = RECIPES.filter(recipe => {
+        const matchCategory = filterCategory === 'Semua' || recipe.category === filterCategory;
+        const matchSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchCategory && matchSearch;
+    });
 
     return (
         <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased">
@@ -37,6 +45,8 @@ function App() {
                             className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-primary/10 bg-slate-100 dark:bg-primary/5 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 font-medium transition-all shadow-sm"
                             placeholder="Cari menu (Kopi O, Teh Tarik...)"
                             type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </label>
 
@@ -48,16 +58,24 @@ function App() {
               }
             `}</style>
 
-                        <button className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-white text-sm font-bold whitespace-nowrap shadow-md shadow-primary/20 transition-colors active:scale-95">Semua</button>
-                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Minuman</button>
-                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Makanan</button>
-                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Snack</button>
+                        {['Semua', 'Minuman', 'Makanan', 'Snack'].map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setFilterCategory(cat)}
+                                className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors active:scale-95 shadow-sm ${filterCategory === cat
+                                        ? 'bg-primary text-white shadow-primary/20'
+                                        : 'bg-white dark:bg-primary/5 text-slate-700 dark:text-primary border border-slate-200 dark:border-primary/20 hover:bg-primary/10'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
                 {/* Menu List */}
                 <main className="flex-1 px-4 py-2 space-y-4">
-                    {RECIPES.map(recipe => (
+                    {filteredRecipes.map(recipe => (
                         <div key={recipe.id} className="bg-white dark:bg-[#1a140f] border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
                             <div className="flex p-4 gap-4">
                                 <div
@@ -95,7 +113,18 @@ function App() {
                 </main>
 
                 {/* Floating Action Button */}
-                <button className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-light dark:ring-background-dark transition-transform active:scale-95 group">
+                <button
+                    onClick={() => setSelectedRecipe({
+                        id: Date.now(),
+                        name: '',
+                        description: '',
+                        category: 'Minuman',
+                        hpp: 0,
+                        price: 0,
+                        margin: 0,
+                        ingredients: []
+                    })}
+                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-light dark:ring-background-dark transition-transform active:scale-95 group">
                     <span className="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
                 </button>
                 {/* Edit Recipe Modal */}

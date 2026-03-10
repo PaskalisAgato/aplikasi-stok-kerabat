@@ -3,6 +3,7 @@ import { INVENTORY, RECIPES } from '@shared/mockDatabase';
 
 
 import NavDrawer from '@shared/NavDrawer';
+import { getTargetUrl } from '@shared/navigation';
 
 
 
@@ -27,7 +28,7 @@ function App() {
                                 <span className="material-symbols-outlined">analytics</span>
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold leading-tight tracking-tight">HPP Analysis</h1>
+                                <h1 className="text-lg font-bold leading-tight tracking-tight">Analisis HPP</h1>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-tight">Kerabat Kopi Tiam • April 2024</p>
                             </div>
                         </div>
@@ -39,7 +40,7 @@ function App() {
                     {/* Summary Stats */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-xl p-4">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total HPP (COGS)</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total HPP</p>
                             <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">Rp {(totalHPPBahan / 1000000).toFixed(1)}M</p>
                             <div className="flex items-center gap-1 mt-2 text-red-500 text-[10px] font-bold uppercase tracking-wider">
                                 <span className="material-symbols-outlined text-sm">trending_up</span>
@@ -48,7 +49,7 @@ function App() {
                         </div>
 
                         <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-xl p-4">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">HPP Ratio</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rasio HPP</p>
                             <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">{avgHPPPercent}%</p>
                             <div className="flex items-center gap-1 mt-2 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
                                 <span className="material-symbols-outlined text-sm">trending_down</span>
@@ -60,8 +61,8 @@ function App() {
                     {/* HPP Trend Chart */}
                     <section>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-base font-bold tracking-tight">HPP Trend <span className="text-slate-500 text-sm font-semibold">(Last 30 Days)</span></h2>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Daily Average: Rp 1.4M</span>
+                            <h2 className="text-base font-bold tracking-tight">Tren HPP <span className="text-slate-500 text-sm font-semibold">(30 Hari Terakhir)</span></h2>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Rata-rata: Rp 1.4M/hari</span>
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 border border-primary/5 dark:border-slate-800 relative z-0">
 
@@ -98,8 +99,8 @@ function App() {
                     {/* High Usage Ingredients */}
                     <section>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-base font-bold tracking-tight">High Usage Ingredients</h2>
-                            <button className="text-xs text-primary font-bold hover:underline active:opacity-70">View All</button>
+                            <h2 className="text-base font-bold tracking-tight">Bahan Penggunaan Tinggi</h2>
+                            <button className="text-xs text-primary font-bold hover:underline active:opacity-70">Lihat Semua</button>
                         </div>
 
                         <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-primary/5 dark:border-slate-800 overflow-hidden divide-y divide-slate-200 dark:divide-slate-800/50">
@@ -111,12 +112,12 @@ function App() {
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Kopi Bubuk Arabica</h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">24.5 kg used</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">24.5 kg digunakan</p>
                                     </div>
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Rp 8.4M</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">19.6% <span className="text-[9px] uppercase tracking-wider">Contribution</span></p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">19.6% <span className="text-[9px] uppercase tracking-wider">Kontribusi</span></p>
                                 </div>
                             </div>
 
@@ -127,12 +128,12 @@ function App() {
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Susu UHT Full Cream</h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">120 Liters used</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">120 Liter digunakan</p>
                                     </div>
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Rp 6.2M</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">14.4% <span className="text-[9px] uppercase tracking-wider">Contribution</span></p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">14.4% <span className="text-[9px] uppercase tracking-wider">Kontribusi</span></p>
                                 </div>
                             </div>
 
@@ -142,13 +143,13 @@ function App() {
                                         <span className="material-symbols-outlined text-primary text-xl">icecream</span>
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Condensed Milk</h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">45 Cans used</p>
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Susu Kental Manis</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">45 Kaleng digunakan</p>
                                     </div>
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Rp 3.1M</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">7.2% <span className="text-[9px] uppercase tracking-wider">Contribution</span></p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">7.2% <span className="text-[9px] uppercase tracking-wider">Kontribusi</span></p>
                                 </div>
                             </div>
 
@@ -158,8 +159,14 @@ function App() {
                     {/* Recipe Costing */}
                     <section className="pb-8">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-base font-bold tracking-tight">Recipe Costing <span className="text-slate-500 text-sm font-semibold">(Top Items)</span></h2>
-                            <span className="material-symbols-outlined text-slate-400 text-sm hover:text-slate-600 transition-colors cursor-help">info</span>
+                            <h2 className="text-base font-bold tracking-tight">Biaya Resep <span className="text-slate-500 text-sm font-semibold">(Menu Teratas)</span></h2>
+                            <div className="flex gap-2 items-center">
+                                <span className="material-symbols-outlined text-slate-400 text-sm hover:text-slate-600 transition-colors cursor-help">info</span>
+                                <a href={getTargetUrl(5184)} className="text-xs bg-primary text-white px-3 py-1.5 rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-1 active:scale-95">
+                                    <span className="material-symbols-outlined text-[14px]">restaurant_menu</span>
+                                    Kelola Resep
+                                </a>
+                            </div>
                         </div>
 
                         <div className="space-y-4">
@@ -169,24 +176,24 @@ function App() {
                                 <div className="flex justify-between items-start mb-5">
                                     <div>
                                         <h3 className="font-bold text-sm tracking-tight">Kopi Tarik Signature</h3>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Category: Signature Drinks</p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Kategori: Minuman Andalan</p>
                                     </div>
                                     <span className="px-2.5 py-1 rounded bg-[#059669]/10 text-[#059669] text-[9px] font-extrabold uppercase tracking-wider border border-[#059669]/20">
-                                        Healthy Margin
+                                        Margin Sehat
                                     </span>
                                 </div>
 
                                 <div className="flex items-end justify-between gap-6">
                                     <div className="flex-1 space-y-2.5">
                                         <div className="flex justify-between items-end text-[11px]">
-                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Cost per Cup</span>
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Bahan per Modal</span>
                                             <span className="font-bold">Rp 7,200</span>
                                         </div>
                                         <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                                             <div className="bg-primary h-full rounded-full w-[28%]"></div>
                                         </div>
                                         <div className="flex justify-between items-end text-[11px]">
-                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Selling Price</span>
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Harga Jual</span>
                                             <span className="font-bold">Rp 25,000</span>
                                         </div>
                                     </div>
@@ -203,24 +210,24 @@ function App() {
                                 <div className="flex justify-between items-start mb-5">
                                     <div>
                                         <h3 className="font-bold text-sm tracking-tight">Kaya Toast Premium</h3>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Category: Snacks</p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Kategori: Makanan</p>
                                     </div>
                                     <span className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-500 text-[9px] font-extrabold uppercase tracking-wider border border-amber-500/20">
-                                        Check Recipe
+                                        Cek Resep
                                     </span>
                                 </div>
 
                                 <div className="flex items-end justify-between gap-6">
                                     <div className="flex-1 space-y-2.5">
                                         <div className="flex justify-between items-end text-[11px]">
-                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Cost per Portion</span>
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Bahan per Porsi</span>
                                             <span className="font-bold">Rp 9,800</span>
                                         </div>
                                         <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                                             <div className="bg-amber-500 h-full rounded-full w-[44%]"></div>
                                         </div>
                                         <div className="flex justify-between items-end text-[11px]">
-                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Selling Price</span>
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Harga Jual</span>
                                             <span className="font-bold">Rp 22,000</span>
                                         </div>
                                     </div>
