@@ -29,7 +29,10 @@ function App() {
                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>menu</span>
                         </button>
                         <div className="flex items-center gap-3">
-                            <button className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary">
+                            <button
+                                onClick={() => window.location.href = `http://${window.location.hostname}:5173`}
+                                className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary"
+                            >
                                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>arrow_back</span>
                             </button>
                             <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Kelola Resep & HPP</h1>
@@ -63,8 +66,8 @@ function App() {
                                 key={cat}
                                 onClick={() => setFilterCategory(cat)}
                                 className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors active:scale-95 shadow-sm ${filterCategory === cat
-                                        ? 'bg-primary text-white shadow-primary/20'
-                                        : 'bg-white dark:bg-primary/5 text-slate-700 dark:text-primary border border-slate-200 dark:border-primary/20 hover:bg-primary/10'
+                                    ? 'bg-primary text-white shadow-primary/20'
+                                    : 'bg-white dark:bg-primary/5 text-slate-700 dark:text-primary border border-slate-200 dark:border-primary/20 hover:bg-primary/10'
                                     }`}
                             >
                                 {cat}

@@ -39,5 +39,8 @@
     "@types/node": "^25.4.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0"
   }
 }

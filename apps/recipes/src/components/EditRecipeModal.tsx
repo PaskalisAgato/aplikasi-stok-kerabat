@@ -21,6 +21,7 @@ function formatRp(n: number) {
 
 export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProps) {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [namaResep, setNamaResep] = useState(recipe.name || '');
     const [overhead, setOverhead] = useState(10); // Default overhead
     const [hargaJual, setHargaJual] = useState(recipe.price);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
@@ -56,6 +57,14 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         setIngredients(prev =>
             prev.map(ing =>
                 ing.id === id ? { ...ing, qty: Math.max(0, ing.qty + delta) } : ing
+            )
+        );
+    };
+
+    const toggleUnit = (id: number) => {
+        setIngredients(prev =>
+            prev.map(ing =>
+                ing.id === id ? { ...ing, unit: ing.unit === 'g' || ing.unit === 'gram' ? 'ml' : 'g' } : ing
             )
         );
     };
@@ -104,22 +113,30 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                 <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
                             </button>
                             <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate w-[200px]">
-                                {recipe.name ? `Edit: ${recipe.name}` : 'Tambah Resep Baru'}
+                                {recipe.name ? `Edit: ${recipe.name}` : 'Tambah Resep'}
                             </h1>
                         </div>
                         <button
-                            className="text-primary font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 transition-colors active:scale-95"
-                            onClick={() => {
-                                // Reset back to props
-                                setHargaJual(recipe.price);
-                            }}
+                            className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-xl active:scale-95 transition-all text-sm"
+                            onClick={onClose}
                         >
-                            Reset
+                            Selesai
                         </button>
                     </div>
                 </header>
 
                 <main className="flex-1">
+                    {/* Recipe Name Input */}
+                    <div className="px-4 pt-4">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Nama Resep</label>
+                        <input
+                            type="text"
+                            value={namaResep}
+                            onChange={(e) => setNamaResep(e.target.value)}
+                            placeholder="Masukkan nama resep..."
+                            className="w-full bg-white dark:bg-primary/5 border border-primary/20 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm dark:text-white"
+                        />
+                    </div>
                     {/* Ingredients Section */}
                     <section className="p-4">
                         <div className="flex items-center justify-between mb-4 relative z-20">
@@ -201,7 +218,12 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                     onChange={e => setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, qty: Math.max(0, parseInt(e.target.value) || 0) } : i))}
                                                     min={0}
                                                 />
-                                                <span className="text-sm text-slate-400 font-medium pr-1">{ing.unit}</span>
+                                                <button
+                                                    onClick={() => toggleUnit(ing.id)}
+                                                    className="text-xs bg-slate-200 dark:bg-slate-700 hover:bg-primary hover:text-white px-2 py-1 rounded font-bold transition-colors uppercase"
+                                                >
+                                                    {ing.unit}
+                                                </button>
                                             </div>
                                             <button
                                                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white font-bold text-lg hover:bg-primary/90 transition-colors active:scale-90 shadow-sm"
