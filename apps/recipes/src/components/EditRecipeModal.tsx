@@ -8,6 +8,8 @@ interface Ingredient {
     pricePerG: number;
     unit: string;
     qty: number;
+    purchasePrice?: number;
+    purchaseQty?: number;
 }
 
 interface EditRecipeModalProps {
@@ -66,6 +68,18 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
             prev.map(ing =>
                 ing.id === id ? { ...ing, unit: ing.unit === 'g' || ing.unit === 'gram' ? 'ml' : 'g' } : ing
             )
+        );
+    };
+
+    const updateCalculatedPrice = (id: number, price: number, amount: number) => {
+        setIngredients(prev =>
+            prev.map(ing => {
+                if (ing.id === id) {
+                    const pricePerUnit = amount > 0 ? price / amount : 0;
+                    return { ...ing, purchasePrice: price, purchaseQty: amount, pricePerG: pricePerUnit };
+                }
+                return ing;
+            })
         );
     };
 
@@ -192,8 +206,8 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                     <div className="flex justify-between items-start mb-3.5">
                                         <div>
                                             <p className="font-bold text-[15px] text-slate-900 dark:text-slate-100 tracking-tight">{ing.name}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                                                Harga: Rp {ing.pricePerG.toLocaleString('id-ID')} / {ing.unit}
+                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-bold uppercase tracking-wider">
+                                                Harga Unit: Rp {ing.pricePerG.toLocaleString('id-ID')} / {ing.unit}
                                             </p>
                                         </div>
                                         <button
@@ -202,6 +216,34 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                         >
                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                         </button>
+                                    </div>
+
+                                    {/* Price Calculator Section */}
+                                    <div className="mb-4 p-3 bg-slate-50 dark:bg-primary/10 rounded-xl border border-primary/10">
+                                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.1em] mb-2">Kalkulator Konversi Harga Beli</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 font-bold ml-1">Harga Beli (Rp)</label>
+                                                <input
+                                                    type="number"
+                                                    value={ing.purchasePrice || 0}
+                                                    onChange={e => updateCalculatedPrice(ing.id, parseFloat(e.target.value) || 0, ing.purchaseQty || 1000)}
+                                                    placeholder="Contoh: 250000"
+                                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-1 focus:ring-primary"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-slate-500 font-bold ml-1">Total Berat/Vol ({ing.unit})</label>
+                                                <input
+                                                    type="number"
+                                                    value={ing.purchaseQty || 1000}
+                                                    onChange={e => updateCalculatedPrice(ing.id, ing.purchasePrice || 0, parseFloat(e.target.value) || 0)}
+                                                    placeholder="Contoh: 1000"
+                                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-1 focus:ring-primary"
+                                                />
+                                            </div>
+                                        </div>
+                                        <p className="text-[9px] text-slate-400 mt-2 italic">* Input 1000 jika beli per 1kg/1L untuk mendapatkan harga per g/ml</p>
                                     </div>
 
                                     <div className="flex items-center justify-between">
