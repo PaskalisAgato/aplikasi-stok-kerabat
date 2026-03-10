@@ -1,0 +1,113 @@
+import { useState } from 'react';
+import { RECIPES } from '@shared/mockDatabase';
+import type { Recipe } from '@shared/mockDatabase';
+
+import NavDrawer from '@shared/NavDrawer';
+import EditRecipeModal from './components/EditRecipeModal';
+
+function App() {
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+    return (
+        <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased">
+            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30 overflow-x-hidden pb-8">
+
+                {/* Header */}
+                <header className="sticky top-0 z-30 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-primary/10 px-4 py-4">
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors active:scale-95 text-primary shrink-0">
+                            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>menu</span>
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <button className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary">
+                                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>arrow_back</span>
+                            </button>
+                            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Kelola Resep & HPP</h1>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Search & Filters */}
+                <div className="px-4 pt-6 pb-2 space-y-4 sticky top-[73px] z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+                    <label className="relative flex items-center group">
+                        <span className="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors text-[22px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>search</span>
+                        <input
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-primary/10 bg-slate-100 dark:bg-primary/5 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 font-medium transition-all shadow-sm"
+                            placeholder="Cari menu (Kopi O, Teh Tarik...)"
+                            type="text"
+                        />
+                    </label>
+
+                    <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {/* Inline styles used for scrollbar-hide to ensure it works without custom css classes initially */}
+                        <style>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
+                        <button className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-white text-sm font-bold whitespace-nowrap shadow-md shadow-primary/20 transition-colors active:scale-95">Semua</button>
+                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Minuman</button>
+                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Makanan</button>
+                        <button className="px-5 py-2.5 rounded-full bg-white dark:bg-primary/5 hover:bg-primary/10 text-slate-700 dark:text-primary text-sm font-bold whitespace-nowrap border border-slate-200 dark:border-primary/20 transition-colors active:scale-95 shadow-sm">Snack</button>
+                    </div>
+                </div>
+
+                {/* Menu List */}
+                <main className="flex-1 px-4 py-2 space-y-4">
+                    {RECIPES.map(recipe => (
+                        <div key={recipe.id} className="bg-white dark:bg-[#1a140f] border border-slate-200 dark:border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+                            <div className="flex p-4 gap-4">
+                                <div
+                                    className="size-24 rounded-xl bg-slate-100 dark:bg-primary/5 bg-cover bg-center shrink-0 border border-slate-100 dark:border-primary/10 shadow-inner group-hover:scale-105 transition-transform duration-500"
+                                    style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                    title={recipe.name}
+                                ></div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex justify-between items-start gap-2">
+                                            <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100 tracking-tight leading-tight">{recipe.name}</h3>
+                                            <span className="px-2 py-1 rounded-md text-[9px] font-extrabold bg-green-500/10 text-green-600 dark:text-green-500 border border-green-500/20 uppercase tracking-widest shrink-0 shadow-sm">Margin {recipe.margin}%</span>
+                                        </div>
+                                        <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5 italic font-medium leading-snug">{recipe.description}</p>
+                                    </div>
+
+                                    <div className="flex justify-between items-end pt-3 border-t border-slate-100 dark:border-primary/10 mt-2">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest">HPP: Rp {recipe.hpp.toLocaleString('id-ID')}</p>
+                                            <p className="text-primary font-extrabold text-base tracking-tight">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedRecipe(recipe);
+                                            }}
+                                            className="size-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-primary dark:bg-primary/10 text-slate-600 hover:text-white dark:text-primary dark:hover:bg-primary dark:hover:text-white transition-all active:scale-90 shadow-sm">
+                                            <span className="material-symbols-outlined text-[18px]">edit</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </main>
+
+                {/* Floating Action Button */}
+                <button className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-light dark:ring-background-dark transition-transform active:scale-95 group">
+                    <span className="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
+                </button>
+                {/* Edit Recipe Modal */}
+                {selectedRecipe && (
+                    <EditRecipeModal
+                        recipe={selectedRecipe}
+                        onClose={() => setSelectedRecipe(null)}
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default App;
