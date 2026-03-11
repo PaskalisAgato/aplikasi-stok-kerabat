@@ -22,9 +22,6 @@ function App() {
                     <button onClick={() => setDrawerOpen(true)} className="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors text-primary shrink-0">
                         <span className="material-symbols-outlined text-primary">menu</span>
                     </button>
-                    <button className="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors shrink-0">
-                        <span className="material-symbols-outlined">arrow_back</span>
-                    </button>
                     <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1">Kopi Tiam P&L Report</h2>
                 </div>
 

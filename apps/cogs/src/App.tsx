@@ -19,11 +19,6 @@ function App() {
                     <button onClick={() => setDrawerOpen(true)} className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0">
                         <span className="material-symbols-outlined">menu</span>
                     </button>
-                    <div className="text-primary flex size-10 shrink-0 items-center justify-start">
-                        <button className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
-                    </div>
                     <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1">COGS Analysis</h2>
                 </div>
 

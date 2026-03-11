@@ -77,9 +77,6 @@ function App() {
                     <span className="material-symbols-outlined">menu</span>
                 </button>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                        <span className="material-symbols-outlined">arrow_back</span>
-                    </button>
                     <h1 className="text-xl font-bold tracking-tight">Kelola Karyawan</h1>
                 </div>
             </header>

@@ -18,9 +18,6 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, onMenuClick }) 
                 >
                     <span className="material-symbols-outlined">menu</span>
                 </button>
-                <div className="text-primary flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 transition-colors cursor-pointer">
-                    <span className="material-symbols-outlined">arrow_back</span>
-                </div>
                 <h1 className="text-lg font-bold leading-tight tracking-tight flex-1">Transaksi &amp; Pengeluaran</h1>
             </div>
             {/* Sub-tabs */}

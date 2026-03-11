@@ -3,7 +3,6 @@ import Header from './components/Header';
 import KPICards from './components/KPICards';
 import SalesChart from './components/SalesChart';
 import CriticalStock from './components/CriticalStock';
-import FloatingActionButton from './components/FloatingActionButton';
 import NotificationModal from './components/NotificationModal';
 
 import NavDrawer from '@shared/NavDrawer';
@@ -22,7 +21,6 @@ function App() {
       <KPICards />
       <SalesChart />
       <CriticalStock />
-      <FloatingActionButton />
 
       <NotificationModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </div>

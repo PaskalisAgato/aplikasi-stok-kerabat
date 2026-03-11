@@ -20,9 +20,6 @@ function App() {
                         <span className="material-symbols-outlined">menu</span>
                     </button>
                     <div className="flex items-center gap-3">
-                        <button className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95">
-                            <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
-                        </button>
                         <div>
                             <h1 className="text-lg font-bold leading-tight tracking-tight">Stock Opname</h1>
                             <p className="text-xs text-primary font-bold uppercase tracking-wider mt-0.5">Kerabat Kopi Tiam</p>

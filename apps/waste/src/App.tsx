@@ -24,9 +24,6 @@ function App() {
                         <span className="material-symbols-outlined">menu</span>
                     </button>
                     <div className="flex items-center gap-3">
-                        <button className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95">
-                            <span className="material-symbols-outlined text-primary">arrow_back</span>
-                        </button>
                         <h1 className="text-lg font-bold tracking-tight">Analisis Pemborosan</h1>
                     </div>
                 </header>

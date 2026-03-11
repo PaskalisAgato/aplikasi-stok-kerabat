@@ -126,9 +126,24 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                             className="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-[64px] border border-slate-200 dark:border-primary/20"
                                             style={{ backgroundImage: `url("${item.image}")` }}
                                         />
-                                        <div className="flex flex-1 flex-col justify-center">
-                                            <p className="text-slate-900 dark:text-slate-100 text-base font-semibold leading-tight">{item.name}</p>
-                                            <p className="text-slate-500 dark:text-primary/60 text-sm font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
+                                        <div className="flex flex-1 flex-col justify-center gap-1">
+                                            <input
+                                                type="text"
+                                                value={item.name}
+                                                onChange={(e) => setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: e.target.value } : i))}
+                                                className="w-full bg-transparent border-none p-0 text-slate-900 dark:text-slate-100 text-base font-semibold leading-tight focus:ring-0 placeholder:text-slate-400"
+                                                placeholder="Nama Bahan"
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={item.image}
+                                                    onChange={(e) => setItems(prev => prev.map(i => i.id === item.id ? { ...i, image: e.target.value } : i))}
+                                                    className="w-full bg-slate-100 dark:bg-primary/20 rounded px-2 py-0.5 text-[10px] text-slate-500 border-none focus:ring-1 focus:ring-primary/50"
+                                                    placeholder="URL Foto Bahan"
+                                                />
+                                            </div>
+                                            <p className="text-slate-500 dark:text-primary/60 text-xs font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
                                         </div>
                                     </div>
                                     <div className="shrink-0">

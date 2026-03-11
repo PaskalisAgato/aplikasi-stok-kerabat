@@ -20,9 +20,6 @@ function App() {
                 </button>
                 <div className="flex-1 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="text-primary cursor-pointer hover:bg-primary/10 p-1 rounded-full transition-colors flex items-center justify-center">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </div>
                         <h1 className="text-lg font-bold tracking-tight">Store Profile</h1>
                     </div>
                     <button className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors">

@@ -21,9 +21,6 @@ function App() {
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0">
                             <span className="material-symbols-outlined">menu</span>
                         </button>
-                        <button className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary active:scale-95 shrink-0">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
                         <div className="flex-1">
                             <h1 className="text-xs font-bold text-primary uppercase tracking-wider mb-0.5">Detail Pemborosan</h1>
                             <h2 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">{item.name}</h2>
