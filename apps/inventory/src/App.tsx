@@ -19,6 +19,14 @@ function App() {
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filterType, setFilterType] = useState('Semua');
+  const [selectedStock, setSelectedStock] = useState<any>(null);
+
+  const filteredInventory = INVENTORY.filter(item => {
+    if (filterType === 'Kritis') return item.status === 'KRITIS' || item.status === 'HABIS';
+    if (filterType === 'Normal') return item.status === 'NORMAL';
+    return true; // Semua
+  });
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
@@ -37,7 +45,6 @@ function App() {
                 <span className="material-symbols-outlined">menu</span>
               </button>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
                 <h1 className="text-xl font-bold tracking-tight">Inventory Stok</h1>
               </div>
             </div>
@@ -73,26 +80,28 @@ function App() {
 
           {/* Filter Pills */}
           <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
-            <button className="whitespace-nowrap px-5 py-2 rounded-full bg-primary text-white text-xs font-semibold">Semua</button>
-            <button className="whitespace-nowrap px-5 py-2 rounded-full bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 text-xs font-medium border border-transparent dark:border-primary/20">Kritis</button>
-            <button className="whitespace-nowrap px-5 py-2 rounded-full bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 text-xs font-medium border border-transparent dark:border-primary/20">Normal</button>
+            <button 
+              onClick={() => setFilterType('Semua')}
+              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Semua' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Semua</button>
+            <button 
+              onClick={() => setFilterType('Kritis')}
+              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Kritis' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Kritis</button>
+            <button 
+              onClick={() => setFilterType('Normal')}
+              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Normal' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Normal</button>
           </div>
         </header>
 
         {/* Inventory List */}
         <main className="flex-1 px-4 pt-4 space-y-4">
-          {/* DEV BUTTON FOR TESTING INVENTORY MODAL */}
-          <button
-            onClick={() => setIsStockModalOpen(true)}
-            className="w-full bg-slate-800 text-white p-3 rounded-lg text-sm font-bold shadow-lg"
-          >
-            [DEV] VERIFY INVENTORY MODAL
-          </button>
-
           <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 dark:text-primary/50 mb-2 px-1">Daftar Stok Bahan</h2>
 
-          {INVENTORY.map(item => (
-            <div key={item.id} className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-4 shadow-sm">
+          {filteredInventory.map(item => (
+            <div 
+              key={item.id} 
+              onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
+              className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-4 shadow-sm cursor-pointer hover:border-primary/40 transition-colors active:scale-[0.98]"
+            >
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">{item.name}</h3>
@@ -122,20 +131,16 @@ function App() {
           ))}
         </main>
 
-        {/* Floating Action Button */}
-        <button
-          onClick={() => setIsAddStockModalOpen(true)}
-          className="fixed bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 z-30"
-        >
-          <span className="material-symbols-outlined text-[32px]">add</span>
-        </button>
-
-
       </div>
 
       <StockDetailModal
         isOpen={isStockModalOpen}
         onClose={() => setIsStockModalOpen(false)}
+        selectedItem={selectedStock}
+        onEditClick={() => {
+            setIsStockModalOpen(false);
+            setTimeout(() => setIsAddStockModalOpen(true), 300);
+        }}
       />
 
       <AddStockModal

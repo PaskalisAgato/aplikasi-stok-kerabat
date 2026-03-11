@@ -3,9 +3,11 @@ import React from 'react';
 interface StockDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
+    selectedItem?: any;
+    onEditClick?: () => void;
 }
 
-const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose }) => {
+const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, selectedItem, onEditClick }) => {
     if (!isOpen) return null;
 
     return (
@@ -30,13 +32,13 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose }) 
                             <div className="flex gap-4 items-center">
                                 <div
                                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl min-h-[6rem] w-24 bg-primary/10 border border-primary/20"
-                                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCuurHJ0EvS4x2sNETvQ4se_9e7W_9c-rzdvRKYAPE2FWSaquvoRKl_LPJfnWjCmdRaMhpieJbcR9ElGLKINlrcRCwVqPS5ctwUg1ClQNW8lHLux-cdPmQ-WETYs8ZslKD_Bu4omNG1UrF__SI0QyVsXWcybJTFDfX-XCRRfTk3lkEvZko9qJg24G1S78wrikk-jr6nXhX8iJIUagT-XvgLcgvpk-MYlOX52UxVmSWav0XlgQKBxS7hthrzo7nUZPBI3rtYo9_TQyc")' }}
+                                    style={{ backgroundImage: `url('${selectedItem?.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                 />
                                 <div className="flex flex-col">
-                                    <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">Kopi Bubuk Arabica</h1>
+                                    <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">{selectedItem?.name || 'Item Name'}</h1>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="inline-block w-2 h-2 rounded-full bg-primary" />
-                                        <p className="text-primary font-semibold text-lg">1.2kg remaining</p>
+                                        <span className={`inline-block w-2 h-2 rounded-full ${selectedItem?.status === 'KRITIS' ? 'bg-red-500' : selectedItem?.status === 'HABIS' ? 'bg-slate-500' : 'bg-primary'}`} />
+                                        <p className="text-primary font-semibold text-lg">{selectedItem?.currentStock || 0}{selectedItem?.unit || 'kg'} remaining</p>
                                     </div>
                                     <p className="text-slate-500 dark:text-slate-400 text-sm">Last updated: 2 hours ago</p>
                                 </div>
@@ -146,7 +148,11 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose }) 
                         <span className="material-symbols-outlined">inventory</span>
                         Update Stock
                     </button>
-                    <button className="flex h-auto px-4 items-center justify-center bg-slate-100 dark:bg-primary/20 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-primary/30 hover:bg-slate-200 dark:hover:bg-primary/30 transition-colors">
+                    <button 
+                        onClick={onEditClick}
+                        className="flex h-auto px-4 items-center justify-center bg-slate-100 dark:bg-primary/20 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-primary/30 hover:bg-slate-200 dark:hover:bg-primary/30 transition-colors"
+                        title="Edit / Tambah Bahan Lain"
+                    >
                         <span className="material-symbols-outlined">edit</span>
                     </button>
                 </div>
