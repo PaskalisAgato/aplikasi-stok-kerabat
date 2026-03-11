@@ -57,6 +57,20 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
         ));
     };
 
+    const handleAddMore = () => {
+        const newItem: SelectedItem = {
+            id: Date.now().toString(),
+            name: 'Pilih Bahan Baru',
+            unit: 'pcs',
+            stock: 0,
+            image: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
+            quantity: 1,
+            price: 0,
+            discount: 0
+        };
+        setItems(prev => [...prev, newItem]);
+    };
+
     const calculateTotal = () => {
         return items.reduce((acc, item) => {
             const itemTotal = item.quantity * item.price;
@@ -161,7 +175,10 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
 
                     {/* Add More Button */}
                     <div className="px-4 py-6">
-                        <div className="bg-primary/5 rounded-xl p-4 border border-dashed border-primary/30 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/10 transition-colors">
+                        <div 
+                            onClick={handleAddMore}
+                            className="bg-primary/5 rounded-xl p-4 border border-dashed border-primary/30 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/10 transition-colors"
+                        >
                             <span className="material-symbols-outlined text-primary text-3xl">add_circle</span>
                             <p className="text-primary font-medium">Tambah Bahan Lain</p>
                         </div>

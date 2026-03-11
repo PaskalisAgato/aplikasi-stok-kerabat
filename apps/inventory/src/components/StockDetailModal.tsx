@@ -151,7 +151,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                     <button 
                         onClick={onEditClick}
                         className="flex h-auto px-4 items-center justify-center bg-slate-100 dark:bg-primary/20 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-primary/30 hover:bg-slate-200 dark:hover:bg-primary/30 transition-colors"
-                        title="Edit / Tambah Bahan Lain"
+                        title="Ubah Data Stok"
                     >
                         <span className="material-symbols-outlined">edit</span>
                     </button>

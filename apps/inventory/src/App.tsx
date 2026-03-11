@@ -131,6 +131,14 @@ function App() {
           ))}
         </main>
 
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setIsAddStockModalOpen(true)}
+          className="fixed bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 z-30"
+        >
+          <span className="material-symbols-outlined text-[32px]">add</span>
+        </button>
+
       </div>
 
       <StockDetailModal
@@ -138,8 +146,8 @@ function App() {
         onClose={() => setIsStockModalOpen(false)}
         selectedItem={selectedStock}
         onEditClick={() => {
-            setIsStockModalOpen(false);
-            setTimeout(() => setIsAddStockModalOpen(true), 300);
+            // TODO: Implement actual Edit Stock logic
+            alert('Fitur ubah data stok akan segera hadir.');
         }}
       />
 
