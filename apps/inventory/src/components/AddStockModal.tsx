@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 
+interface InventoryItem {
+    id: number;
+    name: string;
+    unit: string;
+    currentStock: string;
+    imageUrl: string;
+}
+
 interface SelectedItem {
-    id: string;
+    id: string; // matches InventoryItem.id or timestamp
+    inventoryId: number;
     name: string;
     unit: string;
     stock: number;
@@ -17,33 +26,51 @@ interface AddStockModalProps {
     onClose: () => void;
 }
 
-const INITIAL_ITEMS: SelectedItem[] = [
-    {
-        id: '1',
-        name: 'Kopi Bubuk House Blend',
-        unit: 'kg',
-        stock: 12,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4oKEVVTq_w-ajobrLEjQ3SiWO7-mv3wQh6oDCuanZvwW7h-6b_UBnQYMT915FYsncIiqj5-7zf0Hy_OQVqPSgnTYsx2_X0BkrMQ9OcgB15RAcjbAu-yyKcV5_BXRzYq_vww5bMTaCZiI6hla3aTySaT79Scih4N0v9BuVmgbg1Hgn1HZrNvHQeH7pwS9_yHZHsE-6SqeroyLYBkjeUjM09ze2tLnlQpPLp_VKxLNm2uIlhKAXvBu7vhE6urhN7pS-8DEk4qWA2vE',
-        quantity: 5,
-        price: 125000,
-        discount: 0
-    },
-    {
-        id: '2',
-        name: 'Susu UHT Full Cream',
-        unit: 'Liter',
-        stock: 24,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAYJPqrumWFBpddN33EelptJNRQs1Jp2K684ZP27ncscanMqKguH5H7qfvN2BBwJib_hI9ZmavYcxcpYcUyt4b3H8em9lbb9G9RG9L4UlZN3GyaK1NzEuVWmwiS6WRWsPmALIIWpg7hlivc-Hg7EnFDRPaE0F5kteLEY1xLO7s6X6OM_ICUsydCEsPKjoWwhJsTvozbZDd5Xk2TCs0BKtRCKtBmbUaIjke8mqHjPNE1PKpjFJYWUyE4w26ignnBPIjvPAXtrkO6tvQ',
-        quantity: 12,
-        price: 18500,
-        discount: 5
-    }
-];
-
 const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
-    const [items, setItems] = useState<SelectedItem[]>(INITIAL_ITEMS);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [inventory, setInventory] = useState<InventoryItem[]>([]);
+    const [items, setItems] = useState<SelectedItem[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchInventory();
+        }
+    }, [isOpen]);
+
+    const fetchInventory = async () => {
+        try {
+            const data = await apiClient.getInventory();
+            setInventory(data);
+        } catch (error) {
+            console.error('Failed to load inventory', error);
+        }
+    };
 
     if (!isOpen) return null;
+
+    const filteredInventory = inventory.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !items.some(selected => selected.inventoryId === item.id)
+    );
+
+    const handleAddItem = (item: InventoryItem) => {
+        const newItem: SelectedItem = {
+            id: item.id.toString(),
+            inventoryId: item.id,
+            name: item.name,
+            unit: item.unit,
+            stock: parseFloat(item.currentStock),
+            image: item.imageUrl || 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
+            quantity: 1,
+            price: 0,
+            discount: 0
+        };
+        setItems(prev => [...prev, newItem]);
+        setSearchTerm('');
+        setIsSearching(false);
+    };
 
     const handleQuantityChange = (id: string, delta: number) => {
         setItems(prev => prev.map(item =>
@@ -58,18 +85,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
         ));
     };
 
-    const handleAddMore = () => {
-        const newItem: SelectedItem = {
-            id: Date.now().toString(),
-            name: 'Pilih Bahan Baru',
-            unit: 'pcs',
-            stock: 0,
-            image: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
-            quantity: 1,
-            price: 0,
-            discount: 0
-        };
-        setItems(prev => [...prev, newItem]);
+    const handleRemoveItem = (id: string) => {
+        setItems(prev => prev.filter(item => item.id !== id));
     };
 
     const calculateTotal = () => {
@@ -81,55 +98,37 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
     };
 
     const handleSaveStock = async () => {
+        if (items.length === 0) {
+            alert('Pilih setidaknya satu bahan untuk direstock.');
+            return;
+        }
+
+        setIsSaving(true);
         try {
-            // Processing each row as a new material entry for now (simplified)
-            // Wait, if it exists, normally we'd do a Movement. Since mock IDs are strings vs numeric, let's treat new additions via POST /api/inventory
             for (const item of items) {
-                // Determine if it's "New" based on ID length (timestamp length)
-                // For safety, let's just create them if they look newly added manually
-                if (item.id.length > 5) { // Assuming mock IDs are '1', '2' etc. Time stamp is very long.
-                    const newItem = await apiClient.addInventoryItem({
-                        name: item.name,
-                        category: 'Bahan Baku', // default category
-                        unit: item.unit,
-                        pricePerUnit: item.price,
-                        imageUrl: item.image
+                if (item.quantity > 0) {
+                    await apiClient.recordStockMovement(item.inventoryId, {
+                        type: 'IN',
+                        quantity: item.quantity,
+                        reason: 'Manual Restock',
+                        supplierId: null
                     });
-                    
-                    if (item.quantity > 0) {
-                        await apiClient.recordStockMovement(newItem.id, {
-                            type: 'IN',
-                            quantity: item.quantity,
-                            reason: 'Manual Restock (New Item)'
-                        });
-                    }
-                } else {
-                    // Updating an existing stock based on original mock integer IDs
-                    if (item.quantity > 0) {
-                         await apiClient.recordStockMovement(parseInt(item.id), {
-                             type: 'IN',
-                             quantity: item.quantity,
-                             reason: 'Manual Restock',
-                             supplierId: null
-                         });
-                    }
                 }
             }
             alert('Berhasil menyimpan data stok ke Server!');
-            setItems([]); // Clear form
-            onClose(); // Trigger refresh on parent
+            setItems([]);
+            onClose();
         } catch (error) {
             console.error('Save failed', error);
-            alert('Gagal merekam data retsock stok: ' + (error as Error).message);
+            alert('Gagal merekam data restok: ' + (error as Error).message);
+        } finally {
+            setIsSaving(false);
         }
     };
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
-            {/* Bottom Sheet Modal */}
             <div className="w-full bg-background-light dark:bg-background-dark rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
-
-                {/* Header */}
                 <header className="flex items-center p-4 border-b border-slate-200 dark:border-primary/20">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
                         <span className="material-symbols-outlined">arrow_back</span>
@@ -140,31 +139,76 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     </div>
                 </header>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto pb-40">
-                    {/* Search */}
-                    <div className="px-4 py-4">
+                    <div className="px-4 py-4 relative">
                         <div className="flex w-full items-stretch rounded-xl h-12 shadow-sm bg-slate-100 dark:bg-primary/10">
                             <div className="text-primary/70 flex items-center justify-center pl-4">
                                 <span className="material-symbols-outlined">search</span>
                             </div>
                             <input
                                 className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-primary/40 px-4 pl-2 text-base"
-                                placeholder="Cari bahan (e.g. Kopi, Gula, Susu)"
+                                placeholder="Cari bahan baku..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setIsSearching(true);
+                                }}
+                                onFocus={() => setIsSearching(true)}
                             />
                         </div>
+
+                        {isSearching && searchTerm.length > 0 && (
+                            <div className="absolute left-4 right-4 top-16 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-primary/20 z-30 max-h-60 overflow-y-auto">
+                                {filteredInventory.length > 0 ? (
+                                    filteredInventory.map(item => (
+                                        <div 
+                                            key={item.id}
+                                            onClick={() => handleAddItem(item)}
+                                            className="p-3 hover:bg-primary/10 flex items-center gap-3 cursor-pointer border-b border-slate-100 dark:border-primary/10 last:border-0"
+                                        >
+                                            <div className="size-10 rounded bg-slate-100 dark:bg-primary/20 flex items-center justify-center overflow-hidden">
+                                                {item.imageUrl ? (
+                                                    <img src={item.imageUrl} alt={item.name} className="size-full object-cover" />
+                                                ) : (
+                                                    <span className="material-symbols-outlined text-primary/40">inventory_2</span>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.name}</p>
+                                                <p className="text-[10px] text-slate-500 uppercase tracking-wider">{item.currentStock} {item.unit} Tersedia</p>
+                                            </div>
+                                            <span className="material-symbols-outlined text-primary text-xl">add_circle</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-4 text-center text-slate-500 text-sm">
+                                        Tidak ada bahan ditemukan
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Selected Items Label */}
                     <div className="px-4 py-2 flex justify-between items-center">
                         <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold">Bahan Terpilih</h3>
                         <span className="text-xs font-semibold px-2 py-1 bg-primary/20 text-primary rounded-full uppercase tracking-wider">{items.length} Items</span>
                     </div>
 
-                    {/* Items List */}
                     <div className="space-y-3 px-4 py-2">
+                        {items.length === 0 && (
+                            <div className="py-10 text-center text-slate-400">
+                                <span className="material-symbols-outlined text-4xl mb-2 opacity-20">inventory_2</span>
+                                <p className="text-sm">Belum ada bahan terpilih.<br/>Gunakan kolom cari di atas.</p>
+                            </div>
+                        )}
                         {items.map(item => (
-                            <div key={item.id} className="flex flex-col gap-4 bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-100 dark:border-primary/10 shadow-sm">
+                            <div key={item.id} className="flex flex-col gap-4 bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-100 dark:border-primary/10 shadow-sm relative">
+                                <button 
+                                    onClick={() => handleRemoveItem(item.id)}
+                                    className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                                >
+                                    <span className="material-symbols-outlined text-xs">close</span>
+                                </button>
                                 <div className="flex gap-4 justify-between">
                                     <div className="flex items-start gap-4">
                                         <div
@@ -172,22 +216,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                             style={{ backgroundImage: `url("${item.image}")` }}
                                         />
                                         <div className="flex flex-1 flex-col justify-center gap-1">
-                                            <input
-                                                type="text"
-                                                value={item.name}
-                                                onChange={(e) => setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: e.target.value } : i))}
-                                                className="w-full bg-transparent border-none p-0 text-slate-900 dark:text-slate-100 text-base font-semibold leading-tight focus:ring-0 placeholder:text-slate-400"
-                                                placeholder="Nama Bahan"
-                                            />
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={item.image}
-                                                    onChange={(e) => setItems(prev => prev.map(i => i.id === item.id ? { ...i, image: e.target.value } : i))}
-                                                    className="w-full bg-slate-100 dark:bg-primary/20 rounded px-2 py-0.5 text-[10px] text-slate-500 border-none focus:ring-1 focus:ring-primary/50"
-                                                    placeholder="URL Foto Bahan"
-                                                />
-                                            </div>
+                                            <h4 className="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">{item.name}</h4>
                                             <p className="text-slate-500 dark:text-primary/60 text-xs font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
                                         </div>
                                     </div>
@@ -232,20 +261,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                             </div>
                         ))}
                     </div>
-
-                    {/* Add More Button */}
-                    <div className="px-4 py-6">
-                        <div 
-                            onClick={handleAddMore}
-                            className="bg-primary/5 rounded-xl p-4 border border-dashed border-primary/30 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/10 transition-colors"
-                        >
-                            <span className="material-symbols-outlined text-primary text-3xl">add_circle</span>
-                            <p className="text-primary font-medium">Tambah Bahan Lain</p>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Footer / Sticky Bottom */}
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-primary/20 z-20">
                     <div className="max-w-md mx-auto space-y-3">
                         <div className="flex justify-between items-center px-1">
@@ -256,10 +273,15 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                         </div>
                         <button 
                             onClick={handleSaveStock}
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                            disabled={isSaving || items.length === 0}
+                            className={`w-full ${isSaving ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all`}
                         >
-                            <span className="material-symbols-outlined">inventory_2</span>
-                            Simpan Stok
+                            {isSaving ? (
+                                <span className="material-symbols-outlined animate-spin">refresh</span>
+                            ) : (
+                                <span className="material-symbols-outlined">inventory_2</span>
+                            )}
+                            {isSaving ? 'Menyimpan...' : 'Simpan Stok'}
                         </button>
                     </div>
                 </div>

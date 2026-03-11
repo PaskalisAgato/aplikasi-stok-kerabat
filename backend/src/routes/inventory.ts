@@ -139,9 +139,17 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
         }
 
         const numericQty = parseFloat(quantity);
-        if (isNaN(numericQty) || numericQty === 0) {
-            return res.status(400).json({ error: 'Invalid quantity' });
+        // Determine sign based on type
+        let multiplier = 1;
+        if (type === 'OUT' || type === 'WASTE') {
+            multiplier = -1;
+        } else if (type === 'OPNAME_ADJUSTMENT') {
+            multiplier = 1; 
         }
+
+        const adjustment = numericQty * multiplier;
+
+        console.log(`[Movement] ID: ${inventoryId}, Type: ${type}, Qty: ${quantity}, Adjustment: ${adjustment}`);
 
         await db.transaction(async (tx) => {
             // 1. Insert Movement Record
@@ -155,19 +163,9 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
                 expiryDate: expiry
             });
 
-            // 2. Adjust Current Stock (Unit Conversion logic could be added here if needed)
-            // Determine sign based on type
-            let multiplier = 1;
-            if (type === 'OUT' || type === 'WASTE') {
-                multiplier = -1;
-            } else if (type === 'OPNAME_ADJUSTMENT') {
-               // Assuming OPNAME_ADJUSTMENT quantity is the literal adjustment diff (e.g. -5 or +2)
-               // The frontend should calculate the difference.
-               multiplier = 1; 
-            }
+            console.log(`[Movement] Updating stock for inventory ${inventoryId} by ${adjustment}`);
 
-            const adjustment = numericQty * multiplier;
-
+            // 2. Adjust Current Stock
             await tx.update(schema.inventory)
                 .set({
                     currentStock: sql`${schema.inventory.currentStock} + ${adjustment}`
@@ -178,6 +176,6 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
         res.status(200).json({ success: true, message: 'Stock updated' });
     } catch (error) {
         console.error('Error recording movement:', error);
-        res.status(500).json({ error: 'Failed to record stock movement' });
+        res.status(500).json({ error: (error as Error).message || 'Failed to record stock movement' });
     }
 });
