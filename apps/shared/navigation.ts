@@ -1,5 +1,6 @@
 export const NAV_LINKS = [
     { label: 'Dasbor', icon: 'dashboard', port: 5173 },
+    { label: 'Kasir (POS)', icon: 'point_of_sale', port: 5186 },
     { label: 'Inventori', icon: 'inventory_2', port: 5174 },
     { label: 'Laporan (Laba Rugi)', icon: 'bar_chart', port: 5175 },
     { label: 'Analisis HPP', icon: 'analytics', port: 5176 },
