@@ -28,6 +28,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5183: 'waste-detail',
     5184: 'recipes',
     5185: 'recipe-edit',
+    5186: 'pos',
 };
 
 export const getBaseUrl = () => {
