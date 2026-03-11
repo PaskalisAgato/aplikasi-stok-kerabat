@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import SummaryCard from './components/SummaryCard';
 import ExpenseList from './components/ExpenseList';
 import Fab from './components/Fab';
 import AddExpenseModal from './components/AddExpenseModal';
 import TransactionsBg from './components/TransactionsBg';
-import { EXPENSES } from '@shared/mockDatabase';
+import { apiClient } from '@shared/apiClient';
 
 
 import NavDrawer from '@shared/NavDrawer';
@@ -16,11 +16,49 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
   const [activeTab, setActiveTab] = useState<'penjualan' | 'pengeluaran'>('pengeluaran');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [expensesList, setExpensesList] = useState(EXPENSES);
+  const [expensesList, setExpensesList] = useState<any[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddExpense = (newExpense: any) => {
-    setExpensesList([newExpense, ...expensesList]);
+  const fetchExpenses = async () => {
+    try {
+        setIsLoading(true);
+        const data = await apiClient.getExpenses();
+        // format them matching component props
+        const formatted = data.map((exp: any) => ({
+            id: exp.id,
+            title: exp.title,
+            category: exp.category,
+            date: new Date(exp.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+            amount: exp.amount,
+            imageUrl: exp.receiptUrl || ''
+        }));
+        setExpensesList(formatted);
+    } catch (error) {
+        console.error("Failed fetching expenses", error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const handleAddExpense = () => {
+    // Re-fetch after add
+    fetchExpenses();
+  };
+
+  const handleDeleteExpense = async (id: number) => {
+    if (!window.confirm('Hapus kartu pengeluaran ini?')) return;
+    try {
+      await apiClient.deleteExpense(id);
+      fetchExpenses();
+    } catch (error) {
+      console.error("Failed to delete expense", error);
+      alert("Gagal menghapus data.");
+    }
   };
 
   const hasAnyModalOpen = isExpenseModalOpen;
@@ -39,7 +77,13 @@ function App() {
           {activeTab === 'pengeluaran' ? (
             <>
               <SummaryCard />
-              <ExpenseList expenses={expensesList} />
+              {isLoading ? (
+                  <div className="flex justify-center p-8">
+                      <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                  </div>
+              ) : (
+                  <ExpenseList expenses={expensesList} onDelete={handleDeleteExpense} />
+              )}
             </>
           ) : (
             <div className="flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">

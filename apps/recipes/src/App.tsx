@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { RECIPES } from '@shared/mockDatabase';
-import type { Recipe } from '@shared/mockDatabase';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@shared/apiClient';
+import type { Recipe } from '@shared/mockDatabase'; // Types still useful
 
 import NavDrawer from '@shared/NavDrawer';
 import EditRecipeModal from './components/EditRecipeModal';
@@ -10,8 +10,27 @@ function App() {
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
     const [filterCategory, setFilterCategory] = useState<string>('Semua');
     const [searchQuery, setSearchQuery] = useState('');
+    const [recipesList, setRecipesList] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredRecipes = RECIPES.filter(recipe => {
+    const fetchRecipes = async () => {
+        try {
+            setIsLoading(true);
+            const data = await apiClient.getRecipes();
+            setRecipesList(data);
+        } catch (error) {
+            console.error('Fetch recipes failed', error);
+            alert('Gagal mengambil daftar resep.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRecipes();
+    }, []);
+
+    const filteredRecipes = recipesList.filter(recipe => {
         const matchCategory = filterCategory === 'Semua' || recipe.category === filterCategory;
         const matchSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchCategory && matchSearch;
@@ -113,6 +132,18 @@ function App() {
                             </div>
                         </div>
                     ))}
+                    
+                    {isLoading && (
+                        <div className="flex justify-center items-center py-10">
+                            <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                        </div>
+                    )}
+
+                    {!isLoading && filteredRecipes.length === 0 && (
+                        <div className="text-center py-10 text-slate-500">
+                            <p>Belum ada Menu/Resep Tersedia</p>
+                        </div>
+                    )}
                 </main>
 
                 {/* Floating Action Button */}
@@ -134,7 +165,7 @@ function App() {
                 {selectedRecipe && (
                     <EditRecipeModal
                         recipe={selectedRecipe}
-                        onClose={() => setSelectedRecipe(null)}
+                        onClose={() => { setSelectedRecipe(null); fetchRecipes(); }}
                     />
                 )}
             </div>

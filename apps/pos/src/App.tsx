@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { RECIPES } from '@shared/mockDatabase';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@shared/apiClient';
 import NavDrawer from '@shared/NavDrawer';
 
 function App() {
@@ -7,12 +7,30 @@ function App() {
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [recipesList, setRecipesList] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredRecipes = RECIPES.filter(r =>
+    const fetchRecipes = async () => {
+        try {
+            setIsLoading(true);
+            const data = await apiClient.getRecipes();
+            setRecipesList(data);
+        } catch (error) {
+            console.error('Failed to load menu', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRecipes();
+    }, []);
+
+    const filteredRecipes = recipesList.filter(r =>
         r.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const activeCartItems = RECIPES.filter(r => sales[r.id] > 0);
+    const activeCartItems = recipesList.filter(r => sales[r.id] > 0);
 
     const updateQty = (id: number, delta: number) => {
         setSales(prev => ({
@@ -22,7 +40,7 @@ function App() {
     };
 
     const totalSalesValue = Object.entries(sales).reduce((total, [id, qty]) => {
-        const recipe = RECIPES.find(r => r.id === parseInt(id));
+        const recipe = recipesList.find(r => r.id === parseInt(id));
         return total + (recipe ? recipe.price * qty : 0);
     }, 0);
 
@@ -107,10 +125,33 @@ function App() {
                 {/* Footer Action */}
                 <footer className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-primary/10 p-4 pb-8 z-50 max-w-md mx-auto shadow-2xl">
                     <button
-                        onClick={() => {
+                        onClick={async () => {
                             if (totalItems === 0) return;
-                            alert('Penyimpanan ke Database Online dalam pengembangan (Silakan setup Supabase sesuai panduan).');
-                            // Logika nanti: looping recipe, kurangi stok bahan baku di inventory
+                            try {
+                                const confirmPos = confirm(`Selesaikan pesanan senilai Rp ${totalSalesValue.toLocaleString('id-ID')}?`);
+                                if (!confirmPos) return;
+
+                                const checkoutData = {
+                                    items: Object.entries(sales).map(([id, qty]) => {
+                                        const recipe = recipesList.find(r => r.id === parseInt(id));
+                                        return {
+                                            recipeId: parseInt(id),
+                                            quantity: qty,
+                                            price: recipe ? recipe.price : 0
+                                        };
+                                    }).filter(i => i.quantity > 0),
+                                    totalAmount: totalSalesValue,
+                                    paymentMethod: 'CASH', // default simplified
+                                    shiftId: null
+                                };
+
+                                await apiClient.checkoutCart(checkoutData);
+                                alert('Berhasil! Pembelian telah direkam, dan stok bahan digudang otomatis terpotong (BOM)!');
+                                setSales({}); // Reset cart
+                            } catch (e) {
+                                console.error('Checkout error:', e);
+                                alert('Transaksi kasir Gagal divalidasi API.');
+                            }
                         }}
                         className={`w-full py-4 rounded-2xl font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 
                ${totalItems > 0 ? 'bg-gradient-to-r from-primary to-[#b36a2b] shadow-primary/30' : 'bg-slate-300 dark:bg-slate-800 cursor-not-allowed text-slate-500 shadow-none'}`}
@@ -148,7 +189,14 @@ function App() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
-                        {filteredRecipes.map(recipe => {
+                        {isLoading && (
+                             <div className="flex justify-center items-center py-6">
+                                <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                             </div>
+                        )}
+                        {!isLoading && filteredRecipes.length === 0 ? (
+                            <p className="text-center text-slate-500 py-4">Menu tidak ditemukan.</p>
+                        ) : filteredRecipes.map(recipe => {
                             const inCart = sales[recipe.id] > 0;
                             return (
                                 <div key={`add-${recipe.id}`} className="flex items-center gap-4 bg-white dark:bg-primary/5 p-3 rounded-2xl border border-slate-100 dark:border-primary/10 shadow-sm">

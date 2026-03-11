@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Expense {
@@ -12,40 +12,105 @@ interface Expense {
 
 interface ExpenseListProps {
     expenses: Expense[];
+    onDelete?: (id: number) => void;
 }
 
-const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
+const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+    const MONTHS = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    const generateYears = () => {
+        const currentYear = new Date().getFullYear();
+        return [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+    };
+
+    const filteredExpenses = expenses.filter(expense => {
+        // Tying to parse short indonesian date format: D MMM YYYY  or  D MMMM YYYY
+        // Simplest generic fallback is to check contains if not matching typical dates.
+        try {
+            const expDate = new Date(expense.date);
+            if(!isNaN(expDate.getTime())) {
+                return expDate.getMonth() === selectedMonth && expDate.getFullYear() === selectedYear;
+            }
+        } catch(e) {}
+        
+        // Simple string fallback
+        const monthStr = MONTHS[selectedMonth];
+        const monthShortStr = monthStr.substring(0, 3);
+        const dateString = expense.date.toLowerCase();
+        
+        return (dateString.includes(monthStr.toLowerCase()) || dateString.includes(monthShortStr.toLowerCase())) 
+               && dateString.includes(selectedYear.toString());
+    });
+
     return (
         <div className="space-y-4 pb-10">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">Daftar Pengeluaran</h3>
-                <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded">Oktober 2023</span>
+                <div className="flex gap-2">
+                    <select 
+                        value={selectedMonth} 
+                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                        className="text-xs font-bold bg-primary/10 text-primary px-2 py-1.5 rounded outline-none border border-primary/20 appearance-none text-center cursor-pointer"
+                    >
+                        {MONTHS.map((m, i) => (
+                            <option key={i} value={i}>{m}</option>
+                        ))}
+                    </select>
+                    <select 
+                        value={selectedYear} 
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        className="text-xs font-bold bg-primary/10 text-primary px-2 py-1.5 rounded outline-none border border-primary/20 appearance-none text-center cursor-pointer"
+                    >
+                        {generateYears().map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="space-y-3">
                 <AnimatePresence>
-                    {expenses.map((expense) => (
-                        <motion.div
-                            key={expense.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            layout
-                            className="flex items-center gap-4 p-3 rounded-lg bg-slate-50 dark:bg-primary/5 border border-primary/10 transition-colors"
-                        >
-                            <div
-                                className="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-primary/20 bg-slate-200 dark:bg-slate-800"
-                                style={{ backgroundImage: `url('${expense.imageUrl}')` }}
-                            />
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold truncate">{expense.title}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{expense.category} • {expense.date}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-bold text-primary">Rp {expense.amount}</p>
-                            </div>
-                        </motion.div>
-                    ))}
+                    {filteredExpenses.length === 0 ? (
+                        <p className="text-center text-sm text-slate-500 py-8">Tidak ada pengeluaran di periode ini.</p>
+                    ) : (
+                        filteredExpenses.map((expense) => (
+                            <motion.div
+                                key={expense.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                layout
+                                className="flex items-center gap-4 p-3 rounded-lg bg-slate-50 dark:bg-primary/5 border border-primary/10 transition-colors group"
+                            >
+                                <div
+                                    className="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-primary/20 bg-slate-200 dark:bg-slate-800"
+                                    style={{ backgroundImage: `url('${expense.imageUrl}')` }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold truncate">{expense.title}</p>
+                                    <p className="text-[10px] text-slate-500 font-medium bg-slate-200 dark:bg-slate-800 rounded px-1.5 py-0.5 inline-block mt-1">{expense.category}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{expense.date}</p>
+                                </div>
+                                <div className="text-right flex flex-col items-end gap-2">
+                                    <p className="font-bold text-primary">Rp {Number(expense.amount).toLocaleString('id-ID')}</p>
+                                    {onDelete && (
+                                        <button 
+                                            onClick={() => onDelete(expense.id)}
+                                            className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
                 </AnimatePresence>
             </div>
         </div>

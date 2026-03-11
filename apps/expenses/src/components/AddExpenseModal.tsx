@@ -34,30 +34,36 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [selectedCategory, setSelectedCategory] = useState('coffee');
     const [categorySearch, setCategorySearch] = useState('');
     const [receipt, setReceipt] = useState<string | null>(RECEIPT_PLACEHOLDER);
+    const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount) return;
 
-        const formatted = Number(amount).toLocaleString('id-ID');
         const cat = ALL_CATEGORIES.find(c => c.id === selectedCategory);
-        onAdd({
-            id: Date.now(),
-            title: name,
-            category: cat?.label ?? 'Other',
-            date: 'Hari Ini',
-            amount: formatted,
-            imageUrl: receipt || '',
-        });
+        
+        try {
+            await apiClient.addExpense({
+                title: name,
+                category: cat?.label ?? 'Other',
+                amount: Number(amount),
+                receiptUrl: receipt || '',
+                date: expenseDate
+            });
 
-        setName('');
-        setAmount('');
-        setSelectedCategory('coffee');
-        setCategorySearch('');
-        setReceipt(RECEIPT_PLACEHOLDER);
-        onClose();
+            onAdd({}); // Just trigger a refresh on parent
+            setName('');
+            setAmount('');
+            setSelectedCategory('coffee');
+            setCategorySearch('');
+            setReceipt(RECEIPT_PLACEHOLDER);
+            onClose();
+        } catch (error) {
+            console.error('Failed to save expense', error);
+            alert('Gagal merekam pengeluaran.');
+        }
     };
 
     const filteredCategories = ALL_CATEGORIES.filter(c =>
@@ -120,6 +126,17 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     className="w-full h-14 pl-12 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 text-xl font-bold"
                                 />
                             </div>
+                        </div>
+
+                        {/* Date Picker */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Tanggal Transaksi</label>
+                            <input
+                                type="date"
+                                value={expenseDate}
+                                onChange={e => setExpenseDate(e.target.value)}
+                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 font-medium"
+                            />
                         </div>
 
                         {/* Categories — chip-based */}

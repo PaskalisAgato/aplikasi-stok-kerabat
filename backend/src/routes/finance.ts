@@ -1,0 +1,162 @@
+import { Router, Request, Response } from 'express';
+import { db } from '../db';
+import * as schema from '../db/schema';
+import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
+
+export const financeRouter = Router();
+
+// GET all expenses
+financeRouter.get('/expenses', async (req: Request, res: Response) => {
+    try {
+        const _expenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+        res.json(_expenses);
+    } catch (error) {
+        console.error('Error fetching expenses:', error);
+        res.status(500).json({ error: 'Failed to fetch expenses' });
+    }
+});
+
+// POST new expense
+financeRouter.post('/expenses', async (req: Request, res: Response) => {
+    try {
+        const { title, category, amount, date } = req.body;
+        
+        if (!title || !category || !amount) {
+            return res.status(400).json({ error: 'Missing required expense fields' });
+        }
+
+        const [newExpense] = await db.insert(schema.expenses).values({
+            title,
+            category,
+            amount: amount.toString(),
+            expenseDate: date ? new Date(date) : new Date()
+        }).returning();
+
+        res.status(201).json(newExpense);
+    } catch (error) {
+        console.error('Error adding expense:', error);
+        res.status(500).json({ error: 'Failed to record expense' });
+    }
+});
+
+// DELETE expense
+financeRouter.delete('/expenses/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid expense ID' });
+        }
+
+        const [deletedExpense] = await db.delete(schema.expenses)
+            .where(eq(schema.expenses.id, id))
+            .returning();
+
+        if (!deletedExpense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.json({ message: 'Expense deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting expense:', error);
+        res.status(500).json({ error: 'Failed to delete expense' });
+    }
+});
+
+// GET P&L (Profit & Loss) Report Summary
+financeRouter.get('/reports', async (req: Request, res: Response) => {
+    try {
+        // Query Total Sales (Revenue)
+        const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
+        const revenue = allSales.reduce((sum, current) => sum + parseFloat(current.total), 0);
+        
+        // Query Total Expenses (Cost)
+        const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
+        const totalExpenses = allExpenses.reduce((sum, current) => sum + parseFloat(current.total), 0);
+
+        // Simple P&L mock - For actual apps needs date filtering (e.g. Current Month)
+        const netProfit = revenue - totalExpenses;
+
+        res.json({
+            revenue,
+            expenses: totalExpenses,
+            netProfit,
+        });
+
+    } catch (error) {
+        console.error('Error computing P&L:', error);
+        res.status(500).json({ error: 'Failed to compute financial reports' });
+    }
+});
+
+// GET HPP (COGS) Analysis
+financeRouter.get('/hpp', async (req: Request, res: Response) => {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // 1. Get all sale items in last 30 days
+        const salesInPeriod = await db.select({
+            id: schema.sales.id,
+            createdAt: schema.sales.createdAt
+        })
+        .from(schema.sales)
+        .where(gte(schema.sales.createdAt, thirtyDaysAgo));
+
+        const saleIds = salesInPeriod.map(s => s.id);
+        if (saleIds.length === 0) {
+            return res.json({ totalHPP: 0, ingredientsHPP: [], recipeHPP: [] });
+        }
+
+        const items = await db.select()
+            .from(schema.saleItems)
+            .where(inArray(schema.saleItems.saleId, saleIds));
+
+        // 2. Fetch BOM for all affected recipes
+        const recipeIds = [...new Set(items.map(i => i.recipeId))];
+        const boms = await db.select({
+            recipeId: schema.recipeIngredients.recipeId,
+            inventoryId: schema.recipeIngredients.inventoryId,
+            usageQty: schema.recipeIngredients.quantity,
+            ingredientName: schema.inventory.name,
+            pricePerUnit: schema.inventory.pricePerUnit
+        })
+        .from(schema.recipeIngredients)
+        .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+        .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+
+        // 3. Calculate HPP
+        let totalHPP = 0;
+        const ingredientUsage: Record<number, { name: string, totalCost: number, totalQty: number }> = {};
+        const recipeCosts: Record<number, { name: string, cost: number }> = {};
+
+        for (const item of items) {
+            const itemBoms = boms.filter(b => b.recipeId === item.recipeId);
+            let itemTotalCost = 0;
+
+            for (const bom of itemBoms) {
+                const cost = parseFloat(bom.usageQty) * item.quantity * parseFloat(bom.pricePerUnit);
+                itemTotalCost += cost;
+                totalHPP += cost;
+
+                if (!ingredientUsage[bom.inventoryId]) {
+                    ingredientUsage[bom.inventoryId] = { name: bom.ingredientName, totalCost: 0, totalQty: 0 };
+                }
+                ingredientUsage[bom.inventoryId].totalCost += cost;
+                ingredientUsage[bom.inventoryId].totalQty += parseFloat(bom.usageQty) * item.quantity;
+            }
+        }
+
+        res.json({
+            totalHPP,
+            ingredientsHPP: Object.entries(ingredientUsage).map(([id, data]) => ({
+                id: parseInt(id),
+                ...data
+            })).sort((a, b) => b.totalCost - a.totalCost),
+            // Could add more breakdowns here
+        });
+
+    } catch (error) {
+        console.error('Error calculating HPP:', error);
+        res.status(500).json({ error: 'Failed to calculate HPP analysis' });
+    }
+});

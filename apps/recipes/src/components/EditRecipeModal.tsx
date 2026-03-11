@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { INVENTORY } from '@shared/mockDatabase';
+import { apiClient } from '@shared/apiClient';
 import type { Recipe } from '@shared/mockDatabase';
 
 interface Ingredient {
@@ -28,16 +28,26 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     const [hargaJual, setHargaJual] = useState(recipe.price);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [inventoryData, setInventoryData] = useState<any[]>([]);
+
+    useEffect(() => {
+        apiClient.getInventory().then(data => {
+            setInventoryData(data);
+        }).catch(err => console.error("Failed to fetch inventory for recipe editing", err));
+    }, []);
 
     // Inisialisasi data dari resep yang dipilih
     useEffect(() => {
+        // Jika belum ada data inventori, tunggu dulu
+        if (inventoryData.length === 0 && recipe.ingredients.length > 0) return;
+
         // Melakukan pemetaan bahan resep ke data inventori untuk mendapatkan harga mentah per unit
         const initialIngredients = recipe.ingredients.map(ing => {
-            const inventoryItem = INVENTORY.find(item => item.id === ing.ingredientId);
+            const inventoryItem = inventoryData.find(item => item.id === ing.ingredientId);
             return {
                 id: ing.ingredientId,
                 name: ing.name,
-                pricePerG: inventoryItem ? inventoryItem.pricePerUnit : 0,
+                pricePerG: inventoryItem ? parseFloat(inventoryItem.pricePerUnit) : 0,
                 unit: ing.unit,
                 qty: ing.qty
             };
@@ -53,7 +63,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         } else {
             setOverhead(10);
         }
-    }, [recipe]);
+    }, [recipe, inventoryData]);
 
     const changeQty = (id: number, delta: number) => {
         setIngredients(prev =>
@@ -87,7 +97,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         setIngredients(prev => prev.filter(ing => ing.id !== id));
     };
 
-    const addIngredient = (item: typeof INVENTORY[0]) => {
+    const addIngredient = (item: any) => {
         // Prevent dupes
         if (ingredients.some(ing => ing.id === item.id)) {
             setShowAddIngredient(false);
@@ -96,7 +106,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         setIngredients(prev => [...prev, {
             id: item.id,
             name: item.name,
-            pricePerG: item.pricePerUnit,
+            pricePerG: parseFloat(item.pricePerUnit),
             unit: item.unit,
             qty: 1
         }]);
@@ -104,7 +114,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         setSearchTerm('');
     };
 
-    const availableIngredients = INVENTORY.filter(item =>
+    const availableIngredients = inventoryData.filter(item =>
         !ingredients.some(ing => ing.id === item.id) &&
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -113,6 +123,30 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     const totalHPP = Math.round(totalBahan * (1 + overhead / 100));
     const laba = hargaJual - totalHPP;
     const margin = hargaJual > 0 ? ((laba / hargaJual) * 100).toFixed(1) : '0.0';
+
+    const handleSaveAPI = async () => {
+        try {
+            if(!namaResep) return alert("Nama resep tidak boleh kosong");
+            const prepIngredients = ingredients.map(ing => ({
+                ingredientId: ing.id,
+                qty: ing.qty
+            }));
+
+            await apiClient.createRecipe({
+                name: namaResep,
+                category: recipe.category, // You might want a dropdown for this later
+                price: hargaJual,
+                margin: parseFloat(margin),
+                imageUrl: recipe.imageUrl,
+                ingredients: prepIngredients
+            });
+            alert('Resep berhasil disimpan di Cloud!');
+            onClose();
+        } catch (error) {
+            console.error(error);
+            alert('Gagal merekam resep!');
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[100] bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased overflow-y-auto">
@@ -188,7 +222,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                     >
                                                         <div>
                                                             <p className="font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">{item.name}</p>
-                                                            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{item.category} • Rp {item.pricePerUnit.toLocaleString('id-ID')}/{item.unit}</p>
+                                                            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{item.category} • Rp {parseFloat(item.pricePerUnit).toLocaleString('id-ID')}/{item.unit}</p>
                                                         </div>
                                                         <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors text-[20px]">add_circle</span>
                                                     </button>
@@ -365,7 +399,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                             Batal
                         </button>
                         <button
-                            onClick={onClose}
+                            onClick={handleSaveAPI}
                             className="flex-[3] py-4 bg-gradient-to-r from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
                             <span className="material-symbols-outlined text-[22px]">save</span>
                             Simpan Resep

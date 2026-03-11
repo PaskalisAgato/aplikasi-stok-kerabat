@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { EXPENSES, RECIPES } from '@shared/mockDatabase';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@shared/apiClient';
 
 
 import NavDrawer from '@shared/NavDrawer';
@@ -7,11 +7,31 @@ import NavDrawer from '@shared/NavDrawer';
 
 
 
-function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const totalExpenses = EXPENSES.reduce((sum, e) => sum + e.amount, 0);
-    const totalRevenue = RECIPES.length * 1500000;
-    const netProfit = totalRevenue - totalExpenses;
+    const [financeData, setFinanceData] = useState({
+        totalRevenue: 0,
+        totalExpenses: 0,
+        netProfit: 0
+    });
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const data = await apiClient.getFinanceReports();
+                setFinanceData(data);
+            } catch (error) {
+                console.error("Failed to load finance reports", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchReports();
+    }, []);
+
+    const { totalRevenue, totalExpenses, netProfit } = financeData;
+    const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(0) : 0;
+
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5175} />
@@ -45,22 +65,30 @@ function App() {
                 </div>
 
                 {/* Summary Cards */}
-                <div className="flex gap-4 px-4 pb-4 overflow-x-auto no-scrollbar snap-x">
-                    <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-primary/10 border border-primary/20 snap-center">
-                        <p className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Revenue</p>
-                        <p className="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Rp {(totalRevenue / 1000).toLocaleString('id-ID')}k</p>
-                        <p className="text-emerald-500 text-xs font-bold flex items-center gap-1 mt-1">
-                            <span className="material-symbols-outlined text-xs">trending_up</span> +12.4%
-                        </p>
-                    </div>
+                <div className="flex gap-4 px-4 pb-4 overflow-x-auto no-scrollbar snap-x mt-4">
+                    {isLoading ? (
+                        <div className="w-full flex justify-center py-6">
+                             <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-primary/10 border border-primary/20 snap-center">
+                                <p className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Revenue</p>
+                                <p className="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Rp {(totalRevenue / 1000).toLocaleString('id-ID')}k</p>
+                                <p className="text-emerald-500 text-xs font-bold flex items-center gap-1 mt-1">
+                                    <span className="material-symbols-outlined text-xs">trending_up</span> Live Data
+                                </p>
+                            </div>
 
-                    <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-gradient-to-br from-[#d4823a] to-[#b36a2b] text-white shadow-lg shadow-primary/30 snap-center">
-                        <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Net Profit</p>
-                        <p className="text-white text-3xl font-extrabold leading-tight tracking-tight">Rp {(netProfit / 1000).toLocaleString('id-ID')}k</p>
-                        <p className="text-white text-xs font-bold flex items-center gap-1 mt-1">
-                            <span className="material-symbols-outlined text-xs">payments</span> {((netProfit / totalRevenue) * 100).toFixed(0)}% Margin
-                        </p>
-                    </div>
+                            <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-gradient-to-br from-[#d4823a] to-[#b36a2b] text-white shadow-lg shadow-primary/30 snap-center">
+                                <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Net Profit</p>
+                                <p className="text-white text-3xl font-extrabold leading-tight tracking-tight">Rp {(netProfit / 1000).toLocaleString('id-ID')}k</p>
+                                <p className="text-white text-xs font-bold flex items-center gap-1 mt-1">
+                                    <span className="material-symbols-outlined text-xs">payments</span> {margin}% Margin
+                                </p>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Detailed Sections */}
@@ -123,34 +151,18 @@ function App() {
 
                     {/* Operating Expenses */}
                     <section>
-                        <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">Operating Expenses</h3>
+                        <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">Total Expenses (Realtime API)</h3>
                         <div className="rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-200 dark:divide-slate-800 bg-white/50 dark:bg-slate-900/20 backdrop-blur-sm">
                             <div className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer first:rounded-t-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                        <span className="material-symbols-outlined text-lg">home_work</span>
+                                        <span className="material-symbols-outlined text-lg">receipt_long</span>
                                     </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Rent & Utilities</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Semua Pengeluaran</span>
                                 </div>
-                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$4,200</span>
-                            </div>
-                            <div className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                    <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                        <span className="material-symbols-outlined text-lg">group</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Staff Payroll</span>
-                                </div>
-                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$6,500</span>
-                            </div>
-                            <div className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer last:rounded-b-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                        <span className="material-symbols-outlined text-lg">inventory_2</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Store Supplies</span>
-                                </div>
-                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$1,190</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                    Rp {(totalExpenses).toLocaleString('id-ID')}
+                                </span>
                             </div>
                         </div>
                     </section>

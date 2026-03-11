@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiClient } from '@shared/apiClient';
 
 interface SelectedItem {
     id: string;
@@ -77,6 +78,50 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
             const discounted = itemTotal * (1 - item.discount / 100);
             return acc + discounted;
         }, 0);
+    };
+
+    const handleSaveStock = async () => {
+        try {
+            // Processing each row as a new material entry for now (simplified)
+            // Wait, if it exists, normally we'd do a Movement. Since mock IDs are strings vs numeric, let's treat new additions via POST /api/inventory
+            for (const item of items) {
+                // Determine if it's "New" based on ID length (timestamp length)
+                // For safety, let's just create them if they look newly added manually
+                if (item.id.length > 5) { // Assuming mock IDs are '1', '2' etc. Time stamp is very long.
+                    const newItem = await apiClient.addInventoryItem({
+                        name: item.name,
+                        category: 'Bahan Baku', // default category
+                        unit: item.unit,
+                        pricePerUnit: item.price,
+                        imageUrl: item.image
+                    });
+                    
+                    if (item.quantity > 0) {
+                        await apiClient.recordStockMovement(newItem.id, {
+                            type: 'IN',
+                            quantity: item.quantity,
+                            reason: 'Manual Restock (New Item)'
+                        });
+                    }
+                } else {
+                    // Updating an existing stock based on original mock integer IDs
+                    if (item.quantity > 0) {
+                         await apiClient.recordStockMovement(parseInt(item.id), {
+                             type: 'IN',
+                             quantity: item.quantity,
+                             reason: 'Manual Restock',
+                             supplierId: null
+                         });
+                    }
+                }
+            }
+            alert('Berhasil menyimpan data stok ke Server!');
+            setItems([]); // Clear form
+            onClose(); // Trigger refresh on parent
+        } catch (error) {
+            console.error('Save failed', error);
+            alert('Gagal merekam data retsock stok: ' + (error as Error).message);
+        }
     };
 
     return (
@@ -209,7 +254,10 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                 Rp {calculateTotal().toLocaleString('id-ID')}
                             </span>
                         </div>
-                        <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                        <button 
+                            onClick={handleSaveStock}
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                        >
                             <span className="material-symbols-outlined">inventory_2</span>
                             Simpan Stok
                         </button>

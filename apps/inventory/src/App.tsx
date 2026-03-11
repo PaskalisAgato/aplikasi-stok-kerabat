@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { INVENTORY } from '@shared/mockDatabase';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@shared/apiClient';
 
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
@@ -21,8 +21,27 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterType, setFilterType] = useState('Semua');
   const [selectedStock, setSelectedStock] = useState<any>(null);
+  const [inventoryList, setInventoryList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredInventory = INVENTORY.filter(item => {
+  const fetchInventory = async () => {
+    try {
+      setIsLoading(true);
+      const data = await apiClient.getInventory();
+      setInventoryList(data);
+    } catch (error) {
+      console.error('Failed to load inventory', error);
+      alert('Koneksi ke server gagal.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const filteredInventory = inventoryList.filter(item => {
     if (filterType === 'Kritis') return item.status === 'KRITIS' || item.status === 'HABIS';
     if (filterType === 'Normal') return item.status === 'NORMAL';
     return true; // Semua
@@ -124,11 +143,23 @@ function App() {
                   item.status === 'HABIS' ? 'bg-slate-500' :
                     'bg-emerald-500'
                   } h-full rounded-full transition-all duration-500`}
-                  style={{ width: `${Math.min(100, (item.currentStock / item.systemStock) * 100)}%` }}>
+                  style={{ width: `${Math.min(100, (parseFloat(item.currentStock) / 100) * 100)}%` }}>
                 </div>
               </div>
             </div>
           ))}
+
+          {isLoading && (
+            <div className="flex justify-center items-center py-10">
+              <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+            </div>
+          )}
+          
+          {!isLoading && filteredInventory.length === 0 && (
+             <div className="text-center py-10 text-slate-500">
+               <p>Belum ada stok bahan baku</p>
+             </div>
+          )}
         </main>
 
         {/* Floating Action Button */}
@@ -143,7 +174,7 @@ function App() {
 
       <StockDetailModal
         isOpen={isStockModalOpen}
-        onClose={() => setIsStockModalOpen(false)}
+        onClose={() => { setIsStockModalOpen(false); fetchInventory() /* Refresh on close */ }}
         selectedItem={selectedStock}
         onEditClick={() => {
             // TODO: Implement actual Edit Stock logic
@@ -153,7 +184,7 @@ function App() {
 
       <AddStockModal
         isOpen={isAddStockModalOpen}
-        onClose={() => setIsAddStockModalOpen(false)}
+        onClose={() => { setIsAddStockModalOpen(false); fetchInventory() /* Refresh on close */ }}
       />
 
       <NotificationModal
