@@ -104,7 +104,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 // POST new inventory item
 inventoryRouter.post('/', async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl } = req.body;
         
         if (!name || !category || !unit) {
              return res.status(400).json({ error: 'Missing required fields' });
@@ -117,6 +117,7 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
             currentStock: '0',
             minStock: minStock?.toString() || '0',
             pricePerUnit: pricePerUnit?.toString() || '0',
+            discountPrice: discountPrice?.toString() || '0',
             imageUrl
         }).returning();
 

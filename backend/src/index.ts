@@ -12,7 +12,7 @@ app.use(cors({
     origin: [process.env.FRONTEND_URL || '*', 'https://paskalisagato.github.io'],
     credentials: true,
 }));
-app.use(express.json()); // Parse JSON payloads
+app.use(express.json({ limit: '10mb' })); // Parse JSON payloads
 
 // 2. Authentication Middleware Integration (Better Auth)
 // Mount Better Auth endpoints at /api/auth

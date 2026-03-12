@@ -3,6 +3,7 @@ import { apiClient } from '@shared/apiClient';
 
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
+import CreateItemModal from './components/CreateItemModal';
 import NotificationModal from './components/NotificationModal';
 import StoreProfileModal from './components/StoreProfileModal';
 import EmployeeManagementModal from './components/EmployeeManagementModal';
@@ -15,6 +16,7 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
+  const [isCreateItemModalOpen, setIsCreateItemModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
@@ -162,13 +164,24 @@ function App() {
           )}
         </main>
 
-        {/* Floating Action Button */}
-        <button
-          onClick={() => setIsAddStockModalOpen(true)}
-          className="fixed bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 z-30"
-        >
-          <span className="material-symbols-outlined text-[32px]">add</span>
-        </button>
+        {/* Floating Action Buttons */}
+        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-30">
+          <button
+            onClick={() => setIsAddStockModalOpen(true)}
+            className="size-12 bg-white dark:bg-primary/20 text-primary border border-slate-200 dark:border-primary/30 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95 self-end"
+            title="Restok Bahan (Ubah Kuantitas)"
+          >
+            <span className="material-symbols-outlined text-[24px]">input</span>
+          </button>
+          
+          <button
+            onClick={() => setIsCreateItemModalOpen(true)}
+            className="size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+            title="Tambah Bahan Baru"
+          >
+            <span className="material-symbols-outlined text-[32px]">add</span>
+          </button>
+        </div>
 
       </div>
 
@@ -185,6 +198,11 @@ function App() {
       <AddStockModal
         isOpen={isAddStockModalOpen}
         onClose={() => { setIsAddStockModalOpen(false); fetchInventory() /* Refresh on close */ }}
+      />
+
+      <CreateItemModal
+        isOpen={isCreateItemModalOpen}
+        onClose={() => { setIsCreateItemModalOpen(false); fetchInventory() /* Refresh on close */ }}
       />
 
       <NotificationModal
