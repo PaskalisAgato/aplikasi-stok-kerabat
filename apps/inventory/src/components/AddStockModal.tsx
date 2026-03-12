@@ -78,6 +78,13 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
         ));
     };
 
+    const handleQuantityInput = (id: string, value: string) => {
+        const num = parseFloat(value);
+        setItems(prev => prev.map(item =>
+            item.id === id ? { ...item, quantity: isNaN(num) ? 0 : Math.max(0, num) } : item
+        ));
+    };
+
     const handleInputChange = (id: string, field: 'price' | 'discount', value: string) => {
         const numValue = parseFloat(value) || 0;
         setItems(prev => prev.map(item =>
@@ -228,7 +235,13 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                             >
                                                 <span className="material-symbols-outlined text-sm font-bold">remove</span>
                                             </button>
-                                            <span className="text-base font-bold w-8 text-center">{item.quantity}</span>
+                                            <input
+                                                type="number"
+                                                value={item.quantity || ''}
+                                                onChange={(e) => handleQuantityInput(item.id, e.target.value)}
+                                                className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-slate-900 dark:text-slate-100"
+                                                min="0"
+                                            />
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, 1)}
                                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-sm active:scale-95 transition-transform"
