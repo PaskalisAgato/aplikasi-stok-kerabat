@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import NavDrawer from '@shared/NavDrawer';
+import LogWasteModal from './components/LogWasteModal';
 
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [wasteSummary, setWasteSummary] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -182,6 +184,24 @@ function App() {
                         </>
                     )}
                 </main>
+
+                {/* Floating Action Button */}
+                <button
+                    onClick={() => setIsLogModalOpen(true)}
+                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-light dark:ring-background-dark transition-transform active:scale-95 font-bold text-sm"
+                >
+                    <span className="material-symbols-outlined text-[22px]">delete_sweep</span>
+                    Catat Waste
+                </button>
+
+                {/* Log Waste Modal */}
+                <LogWasteModal
+                    isOpen={isLogModalOpen}
+                    onClose={() => setIsLogModalOpen(false)}
+                    onSaved={() => {
+                        apiClient.getWasteSummary().then(setWasteSummary).catch(console.error);
+                    }}
+                />
             </div>
         </div>
     );

@@ -70,6 +70,22 @@ export const apiClient = {
         return res.json();
     },
 
+    updateRecipe: async (id: number, data: any) => {
+        const res = await fetch(`${API_BASE_URL}/recipes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('Failed to update recipe');
+        return res.json();
+    },
+
+    deleteRecipe: async (id: number) => {
+        const res = await fetch(`${API_BASE_URL}/recipes/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete recipe');
+        return res.json();
+    },
+
     // ---- SALES / POS ENPOINTS ----
     checkoutCart: async (checkoutData: any) => {
         const res = await fetch(`${API_BASE_URL}/sales`, {

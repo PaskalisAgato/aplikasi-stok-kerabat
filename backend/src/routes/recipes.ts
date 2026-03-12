@@ -104,3 +104,62 @@ recipesRouter.post('/', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to create recipe' });
     }
 });
+
+// PUT update existing Recipe and its BOM
+recipesRouter.put('/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const { name, category, price, margin, imageUrl, ingredients } = req.body;
+
+        if (!name || !category || !price) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        await db.transaction(async (tx) => {
+            // 1. Update recipe
+            await tx.update(schema.recipes)
+                .set({
+                    name,
+                    category,
+                    price: price.toString(),
+                    margin: margin?.toString() || '0',
+                    imageUrl,
+                })
+                .where(eq(schema.recipes.id, id));
+
+            // 2. Delete existing BOM entries
+            await tx.delete(schema.recipeIngredients)
+                .where(eq(schema.recipeIngredients.recipeId, id));
+
+            // 3. Re-insert updated BOM
+            if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+                const bomInserts = ingredients.map((ing: any) => ({
+                    recipeId: id,
+                    inventoryId: ing.ingredientId,
+                    quantity: ing.qty.toString()
+                }));
+                await tx.insert(schema.recipeIngredients).values(bomInserts);
+            }
+        });
+
+        res.json({ success: true, message: 'Recipe updated' });
+    } catch (error) {
+        console.error('Error updating recipe:', error);
+        res.status(500).json({ error: 'Failed to update recipe' });
+    }
+});
+
+// DELETE recipe (soft delete - set inactive)
+recipesRouter.delete('/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        await db.update(schema.recipes)
+            .set({ isActive: false })
+            .where(eq(schema.recipes.id, id));
+        res.json({ success: true, message: 'Recipe deleted' });
+    } catch (error) {
+        console.error('Error deleting recipe:', error);
+        res.status(500).json({ error: 'Failed to delete recipe' });
+    }
+});
+

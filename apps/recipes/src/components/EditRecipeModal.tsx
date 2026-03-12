@@ -132,19 +132,28 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                 qty: ing.qty
             }));
 
-            await apiClient.createRecipe({
+            const payload = {
                 name: namaResep,
-                category: recipe.category, // You might want a dropdown for this later
+                category: recipe.category,
                 price: hargaJual,
                 margin: parseFloat(margin),
                 imageUrl: recipe.imageUrl,
                 ingredients: prepIngredients
-            });
-            alert('Resep berhasil disimpan di Cloud!');
+            };
+
+            // If recipe.id is a real DB ID (positive integer from before ~2020 timestamp), update. Otherwise create.
+            const isExisting = recipe.id && recipe.id < 1_000_000_000;
+            if (isExisting) {
+                await apiClient.updateRecipe(recipe.id, payload);
+                alert('Resep berhasil diupdate!');
+            } else {
+                await apiClient.createRecipe(payload);
+                alert('Resep baru berhasil disimpan!');
+            }
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Gagal merekam resep!');
+            alert('Gagal menyimpan resep!');
         }
     };
 
