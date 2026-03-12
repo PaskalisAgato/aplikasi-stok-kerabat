@@ -44,11 +44,26 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
         // Melakukan pemetaan bahan resep ke data inventori untuk mendapatkan harga mentah per unit
         const initialIngredients = recipe.ingredients.map(ing => {
             const inventoryItem = inventoryData.find(item => item.id === ing.ingredientId);
+            
+            let pricePerG = 0;
+            let displayUnit = ing.unit;
+            
+            if (inventoryItem) {
+                const rawPrice = parseFloat(inventoryItem.pricePerUnit);
+                if (inventoryItem.unit === 'Kg' || inventoryItem.unit === 'L') {
+                    pricePerG = rawPrice / 1000;
+                    displayUnit = inventoryItem.unit === 'Kg' ? 'g' : 'mL';
+                } else {
+                    pricePerG = rawPrice;
+                    displayUnit = inventoryItem.unit;
+                }
+            }
+            
             return {
                 id: ing.ingredientId,
                 name: ing.name,
-                pricePerG: inventoryItem ? parseFloat(inventoryItem.pricePerUnit) : 0,
-                unit: ing.unit,
+                pricePerG: pricePerG,
+                unit: displayUnit,
                 qty: ing.qty
             };
         });
@@ -103,11 +118,16 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
             setShowAddIngredient(false);
             return;
         }
+        
+        const isBulk = item.unit === 'Kg' || item.unit === 'L';
+        const pricePerG = isBulk ? parseFloat(item.pricePerUnit) / 1000 : parseFloat(item.pricePerUnit);
+        const displayUnit = item.unit === 'Kg' ? 'g' : item.unit === 'L' ? 'mL' : item.unit;
+
         setIngredients(prev => [...prev, {
             id: item.id,
             name: item.name,
-            pricePerG: parseFloat(item.pricePerUnit),
-            unit: item.unit,
+            pricePerG: pricePerG,
+            unit: displayUnit,
             qty: 1
         }]);
         setShowAddIngredient(false);

@@ -44,20 +44,30 @@ salesRouter.post('/', async (req: Request, res: Response) => {
                 const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
                 
                 for (const bom of recipeIngs) {
-                    const deductQty = parseFloat(bom.quantity) * item.quantity;
+                    const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where(eq(schema.inventory.id, bom.inventoryId));
+                    const invItem = invItemArr[0];
+                    if (!invItem) continue;
+
+                    let baseDeductQty = parseFloat(bom.quantity) * item.quantity;
+                    
+                    // Auto-convert grams to Kg or mL to L for master stock
+                    const unitLower = invItem.unit.toLowerCase();
+                    if (unitLower === 'kg' || unitLower === 'l' || unitLower === 'liter' || unitLower === 'kilogram') {
+                        baseDeductQty = baseDeductQty / 1000;
+                    }
                     
                     // Insert Movement Log
                     await tx.insert(schema.stockMovements).values({
                         inventoryId: bom.inventoryId,
                         type: 'OUT',
-                        quantity: deductQty.toString(),
+                        quantity: baseDeductQty.toString(), // Log the master unit amount deducted
                         reason: `POS Sale #${newSale.id}`
                     });
 
                     // Update Master Stock
                     await tx.update(schema.inventory)
                         .set({
-                            currentStock: sql`${schema.inventory.currentStock} - ${deductQty}`
+                            currentStock: sql`${schema.inventory.currentStock} - ${baseDeductQty}`
                         })
                         .where(eq(schema.inventory.id, bom.inventoryId));
                 }

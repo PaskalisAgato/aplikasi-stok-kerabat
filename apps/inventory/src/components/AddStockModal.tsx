@@ -239,7 +239,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                                 type="number"
                                                 value={item.quantity || ''}
                                                 onChange={(e) => handleQuantityInput(item.id, e.target.value)}
-                                                className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-slate-900 dark:text-slate-100"
+                                                className="text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-slate-900 dark:text-slate-100 min-w-[32px] max-w-[100px]"
+                                                style={{ width: `${Math.max(2, String(item.quantity || '').length)}ch` }}
                                                 min="0"
                                             />
                                             <button
