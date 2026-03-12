@@ -17,8 +17,18 @@ interface SelectedItem {
     stock: number;
     image: string;
     quantity: number;
-    price: number;
-    discount: number;
+    price: string;
+    discount: string;
+}
+
+interface HistoryItem {
+    id: number;
+    inventoryName: string;
+    quantity: string;
+    unit: string;
+    supplierName: string | null;
+    reason: string | null;
+    createdAt: string;
 }
 
 interface AddStockModalProps {
@@ -32,6 +42,15 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
     const [items, setItems] = useState<SelectedItem[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    
+    // Global inputs for this restock batch
+    const [supplierName, setSupplierName] = useState('');
+    const [customDate, setCustomDate] = useState(new Date().toISOString().substring(0, 10));
+
+    // History state
+    const [showHistory, setShowHistory] = useState(false);
+    const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -45,6 +64,18 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
             setInventory(data);
         } catch (error) {
             console.error('Failed to load inventory', error);
+        }
+    };
+
+    const fetchHistory = async () => {
+        setIsLoadingHistory(true);
+        try {
+            const data = await apiClient.getStockInHistory();
+            setHistoryData(data);
+        } catch (error) {
+            console.error('Failed to load history', error);
+        } finally {
+            setIsLoadingHistory(false);
         }
     };
 
@@ -64,8 +95,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
             stock: parseFloat(item.currentStock),
             image: item.imageUrl || 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
             quantity: 1,
-            price: 0,
-            discount: 0
+            price: '',
+            discount: ''
         };
         setItems(prev => [...prev, newItem]);
         setSearchTerm('');
@@ -86,9 +117,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
     };
 
     const handleInputChange = (id: string, field: 'price' | 'discount', value: string) => {
-        const numValue = parseFloat(value) || 0;
         setItems(prev => prev.map(item =>
-            item.id === id ? { ...item, [field]: numValue } : item
+            item.id === id ? { ...item, [field]: value } : item
         ));
     };
 
@@ -98,8 +128,11 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
 
     const calculateTotal = () => {
         return items.reduce((acc, item) => {
-            const itemTotal = item.quantity * item.price;
-            const discounted = itemTotal * (1 - item.discount / 100);
+            const price = parseFloat(item.price) || 0;
+            const discount = parseFloat(item.discount) || 0;
+            
+            const itemTotal = item.quantity * price;
+            const discounted = itemTotal * (1 - discount / 100);
             return acc + discounted;
         }, 0);
     };
@@ -117,8 +150,9 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     await apiClient.recordStockMovement(item.inventoryId, {
                         type: 'IN',
                         quantity: item.quantity,
-                        reason: 'Manual Restock',
-                        supplierId: null
+                        reason: `Manual Restock${item.price ? ` - Rp${item.price}` : ''}`,
+                        supplierName: supplierName || undefined,
+                        createdAt: customDate
                     });
                 }
             }
@@ -141,9 +175,13 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                         <span className="material-symbols-outlined">arrow_back</span>
                     </button>
                     <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold flex-1 ml-2">Update Stok Masuk</h2>
-                    <div className="text-primary flex size-10 items-center justify-center rounded-full">
+                    <button 
+                        onClick={() => { setShowHistory(true); fetchHistory(); }}
+                        className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors"
+                        title="Lihat Riwayat Barang Masuk"
+                    >
                         <span className="material-symbols-outlined">history</span>
-                    </div>
+                    </button>
                 </header>
 
                 <div className="flex-1 overflow-y-auto pb-40">
@@ -277,8 +315,31 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-primary/20 z-20">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-primary/20 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     <div className="max-w-md mx-auto space-y-3">
+                        {items.length > 0 && (
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                                <div>
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Nama Supplier (Opsional)</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ketik supplier..."
+                                        value={supplierName}
+                                        onChange={e => setSupplierName(e.target.value)}
+                                        className="w-full text-sm h-10 rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:ring-primary focus:border-primary px-3 text-slate-900 dark:text-slate-100"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Tanggal Masuk</label>
+                                    <input 
+                                        type="date" 
+                                        value={customDate}
+                                        onChange={e => setCustomDate(e.target.value)}
+                                        className="w-full text-sm h-10 rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:ring-primary focus:border-primary px-3 text-slate-900 dark:text-slate-100"
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center px-1">
                             <span className="text-slate-500 dark:text-primary/60 text-sm">Total Belanja</span>
                             <span className="text-slate-900 dark:text-slate-100 text-lg font-bold">
@@ -288,7 +349,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                         <button 
                             onClick={handleSaveStock}
                             disabled={isSaving || items.length === 0}
-                            className={`w-full ${isSaving ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all`}
+                            className={`w-full ${isSaving ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white font-bold py-4 rounded-xl shadow-[0_8px_24px_rgba(200,100,20,0.3)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all`}
                         >
                             {isSaving ? (
                                 <span className="material-symbols-outlined animate-spin">refresh</span>
@@ -300,6 +361,70 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     </div>
                 </div>
             </div>
+
+            {/* HISTORY PANEL OVERLAY */}
+            {showHistory && (
+                <div className="absolute inset-0 z-50 bg-background-light dark:bg-background-dark flex flex-col">
+                    <header className="flex items-center p-4 border-b border-slate-200 dark:border-primary/20 sticky top-0 bg-background-light dark:bg-background-dark z-10">
+                        <button onClick={() => setShowHistory(false)} className="text-slate-500 flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                        <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold flex-1 ml-2">Riwayat Barang Masuk</h2>
+                    </header>
+                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                        {isLoadingHistory ? (
+                            <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                                <span className="material-symbols-outlined animate-spin text-4xl mb-2">refresh</span>
+                                <p>Memuat riwayat...</p>
+                            </div>
+                        ) : historyData.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                                <span className="material-symbols-outlined text-4xl mb-2 opacity-30">history_toggle_off</span>
+                                <p>Belum ada riwayat barang masuk.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3 pb-6">
+                                {historyData.map(record => {
+                                    const dateObj = new Date(record.createdAt);
+                                    const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                                    const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                                    
+                                    return (
+                                        <div key={record.id} className="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/20 shadow-sm flex flex-col gap-2">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-slate-900 dark:text-slate-100">{record.inventoryName}</h4>
+                                                <div className="text-right">
+                                                    <span className="text-xs text-slate-500 block">{dateStr}</span>
+                                                    <span className="text-[10px] text-slate-400 block">{timeStr}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between mt-1">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] uppercase text-primary font-bold tracking-wider">Jumlah Restok</span>
+                                                    <span className="text-lg font-black text-slate-900 dark:text-slate-100">+{parseFloat(record.quantity)} {record.unit}</span>
+                                                </div>
+                                                <div className="text-right flex flex-col items-end">
+                                                    {record.supplierName && (
+                                                        <span className="text-xs font-semibold bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary px-2 py-0.5 rounded flex items-center gap-1 mb-1">
+                                                            <span className="material-symbols-outlined text-[12px]">local_shipping</span>
+                                                            {record.supplierName}
+                                                        </span>
+                                                    )}
+                                                    {record.reason && record.reason.includes('Rp') && (
+                                                        <span className="text-xs font-medium text-slate-500">
+                                                            {record.reason.split(' - ')[1]}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

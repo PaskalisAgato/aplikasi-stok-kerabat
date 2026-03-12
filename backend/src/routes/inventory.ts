@@ -128,11 +128,65 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
     }
 });
 
+// PUT update inventory item master data
+inventoryRouter.put('/:id', async (req: Request, res: Response) => {
+    try {
+        const inventoryId = parseInt(req.params.id as string);
+        const { name, category, unit, minStock, imageUrl } = req.body;
+
+        const [updatedItem] = await db.update(schema.inventory)
+            .set({
+                ...(name && { name }),
+                ...(category && { category }),
+                ...(unit && { unit }),
+                ...(minStock !== undefined && { minStock: minStock.toString() }),
+                ...(imageUrl !== undefined && { imageUrl })
+            })
+            .where(eq(schema.inventory.id, inventoryId))
+            .returning();
+
+        if (!updatedItem) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        res.json(updatedItem);
+    } catch (error) {
+        console.error('Error updating inventory item:', error);
+        res.status(500).json({ error: 'Failed to update inventory item' });
+    }
+});
+
+// GET Recent Stock In (Restock History)
+inventoryRouter.get('/movements/in', async (req: Request, res: Response) => {
+    try {
+        const history = await db.select({
+            id: schema.stockMovements.id,
+            inventoryName: schema.inventory.name,
+            quantity: schema.stockMovements.quantity,
+            unit: schema.inventory.unit,
+            supplierName: schema.suppliers.name,
+            reason: schema.stockMovements.reason,
+            createdAt: schema.stockMovements.createdAt
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .leftJoin(schema.suppliers, eq(schema.stockMovements.supplierId, schema.suppliers.id))
+        .where(eq(schema.stockMovements.type, 'IN'))
+        .orderBy(sql`${schema.stockMovements.createdAt} DESC`)
+        .limit(50);
+
+        res.json(history);
+    } catch (error) {
+        console.error('Error fetching stock in history:', error);
+        res.status(500).json({ error: 'Failed to fetch history' });
+    }
+});
+
 // POST Movement (In, Out, Waste, Adjust)
 inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { type, quantity, reason, supplierId, expiryDate } = req.body;
+        const { type, quantity, reason, supplierId, supplierName, expiryDate, createdAt } = req.body;
         // type: 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
 
         if (!type || quantity === undefined || isNaN(Number(quantity))) {
@@ -153,15 +207,31 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
         console.log(`[Movement] ID: ${inventoryId}, Type: ${type}, Qty: ${quantity}, Adjustment: ${adjustment}`);
 
         await db.transaction(async (tx) => {
+            let finalSupplierId = supplierId;
+            
+            // Auto-create supplier if name provided
+            if (supplierName && !finalSupplierId) {
+                const existingSupplier = await tx.select().from(schema.suppliers).where(eq(schema.suppliers.name, supplierName)).limit(1);
+                if (existingSupplier.length > 0) {
+                    finalSupplierId = existingSupplier[0].id;
+                } else {
+                    const [newSup] = await tx.insert(schema.suppliers).values({ name: supplierName }).returning({ id: schema.suppliers.id });
+                    finalSupplierId = newSup.id;
+                }
+            }
+
             // 1. Insert Movement Record
             const expiry = expiryDate ? new Date(expiryDate) : null;
+            const customDate = createdAt ? new Date(createdAt) : undefined;
+            
             await tx.insert(schema.stockMovements).values({
                 inventoryId,
                 type,
                 quantity: quantity.toString(),
                 reason,
-                supplierId,
-                expiryDate: expiry
+                supplierId: finalSupplierId,
+                expiryDate: expiry,
+                ...(customDate && { createdAt: customDate })
             });
 
             console.log(`[Movement] Updating stock for inventory ${inventoryId} by ${adjustment}`);

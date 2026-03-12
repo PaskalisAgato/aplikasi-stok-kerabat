@@ -6,6 +6,7 @@ interface DraftItem {
     name: string;
     category: string;
     unit: string;
+    minStock: string;
     price: string;
     discount: string;
     imageBase64: string;
@@ -29,11 +30,17 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
             name: '',
             category: 'Biji Kopi',
             unit: 'g',
+            minStock: '',
             price: '',
             discount: '',
             imageBase64: ''
         };
     }
+
+    // Image Picker State
+    const [imageMenuOpen, setImageMenuOpen] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
 
@@ -55,9 +62,19 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
         ));
     };
 
-    const handleImageTrigger = (id: string) => {
+    const handleImageTrigger = (id: string, source: 'gallery' | 'camera') => {
         activeDraftId.current = id;
-        fileInputRef.current?.click();
+        setImageMenuOpen(false);
+        if (source === 'gallery') {
+            galleryInputRef.current?.click();
+        } else {
+            cameraInputRef.current?.click();
+        }
+    };
+
+    const handleOpenImageMenu = (id: string) => {
+        activeDraftId.current = id;
+        setImageMenuOpen(true);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +109,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         name: item.name,
                         category: item.category,
                         unit: item.unit,
+                        minStock: item.minStock || '0',
                         pricePerUnit: item.price || '0',
                         discountPrice: item.discount || '0',
                         imageUrl: item.imageBase64
@@ -137,7 +155,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar pb-32">
-                    <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
+                    <input type="file" accept="image/*" ref={galleryInputRef} onChange={handleImageChange} className="hidden" />
+                    <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleImageChange} className="hidden" />
 
                     {drafts.map((draft, index) => (
                         <div key={draft.id} className="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/20 p-4 relative shadow-sm hover:border-primary/30 transition-colors">
@@ -152,7 +171,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                 {/* Image Cell */}
                                 <div 
                                     className="size-24 sm:size-[100px] mx-auto sm:mx-0 rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-primary/5 cursor-pointer relative overflow-hidden group hover:border-primary transition-colors"
-                                    onClick={() => handleImageTrigger(draft.id)}
+                                    onClick={() => handleOpenImageMenu(draft.id)}
                                 >
                                     {draft.imageBase64 ? (
                                         <>
@@ -181,7 +200,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
                                             <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Kategori</label>
                                             <select 
@@ -205,10 +224,22 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                             >
                                                 <option value="g">Gram (g)</option>
                                                 <option value="Kg">Kilogram (Kg)</option>
-                                                <option value="L">Liter (L)</option>
-                                                <option value="mL">MiliLiter (mL)</option>
-                                                <option value="pcs">Pcs</option>
+                                                <option value="L">Liter (lt/L)</option>
+                                                <option value="mL">MiliLiter (ml/mL)</option>
+                                                <option value="pcs">Pieces (pcs)</option>
+                                                <option value="pack">Pack (pack)</option>
                                             </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Minimum Stok</label>
+                                            <input 
+                                                type="number" 
+                                                value={draft.minStock} 
+                                                onChange={(e) => handleFieldChange(draft.id, 'minStock', e.target.value)}
+                                                placeholder="Batas peringatan"
+                                                min="0"
+                                                className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-4 text-slate-900 dark:text-slate-100 text-sm"
+                                            />
                                         </div>
                                     </div>
 
@@ -239,6 +270,35 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                     </button>
                 </div>
             </div>
+
+            {/* Image Menu Overlay */}
+            {imageMenuOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-background-dark w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-primary/20 space-y-4">
+                        <h3 className="text-center font-bold text-slate-900 dark:text-slate-100 text-lg mb-4">Pilih Sumber Foto</h3>
+                        <button 
+                            onClick={() => handleImageTrigger(activeDraftId.current!, 'camera')}
+                            className="w-full flex items-center justify-center gap-3 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">photo_camera</span>
+                            Kamera Langsung
+                        </button>
+                        <button 
+                            onClick={() => handleImageTrigger(activeDraftId.current!, 'gallery')}
+                            className="w-full flex items-center justify-center gap-3 bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 py-3 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">photo_library</span>
+                            Pilih dari Galeri
+                        </button>
+                        <button 
+                            onClick={() => setImageMenuOpen(false)}
+                            className="w-full py-3 mt-4 text-slate-400 font-semibold hover:text-slate-500 transition-colors"
+                        >
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

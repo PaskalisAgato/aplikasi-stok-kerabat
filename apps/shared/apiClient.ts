@@ -21,6 +21,16 @@ export const apiClient = {
         return res.json();
     },
 
+    updateInventoryItem: async (id: number, data: any) => {
+        const res = await fetch(`${API_BASE_URL}/inventory/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('Failed to update inventory item');
+        return res.json();
+    },
+
     submitOpname: async (adjustments: any[]) => {
         const res = await fetch(`${API_BASE_URL}/inventory/opname`, {
             method: 'POST',
@@ -44,6 +54,12 @@ export const apiClient = {
     getWasteSummary: async () => {
         const res = await fetch(`${API_BASE_URL}/inventory/waste/summary`);
         if (!res.ok) throw new Error('Failed to fetch waste summary');
+        return res.json();
+    },
+
+    getStockInHistory: async () => {
+        const res = await fetch(`${API_BASE_URL}/inventory/movements/in`);
+        if (!res.ok) throw new Error('Failed to fetch stock in history');
         return res.json();
     },
 

@@ -5,6 +5,7 @@ import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
 import CreateItemModal from './components/CreateItemModal';
 import NotificationModal from './components/NotificationModal';
+import EditItemModal from './components/EditItemModal';
 import StoreProfileModal from './components/StoreProfileModal';
 import EmployeeManagementModal from './components/EmployeeManagementModal';
 
@@ -18,10 +19,12 @@ function App() {
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
   const [isCreateItemModalOpen, setIsCreateItemModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterType, setFilterType] = useState('Semua');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [inventoryList, setInventoryList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,16 +47,67 @@ function App() {
   }, []);
 
   const filteredInventory = inventoryList.filter(item => {
-    if (filterType === 'Kritis') return item.status === 'KRITIS' || item.status === 'HABIS';
-    if (filterType === 'Normal') return item.status === 'NORMAL';
-    return true; // Semua
+    // Status filter
+    if (filterType === 'Kritis' && item.status !== 'KRITIS' && item.status !== 'HABIS') return false;
+    if (filterType === 'Normal' && item.status !== 'NORMAL') return false;
+    
+    // Search filter
+    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    
+    return true;
   });
 
+  const handleExportCSV = () => {
+    if (inventoryList.length === 0) {
+      alert('Tidak ada data yang bisa diekspor');
+      return;
+    }
+    
+    const headers = ['Nama Bahan', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Min Stok', 'Status', 'Harga Beli per Unit (Rp)'];
+    const rows = inventoryList.map(item => [
+      item.name,
+      item.category,
+      item.currentStock,
+      item.unit,
+      item.minStock,
+      item.status,
+      item.pricePerUnit
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = `data_stok_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    if (navigator.share) {
+      try {
+        const file = new File([blob], fileName, { type: 'text/csv' });
+        navigator.share({
+          title: 'Data Stok Inventory',
+          files: [file]
+        }).catch(err => console.log('Share error:', err));
+      } catch (err) {
+        console.log('Share API not supporting files or other error', err);
+      }
+    }
+  };
+
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen">
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen w-full">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5174} />
       {/* Main Container */}
-      <div className="relative mx-auto min-h-screen w-full max-w-[390px] flex flex-col bg-background-light dark:bg-background-dark overflow-hidden pb-8">
+      <div className="relative mx-auto min-h-screen w-full max-w-[390px] flex flex-col bg-background-light dark:bg-background-dark pb-32">
 
         {/* Header Section */}
         <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md pt-6 pb-2 px-4 border-b border-slate-200 dark:border-primary/20">
@@ -71,18 +125,18 @@ function App() {
             </div>
             <div className="flex gap-2">
               <button
+                onClick={handleExportCSV}
+                className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
+                title="Ekspor ke Spreadsheet"
+              >
+                <span className="material-symbols-outlined text-primary">download</span>
+              </button>
+              <button
                 onClick={() => setIsNotificationModalOpen(true)}
                 className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
                 title="Notifikasi"
               >
                 <span className="material-symbols-outlined text-primary">notifications</span>
-              </button>
-              <button
-                onClick={() => setIsStoreProfileModalOpen(true)}
-                className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
-                title="Profil Toko"
-              >
-                <span className="material-symbols-outlined text-primary">account_circle</span>
               </button>
             </div>
           </div>
@@ -93,9 +147,11 @@ function App() {
               <span className="material-symbols-outlined text-slate-400 dark:text-primary/40 text-[20px]">search</span>
             </div>
             <input
-              className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-primary/20 transition-all placeholder:text-slate-400 dark:placeholder:text-primary/40"
+              className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-primary/20 transition-all placeholder:text-slate-400 dark:placeholder:text-primary/40 text-slate-900 dark:text-slate-100"
               placeholder="Cari bahan baku..."
               type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
 
@@ -192,8 +248,8 @@ function App() {
         onClose={() => { setIsStockModalOpen(false); fetchInventory() /* Refresh on close */ }}
         selectedItem={selectedStock}
         onEditClick={() => {
-            // TODO: Implement actual Edit Stock logic
-            alert('Fitur ubah data stok akan segera hadir.');
+            setIsStockModalOpen(false);
+            setIsEditItemModalOpen(true);
         }}
       />
 
@@ -207,9 +263,17 @@ function App() {
         onClose={() => { setIsCreateItemModalOpen(false); fetchInventory() /* Refresh on close */ }}
       />
 
+      <EditItemModal
+        isOpen={isEditItemModalOpen}
+        onClose={() => setIsEditItemModalOpen(false)}
+        onUpdated={() => fetchInventory()}
+        item={selectedStock}
+      />
+
       <NotificationModal
         isOpen={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}
+        inventory={inventoryList}
       />
 
       <StoreProfileModal

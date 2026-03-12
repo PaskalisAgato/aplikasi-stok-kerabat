@@ -63,10 +63,13 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
 interface NotificationModalProps {
     isOpen: boolean;
     onClose: () => void;
+    inventory?: any[]; // Allow undefined for fallback compatibility
 }
 
-const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }) => {
+const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, inventory = [] }) => {
     if (!isOpen) return null;
+
+    const criticalItems = inventory.filter(item => item.status === 'KRITIS' || item.status === 'HABIS');
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col bg-background-dark text-slate-100 overflow-hidden">
@@ -95,44 +98,29 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
-                {/* Section: Today */}
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold uppercase tracking-wider text-primary font-bold">Hari Ini</h2>
-                        <span className="text-xs text-slate-400">3 Alerts</span>
+                        <h2 className="text-sm font-semibold uppercase tracking-wider text-primary font-bold">Stok Kritis / Habis</h2>
+                        <span className="text-xs text-slate-400">{criticalItems.length} Alerts</span>
                     </div>
 
-                    <NotificationCard
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuChtQCTFMl2EAT5uWHkcJnUbfRvTrhci9joQCuujP095U-qEfSS10MKx-H1jYoSWVIMGKqblk7_Wsipvpe5emEhWp3tnjRfwHIZrqQ64Acp15JDON_hFMvGX9qUIIhKkMR2EWsD49xrLY1h1ABX7SW8kTCKkxkLQ7BNAAvcvpRiLYDiWSEGT_4KCfquQkWf-0LDJreJFoIbFMsiwEPQQtPnRwAqNTthuVSBC0AQ0iQJE0UgxvvxVLREO8anfzFd7zS_x9VD2XF4PpM"
-                        title="Kopi Bubuk Arabica"
-                        status="CRITICAL"
-                        time="10 mins ago"
-                        stockInfo="0.2kg"
-                        showRestock
-                    />
-
-                    <NotificationCard
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuCU0QEoSTr-awtj8LzL4hth_Rr9Oe6aDL7TfH1QI8EnVz4ezNBiGmlyU-NF6Z9cMpvf58DWaz-HMxWYY8wN-iM-I9yBMp25Da8yvarXHe8UlhkFxVPakViMKh2F6Vo2EeGARgZd2yPGJFFc707jGsxfJ4RDZbwqkRmZPG1SoOVZu00gj-XXRWfqmevLXQsMS4bnI95HYIHJj-dmlJAr5GITxBZP7pn48kyRXXj3M-HYdNqDlzmrHXw88_a-Z_SZdEqWmKbtyPBF4pc"
-                        title="Susu UHT Full Cream"
-                        status="CRITICAL"
-                        time="2 hours ago"
-                        stockInfo="3 Liter"
-                        showRestock
-                    />
-                </section>
-
-                {/* Section: Yesterday */}
-                <section className="space-y-4">
-                    <h2 className="text-sm font-semibold uppercase tracking-wider text-primary font-bold">Kemarin</h2>
-
-                    <NotificationCard
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuAaeU6dvNyqxEXe-GKIp8fIx09exZUYe_hX4wzqwVhs9y_u1CfPsNIzA6ciCKyQ3fiRYfrHcKfW1A3GkgqCBKUt1NFZgcu6keolyRZwfGpTbpLg89puJXBfQMkZjGyDW4yG2-DQa06L2jSINcDy1j9Xml7Jspk1bl_IJTlWEp32Ju0eOuKrDDExbM1B1JE8h8OxLLmTu2aF0K-YU2H_cZjt6BDOYvQXkSGa5oxCPdE9pjx8tWMgsj9eBsqZ74ZoZdAz2FS7sTGBko4"
-                        title="Gula Aren Cair"
-                        status="LOW"
-                        time="1 day ago"
-                        stockInfo="1.5kg"
-                        showUpdate
-                    />
+                    {criticalItems.length === 0 ? (
+                        <div className="text-center py-10 text-slate-500">
+                            Semua stok dalam kondisi aman.
+                        </div>
+                    ) : (
+                        criticalItems.map(item => (
+                            <NotificationCard
+                                key={item.id}
+                                image={item.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}
+                                title={item.name}
+                                status={item.status === 'HABIS' ? 'CRITICAL' : 'LOW'}
+                                time="Baru saja"
+                                stockInfo={`${item.currentStock} ${item.unit}`}
+                                showRestock
+                            />
+                        ))
+                    )}
                 </section>
             </main>
         </div>

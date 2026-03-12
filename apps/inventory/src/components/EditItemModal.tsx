@@ -1,0 +1,236 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { apiClient } from '@shared/apiClient';
+
+interface EditItemModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onUpdated?: () => void;
+    item: any;
+}
+
+const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdated, item }) => {
+    const [name, setName] = useState('');
+    const [category, setCategory] = useState('Biji Kopi');
+    const [unit, setUnit] = useState('g');
+    const [minStock, setMinStock] = useState('');
+    const [imageBase64, setImageBase64] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Image Picker State
+    const [imageMenuOpen, setImageMenuOpen] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isOpen && item) {
+            setName(item.name || '');
+            setCategory(item.category || 'Biji Kopi');
+            setUnit(item.unit || 'g');
+            setMinStock(item.minStock?.toString() || '');
+            setImageBase64(item.imageUrl || '');
+        }
+    }, [isOpen, item]);
+
+    if (!isOpen || !item) return null;
+
+    const handleImageTrigger = (source: 'gallery' | 'camera') => {
+        setImageMenuOpen(false);
+        if (source === 'gallery') {
+            galleryInputRef.current?.click();
+        } else {
+            cameraInputRef.current?.click();
+        }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageBase64(reader.result as string);
+                e.target.value = ''; // Reset
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!name.trim()) {
+            alert('Nama bahan baku tidak boleh kosong!');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await apiClient.updateInventoryItem(item.id, {
+                name,
+                category,
+                unit,
+                minStock: minStock || '0',
+                imageUrl: imageBase64
+            });
+            alert('Berhasil memperbarui data bahan baku!');
+            if (onUpdated) onUpdated();
+            onClose();
+        } catch (err) {
+            console.error('Failed to update item', err);
+            alert('Gagal memperbarui data. Cek koneksi Anda.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+            <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] border border-primary/20 overflow-hidden">
+                <header className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+                    <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+                        <span className="material-symbols-outlined font-bold">close</span>
+                    </button>
+                    <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold">Ubah Data Bahan</h2>
+                    <div className="size-10" /> {/* Balancer */}
+                </header>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar pb-32">
+                    <input type="file" accept="image/*" ref={galleryInputRef} onChange={handleImageChange} className="hidden" />
+                    <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleImageChange} className="hidden" />
+
+                    <div className="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/20 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4">
+                            {/* Image Section */}
+                            <div className="flex justify-center p-2">
+                                <div 
+                                    className="size-32 rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-primary/5 cursor-pointer relative overflow-hidden group hover:border-primary transition-colors"
+                                    onClick={() => setImageMenuOpen(true)}
+                                >
+                                    {imageBase64 ? (
+                                        <>
+                                            <img src={imageBase64} alt="Preview" className="size-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="material-symbols-outlined text-white text-3xl">edit</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center text-primary/40 group-hover:text-primary transition-colors flex flex-col items-center">
+                                            <span className="material-symbols-outlined text-3xl mb-1">add_a_photo</span>
+                                            <span className="text-xs font-semibold">Tukar Foto</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Inputs */}
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-primary/70 uppercase ml-1 block mb-1">Nama Bahan</label>
+                                    <input 
+                                        type="text" 
+                                        value={name} 
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Nama bahan"
+                                        className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-slate-900 dark:text-slate-100 text-sm font-medium"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-primary/70 uppercase ml-1 block mb-1">Kategori</label>
+                                    <select 
+                                        value={category} 
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-slate-900 dark:text-slate-100 text-sm font-medium appearance-none"
+                                    >
+                                        <option value="Biji Kopi">Biji Kopi</option>
+                                        <option value="Susu & Krimer">Susu & Krimer</option>
+                                        <option value="Sirup & Perasa">Sirup & Perasa</option>
+                                        <option value="Packaging">Packaging</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 dark:text-primary/70 uppercase ml-1 block mb-1">Satuan</label>
+                                        <select 
+                                            value={unit} 
+                                            onChange={(e) => setUnit(e.target.value)}
+                                            className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-slate-900 dark:text-slate-100 text-sm font-medium appearance-none"
+                                        >
+                                            <option value="g">Gram (g)</option>
+                                            <option value="Kg">Kilogram (Kg)</option>
+                                            <option value="L">Liter (lt/L)</option>
+                                            <option value="mL">MiliLiter (ml/mL)</option>
+                                            <option value="pcs">Pieces (pcs)</option>
+                                            <option value="pack">Pack (pack)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 dark:text-primary/70 uppercase ml-1 block mb-1">Min. Stok</label>
+                                        <input 
+                                            type="number" 
+                                            value={minStock} 
+                                            onChange={(e) => setMinStock(e.target.value)}
+                                            placeholder="Batas peringatan"
+                                            min="0"
+                                            className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-slate-900 dark:text-slate-100 text-sm font-medium"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-4 border-t border-slate-200 dark:border-primary/20 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md absolute bottom-0 left-0 right-0">
+                    <button 
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className={`w-full ${isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30'} text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all`}
+                    >
+                        {isSaving ? (
+                            <>
+                                <span className="material-symbols-outlined animate-spin">refresh</span>
+                                <span>Menyimpan...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="material-symbols-outlined">save</span>
+                                <span>Simpan Perubahan</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* Image Menu Overlay */}
+            {imageMenuOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-background-dark w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-primary/20 space-y-4">
+                        <h3 className="text-center font-bold text-slate-900 dark:text-slate-100 text-lg mb-4">Pilih Sumber Foto</h3>
+                        <button 
+                            onClick={() => handleImageTrigger('camera')}
+                            className="w-full flex items-center justify-center gap-3 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">photo_camera</span>
+                            Kamera Langsung
+                        </button>
+                        <button 
+                            onClick={() => handleImageTrigger('gallery')}
+                            className="w-full flex items-center justify-center gap-3 bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 py-3 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">photo_library</span>
+                            Pilih dari Galeri
+                        </button>
+                        <button 
+                            onClick={() => setImageMenuOpen(false)}
+                            className="w-full py-3 mt-4 text-slate-400 font-semibold hover:text-slate-500 transition-colors"
+                        >
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default EditItemModal;
