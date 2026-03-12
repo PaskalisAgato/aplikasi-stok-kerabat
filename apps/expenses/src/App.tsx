@@ -24,12 +24,12 @@ function App() {
     try {
         setIsLoading(true);
         const data = await apiClient.getExpenses();
-        // format them matching component props
+        // Keep raw date (ISO string) - ExpenseList will handle display formatting
         const formatted = data.map((exp: any) => ({
             id: exp.id,
             title: exp.title,
             category: exp.category,
-            date: new Date(exp.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+            date: exp.expenseDate || exp.date, // raw ISO date for filtering
             amount: exp.amount,
             imageUrl: exp.receiptUrl || ''
         }));

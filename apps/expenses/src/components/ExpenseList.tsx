@@ -30,23 +30,25 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
     };
 
     const filteredExpenses = expenses.filter(expense => {
-        // Tying to parse short indonesian date format: D MMM YYYY  or  D MMMM YYYY
-        // Simplest generic fallback is to check contains if not matching typical dates.
         try {
             const expDate = new Date(expense.date);
-            if(!isNaN(expDate.getTime())) {
+            if (!isNaN(expDate.getTime())) {
                 return expDate.getMonth() === selectedMonth && expDate.getFullYear() === selectedYear;
             }
         } catch(e) {}
-        
-        // Simple string fallback
-        const monthStr = MONTHS[selectedMonth];
-        const monthShortStr = monthStr.substring(0, 3);
-        const dateString = expense.date.toLowerCase();
-        
-        return (dateString.includes(monthStr.toLowerCase()) || dateString.includes(monthShortStr.toLowerCase())) 
-               && dateString.includes(selectedYear.toString());
+        return false;
     });
+
+    const formatDisplayDate = (dateStr: string) => {
+        try {
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            }
+        } catch(e) {}
+        return dateStr;
+    };
+
 
     return (
         <div className="space-y-4 pb-10">
@@ -95,7 +97,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold truncate">{expense.title}</p>
                                     <p className="text-[10px] text-slate-500 font-medium bg-slate-200 dark:bg-slate-800 rounded px-1.5 py-0.5 inline-block mt-1">{expense.category}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{expense.date}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{formatDisplayDate(expense.date)}</p>
                                 </div>
                                 <div className="text-right flex flex-col items-end gap-2">
                                     <p className="font-bold text-primary">Rp {Number(expense.amount).toLocaleString('id-ID')}</p>

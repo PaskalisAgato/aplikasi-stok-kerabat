@@ -165,21 +165,23 @@ function App() {
         </main>
 
         {/* Floating Action Buttons */}
-        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-30">
+        <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-30">
           <button
             onClick={() => setIsAddStockModalOpen(true)}
-            className="size-12 bg-white dark:bg-primary/20 text-primary border border-slate-200 dark:border-primary/30 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95 self-end"
+            className="h-12 px-5 bg-white dark:bg-primary/20 text-primary border border-slate-200 dark:border-primary/30 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 text-sm font-bold"
             title="Restok Bahan (Ubah Kuantitas)"
           >
-            <span className="material-symbols-outlined text-[24px]">input</span>
+            <span className="material-symbols-outlined text-[20px]">input</span>
+            Barang Masuk (Restok)
           </button>
           
           <button
             onClick={() => setIsCreateItemModalOpen(true)}
-            className="size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+            className="h-14 px-6 bg-primary text-white rounded-full shadow-[0_8px_24px_rgba(200,100,20,0.3)] flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 text-base font-bold"
             title="Tambah Bahan Baru"
           >
-            <span className="material-symbols-outlined text-[32px]">add</span>
+            <span className="material-symbols-outlined text-[24px]">add</span>
+            Bahan Baku Baru
           </button>
         </div>
 
