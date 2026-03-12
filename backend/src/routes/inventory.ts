@@ -156,7 +156,32 @@ inventoryRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// GET Recent Stock In (Restock History)
+// GET Item Specific Movements
+inventoryRouter.get('/:id/movements', async (req: Request, res: Response) => {
+    try {
+        const inventoryId = parseInt(req.params.id as string);
+        const movements = await db.select({
+            id: schema.stockMovements.id,
+            type: schema.stockMovements.type,
+            quantity: schema.stockMovements.quantity,
+            reason: schema.stockMovements.reason,
+            supplierName: schema.suppliers.name,
+            createdAt: schema.stockMovements.createdAt
+        })
+        .from(schema.stockMovements)
+        .leftJoin(schema.suppliers, eq(schema.stockMovements.supplierId, schema.suppliers.id))
+        .where(eq(schema.stockMovements.inventoryId, inventoryId))
+        .orderBy(sql`${schema.stockMovements.createdAt} DESC`)
+        .limit(20);
+
+        res.json(movements);
+    } catch (error) {
+        console.error('Error fetching item movements:', error);
+        res.status(500).json({ error: 'Failed to fetch movements' });
+    }
+});
+
+// GET Recent Stock In (Restock History) - General
 inventoryRouter.get('/movements/in', async (req: Request, res: Response) => {
     try {
         const history = await db.select({

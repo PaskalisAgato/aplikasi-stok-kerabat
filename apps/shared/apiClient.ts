@@ -11,6 +11,12 @@ export const apiClient = {
         return res.json();
     },
 
+    getItemMovements: async (id: number) => {
+        const res = await fetch(`${API_BASE_URL}/inventory/${id}/movements`);
+        if (!res.ok) throw new Error('Failed to fetch item movements');
+        return res.json();
+    },
+
     addInventoryItem: async (data: any) => {
         const res = await fetch(`${API_BASE_URL}/inventory`, {
             method: 'POST',

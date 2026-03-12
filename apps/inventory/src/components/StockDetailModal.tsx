@@ -1,4 +1,4 @@
-import React from 'react';
+import { apiClient } from '@shared/apiClient';
 
 interface StockDetailModalProps {
     isOpen: boolean;
@@ -8,6 +8,27 @@ interface StockDetailModalProps {
 }
 
 const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, selectedItem, onEditClick }) => {
+    const [movements, setMovements] = React.useState<any[]>([]);
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isOpen && selectedItem?.id) {
+            fetchHistory();
+        }
+    }, [isOpen, selectedItem]);
+
+    const fetchHistory = async () => {
+        setIsLoading(true);
+        try {
+            const data = await apiClient.getItemMovements(selectedItem.id);
+            setMovements(data);
+        } catch (err) {
+            console.error('Failed to fetch movements', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -38,106 +59,65 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                     <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">{selectedItem?.name || 'Item Name'}</h1>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className={`inline-block w-2 h-2 rounded-full ${selectedItem?.status === 'KRITIS' ? 'bg-red-500' : selectedItem?.status === 'HABIS' ? 'bg-slate-500' : 'bg-primary'}`} />
-                                        <p className="text-primary font-semibold text-lg">{selectedItem?.currentStock || 0}{selectedItem?.unit || 'kg'} remaining</p>
+                                        <p className="text-primary font-semibold text-lg">{selectedItem?.currentStock || 0}{selectedItem?.unit || 'kg'} tersisa</p>
                                     </div>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm">Last updated: 2 hours ago</p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm">Update terakhir: {new Date(selectedItem?.updatedAt || Date.now()).toLocaleDateString('id-ID')}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Recipe Usage Section */}
-                    <div className="px-4 py-2">
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold tracking-tight">Recipe Usage</h3>
-                            <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary uppercase tracking-wider">Inventory Linked</span>
-                        </div>
-                        <div className="space-y-2">
-                            {/* Usage Card 1 */}
-                            <div className="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10 p-3 rounded-lg justify-between hover:bg-slate-200 dark:hover:bg-primary/10 transition-colors">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
-                                        <span className="material-symbols-outlined">coffee</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-slate-900 dark:text-slate-100 text-base font-semibold">Kopi O</p>
-                                        <p className="text-slate-500 dark:text-slate-400 text-xs">Serving portion: 20g</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">60 Servings</p>
-                                    <p className="text-slate-500 dark:text-slate-400 text-[10px]">potential yield</p>
-                                </div>
-                            </div>
-
-                            {/* Usage Card 2 */}
-                            <div className="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10 p-3 rounded-lg justify-between hover:bg-slate-200 dark:hover:bg-primary/10 transition-colors">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
-                                        <span className="material-symbols-outlined">water_drop</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-slate-900 dark:text-slate-100 text-base font-semibold">Kopi Susu</p>
-                                        <p className="text-slate-500 dark:text-slate-400 text-xs">Serving portion: 15g</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">80 Servings</p>
-                                    <p className="text-slate-500 dark:text-slate-400 text-[10px]">potential yield</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* [Optional Hidden for now until backend support for recipe calculation is ready] */}
 
                     {/* Stock History Section */}
                     <div className="px-4 py-4 mt-2">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold tracking-tight">Stock History</h3>
-                            <button className="text-primary text-sm font-medium hover:underline">View All</button>
+                            <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold tracking-tight">Riwayat Stok</h3>
+                            <button onClick={fetchHistory} className="text-primary text-sm font-medium hover:underline">Refresh</button>
                         </div>
 
-                        <div className="space-y-4">
-                            {/* History Item 1 */}
-                            <div className="flex items-start gap-3">
-                                <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-green-500 text-lg">add</span>
+                        <div className="space-y-4 pb-20">
+                            {isLoading ? (
+                                <div className="flex justify-center py-10">
+                                    <span className="material-symbols-outlined animate-spin text-primary">sync</span>
                                 </div>
-                                <div className="flex-1 border-b border-slate-200 dark:border-primary/10 pb-3">
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-slate-900 dark:text-slate-100 font-medium">Supplier Delivery</p>
-                                        <p className="text-green-500 font-bold">+5.0 kg</p>
+                            ) : movements.length > 0 ? (
+                                movements.map((m) => (
+                                    <div key={m.id} className="flex items-start gap-3">
+                                        <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                            m.type === 'IN' ? 'bg-green-500/10' : 'bg-red-500/10'
+                                        }`}>
+                                            <span className={`material-symbols-outlined text-lg ${
+                                                m.type === 'IN' ? 'text-green-500' : 'text-red-500'
+                                            }`}>
+                                                {m.type === 'IN' ? 'add' : 'remove'}
+                                            </span>
+                                        </div>
+                                        <div className="flex-1 border-b border-slate-200 dark:border-primary/10 pb-3">
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-slate-900 dark:text-slate-100 font-medium">
+                                                    {m.type === 'IN' ? `Restok: ${m.supplierName || 'General'}` : 
+                                                     m.type === 'OUT' ? 'Penjualan' : 
+                                                     m.type === 'WASTE' ? 'Waste/Rusak' : 'Penyesuaian'}
+                                                </p>
+                                                <p className={`font-bold ${m.type === 'IN' ? 'text-green-500' : 'text-red-500'}`}>
+                                                    {m.type === 'IN' ? '+' : '-'}{m.quantity} {selectedItem?.unit}
+                                                </p>
+                                            </div>
+                                            <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">
+                                                {new Date(m.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • {new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                            {m.reason && <p className="text-[10px] italic text-slate-400 mt-1">{m.reason}</p>}
+                                        </div>
                                     </div>
-                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Oct 24, 2023 • 09:15 AM</p>
+                                Another item would go here...
+                                ))
+                            ) : (
+                                <div className="text-center py-10 text-slate-400 text-sm">
+                                    Belum ada pergerakan stok tercatat.
                                 </div>
-                            </div>
-
-                            {/* History Item 2 */}
-                            <div className="flex items-start gap-3">
-                                <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-red-500 text-lg">remove</span>
-                                </div>
-                                <div className="flex-1 border-b border-slate-200 dark:border-primary/10 pb-3">
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-slate-900 dark:text-slate-100 font-medium">Daily Usage Adjustment</p>
-                                        <p className="text-red-500 font-bold">-0.8 kg</p>
-                                    </div>
-                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Oct 23, 2023 • 10:00 PM</p>
-                                </div>
-                            </div>
-
-                            {/* History Item 3 */}
-                            <div className="flex items-start gap-3">
-                                <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-red-500 text-lg">remove</span>
-                                </div>
-                                <div className="flex-1 pb-3">
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-slate-900 dark:text-slate-100 font-medium">Waste Recorded</p>
-                                        <p className="text-red-500 font-bold">-0.2 kg</p>
-                                    </div>
-                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Oct 23, 2023 • 04:30 PM</p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
