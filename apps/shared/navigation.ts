@@ -42,14 +42,32 @@ export const getBaseUrl = () => {
 export const getTargetUrl = (port: number) => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
+        const pathname = window.location.pathname;
 
-        // Jika web dibuka di GitHub Pages atau mode preview static
-        if (hostname.includes('github.io') || window.location.pathname.includes(`/${REPO_NAME}/`)) {
+        // Is this a local development environment (localhost, 127.0.0.1, or local IP)?
+        const isLocalhost = hostname === 'localhost' || 
+                           hostname === '127.0.0.1' || 
+                           hostname.startsWith('192.168.') || 
+                           hostname.startsWith('10.');
+
+        if (!isLocalhost) {
+            // Production environment (GitHub Pages, Render, etc.)
             const appName = PORT_TO_APP[port];
-            return appName ? `/${REPO_NAME}/${appName}/` : `/${REPO_NAME}/`;
+            
+            // Detect if we are in a subdirectory (like GitHub Pages /repo-name/)
+            // or if the app name is already in the path
+            const hasRepoName = pathname.includes(`/${REPO_NAME}/`);
+            
+            if (hasRepoName) {
+                return appName ? `/${REPO_NAME}/${appName}/` : `/${REPO_NAME}/`;
+            } else {
+                // For Render/Vercel or Custom Domains where the app is at root
+                // We still use folder-based routing but without the repo-name prefix
+                return appName ? `/${appName}/` : '/';
+            }
         }
 
-        // Jika jalankan mode development (localhost:517x)
+        // Development mode: switch ports
         const url = new URL(window.location.href);
         url.port = port.toString();
         url.pathname = '/';
