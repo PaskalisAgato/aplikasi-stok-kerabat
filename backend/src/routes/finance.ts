@@ -73,28 +73,48 @@ financeRouter.delete('/expenses/:id', async (req: Request, res: Response) => {
     }
 });
 
-// GET P&L (Profit & Loss) Report Summary
+// GET Dashboard & P&L Report Summary
 financeRouter.get('/reports', async (req: Request, res: Response) => {
     try {
-        // Query Total Sales (Revenue)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1. Query Total Sales (All Time)
         const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
         const revenue = allSales.reduce((sum, current) => sum + parseFloat(current.total), 0);
         
-        // Query Total Expenses (Cost)
+        // 2. Query Today's Sales
+        const todaySales = await db.select({ total: schema.sales.totalAmount })
+            .from(schema.sales)
+            .where(gte(schema.sales.createdAt, today));
+        const revenueToday = todaySales.reduce((sum, current) => sum + parseFloat(current.total), 0);
+
+        // 3. Query Total Expenses
         const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
         const totalExpenses = allExpenses.reduce((sum, current) => sum + parseFloat(current.total), 0);
 
-        // Simple P&L mock - For actual apps needs date filtering (e.g. Current Month)
-        const netProfit = revenue - totalExpenses;
+        // 4. Get Top 5 Menus (Recipe Sales Volume)
+        const topMenusRaw = await db.select({
+            recipeId: schema.saleItems.recipeId,
+            name: schema.recipes.name,
+            totalQty: sql<number>`sum(${schema.saleItems.quantity})`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+        .groupBy(schema.saleItems.recipeId, schema.recipes.name)
+        .orderBy(sql`sum(${schema.saleItems.quantity}) DESC`)
+        .limit(5);
 
         res.json({
             revenue,
+            revenueToday,
             expenses: totalExpenses,
-            netProfit,
+            netProfit: revenue - totalExpenses,
+            topMenus: topMenusRaw
         });
 
     } catch (error) {
-        console.error('Error computing P&L:', error);
+        console.error('Error computing finance reports:', error);
         res.status(500).json({ error: 'Failed to compute financial reports' });
     }
 });

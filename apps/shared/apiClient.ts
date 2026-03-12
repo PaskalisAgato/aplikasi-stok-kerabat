@@ -21,6 +21,16 @@ export const apiClient = {
         return res.json();
     },
 
+    submitOpname: async (adjustments: any[]) => {
+        const res = await fetch(`${API_BASE_URL}/inventory/opname`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adjustments })
+        });
+        if (!res.ok) throw new Error('Failed to submit stock opname');
+        return res.json();
+    },
+
     recordStockMovement: async (inventoryId: number, data: any) => {
          const res = await fetch(`${API_BASE_URL}/inventory/${inventoryId}/movement`, {
             method: 'POST',
