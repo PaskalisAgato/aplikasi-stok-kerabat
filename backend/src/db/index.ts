@@ -13,7 +13,7 @@ export const pool = new Pool({
 export const db = drizzle(pool, { schema });
 
 // Auto-check connection on App Start
-pool.on('error', (err) => {
+pool.on('error', (err: Error) => {
     console.error('Unexpected error on idle client', err);
     process.exit(-1);
 });

@@ -83,7 +83,7 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
 // GET Item Specific Waste
 inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
     try {
-        const inventoryId = parseInt(req.params.id);
+        const inventoryId = parseInt(req.params.id as string);
         const wasteLogs = await db.select()
             .from(schema.stockMovements)
             .where(
@@ -130,12 +130,12 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 // POST Movement (In, Out, Waste, Adjust)
 inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
     try {
-        const inventoryId = parseInt(req.params.id);
+        const inventoryId = parseInt(req.params.id as string);
         const { type, quantity, reason, supplierId, expiryDate } = req.body;
         // type: 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
 
-        if (!type || !quantity) {
-             return res.status(400).json({ error: 'Missing type or quantity' });
+        if (!type || quantity === undefined || isNaN(Number(quantity))) {
+             return res.status(400).json({ error: 'Missing or invalid type or quantity' });
         }
 
         const numericQty = parseFloat(quantity);

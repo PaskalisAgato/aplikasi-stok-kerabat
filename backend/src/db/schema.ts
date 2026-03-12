@@ -133,6 +133,7 @@ export const expenses = pgTable('expenses', {
     title: text('title').notNull(),
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+    receiptUrl: text('receipt_url'),
     expenseDate: timestamp('expense_date').defaultNow().notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });

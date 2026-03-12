@@ -19,17 +19,28 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
 // POST new expense
 financeRouter.post('/expenses', async (req: Request, res: Response) => {
     try {
-        const { title, category, amount, date } = req.body;
+        const { title, category, amount, date, receiptUrl } = req.body;
         
-        if (!title || !category || !amount) {
-            return res.status(400).json({ error: 'Missing required expense fields' });
+        // Better validation: amount can be 0, but must be defined and a number
+        if (!title || !category || amount === undefined || isNaN(Number(amount))) {
+            return res.status(400).json({ error: 'Missing or invalid required expense fields' });
+        }
+
+        // Validate date to prevent 500 errors from Postgres
+        let expenseDate = new Date();
+        if (date) {
+            expenseDate = new Date(date);
+            if (isNaN(expenseDate.getTime())) {
+                return res.status(400).json({ error: 'Invalid date format' });
+            }
         }
 
         const [newExpense] = await db.insert(schema.expenses).values({
             title,
             category,
             amount: amount.toString(),
-            expenseDate: date ? new Date(date) : new Date()
+            receiptUrl: receiptUrl || null,
+            expenseDate: expenseDate
         }).returning();
 
         res.status(201).json(newExpense);

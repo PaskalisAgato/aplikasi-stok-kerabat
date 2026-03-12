@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { supabase } from '@shared/supabase';
+import { apiClient } from '@shared/apiClient';
 
 const RECEIPT_PLACEHOLDER = "https://lh3.googleusercontent.com/aida-public/AB6AXuBTvM5Q12GfACKk9r_zhhw0OCgi9ANw5ZQbnmRdZetIXY2IR3efM2tFVbCE_z-ayy4fuevoCkOqm5uVU-5A_uCSbNe4ZFN94yJ2SjBO18yqrqxlF4ER2zBQsumlEyrSfloxdwmMNMwXfuoAKplmadbY_WOY6XMEr4WzFOlNFSx5QKyxrOv0efcANCpDWZxf6x2jCbs2QPvmD9xqQQCmQpYywyNcr07DFBxMHCFKiMltoQHOUZfUx1QcRDaJmkBdRjf2MnLxircFQKo";
 
@@ -35,34 +37,70 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [categorySearch, setCategorySearch] = useState('');
     const [receipt, setReceipt] = useState<string | null>(RECEIPT_PLACEHOLDER);
     const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     if (!isOpen) return null;
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedFile(file);
+            setReceipt(URL.createObjectURL(file));
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount) return;
 
-        const cat = ALL_CATEGORIES.find(c => c.id === selectedCategory);
-        
+        setIsUploading(true);
+        let finalReceiptUrl = receipt || '';
+
         try {
+            // 1. If there's a new file, upload to Supabase Storage
+            if (selectedFile) {
+                const fileExt = selectedFile.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `receipts/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('expenses') // Ensure you have this bucket in Supabase
+                    .upload(filePath, selectedFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('expenses')
+                    .getPublicUrl(filePath);
+                
+                finalReceiptUrl = publicUrl;
+            }
+
+            // 2. Add Expense to database
+            const cat = ALL_CATEGORIES.find(c => c.id === selectedCategory);
+            
             await apiClient.addExpense({
                 title: name,
                 category: cat?.label ?? 'Other',
                 amount: Number(amount),
-                receiptUrl: receipt || '',
+                receiptUrl: finalReceiptUrl,
                 date: expenseDate
             });
 
-            onAdd({}); // Just trigger a refresh on parent
+            onAdd({}); 
             setName('');
             setAmount('');
             setSelectedCategory('coffee');
             setCategorySearch('');
             setReceipt(RECEIPT_PLACEHOLDER);
+            setSelectedFile(null);
             onClose();
         } catch (error) {
             console.error('Failed to save expense', error);
-            alert('Gagal merekam pengeluaran.');
+            alert('Gagal merekam pengeluaran. Pastikan koneksi internet stabil dan credentials Supabase benar.');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -75,7 +113,6 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     };
 
     return (
-        /* Full-screen overlay */
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
             {/* Bottom Sheet */}
             <div className="w-full bg-background-light dark:bg-background-dark rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
@@ -209,10 +246,21 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                         {/* Receipt Photo */}
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Receipt Photo</label>
+                            
+                            {/* Hidden file input */}
+                            <input
+                                type="file"
+                                id="receipt-upload"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                            />
+
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Upload Button */}
                                 <button
                                     type="button"
+                                    onClick={() => document.getElementById('receipt-upload')?.click()}
                                     className="aspect-square rounded-lg border-2 border-dashed border-primary/30 flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-primary mb-2" style={{ fontSize: '32px' }}>add_a_photo</span>
@@ -232,7 +280,10 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => setReceipt(null)}
+                                            onClick={() => {
+                                                setReceipt(null);
+                                                setSelectedFile(null);
+                                            }}
                                             className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
                                         >
                                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
@@ -246,10 +297,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                         <div className="mt-10 mb-4">
                             <button
                                 type="submit"
-                                className="w-full h-16 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+                                disabled={isUploading}
+                                className={`w-full h-16 ${isUploading ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all`}
                             >
-                                <span className="material-symbols-outlined">check_circle</span>
-                                Save Expense
+                                {isUploading ? (
+                                    <span className="material-symbols-outlined animate-spin">refresh</span>
+                                ) : (
+                                    <span className="material-symbols-outlined">check_circle</span>
+                                )}
+                                {isUploading ? 'Uploading & Saving...' : 'Save Expense'}
                             </button>
                         </div>
                     </form>

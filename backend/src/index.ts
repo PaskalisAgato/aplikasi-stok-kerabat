@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 // 1. Core Middlewares
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*', // Secure origin in production
+    origin: [process.env.FRONTEND_URL || '*', 'https://paskalisagato.github.io'],
     credentials: true,
 }));
 app.use(express.json()); // Parse JSON payloads

@@ -28,6 +28,9 @@ jobs:
 
       - name: Build All Apps
         run: npm run build:pages
+        env:
+          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
