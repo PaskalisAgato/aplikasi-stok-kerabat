@@ -10,8 +10,8 @@ import NavDrawer from '@shared/NavDrawer';
 export default function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [financeData, setFinanceData] = useState({
-        totalRevenue: 0,
-        totalExpenses: 0,
+        revenue: 0,
+        expenses: 0,
         netProfit: 0
     });
     const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +20,12 @@ export default function App() {
         const fetchReports = async () => {
             try {
                 const data = await apiClient.getFinanceReports();
-                setFinanceData(data);
+                console.log("Finance Data received:", data);
+                setFinanceData({
+                    revenue: data.revenue || 0,
+                    expenses: data.expenses || 0,
+                    netProfit: data.netProfit || 0
+                });
             } catch (error) {
                 console.error("Failed to load finance reports", error);
             } finally {
@@ -30,8 +35,8 @@ export default function App() {
         fetchReports();
     }, []);
 
-    const { totalRevenue, totalExpenses, netProfit } = financeData;
-    const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(0) : 0;
+    const { revenue, expenses, netProfit } = financeData;
+    const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(0) : 0;
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
@@ -75,7 +80,7 @@ export default function App() {
                         <>
                             <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-primary/10 border border-primary/20 snap-center">
                                 <p className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Revenue</p>
-                                <p className="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Rp {(totalRevenue / 1000).toLocaleString('id-ID')}k</p>
+                                <p className="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k</p>
                                 <p className="text-emerald-500 text-xs font-bold flex items-center gap-1 mt-1">
                                     <span className="material-symbols-outlined text-xs">trending_up</span> Live Data
                                 </p>
@@ -83,7 +88,7 @@ export default function App() {
 
                             <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-gradient-to-br from-[#d4823a] to-[#b36a2b] text-white shadow-lg shadow-primary/30 snap-center">
                                 <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Net Profit</p>
-                                <p className="text-white text-3xl font-extrabold leading-tight tracking-tight">Rp {(netProfit / 1000).toLocaleString('id-ID')}k</p>
+                                <p className="text-white text-3xl font-extrabold leading-tight tracking-tight">Rp {((netProfit || 0) / 1000).toLocaleString('id-ID')}k</p>
                                 <p className="text-white text-xs font-bold flex items-center gap-1 mt-1">
                                     <span className="material-symbols-outlined text-xs">payments</span> {margin}% Margin
                                 </p>
