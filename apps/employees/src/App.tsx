@@ -19,40 +19,7 @@ interface Employee {
     initials?: string;
 }
 
-const employeesData: Employee[] = [
-    {
-        id: 1,
-        name: "Ahmad Fauzi",
-        role: "Barista Senior",
-        status: "Aktif",
-        lastActive: "2 menit yang lalu",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCPXE6SQQ473O5_TuDL_0sHhncuu8wws5jNS9kAgDTczJiGTznehJnvS5xe_3hPWu_tWXI0InRcvuDsE_T7A4Ekev6q1kK_JIPPq_PRNDxA74x6JAs7POc8Tf_M7gdzY2BxVrrApQn-BEJBjIwJG69i-I_liEYUc2-zWsR4-5guFRMP5PMXmFWT5WJDN5U3chG8L73RQfygmqq-J7gPra0RtF5F4GPy2ACAtWrMWhDwobpZf5wC2pppqcvr8j-d0h_csW1FmCKv848"
-    },
-    {
-        id: 2,
-        name: "Siti Aminah",
-        role: "Kasir",
-        status: "Aktif",
-        lastActive: "Sekarang",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ3h8xwbi96n5IL2b-aiAehjSrH8vEC7-6ZdciPgzSw0YTHmU6apSdAlnyif_1AcbpCnV6ueVPHCkdh8yMek0XIduI8SVjLMR4AOb49HfR960qBtSLMK6f7NsomY6ew5BrcBk4CpYTfmigpgOtkQDst9b01Ko8niQz57HkLCt233puTgeB2bdRDJJkyL_S5LlQMrRwfphO020mpYG7pjnV-YuY0u7EidEH9JrLZ2syrapMVpbiK38GwVotnGVxfe-P1dBuCMo7rX0"
-    },
-    {
-        id: 3,
-        name: "Budi Pratama",
-        role: "Admin Gudang",
-        status: "Non-aktif",
-        lastActive: "3 hari yang lalu",
-        initials: "BP"
-    },
-    {
-        id: 4,
-        name: "Rizky Ramadhan",
-        role: "Barista",
-        status: "Aktif",
-        lastActive: "15 menit yang lalu",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBUsUqk-odior0NZzqURl7FAZ5yjl3o0tDZc3oZ2rHyeukgFgRjyjS83WCuTp3irHiZrcoozW5IC2T5_qcMvOLWEB99_OfNwaCg5Z0vDiE7b8Rh5_vdGGHCn1wMpnwp2hWyQUEyBOJ6CaX194kO52mP4VWwdSTddtmt24T2I4NPz31Qfv2Wu9kAxtdacDLtxfoMk_5-HRuNcCXwI9jMHkZUdt1rvQ9CIaV_NLIIW_GaVmHfMyagQg-9_HjjZFT9E3-yK73SaYNoPdo"
-    }
-];
+// REMOVED UNUSED EMPLOYEES DATA
 
 function App() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -106,7 +73,7 @@ function App() {
                         <span className="text-xs font-medium text-primary/50">{filteredEmployees.length} Karyawan</span>
                     </div>
 
-                    {filteredEmployees.map((employee) => (
+                    {filteredEmployees.map((employee: any) => (
                         <div
                             key={employee.id}
                             onClick={() => setIsEditEmployeeModalOpen(true)}
@@ -117,7 +84,7 @@ function App() {
                                     {employee.image ? (
                                         <img className="h-full w-full object-cover" src={employee.image} alt={employee.name} />
                                     ) : (
-                                        <span className="text-lg font-bold text-slate-400">{employee.initials}</span>
+                                        <span className="text-lg font-bold text-slate-400">{employee.initials || employee.name.substring(0,2).toUpperCase()}</span>
                                     )}
                                 </div>
                                 <div className={`absolute bottom-0 right-0 h-4 w-4 border-2 border-background-dark rounded-full ${employee.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-500'}`}></div>

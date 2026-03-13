@@ -1,8 +1,8 @@
+@import "../../shared/global.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "../../shared/global.css";
 
 @layer base {
   html {
@@ -27,3 +27,4 @@
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+

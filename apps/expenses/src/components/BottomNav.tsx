@@ -4,7 +4,6 @@ import { getTargetUrl } from '@shared/navigation';
 const BottomNav: React.FC = () => {
     const homeUrl = getTargetUrl(5173);
     const stokUrl = getTargetUrl(5174);
-    const transaksiUrl = getTargetUrl(5186); // Or whatever point of sale is
     const laporanUrl = getTargetUrl(5175);
 
     return (

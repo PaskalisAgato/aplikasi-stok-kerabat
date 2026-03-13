@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "../../shared/global.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "../../shared/global.css";
 
 @layer base {
   body {
@@ -23,4 +23,5 @@
     scrollbar-width: none;
   }
 }
+
 

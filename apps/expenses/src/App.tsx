@@ -8,7 +8,6 @@ import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'penjualan' | 'pengeluaran'>('pengeluaran');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [expensesList, setExpensesList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -1,8 +1,8 @@
+@import "../../shared/global.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "../../shared/global.css";
 
 @layer base {
   body {
@@ -17,4 +17,5 @@
     display: none;
   }
 }
+
 
