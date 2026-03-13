@@ -21,7 +21,6 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
     const [drafts, setDrafts] = useState<DraftItem[]>([createEmptyDraft()]);
     const [isSaving, setIsSaving] = useState(false);
     
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const activeDraftId = useRef<string | null>(null);
 
     function createEmptyDraft(): DraftItem {

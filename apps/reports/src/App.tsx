@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 
 
@@ -7,6 +7,7 @@ import NavDrawer from '@shared/NavDrawer';
 
 
 
+export default function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [financeData, setFinanceData] = useState({
         totalRevenue: 0,
@@ -187,4 +188,4 @@ import NavDrawer from '@shared/NavDrawer';
     );
 }
 
-export default App;
+
