@@ -104,108 +104,147 @@ function App() {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen w-full">
+  return (
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen w-full transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5174} />
-      {/* Main Container */}
-      <div className="relative mx-auto min-h-screen w-full max-w-[390px] flex flex-col bg-background-light dark:bg-background-dark pb-32">
-
-        {/* Header Section */}
-        <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md pt-6 pb-2 px-4 border-b border-slate-200 dark:border-primary/20">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors text-primary active:scale-95 shrink-0"
-              >
-                <span className="material-symbols-outlined">menu</span>
-              </button>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">Inventory Stok</h1>
-              </div>
+      
+      <div className="flex flex-col min-h-screen lg:flex-row max-w-[1600px] mx-auto">
+        
+        {/* Desktop Sidebar (Filter) - Hidden on Mobile */}
+        <aside className="hidden lg:flex w-72 h-screen sticky top-0 bg-surface border-r border-[var(--border-color)] flex-col p-6 space-y-8">
+            <div className="flex items-center gap-3">
+                 <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="material-symbols-outlined">menu</span>
+                </button>
+                <h1 className="text-xl font-black tracking-tight">Inventory</h1>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleExportCSV}
-                className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
-                title="Ekspor ke Spreadsheet"
-              >
-                <span className="material-symbols-outlined text-primary">download</span>
-              </button>
-              <button
-                onClick={() => setIsNotificationModalOpen(true)}
-                className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-primary/10 hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
-                title="Notifikasi"
-              >
-                <span className="material-symbols-outlined text-primary">notifications</span>
-              </button>
-            </div>
-          </div>
 
-          {/* Search Bar */}
-          <div className="relative mb-4">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-slate-400 dark:text-primary/40 text-[20px]">search</span>
+            <div className="space-y-4">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Filter Status</p>
+                <div className="flex flex-col gap-2">
+                    {['Semua', 'Kritis', 'Normal'].map(cat => (
+                        <button 
+                            key={cat} 
+                            onClick={() => setFilterType(cat)}
+                            className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-500 hover:bg-primary/5 hover:text-primary'}`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
             </div>
-            <input
-              className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-primary/20 transition-all placeholder:text-slate-400 dark:placeholder:text-primary/40 text-slate-900 dark:text-slate-100"
-              placeholder="Cari bahan baku..."
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </div>
 
-          {/* Filter Pills */}
-          <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
-            <button 
-              onClick={() => setFilterType('Semua')}
-              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Semua' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Semua</button>
-            <button 
-              onClick={() => setFilterType('Kritis')}
-              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Kritis' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Kritis</button>
-            <button 
-              onClick={() => setFilterType('Normal')}
-              className={`whitespace-nowrap px-5 py-2 rounded-full text-xs font-semibold ${filterType === 'Normal' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-primary/70 border border-transparent dark:border-primary/20'}`}>Normal</button>
-          </div>
-        </header>
+            <div className="pt-8 border-t border-[var(--border-color)] space-y-4">
+                <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full">
+                    <span className="material-symbols-outlined">add</span>
+                    Tambah Bahan
+                </button>
+                <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-color)] text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                    <span className="material-symbols-outlined text-[18px]">download</span>
+                    Ekspor CSV
+                </button>
+            </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+            {/* Header (Unified Mobile/Desktop Search) */}
+            <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 md:p-6 border-b border-[var(--border-color)]">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => setDrawerOpen(true)} className="lg:hidden size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <span className="material-symbols-outlined">menu</span>
+                    </button>
+                    
+                    <div className="relative flex-1 group">
+                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                        <input
+                            type="text"
+                            placeholder="Cari bahan baku (kopi, gula, susu...)"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-12 pl-12 pr-4 rounded-2xl border border-[var(--border-color)] bg-surface focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                         <button onClick={() => setIsNotificationModalOpen(true)} className="size-12 card flex items-center justify-center text-primary group">
+                            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile-only horizontal category scroll */}
+                <div className="lg:hidden flex gap-2 overflow-x-auto hide-scrollbar mt-4 pb-1">
+                    {['Semua', 'Kritis', 'Normal'].map(cat => (
+                        <button 
+                            key={`mob-cat-${cat}`}
+                            onClick={() => setFilterType(cat)}
+                            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 dark:bg-primary/10 text-slate-500'}`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
+            </header>
+
+            <main className="p-4 md:p-8">
+                <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Daftar Inventori</h2>
+                    <p className="text-xs font-bold text-slate-500">Menampilkan {filteredInventory.length} item</p>
+                </div>
 
         {/* Inventory List */}
         <main className="flex-1 px-4 pt-4 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 dark:text-primary/50 mb-2 px-1">Daftar Stok Bahan</h2>
 
-          {filteredInventory.map(item => (
-            <div 
-              key={item.id} 
-              onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
-              className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-4 shadow-sm cursor-pointer hover:border-primary/40 transition-colors active:scale-[0.98]"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">{item.name}</h3>
-                  <p className="text-xs text-slate-500 dark:text-primary/60">Supplier: {item.supplier}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredInventory.map(item => (
+                    <div 
+                      key={item.id} 
+                      onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
+                      className="card p-6 flex flex-col hover:border-primary/40 active:scale-[0.98] group cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="min-w-0">
+                          <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg leading-tight truncate px-1">{item.name}</h3>
+                          <p className="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
+                               <span className="material-symbols-outlined text-[14px]">local_shipping</span>
+                               {item.supplier || 'No Supplier'}
+                          </p>
+                        </div>
+                        <span className={`text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm ${item.status === 'KRITIS' ? 'text-red-600 bg-red-100' :
+                            item.status === 'HABIS' ? 'text-slate-600 bg-slate-200' :
+                              'text-emerald-600 bg-emerald-100'
+                            }`}>
+                            {item.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-end justify-between mt-auto mb-4">
+                           <div className="flex flex-col">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sisa Stok</p>
+                                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                                    {item.currentStock}
+                                    <span className="text-xs font-bold text-slate-400 ml-1 italic">{item.unit}</span>
+                                </p>
+                           </div>
+                           <div className="text-right flex flex-col items-end">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sistem</p>
+                                <p className="text-sm font-bold text-slate-500">{item.systemStock}{item.unit}</p>
+                           </div>
+                      </div>
+
+                      <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden shadow-inner">
+                        <div className={`${item.status === 'KRITIS' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
+                          item.status === 'HABIS' ? 'bg-slate-400' :
+                            'bg-emerald-500 shadow-lg shadow-emerald-500/50'
+                          } h-full rounded-full transition-all duration-700`}
+                          style={{ width: `${Math.min(100, (parseFloat(item.currentStock) / (parseFloat(item.minStock) * 2 || 100)) * 100)}%` }}>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-right">
-                  <span className={`text-xs font-bold px-2 py-1 rounded ${item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10' :
-                    item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10' :
-                      'text-emerald-500 bg-emerald-500/10'
-                    }`}>
-                    {item.status === 'KRITIS' ? 'KRITIS' : item.status === 'HABIS' ? 'HABIS' : 'NORMAL'}
-                  </span>
-                  <p className="text-sm font-bold mt-1">
-                    {item.currentStock}{item.unit} <span className="text-slate-400 dark:text-primary/40 font-normal">/ {item.systemStock}{item.unit}</span>
-                  </p>
-                </div>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-primary/10 h-2.5 rounded-full overflow-hidden">
-                <div className={`${item.status === 'KRITIS' ? 'bg-red-500' :
-                  item.status === 'HABIS' ? 'bg-slate-500' :
-                    'bg-emerald-500'
-                  } h-full rounded-full transition-all duration-500`}
-                  style={{ width: `${Math.min(100, (parseFloat(item.currentStock) / 100) * 100)}%` }}>
-                </div>
-              </div>
-            </div>
-          ))}
 
           {isLoading && (
             <div className="flex justify-center items-center py-10">
@@ -220,27 +259,22 @@ function App() {
           )}
         </main>
 
-        {/* Floating Action Buttons */}
-        <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-30">
-          <button
-            onClick={() => setIsAddStockModalOpen(true)}
-            className="h-12 px-5 bg-white dark:bg-primary/20 text-primary border border-slate-200 dark:border-primary/30 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 text-sm font-bold"
-            title="Restok Bahan (Ubah Kuantitas)"
-          >
-            <span className="material-symbols-outlined text-[20px]">input</span>
-            Barang Masuk (Restok)
-          </button>
-          
-          <button
-            onClick={() => setIsCreateItemModalOpen(true)}
-            className="h-14 px-6 bg-primary text-white rounded-full shadow-[0_8px_24px_rgba(200,100,20,0.3)] flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 text-base font-bold"
-            title="Tambah Bahan Baru"
-          >
-            <span className="material-symbols-outlined text-[24px]">add</span>
-            Bahan Baku Baru
-          </button>
+            {/* Mobile Floating Action Button (shown only on mobile) */}
+            <div className="lg:hidden fixed bottom-6 right-6 flex flex-col items-end gap-3 z-30">
+                <button
+                    onClick={() => setIsAddStockModalOpen(true)}
+                    className="size-14 bg-white dark:bg-slate-800 text-primary rounded-full shadow-2xl flex items-center justify-center border border-primary/10"
+                >
+                    <span className="material-symbols-outlined">input</span>
+                </button>
+                <button
+                    onClick={() => setIsCreateItemModalOpen(true)}
+                    className="size-16 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center"
+                >
+                    <span className="material-symbols-outlined text-3xl">add</span>
+                </button>
+            </div>
         </div>
-
       </div>
 
       <StockDetailModal

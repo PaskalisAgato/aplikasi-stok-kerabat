@@ -34,21 +34,27 @@ function App() {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col max-w-[390px] mx-auto overflow-x-hidden bg-background-light dark:bg-background-dark">
+    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display antialiased transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5173} />
       <Header onMenuClick={() => setDrawerOpen(true)} onNotificationClick={() => setIsNotifOpen(true)} />
       
-      {isLoading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
-        </div>
-      ) : (
-        <>
-          <KPICards reports={reports} />
-          <SalesChart reports={reports} />
-          <CriticalStock inventory={inventory} />
-        </>
-      )}
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 space-y-8">
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center p-20">
+            <span className="material-symbols-outlined animate-spin text-primary text-5xl">refresh</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-8">
+                <KPICards reports={reports} />
+                <SalesChart reports={reports} />
+            </div>
+            <div className="lg:col-span-4">
+                <CriticalStock inventory={inventory} />
+            </div>
+          </div>
+        )}
+      </main>
 
       <NotificationModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </div>

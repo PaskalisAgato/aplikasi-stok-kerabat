@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "../../shared/global.css";
+
 :root {
     --primary: #8B4513;
 }

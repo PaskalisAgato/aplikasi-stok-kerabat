@@ -39,155 +39,163 @@ export default function App() {
     const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(0) : 0;
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    return (
+        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5175} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30">
+            
+            <div className="flex flex-col min-h-screen lg:flex-row max-w-[1400px] mx-auto">
+                
+                {/* Desktop Sidebar - Side Controls */}
+                <aside className="hidden lg:flex w-80 h-screen sticky top-0 bg-surface border-r border-[var(--border-color)] flex-col p-8 space-y-10">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined">menu</span>
+                        </button>
+                        <h1 className="text-xl font-black tracking-tight">Reports</h1>
+                    </div>
 
-                {/* Header */}
-                <div className="flex items-center bg-background-light/90 dark:bg-background-dark/90 p-4 border-b border-primary/10 sticky top-0 z-30 backdrop-blur-md gap-2">
-                    <button onClick={() => setDrawerOpen(true)} className="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors text-primary shrink-0">
-                        <span className="material-symbols-outlined text-primary">menu</span>
-                    </button>
-                    <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1">Kopi Tiam P&L Report</h2>
-                </div>
-
-                {/* Date Range Picker Section */}
-                <div className="p-4 relative z-0">
-                    <div className="bg-primary/5 dark:bg-primary/10 rounded-xl p-4 border border-primary/20">
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-sm font-semibold uppercase tracking-wider text-primary">REPORT PERIOD</span>
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Report Period</p>
                             <span className="material-symbols-outlined text-primary text-sm">calendar_month</span>
                         </div>
-                        <div className="flex items-center justify-between gap-4">
-                            <button className="flex-1 flex items-center justify-center gap-2 bg-background-light dark:bg-slate-800 p-3 rounded-lg border border-primary/20 active:scale-95 transition-transform hover:bg-primary/10 text-slate-900 dark:text-slate-100">
-                                <span className="text-sm font-medium">1 Mar 2024</span>
-                            </button>
-                            <span className="text-primary font-bold">→</span>
-                            <button className="flex-1 flex items-center justify-center gap-2 bg-background-light dark:bg-slate-800 p-3 rounded-lg border border-primary/20 active:scale-95 transition-transform hover:bg-primary/10 text-slate-900 dark:text-slate-100">
-                                <span className="text-sm font-medium">31 Mar 2024</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="flex gap-4 px-4 pb-4 overflow-x-auto no-scrollbar snap-x mt-4">
-                    {isLoading ? (
-                        <div className="w-full flex justify-center py-6">
-                             <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-primary/10 border border-primary/20 snap-center">
-                                <p className="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Revenue</p>
-                                <p className="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k</p>
-                                <p className="text-emerald-500 text-xs font-bold flex items-center gap-1 mt-1">
-                                    <span className="material-symbols-outlined text-xs">trending_up</span> Live Data
-                                </p>
-                            </div>
-
-                            <div className="flex min-w-[160px] flex-1 flex-col gap-2 rounded-xl p-5 bg-gradient-to-br from-[#d4823a] to-[#b36a2b] text-white shadow-lg shadow-primary/30 snap-center">
-                                <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Net Profit</p>
-                                <p className="text-white text-3xl font-extrabold leading-tight tracking-tight">Rp {((netProfit || 0) / 1000).toLocaleString('id-ID')}k</p>
-                                <p className="text-white text-xs font-bold flex items-center gap-1 mt-1">
-                                    <span className="material-symbols-outlined text-xs">payments</span> {margin}% Margin
-                                </p>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Detailed Sections */}
-                <div className="p-4 space-y-8 flex-1">
-
-                    {/* Revenue Breakdown */}
-                    <section>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">Revenue Breakdown</h3>
-                            <button className="text-xs text-primary font-bold hover:underline active:opacity-70">View Details</button>
-                        </div>
-
                         <div className="space-y-4">
-                            {/* Item 1 */}
-                            <div>
-                                <div className="flex items-center gap-3 mb-1.5">
-                                    <div className="size-2 rounded-full bg-primary"></div>
-                                    <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300">Coffee & Espresso</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$22,180</span>
-                                </div>
-                                <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                    <div className="bg-primary h-full w-[57%] rounded-full"></div>
-                                </div>
+                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 dark:bg-white/5">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dari</p>
+                                <p className="text-sm font-bold">1 Mar 2024</p>
                             </div>
-
-                            {/* Item 2 */}
-                            <div>
-                                <div className="flex items-center gap-3 mb-1.5">
-                                    <div className="size-2 rounded-full bg-amber-600"></div>
-                                    <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300">Non-Coffee Drinks</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$8,540</span>
-                                </div>
-                                <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                    <div className="bg-amber-600 h-full w-[22%] rounded-full"></div>
-                                </div>
+                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 dark:bg-white/5">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hingga</p>
+                                <p className="text-sm font-bold">31 Mar 2024</p>
                             </div>
-
-                            {/* Item 3 */}
-                            <div>
-                                <div className="flex items-center gap-3 mb-1.5">
-                                    <div className="size-2 rounded-full bg-slate-400"></div>
-                                    <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300">Food & Pastries</span>
-                                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">$8,200</span>
-                                </div>
-                                <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                    <div className="bg-slate-400 h-full w-[21%] rounded-full"></div>
-                                </div>
-                            </div>
+                            <button className="w-full btn-primary py-3">
+                                <span className="material-symbols-outlined text-sm">filter_list</span>
+                                Tampilkan
+                            </button>
                         </div>
-                    </section>
-
-                    {/* COGS (HPP) Section */}
-                    <section className="bg-slate-100 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-                        <div className="flex justify-between items-center mb-1">
-                            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">Total COGS (HPP)</h3>
-                            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">($14,580)</span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">Ingredients, packaging, and waste management.</p>
-                    </section>
-
-                    {/* Operating Expenses */}
-                    <section>
-                        <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">Total Expenses (Realtime API)</h3>
-                        <div className="rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-200 dark:divide-slate-800 bg-white/50 dark:bg-slate-900/20 backdrop-blur-sm">
-                            <div className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer first:rounded-t-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                        <span className="material-symbols-outlined text-lg">receipt_long</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Semua Pengeluaran</span>
-                                </div>
-                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                    Rp {(expenses).toLocaleString('id-ID')}
-                                </span>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Export Buttons */}
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                        <button className="flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold py-3.5 rounded-xl hover:bg-primary/5 active:scale-95 transition-all">
-                            <span className="material-symbols-outlined">picture_as_pdf</span>
-                            PDF
-                        </button>
-                        <button className="flex items-center justify-center gap-2 bg-[#059669] text-white font-bold py-3.5 rounded-xl hover:bg-[#047857] shadow-lg shadow-[#059669]/20 active:scale-95 transition-all border border-[#047857]">
-                            <span className="material-symbols-outlined">description</span>
-                            Excel
-                        </button>
                     </div>
 
+                    <div className="mt-auto pt-8 border-t border-[var(--border-color)] space-y-4">
+                         <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-primary text-primary font-black hover:bg-primary/5 transition-all">
+                            <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                            Export PDF
+                        </button>
+                        <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-600 text-white font-black hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                            <span className="material-symbols-outlined text-sm">description</span>
+                            Export Excel
+                        </button>
+                    </div>
+                </aside>
+
+                {/* Main Dashboard Area */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    {/* Header (Mobile) */}
+                    <header className="lg:hidden sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-[var(--border-color)]">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <span className="material-symbols-outlined">menu</span>
+                            </button>
+                            <h2 className="text-lg font-black tracking-tight">Financial Report</h2>
+                        </div>
+                    </header>
+
+                    <main className="p-4 md:p-8 md:pt-12">
+                        {/* Status Summary Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                            {isLoading ? (
+                                <div className="col-span-full h-48 flex items-center justify-center">
+                                    <span className="material-symbols-outlined animate-spin text-primary text-5xl">refresh</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="card p-8 bg-primary/5 border-primary/20 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined text-7xl text-primary">analytics</span>
+                                        </div>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Total Pemasukan</p>
+                                        <p className="text-4xl font-black text-slate-900 dark:text-white mb-2">
+                                            Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k
+                                        </p>
+                                        <div className="flex items-center gap-2 text-emerald-500 font-black text-xs">
+                                            <span className="material-symbols-outlined text-sm">trending_up</span>
+                                            +12% vs last month
+                                        </div>
+                                    </div>
+
+                                    <div className="card p-8 bg-[#d4823a] text-white border-transparent shadow-2xl shadow-[#d4823a]/30 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-8 opacity-20">
+                                            <span className="material-symbols-outlined text-7xl text-white">account_balance_wallet</span>
+                                        </div>
+                                        <p className="text-xs font-black text-white/70 uppercase tracking-[0.2em] mb-3 text-shadow-sm">Profit Bersih (Net)</p>
+                                        <p className="text-4xl font-black text-white mb-2">
+                                            Rp {((netProfit || 0) / 1000).toLocaleString('id-ID')}k
+                                        </p>
+                                        <div className="flex items-center gap-2 text-white/90 font-black text-xs">
+                                            <span className="material-symbols-outlined text-sm">payments</span>
+                                            {margin}% Margin rata-rata
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Breakdown Section */}
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            <div className="card p-8 space-y-8">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xl font-black tracking-tight">Revenue Breakdown</h3>
+                                    <span className="material-symbols-outlined text-primary">donut_large</span>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* Breakdown items with better styling */}
+                                    {[
+                                        { label: 'Coffee & Espresso', val: 'Rp 22,180k', color: 'bg-primary', w: 'w-[57%]' },
+                                        { label: 'Tea & Non-Coffee', val: 'Rp 8,540k', color: 'bg-amber-600', w: 'w-[22%]' },
+                                        { label: 'Pastries & Food', val: 'Rp 8,200k', color: 'bg-slate-400', w: 'w-[21%]' }
+                                    ].map((item, id) => (
+                                        <div key={id}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`size-3 rounded-full ${item.color} shadow-sm`}></div>
+                                                    <span className="text-sm font-black text-slate-600 dark:text-slate-300 uppercase tracking-tighter">{item.label}</span>
+                                                </div>
+                                                <span className="text-sm font-black text-slate-900 dark:text-white">{item.val}</span>
+                                            </div>
+                                            <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden shadow-inner">
+                                                <div className={`${item.color} h-full ${item.w} rounded-full transition-all duration-1000`}></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-8">
+                                {/* Operating Expenses with new card style */}
+                                <section className="card p-8 bg-slate-900 text-white border-transparent">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-black text-white/70 text-xs uppercase tracking-[0.2em]">Total Operating Expenses</h3>
+                                        <span className="material-symbols-outlined text-white/50">receipt_long</span>
+                                    </div>
+                                    <p className="text-3xl font-black text-white">Rp {(expenses).toLocaleString('id-ID')}</p>
+                                    <p className="text-[10px] font-bold text-white/40 mt-2 leading-relaxed">Ingredients, utilities, and labor costs synced from central API.</p>
+                                </section>
+
+                                {/* Mobile only export buttons */}
+                                <div className="lg:hidden grid grid-cols-2 gap-4 pb-20">
+                                    <button className="flex items-center justify-center gap-2 border-2 border-primary text-primary font-black py-4 rounded-2xl active:scale-95 transition-all">
+                                        <span className="material-symbols-outlined">picture_as_pdf</span>
+                                        PDF
+                                    </button>
+                                    <button className="flex items-center justify-center gap-2 bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-all border border-emerald-500">
+                                        <span className="material-symbols-outlined">description</span>
+                                        Excel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
                 </div>
-
-
             </div>
         </div>
     );

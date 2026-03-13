@@ -47,14 +47,120 @@ function App() {
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
     return (
+    return (
         <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5186} />
 
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30 overflow-x-hidden pb-32">
-                {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-primary/10 px-4 py-4">
+            {/* Desktop Layout (hidden on mobile) */}
+            <div className="hidden lg:flex h-screen overflow-hidden">
+                {/* Categories Sidebar */}
+                <aside className="w-64 bg-surface border-r border-[var(--border-color)] flex flex-col pt-4">
+                    <div className="px-6 mb-8 flex items-center gap-3">
+                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary">
+                            <span className="material-symbols-outlined">menu</span>
+                        </button>
+                        <h1 className="text-xl font-extrabold tracking-tight">Kasir</h1>
+                    </div>
+                    <nav className="flex-1 overflow-y-auto px-4 space-y-2">
+                        {['Semua', ...new Set(recipesList.map(r => r.category))].map(cat => (
+                            <button key={cat} className="w-full text-left px-4 py-3 rounded-xl font-bold transition-all hover:bg-primary/5 hover:text-primary text-slate-500">
+                                {cat}
+                            </button>
+                        ))}
+                    </nav>
+                </aside>
+
+                {/* Main Content Area */}
+                <main className="flex-1 flex flex-col bg-background-light dark:bg-background-dark">
+                    <header className="h-20 border-b border-[var(--border-color)] flex items-center justify-between px-8 bg-surface/50 backdrop-blur-md">
+                        <div className="relative group w-96">
+                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                            <input
+                                type="text"
+                                placeholder="Cari menu..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full h-11 pl-12 pr-4 rounded-xl border border-[var(--border-color)] bg-background-light dark:bg-white/5 focus:ring-2 focus:ring-primary/50 text-sm font-medium transition-all"
+                            />
+                        </div>
+                        <button onClick={() => setShowAddMenu(true)} className="btn-primary py-2.5">
+                             <span className="material-symbols-outlined">add</span>
+                             Custom Item
+                        </button>
+                    </header>
+
+                    <div className="flex-1 overflow-y-auto p-8">
+                        <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                            {filteredRecipes.map(recipe => (
+                                <div key={recipe.id} className="card group hover:scale-[1.02] active:scale-95 cursor-pointer" onClick={() => updateQty(recipe.id, 1)}>
+                                    <div 
+                                        className="h-48 bg-cover bg-center"
+                                        style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=400&auto=format&fit=crop"}')` }}
+                                        loading="lazy"
+                                    />
+                                    <div className="p-4">
+                                        <h3 className="font-bold text-lg truncate">{recipe.name}</h3>
+                                        <p className="text-primary font-black text-xl mt-2">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                        <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-bold">{recipe.category}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </main>
+
+                {/* Cart Sidebar */}
+                <aside className="w-96 bg-surface border-l border-[var(--border-color)] flex flex-col">
+                    <div className="p-6 border-b border-[var(--border-color)]">
+                        <h2 className="text-xl font-black flex items-center gap-2">
+                             <span className="material-symbols-outlined text-primary">shopping_basket</span>
+                             Keranjang
+                        </h2>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                        {activeCartItems.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-50">
+                                <span className="material-symbols-outlined text-6xl">shopping_cart</span>
+                                <p className="font-bold mt-4">Belum ada pesanan</p>
+                            </div>
+                        ) : (
+                           activeCartItems.map(recipe => (
+                               <div key={`cart-${recipe.id}`} className="flex items-center gap-4">
+                                   <div className="flex-1">
+                                       <p className="font-bold text-sm truncate">{recipe.name}</p>
+                                       <p className="text-primary font-bold text-xs mt-0.5">Rp {(recipe.price * sales[recipe.id]).toLocaleString('id-ID')}</p>
+                                   </div>
+                                   <div className="flex items-center gap-3 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                                        <button onClick={() => updateQty(recipe.id, -1)} className="size-8 rounded-lg bg-surface flex items-center justify-center font-bold shadow-sm">-</button>
+                                        <span className="font-bold text-sm">{sales[recipe.id]}</span>
+                                        <button onClick={() => updateQty(recipe.id, 1)} className="size-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold shadow-sm">+</button>
+                                   </div>
+                               </div>
+                           ))
+                        )}
+                    </div>
+                    <div className="p-6 bg-primary/5 border-t border-[var(--border-color)] space-y-6">
+                        <div className="flex justify-between items-end">
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Total</p>
+                            <p className="text-3xl font-black text-primary">Rp {totalSalesValue.toLocaleString('id-ID')}</p>
+                        </div>
+                        <button 
+                            disabled={totalItems === 0}
+                            className={`w-full py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${totalItems > 0 ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                        >
+                            <span className="material-symbols-outlined">payments</span>
+                            SELESAIKAN PEMBAYARAN
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+            {/* Mobile Layout (unchanged logic, updated styling) */}
+            <div className="lg:hidden relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-[var(--border-color)] overflow-x-hidden pb-32">
+                {/* Mobile Header */}
+                <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-[var(--border-color)] px-4 py-4">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors active:scale-95 text-primary">
+                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                             <span className="material-symbols-outlined">menu</span>
                         </button>
                         <h1 className="text-xl font-extrabold tracking-tight">Kasir (POS)</h1>
@@ -99,8 +205,9 @@ function App() {
                         activeCartItems.map(recipe => (
                             <div key={recipe.id} className="flex items-center gap-4 bg-white dark:bg-primary/5 p-3 rounded-2xl border border-slate-100 dark:border-primary/10 shadow-sm transition-all">
                                 <div
-                                    className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-slate-100 dark:border-primary/20"
+                                    className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-[var(--border-color)]"
                                     style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                    loading="lazy"
                                 />
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-tight truncate">{recipe.name}</h3>
@@ -122,8 +229,8 @@ function App() {
                     )}
                 </main>
 
-                {/* Footer Action */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-primary/10 p-4 pb-8 z-50 max-w-md mx-auto shadow-2xl">
+                {/* Mobile Footer Action */}
+                <footer className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-md border-t border-[var(--border-color)] p-4 pb-8 z-50 max-w-md mx-auto shadow-2xl">
                     <button
                         onClick={async () => {
                             if (totalItems === 0) return;

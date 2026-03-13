@@ -6,31 +6,37 @@ export default function CriticalStock({ inventory }) {
     );
 
     return (
-        <section className="mt-8 px-4 pb-20">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-slate-900 dark:text-white text-base font-bold flex items-center gap-2">
-                    <span className="material-symbols-outlined text-orange-500 text-xl">warning</span>
+        <section className="mt-2 px-0">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-slate-900 dark:text-white text-lg font-black flex items-center gap-2">
+                    <span className="material-symbols-outlined text-orange-500 text-2xl">warning</span>
                     Stok Kritis
                 </h2>
-                <span className="text-primary text-[10px] bg-primary/10 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-primary text-xs bg-primary/10 px-3 py-1 rounded-full font-black">
                     {criticalItems.length} Bahan
                 </span>
             </div>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-4">
                 {criticalItems.length > 0 ? criticalItems.map(item => (
-                    <div key={item.id} className="flex items-center gap-4 bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-                        <div className="size-12 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-red-500">inventory_2</span>
+                    <div key={item.id} className="card p-4 flex items-center gap-4 group hover:border-orange-500/30 transition-all">
+                        <div className="size-14 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-red-500 text-2xl">inventory_2</span>
                         </div>
-                        <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</h3>
-                            <p className="text-xs text-slate-500 mt-0.5">Sisa: <span className="text-red-500 font-bold">{item.currentStock} {item.unit}</span></p>
-                            <p className="text-[9px] text-slate-400">Min: {item.minStock} {item.unit}</p>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h3>
+                            <p className="text-xs text-slate-500 mt-1">Sisa: <span className="text-red-500 font-black">{item.currentStock} {item.unit}</span></p>
+                            <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div 
+                                    className="bg-red-500 h-full rounded-full" 
+                                    style={{ width: `${Math.min(100, (parseFloat(item.currentStock)/parseFloat(item.minStock || 1)) * 100)}%` }}
+                                ></div>
+                            </div>
                         </div>
                     </div>
                 )) : (
-                    <div className="bg-emerald-500/10 p-6 rounded-xl border border-emerald-500/20 text-center">
-                        <p className="text-emerald-500 font-bold text-sm">Semua stok aman</p>
+                    <div className="card p-8 bg-emerald-500/5 border-emerald-500/20 text-center flex flex-col items-center">
+                        <span className="material-symbols-outlined text-emerald-500 text-5xl mb-3">check_circle</span>
+                        <p className="text-emerald-500 font-black text-sm uppercase tracking-widest">Semua Stok Aman</p>
                     </div>
                 )}
             </div>
