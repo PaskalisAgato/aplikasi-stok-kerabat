@@ -28,23 +28,35 @@ const rootIndex = `
 fs.writeFileSync(path.join(DIST_DIR, 'index.html'), rootIndex);
 fs.writeFileSync(path.join(DIST_DIR, '404.html'), rootIndex);
 
+const FOLDER_TO_URL = {
+  'hpp': 'analisis-hpp',
+  'opname': 'stok-opname',
+  'employees': 'karyawan',
+  'settings': 'pengaturan',
+  'cogs': 'analisis-cogs',
+  'expenses': 'pengeluaran',
+  'waste': 'analisis-pemborosan'
+};
+
 const apps = fs.readdirSync(APPS_DIR).filter(file => {
   return fs.statSync(path.join(APPS_DIR, file)).isDirectory() && file !== 'shared';
 });
 
 for (const app of apps) {
+  const urlSegment = FOLDER_TO_URL[app] || app;
+  
   console.log(`\n================================`);
-  console.log(`Building ${app}...`);
+  console.log(`Building ${app} (URL Segment: ${urlSegment})...`);
   console.log(`================================\n`);
   const appPath = path.join(APPS_DIR, app);
-  const base = `/${REPO_NAME}/${app}/`;
+  const base = `/${REPO_NAME}/${urlSegment}/`;
 
   try {
     execSync(`npx vite build --base=${base}`, { cwd: appPath, stdio: 'inherit' });
 
     // Copy the dist folder
     const sourceDist = path.join(appPath, 'dist');
-    const targetDist = path.join(DIST_DIR, app);
+    const targetDist = path.join(DIST_DIR, urlSegment);
 
     if (fs.existsSync(sourceDist)) {
       fs.cpSync(sourceDist, targetDist, { recursive: true });
@@ -56,3 +68,4 @@ for (const app of apps) {
 
 console.log('\n>>> Build Selesai!');
 console.log('>>> Folder "dist-pages" sudah siap untuk didorong (push) ke GitHub Pages.');
+console.log(`>>> Deploy ke: https://paskalisagato.github.io/${REPO_NAME}/`);
