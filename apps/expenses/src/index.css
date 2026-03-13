@@ -3,10 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   html {
-    @apply bg-background-light ;
+    @apply bg-background-app ;
   }
 
   body {
@@ -27,4 +26,3 @@
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
-

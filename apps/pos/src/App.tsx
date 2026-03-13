@@ -226,9 +226,9 @@ function App() {
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
+            </Layout>
+        );
+    }
 
 export default App;
 

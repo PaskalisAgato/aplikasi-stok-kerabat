@@ -9,15 +9,8 @@ import NavDrawer from '@shared/NavDrawer';
 
 
 
-interface Employee {
-    id: number;
-    name: string;
-    role: string;
-    status: 'Aktif' | 'Non-aktif';
-    lastActive: string;
-    image?: string;
-    initials?: string;
-}
+// REMOVED UNUSED INTERFACE
+
 
 // REMOVED UNUSED EMPLOYEES DATA
 

@@ -15,5 +15,5 @@ export default defineConfig({
         port: 5186,
         strictPort: true,
     },
-    base: './'
+    base: '/aplikasi-stok-kerabat/pos/'
 })

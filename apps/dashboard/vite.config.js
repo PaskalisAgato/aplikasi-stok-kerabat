@@ -5,6 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/aplikasi-stok-kerabat/dashboard/',
   plugins: [react()],
   resolve: {
     alias: {

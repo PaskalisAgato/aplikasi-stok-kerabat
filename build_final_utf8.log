@@ -1,0 +1,1701 @@
+﻿
+> cogs@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 4 modules transformed.
+node.exe : 
+[31mÔ£ù[39m Build 
+failed in 2.10s
+At line:1 char:1
++ & "C:\Program File
+s\nodejs/node.exe" 
+"C:\Program Files\no
+dejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo  
+            : NotS  
+  pecified: ([31   
+ mÔ£ù[39m Build    
+ failed in 2.10    
+s:String) [], R    
+emoteException
+    + FullyQualifie 
+   dErrorId : Nati  
+  veCommandError
+ 
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/src/index.css
+:undefined:NaN[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\cogs
+npm error workspace 
+cogs@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\cogs
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> dashboard@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 10 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.42s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] D:\PROJECT
+\Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\shared\global.css:
+38:5: The 
+`shadow-primary/30` 
+class does not 
+exist. If 
+`shadow-primary/30` 
+is a custom class, 
+make sure it is 
+defined within a 
+`@layer` 
+directive.[31m
+file: [36mD:\PROJEC
+T\Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\shared\global.css:
+38:4 (D:/PROJECT/Des
+ktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/dashboard/src/inde
+x.css)[31m
+    at Input.error (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\input.js:135:16)
+    at AtRule.error 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\node.js:146:32)
+    at processApply 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:380:29)
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:551:9
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\processTailwin
+dFeatures.js:55:50
+    at async 
+plugins (D:\PROJECT\
+Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\plugin.js:38:1
+7)
+    at async 
+LazyResult.runAsync 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\lazy-result.js:293
+:11)
+    at async 
+runPostCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30145:
+19)
+    at async 
+compilePostCSS (file
+:///D:/PROJECT/Deskt
+op/Laporan%20Kerabat
+/APLIKASI%20POS%20ST
+OK%20KERABAT/node_mo
+dules/vite/dist/node
+/chunks/config.js:30
+129:6)
+    at async 
+compileCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30059:
+26)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\dashboard
+npm error workspace 
+dashboard@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\dashboard
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c vite 
+build
+
+
+> employees@0.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(12,11): error TS6196: 'Employee' is declared but never used.
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 2
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\employees
+npm error workspace 
+employees@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\employees
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> expenses@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 12 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.52s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] D:/PROJECT
+/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/expenses/src/index
+.css:2:1: The `bg-ba
+ckground-light` 
+class does not 
+exist. If `bg-backgr
+ound-light` is a 
+custom class, make 
+sure it is defined 
+within a `@layer` 
+directive.[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/expenses/src/index
+.css:2:0[31m
+    at Input.error (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\input.js:135:16)
+    at AtRule.error 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\node.js:146:32)
+    at processApply 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:380:29)
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:551:9
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\processTailwin
+dFeatures.js:55:50
+    at async 
+plugins (D:\PROJECT\
+Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\plugin.js:38:1
+7)
+    at async 
+LazyResult.runAsync 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\lazy-result.js:293
+:11)
+    at async 
+runPostCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30145:
+19)
+    at async 
+compilePostCSS (file
+:///D:/PROJECT/Deskt
+op/Laporan%20Kerabat
+/APLIKASI%20POS%20ST
+OK%20KERABAT/node_mo
+dules/vite/dist/node
+/chunks/config.js:30
+129:6)
+    at async 
+compileCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30059:
+26)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\expenses
+npm error workspace 
+expenses@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\expenses
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> hpp@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 1.38s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/hpp/src/index.css:
+undefined:NaN[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\hpp
+npm error workspace 
+hpp@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\hpp
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> inventory@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 9 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.56s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] D:\PROJECT
+\Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\shared\global.css:
+38:5: The 
+`shadow-primary/30` 
+class does not 
+exist. If 
+`shadow-primary/30` 
+is a custom class, 
+make sure it is 
+defined within a 
+`@layer` 
+directive.[31m
+file: [36mD:\PROJEC
+T\Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\shared\global.css:
+38:4 (D:/PROJECT/Des
+ktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/inventory/src/inde
+x.css)[31m
+    at Input.error (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\input.js:135:16)
+    at AtRule.error 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\node.js:146:32)
+    at processApply 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:380:29)
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\lib\expandAppl
+yAtRules.js:551:9
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\processTailwin
+dFeatures.js:55:50
+    at async 
+plugins (D:\PROJECT\
+Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\tailwindcs
+s\lib\plugin.js:38:1
+7)
+    at async 
+LazyResult.runAsync 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\postcss\li
+b\lazy-result.js:293
+:11)
+    at async 
+runPostCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30145:
+19)
+    at async 
+compilePostCSS (file
+:///D:/PROJECT/Deskt
+op/Laporan%20Kerabat
+/APLIKASI%20POS%20ST
+OK%20KERABAT/node_mo
+dules/vite/dist/node
+/chunks/config.js:30
+129:6)
+    at async 
+compileCSS (file:///
+D:/PROJECT/Desktop/L
+aporan%20Kerabat/APL
+IKASI%20POS%20STOK%2
+0KERABAT/node_module
+s/vite/dist/node/chu
+nks/config.js:30059:
+26)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\inventory
+npm error workspace 
+inventory@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\inventory
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> opname@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 1.30s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/opname/src/index.c
+ss:undefined:NaN[31
+m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\opname
+npm error workspace 
+opname@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\opname
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> @kerabat/pos@0.0.0 build
+> tsc && vite build --base=/aplikasi-stok-kerabat/pos/
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 1.24s
+[31merror during 
+build:
+[31m[vite:esbuild] 
+Transform failed 
+with 1 error:
+D:/PROJECT/Desktop/L
+aporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/pos/src/App.tsx:22
+9:10: ERROR: 
+Unexpected closing 
+"div" tag does not 
+match opening 
+"Layout" tag[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/pos/src/App.tsx:22
+9:10[31m
+[33m
+[33mUnexpected 
+closing "div" tag 
+does not match 
+opening "Layout" 
+tag[33m
+227 |               
+   </div>
+228 |              
+)}
+229 |          
+</div>
+    |            ^
+230 |      );
+231 |  }
+[31m
+    at 
+failureErrorWithLog 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\esbuild\li
+b\main.js:1467:15)
+    at D:\PROJECT\De
+sktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\esbuild\li
+b\main.js:736:50
+    at responseCallb
+acks.<computed> (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\esbuild\li
+b\main.js:603:9)
+    at handleIncomin
+gPacket (D:\PROJECT\
+Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\esbuild\li
+b\main.js:658:12)
+    at Socket.readFr
+omStdout (D:\PROJECT
+\Desktop\Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\esbuild\li
+b\main.js:581:7)
+    at Socket.emit 
+(node:events:508:28)
+    at addChunk (nod
+e:internal/streams/r
+eadable:563:12)
+    at readableAddCh
+unkPushByteMode (nod
+e:internal/streams/r
+eadable:514:3)
+    at 
+Readable.push (node:
+internal/streams/rea
+dable:394:5)
+    at 
+Pipe.onStreamRead (n
+ode:internal/stream_
+base_commons:189:23)
+[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\pos
+npm error workspace 
+@kerabat/pos@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\pos
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+&& vite build --base
+=/aplikasi-stok-kera
+bat/pos/
+
+
+> recipe-edit@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 1.23s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/recipe-edit/src/in
+dex.css:undefined:Na
+N[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\recipe-edit
+npm error workspace 
+recipe-edit@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\recipe-edit
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> recipes@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 1.43s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/recipes/src/index.
+css:undefined:NaN[3
+1m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\recipes
+npm error workspace 
+recipes@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\recipes
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> reports@0.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 2
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\reports
+npm error workspace 
+reports@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\reports
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> settings@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.01s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/settings/src/index
+.css:undefined:NaN[
+31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\settings
+npm error workspace 
+settings@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\settings
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> waste@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.76s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/waste/src/index.cs
+s:undefined:NaN[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\waste
+npm error workspace 
+waste@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK 
+KERABAT\apps\waste
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build
+
+
+> waste-detail@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 2.41s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/waste-detail/src/i
+ndex.css:undefined:N
+aN[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
+npm error Lifecycle 
+script `build` 
+failed with error:
+npm error code 1
+npm error path D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\waste-detail
+npm error workspace 
+waste-detail@0.0.0
+npm error location D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\app
+s\waste-detail
+npm error command 
+failed
+npm error command C:
+\WINDOWS\system32\cm
+d.exe /d /s /c tsc 
+-b && vite build

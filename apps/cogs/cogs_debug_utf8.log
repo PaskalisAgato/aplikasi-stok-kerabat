@@ -1,0 +1,1743 @@
+﻿node.exe : 2026-03-1
+3T16:10:43.203Z 
+vite:config config 
+file loaded in 
+287.90ms
+At line:1 char:1
++ & "C:\Program File
+s\nodejs/node.exe" 
+"C:\Program Files\no
+dejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo  
+            : NotS  
+  pecified: (2026   
+ -03-13T16:1...d    
+ed in 287.90ms:    
+String) [], Rem    
+oteException
+    + FullyQualifie 
+   dErrorId : Nati  
+  veCommandError
+ 
+2026-03-13T16:10:43.
+214Z vite:env 
+loading env files: [
+  'D:/PROJECT/Deskto
+p/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/.env',
+  'D:/PROJECT/Deskto
+p/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/.env.local',
+  'D:/PROJECT/Deskto
+p/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/.env.producti
+on',
+  'D:/PROJECT/Deskto
+p/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/.env.producti
+on.local'
+]
+2026-03-13T16:10:43.
+215Z vite:env env 
+files loaded in 
+3.34ms
+2026-03-13T16:10:43.
+217Z vite:env using 
+resolved env: {}
+2026-03-13T16:10:43.
+454Z vite:config 
+using resolved 
+config: {
+  base: '/aplikasi-s
+tok-kerabat/cogs/',
+  plugins: [
+    'vite:build-meta
+data',
+    'vite:watch-pack
+age-data',
+    'alias',
+    
+'vite:react-babel',
+    'vite:react-refr
+esh',
+    'vite:moduleprel
+oad-polyfill',
+    'vite:resolve',
+    'vite:html-inlin
+e-proxy',
+    'vite:css',
+    'vite:esbuild',
+    'vite:json',
+    
+'vite:wasm-helper',
+    'vite:worker',
+    'vite:asset',
+    'vite:react-virt
+ual-preamble',
+    'vite:wasm-fallb
+ack',
+    'vite:define',
+    'vite:css-post',
+    
+'vite:build-html',
+    'vite:worker-imp
+ort-meta-url',
+    'vite:asset-impo
+rt-meta-url',
+    'vite:force-amd-
+wrap-require',
+    'vite:force-syst
+emjs-wrap-complete',
+    'vite:prepare-ou
+t-dir',
+    'commonjs',
+    'vite:data-uri',
+    'vite:rollup-opt
+ions-plugins',
+    'vite:dynamic-im
+port-vars',
+    
+'vite:import-glob',
+    'vite:build-impo
+rt-analysis',
+    'vite:esbuild-tr
+anspile',
+    'vite:terser',
+    'vite:license',
+    'vite:manifest',
+    
+'vite:ssr-manifest',
+    'vite:reporter',
+    
+'vite:load-fallback'
+  ],
+  resolve: {
+    
+externalConditions: 
+[ 'node', 
+'module-sync' ],
+    extensions: [
+      '.mjs',  
+'.js',
+      '.mts',  
+'.ts',
+      '.jsx',  
+'.tsx',
+      '.json'
+    ],
+    dedupe: [],
+    noExternal: [],
+    external: [],
+    
+preserveSymlinks: 
+false,
+    alias: [
+      {
+        find: 
+'@shared',
+        
+replacement: 'D:\\PR
+OJECT\\Desktop\\Lapo
+ran 
+Kerabat\\APLIKASI 
+POS STOK KERABAT\\ap
+ps\\shared'
+      },
+      {
+        find: 
+/^\/?@vite\/env/,
+        
+replacement: '/@fs/D
+:/PROJECT/Desktop/La
+poran 
+Kerabat/APLIKASI 
+POS STOK KERABAT/nod
+e_modules/vite/dist/
+client/env.mjs'
+      },
+      {
+        find: 
+/^\/?@vite\/client/,
+        
+replacement: '/@fs/D
+:/PROJECT/Desktop/La
+poran 
+Kerabat/APLIKASI 
+POS STOK KERABAT/nod
+e_modules/vite/dist/
+client/client.mjs'
+      }
+    ],
+    mainFields: [ 
+'browser', 
+'module', 
+'jsnext:main', 
+'jsnext' ],
+    conditions: [ 
+'module', 
+'browser', 'developm
+ent|production' ],
+    builtins: []
+  },
+  server: {
+    port: 5180,
+    strictPort: 
+true,
+    host: undefined,
+    allowedHosts: 
+[],
+    https: 
+undefined,
+    open: false,
+    proxy: 
+undefined,
+    cors: {
+      origin: /^http
+s?:\/\/(?:(?:[^:]+\.
+)?localhost|127\.0\.
+0\.1|\[::1\])(?::\d+
+)?$/
+    },
+    headers: {},
+    warmup: { 
+clientFiles: [], 
+ssrFiles: [] },
+    middlewareMode: 
+false,
+    fs: {
+      strict: true,
+      deny: [ 
+'.env', '.env.*', 
+'*.{crt,pem}', 
+'**/.git/**' ],
+      allow: [
+        'D:/PROJECT/
+Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT'
+      ]
+    },
+    preTransformRequ
+ests: true,
+    perEnvironmentSt
+artEndDuringDev: 
+false,
+    perEnvironmentWa
+tchChangeDuringDev: 
+false,
+    sourcemapIgnoreL
+ist: [Function: 
+isInNodeModules]
+  },
+  define: { 
+'process.env': {} },
+  build: {
+    target: [ 
+'chrome107', 
+'edge107', 
+'firefox104', 
+'safari16' ],
+    polyfillModulePr
+eload: true,
+    modulePreload: 
+{ polyfill: true },
+    outDir: 'dist',
+    assetsDir: 
+'assets',
+    
+assetsInlineLimit: 
+4096,
+    sourcemap: 
+false,
+    terserOptions: 
+{},
+    rollupOptions: 
+{ onwarn: 
+[Function: onwarn] 
+},
+    
+commonjsOptions: { 
+include: [ 
+/node_modules/ ], 
+extensions: [ 
+'.js', '.cjs' ] },
+    dynamicImportVar
+sOptions: { 
+warnOnError: true, 
+exclude: [ 
+/node_modules/ ] },
+    write: true,
+    emptyOutDir: 
+null,
+    copyPublicDir: 
+true,
+    license: false,
+    manifest: false,
+    lib: false,
+    ssrManifest: 
+false,
+    ssrEmitAssets: 
+false,
+    reportCompressed
+Size: true,
+    chunkSizeWarning
+Limit: 500,
+    watch: null,
+    cssCodeSplit: 
+true,
+    minify: 
+'esbuild',
+    ssr: false,
+    emitAssets: 
+true,
+    
+createEnvironment: 
+[Function: 
+createEnvironment],
+    cssTarget: [ 
+'chrome107', 
+'edge107', 
+'firefox104', 
+'safari16' ],
+    cssMinify: true
+  },
+  esbuild: {
+    jsxDev: false,
+    charset: 'utf8',
+    legalComments: 
+'none',
+    jsx: 
+'automatic',
+    
+jsxImportSource: 
+undefined
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-dev
+-runtime',
+      
+'react/jsx-runtime'
+    ],
+    exclude: [],
+    needsInterop: 
+[],
+    extensions: [],
+    disabled: 
+undefined,
+    
+holdUntilCrawlEnd: 
+true,
+    force: false,
+    ignoreOutdatedRe
+quests: false,
+    noDiscovery: 
+false,
+    esbuildOptions: 
+{ preserveSymlinks: 
+false, jsx: 
+'automatic' }
+  },
+  environments: {
+    client: {
+      define: { 
+'process.env': {} },
+      resolve: {
+        
+externalConditions: 
+[ 'node', 
+'module-sync' ],
+        extensions: 
+[
+          '.mjs',  
+'.js',
+          '.mts',  
+'.ts',
+          '.jsx',  
+'.tsx',
+          '.json'
+        ],
+        dedupe: [],
+        noExternal: 
+[],
+        external: 
+[],
+        
+preserveSymlinks: 
+false,
+        alias: [
+          {
+            find: 
+'@shared',
+            
+replacement: 'D:\\PR
+OJECT\\Desktop\\Lapo
+ran 
+Kerabat\\APLIKASI 
+POS STOK KERABAT\\ap
+ps\\shared'
+          },
+          {
+            find: 
+/^\/?@vite\/env/,
+            
+replacement: '/@fs/D
+:/PROJECT/Desktop/La
+poran 
+Kerabat/APLIKASI 
+POS STOK KERABAT/nod
+e_modules/vite/dist/
+client/env.mjs'
+          },
+          {
+            find: 
+/^\/?@vite\/client/,
+            
+replacement: '/@fs/D
+:/PROJECT/Desktop/La
+poran 
+Kerabat/APLIKASI 
+POS STOK KERABAT/nod
+e_modules/vite/dist/
+client/client.mjs'
+          }
+        ],
+        mainFields: 
+[ 'browser', 
+'module', 
+'jsnext:main', 
+'jsnext' ],
+        conditions: 
+[ 'module', 
+'browser', 'developm
+ent|production' ],
+        builtins: []
+      },
+      
+keepProcessEnv: 
+false,
+      consumer: 
+'client',
+      optimizeDeps: 
+{
+        include: [
+          'react',
+          
+'react-dom',
+          'react/jsx
+-dev-runtime',
+          
+'react/jsx-runtime'
+        ],
+        exclude: [],
+        
+needsInterop: [],
+        extensions: 
+[],
+        disabled: 
+undefined,
+        
+holdUntilCrawlEnd: 
+true,
+        force: 
+false,
+        ignoreOutdat
+edRequests: false,
+        
+noDiscovery: false,
+        
+esbuildOptions: { 
+preserveSymlinks: 
+false, jsx: 
+'automatic' }
+      },
+      dev: {
+        warmup: [],
+        sourcemap: 
+{ js: true },
+        sourcemapIgn
+oreList: [Function: 
+isInNodeModules],
+        preTransform
+Requests: true,
+        
+createEnvironment: 
+[Function: defaultCr
+eateClientDevEnviron
+ment],
+        
+recoverable: true,
+        moduleRunner
+Transform: false
+      },
+      build: {
+        target: [ 
+'chrome107', 
+'edge107', 
+'firefox104', 
+'safari16' ],
+        polyfillModu
+lePreload: true,
+        
+modulePreload: { 
+polyfill: true },
+        outDir: 
+'dist',
+        assetsDir: 
+'assets',
+        
+assetsInlineLimit: 
+4096,
+        sourcemap: 
+false,
+        
+terserOptions: {},
+        
+rollupOptions: { 
+onwarn: [Function: 
+onwarn] },
+        
+commonjsOptions: { 
+include: [ 
+/node_modules/ ], 
+extensions: [ 
+'.js', '.cjs' ] },
+        dynamicImpor
+tVarsOptions: { 
+warnOnError: true, 
+exclude: [ 
+/node_modules/ ] },
+        write: true,
+        
+emptyOutDir: null,
+        
+copyPublicDir: true,
+        license: 
+false,
+        manifest: 
+false,
+        lib: false,
+        
+ssrManifest: false,
+        
+ssrEmitAssets: 
+false,
+        reportCompre
+ssedSize: true,
+        chunkSizeWar
+ningLimit: 500,
+        watch: null,
+        
+cssCodeSplit: true,
+        minify: 
+'esbuild',
+        ssr: false,
+        emitAssets: 
+true,
+        
+createEnvironment: 
+[Function: 
+createEnvironment],
+        cssTarget: 
+[ 'chrome107', 
+'edge107', 
+'firefox104', 
+'safari16' ],
+        cssMinify: 
+true
+      },
+      plugins: [
+        {
+          name: 'vit
+e:build-metadata',
+          
+renderChunk: 
+[AsyncFunction: 
+renderChunk]
+        },
+        {
+          name: 'vit
+e:watch-package-data
+',
+          
+buildStart: 
+[Function: 
+buildStart],
+          buildEnd: 
+[Function: 
+buildEnd],
+          
+watchChange: 
+[Function: 
+watchChange]
+        },
+        {
+          name: 
+'alias',
+          
+buildStart: 
+[AsyncFunction: 
+buildStart],
+          
+resolveId: 
+[Function: 
+resolveId]
+        },
+        {
+          name: 
+'vite:react-babel',
+          enforce: 
+'pre',
+          config: 
+[Function: config],
+          
+configResolved: 
+[Function: 
+configResolved],
+          options: 
+[Function: options]
+        },
+        {
+          name: 'vit
+e:react-refresh',
+          enforce: 
+'pre',
+          config: 
+[Function: config],
+          
+resolveId: {
+            filter: 
+{ id: /^\/@react\-re
+fresh$/ },
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: /^\/@react\-re
+fresh$/ },
+            
+handler: [Function: 
+handler]
+          },
+          
+transformIndexHtml: 
+[Function: 
+transformIndexHtml]
+        },
+        {
+          name: 'vit
+e:modulepreload-poly
+fill',
+          
+resolveId: {
+            filter: 
+{ id: /^vite\/module
+preload\-polyfill$/ 
+},
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: /^ vite\/modul
+epreload\-polyfill\.
+js$/ },
+            
+handler: [Function: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:resolve',
+          
+resolveId: {
+            filter: 
+{ id: { exclude: /^(
+?:\0|\/?virtual:)/ 
+} },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          load: {
+            filter: 
+{
+              id: [
+                /^__
+vite\-browser\-exter
+nal/,
+                /^__
+vite\-optional\-peer
+\-dep/
+              ]
+            },
+            
+handler: [Function: 
+handler]
+          }
+        },
+        {
+          name: 'vit
+e:html-inline-proxy'
+,
+          
+resolveId: {
+            filter: 
+{ id: 
+/[?&]html-proxy\b/ 
+},
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: 
+/[?&]html-proxy\b/ 
+},
+            
+handler: [Function: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:css',
+          
+buildStart: 
+[Function: 
+buildStart],
+          buildEnd: 
+[Function: 
+buildEnd],
+          load: {
+            filter: 
+{
+              id: /\
+.(css|less|sass|scss
+|styl|stylus|pcss|po
+stcss|sss)(?:$|\?)/
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+transform: {
+            filter: 
+{
+              id: {
+                
+include: /\.(css|les
+s|sass|scss|styl|sty
+lus|pcss|postcss|sss
+)(?:$|\?)/,
+                
+exclude: [
+                  /[
+?&]commonjs-proxy/,
+                  /[
+?&](?:worker|sharedw
+orker|raw|url)\b/
+                ]
+              }
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:esbuild',
+          
+configureServer: 
+[Function: 
+configureServer],
+          
+transform: 
+[AsyncFunction: 
+transform]
+        },
+        {
+          name: 
+'vite:json',
+          
+transform: {
+            filter: 
+{
+              id: {
+                
+include: /\.json(?:$
+|\?)(?!commonjs-(?:p
+roxy|external))/,
+                
+exclude: /[?&](?:wor
+ker|sharedworker|raw
+|url)\b/
+              }
+            },
+            
+handler: [Function: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:wasm-helper',
+          
+resolveId: {
+            filter: 
+{ id: /^ vite\/wasm\
+-helper\.js$/ },
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{
+              id: [
+                /^ v
+ite\/wasm\-helper\.j
+s$/,
+                /(?<
+![?#].*)\.wasm\?init
+/
+              ]
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:worker',
+          
+buildStart: 
+[Function: 
+buildStart],
+          load: {
+            filter: 
+{ id: /(?:\?|&)(work
+er|sharedworker)(?:&
+|$)/ },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+transform: {
+            filter: 
+{ id: /(?:\?|&)worke
+r_file&type=(\w+)(?:
+&|$)/ },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+renderChunk: 
+[Function: 
+renderChunk],
+          
+generateBundle: 
+[Function: 
+generateBundle],
+          
+watchChange: 
+[Function: 
+watchChange]
+        },
+        {
+          name: 
+'vite:asset',
+          perEnviron
+mentStartEndDuringDe
+v: true,
+          
+buildStart: 
+[Function: 
+buildStart],
+          
+resolveId: { 
+handler: [Function: 
+handler] },
+          load: {
+            filter: 
+{ id: { exclude: 
+/^\0/ } },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+renderChunk: 
+[Function: 
+renderChunk],
+          
+generateBundle: 
+[Function: 
+generateBundle]
+        },
+        {
+          name: 'vit
+e:react-virtual-prea
+mble',
+          
+resolveId: {
+            order: 
+'pre',
+            filter: 
+{ id: /^@vitejs\/plu
+gin\-react\/preamble
+$/ },
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: /^ @vitejs\/pl
+ugin\-react\/preambl
+e$/ },
+            
+handler: [Function: 
+handler]
+          }
+        },
+        {
+          name: 'vit
+e:wasm-fallback',
+          load: { 
+filter: { id: 
+/\.wasm$/ }, 
+handler: [Function: 
+handler] }
+        },
+        {
+          name: 
+'vite:define',
+          
+transform: { 
+handler: 
+[AsyncFunction: 
+handler] }
+        },
+        {
+          name: 
+'vite:css-post',
+          
+renderStart: 
+[Function: 
+renderStart],
+          
+transform: {
+            filter: 
+{
+              id: {
+                
+include: /\.(css|les
+s|sass|scss|styl|sty
+lus|pcss|postcss|sss
+)(?:$|\?)/,
+                
+exclude: [
+                  /[
+?&]commonjs-proxy/,
+                  /[
+?&](?:worker|sharedw
+orker|raw|url)\b/
+                ]
+              }
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+renderChunk: 
+[AsyncFunction: 
+renderChunk],
+          
+augmentChunkHash: 
+[Function: 
+augmentChunkHash],
+          
+generateBundle: 
+[AsyncFunction: 
+generateBundle]
+        },
+        {
+          name: 
+'vite:build-html',
+          
+transform: {
+            filter: 
+{ id: /\.html$/ },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+generateBundle: 
+[AsyncFunction: 
+generateBundle]
+        },
+        {
+          name: 'vit
+e:worker-import-meta
+-url',
+          
+applyToEnvironment: 
+[Function: 
+applyToEnvironment],
+          
+transform: {
+            filter: 
+{
+              code: 
+/new\s+(?:Worker|Sha
+redWorker)\s*\(\s*ne
+w\s+URL.+?import\.me
+ta\.url/s
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          }
+        },
+        {
+          name: 'vit
+e:asset-import-meta-
+url',
+          
+applyToEnvironment: 
+[Function: 
+applyToEnvironment],
+          
+transform: {
+            filter: 
+{
+              id: {
+                
+exclude: [
+                  /^
+ vite\/preload\-help
+er\.js$/,
+                  /^
+D:\\PROJECT\\Desktop
+\\Laporan 
+Kerabat\\APLIKASI 
+POS STOK KERABAT\\no
+de_modules\\vite\\di
+st\\client\\client\.
+mjs$/
+                ]
+              },
+              code: 
+/new\s+URL.+import\.
+meta\.url/s
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          }
+        },
+        {
+          name: 'vit
+e:force-amd-wrap-req
+uire',
+          
+renderChunk: 
+[Function: 
+renderChunk]
+        },
+        {
+          name: 'vit
+e:force-systemjs-wra
+p-complete',
+          
+renderChunk: 
+[Function: 
+renderChunk]
+        },
+        {
+          name: 'vit
+e:prepare-out-dir',
+          options: 
+[Function: options],
+          
+renderStart: { 
+order: 'pre', 
+handler: [Function: 
+handler] }
+        },
+        {
+          name: 
+'commonjs',
+          version: 
+'29.0.0',
+          options: 
+[Function: options],
+          
+buildStart: 
+[Function: 
+buildStart],
+          buildEnd: 
+[Function: 
+buildEnd],
+          load: 
+[AsyncFunction: 
+load],
+          shouldTran
+sformCachedModule: 
+[Function: shouldTra
+nsformCachedModule],
+          
+transform: 
+[Function: 
+transform]
+        },
+        {
+          name: 
+'vite:data-uri',
+          
+buildStart: 
+[Function: 
+buildStart],
+          
+resolveId: 
+[Function: 
+resolveId],
+          load: 
+[Function: load]
+        },
+        {
+          name: 'vit
+e:dynamic-import-var
+s',
+          
+resolveId: {
+            filter: 
+{ id: /^ vite\/dynam
+ic\-import\-helper\.
+js$/ },
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: /^ vite\/dynam
+ic\-import\-helper\.
+js$/ },
+            
+handler: [Function: 
+handler]
+          },
+          
+transform: {
+            filter: 
+{
+              id: {
+                
+exclude: /^D:\\PROJE
+CT\\Desktop\\Laporan
+ Kerabat\\APLIKASI 
+POS STOK KERABAT\\no
+de_modules\\vite\\di
+st\\client\\client\.
+mjs$/
+              },
+              code: 
+/\bimport\s*[(/]/
+            },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          }
+        },
+        {
+          name: 
+'vite:import-glob',
+          
+buildStart: 
+[Function: 
+buildStart],
+          
+transform: {
+            filter: 
+{ code: 
+'import.meta.glob' 
+},
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+hotUpdate: 
+[Function: 
+hotUpdate]
+        },
+        {
+          name: 'vit
+e:build-import-analy
+sis',
+          
+resolveId: {
+            filter: 
+{ id: /^ vite\/prelo
+ad\-helper\.js$/ },
+            
+handler: [Function: 
+handler]
+          },
+          load: {
+            filter: 
+{ id: /^ vite\/prelo
+ad\-helper\.js$/ },
+            
+handler: [Function: 
+handler]
+          },
+          
+transform: {
+            filter: 
+{ code: 
+/import\s*\(/ },
+            
+handler: 
+[AsyncFunction: 
+handler]
+          },
+          
+renderChunk: 
+[Function: 
+renderChunk],
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+          
+generateBundle: 
+[Function: 
+generateBundle]
+        },
+        {
+          name: 'vit
+e:esbuild-transpile'
+,
+          
+applyToEnvironment: 
+[Function: 
+applyToEnvironment],
+          
+renderChunk: 
+[AsyncFunction: 
+renderChunk]
+        },
+        {
+          name: 
+'vite:terser',
+          
+applyToEnvironment: 
+[Function: 
+applyToEnvironment],
+          
+renderChunk: 
+[AsyncFunction: 
+renderChunk],
+          
+closeBundle: 
+[Function: 
+closeBundle]
+        },
+        {
+          name: 
+'vite:license',
+          
+generateBundle: 
+[AsyncFunction: 
+generateBundle]
+        },
+        {
+          name: 
+'vite:reporter',
+          
+sharedDuringBuild: 
+true,
+          perEnviron
+mentStartEndDuringDe
+v: true,
+          
+transform: 
+[Function: 
+transform],
+          
+buildStart: 
+[Function: 
+buildStart],
+          buildEnd: 
+[Function: 
+buildEnd],
+          
+renderStart: 
+[Function: 
+renderStart],
+          
+renderChunk: 
+[Function: 
+renderChunk],
+          
+generateBundle: 
+[Function: 
+generateBundle],
+          
+writeBundle: 
+[AsyncFunction: 
+writeBundle]
+        },
+        {
+          name: 'vit
+e:load-fallback',
+          load: { 
+handler: 
+[AsyncFunction: 
+handler] }
+        }
+      ]
+    }
+  },
+  configFile: 'D:/PR
+OJECT/Desktop/Lapora
+n Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/vite.config.t
+s',
+  configFileDependen
+cies: [
+    'D:/PROJECT/Desk
+top/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/vite.config.t
+s'
+  ],
+  inlineConfig: {
+    root: undefined,
+    base: undefined,
+    mode: undefined,
+    configFile: 
+undefined,
+    configLoader: 
+undefined,
+    logLevel: 
+undefined,
+    clearScreen: 
+undefined,
+    build: {}
+  },
+  root: 'D:/PROJECT/
+Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK 
+KERABAT/apps/cogs',
+  decodedBase: '/apl
+ikasi-stok-kerabat/c
+ogs/',
+  rawBase: '/aplikas
+i-stok-kerabat/cogs/
+',
+  publicDir: 'D:/PRO
+JECT/Desktop/Laporan
+ Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/public',
+  cacheDir: 'D:/PROJ
+ECT/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/node_modules/
+.vite',
+  command: 'build',
+  mode: 
+'production',
+  isWorker: false,
+  mainConfig: null,
+  bundleChain: [],
+  isProduction: 
+true,
+  css: {
+    transformer: 
+'postcss',
+    preprocessorMaxW
+orkers: true,
+    devSourcemap: 
+false
+  },
+  json: { 
+namedExports: true, 
+stringify: 'auto' },
+  builder: 
+undefined,
+  preview: {
+    port: 4173,
+    strictPort: 
+true,
+    host: undefined,
+    allowedHosts: 
+[],
+    https: 
+undefined,
+    open: false,
+    proxy: 
+undefined,
+    cors: {
+      origin: /^http
+s?:\/\/(?:(?:[^:]+\.
+)?localhost|127\.0\.
+0\.1|\[::1\])(?::\d+
+)?$/
+    },
+    headers: {}
+  },
+  envDir: 'D:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK 
+KERABAT/apps/cogs',
+  env: {
+    BASE_URL: '/apli
+kasi-stok-kerabat/co
+gs/',
+    MODE: 
+'production',
+    DEV: false,
+    PROD: true
+  },
+  assetsInclude: 
+[Function: 
+assetsInclude],
+  logger: {
+    hasWarned: 
+false,
+    info: 
+[Function: info],
+    warn: 
+[Function: warn],
+    warnOnce: 
+[Function: 
+warnOnce],
+    error: 
+[Function: error],
+    clearScreen: 
+[Function: 
+clearScreen],
+    hasErrorLogged: 
+[Function: 
+hasErrorLogged]
+  },
+  packageCache: 
+Map(1) {
+    'fnpd_D:/PROJECT
+/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK 
+KERABAT/apps/cogs' 
+=> {
+      dir: 'D:/PROJE
+CT/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK 
+KERABAT/apps/cogs',
+      data: {
+        name: 
+'cogs',
+        private: 
+true,
+        version: 
+'0.0.0',
+        type: 
+'module',
+        scripts: {
+          dev: 
+'vite',
+          build: 
+'tsc -b && vite 
+build',
+          lint: 
+'eslint .',
+          preview: 
+'vite preview'
+        },
+        
+dependencies: { 
+react: '^19.2.0', 
+'react-dom': 
+'^19.2.0' },
+        
+devDependencies: {
+          
+'@eslint/js': 
+'^9.39.1',
+          '@tailwind
+css/container-querie
+s': '^0.1.1',
+          '@tailwind
+css/forms': 
+'^0.5.11',
+          
+'@types/node': 
+'^24.10.1',
+          
+'@types/react': 
+'^19.2.7',
+          
+'@types/react-dom': 
+'^19.2.3',
+          '@vitejs/p
+lugin-react': 
+'^5.1.1',
+          
+autoprefixer: 
+'^10.4.27',
+          eslint: 
+'^9.39.1',
+          'eslint-pl
+ugin-react-hooks': 
+'^7.0.1',
+          'eslint-pl
+ugin-react-refresh':
+ '^0.4.24',
+          globals: 
+'^16.5.0',
+          postcss: 
+'^8.5.8',
+          
+tailwindcss: 
+'^3.4.19',
+          
+typescript: 
+'~5.9.3',
+          'typescrip
+t-eslint': 
+'^8.48.0',
+          vite: 
+'^7.3.1'
+        }
+      },
+      
+hasSideEffects: 
+[Function: 
+hasSideEffects],
+      
+setResolvedCache: 
+[Function: 
+setResolvedCache],
+      
+getResolvedCache: 
+[Function: 
+getResolvedCache]
+    },
+    set: [Function 
+(anonymous)]
+  },
+  worker: { format: 
+'iife', plugins: 
+'() => plugins', 
+rollupOptions: {} },
+  appType: 'spa',
+  experimental: {
+    importGlobRestor
+eExtension: false,
+    renderBuiltUrl: 
+undefined,
+    
+hmrPartialAccept: 
+false
+  },
+  future: undefined,
+  ssr: {
+    target: 'node',
+    optimizeDeps: { 
+esbuildOptions: { 
+preserveSymlinks: 
+false } },
+    resolve: { 
+conditions: 
+undefined, 
+externalConditions: 
+undefined }
+  },
+  dev: {
+    warmup: [],
+    sourcemap: { 
+js: true },
+    sourcemapIgnoreL
+ist: [Function: 
+isInNodeModules],
+    preTransformRequ
+ests: false,
+    
+createEnvironment: 
+[Function: defaultCr
+eateDevEnvironment],
+    recoverable: 
+false,
+    moduleRunnerTran
+sform: false
+  },
+  webSocketToken: 
+'7br0qP-7oNwY',
+  getSortedPlugins: 
+[Function: 
+getSortedPlugins],
+  getSortedPluginHoo
+ks: [Function: getSo
+rtedPluginHooks],
+  createResolver: 
+[Function: 
+createResolver],
+  fsDenyGlob: 
+[Function: 
+arrayMatcher],
+  safeModulePaths: 
+Set(0) {},
+  Symbol(vite:resolv
+ed-config): true
+}
+transforming...
+[32mÔ£ô[39m 3 modules transformed.
+[31mÔ£ù[39m Build 
+failed in 4.82s
+[31merror during 
+build:
+[31m[vite:css] 
+[postcss] 
+Unexpected token, 
+expected "(" 
+(2:21)[31m
+file: [36mD:/PROJEC
+T/Desktop/Laporan 
+Kerabat/APLIKASI 
+POS STOK KERABAT/app
+s/cogs/src/index.css
+:undefined:NaN[31m
+    at unexpected (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:99:15)
+    at expect (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+util.js:86:5)
+    at 
+parseFunctionParams 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+statement.js:699:16)
+    at parseMethod (
+D:\PROJECT\Desktop\L
+aporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:924:34
+)
+    at 
+parseObjectMethod (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:840:5)
+    at 
+parseObjPropValue (D
+:\PROJECT\Desktop\La
+poran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:890:21
+)
+    at parseObj (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:808:5)
+    at 
+parseExprAtom (D:\PR
+OJECT\Desktop\Lapora
+n Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:553:7)
+    at 
+parseExprSubscripts 
+(D:\PROJECT\Desktop\
+Laporan 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:276:20
+)
+    at 
+parseMaybeUnary (D:\
+PROJECT\Desktop\Lapo
+ran 
+Kerabat\APLIKASI 
+POS STOK KERABAT\nod
+e_modules\sucrase\di
+st\parser\traverser\
+expression.js:257:20
+)[39m
