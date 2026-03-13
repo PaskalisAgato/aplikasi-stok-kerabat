@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-export default {`n  darkMode: "class",
+export default {
+  darkMode: "class",
   
   content: [
     "./index.html",
@@ -15,6 +16,8 @@ export default {`n  darkMode: "class",
         "text-main": "var(--text-main)",
         "text-muted": "var(--text-muted)",
         "border-dim": "var(--border-dim)",
+        "success": "var(--success)",
+        "danger": "var(--danger)",
       },
       fontFamily: {
         "display": ["Inter", "sans-serif"]

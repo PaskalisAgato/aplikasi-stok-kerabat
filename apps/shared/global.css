@@ -10,6 +10,8 @@
   --text-main: #0f172a;
   --text-muted: #475569;
   --border-dim: rgba(15, 23, 42, 0.1);
+  --success: #10b981;
+  --danger: #ef4444;
   --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
@@ -20,6 +22,8 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-dim: rgba(248, 250, 252, 0.1);
+  --success: #34d399;
+  --danger: #f87171;
   --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
 }
 
@@ -35,7 +39,7 @@
   }
   
   .card {
-    @apply bg-[var(--surface-light)] border border-[var(--border-color)] rounded-2xl shadow-sm overflow-hidden transition-all;
+    @apply bg-[var(--bg-surface)] border border-[var(--border-dim)] rounded-2xl shadow-sm overflow-hidden transition-all;
   }
 }
 
