@@ -1,3 +1,4 @@
+import React from 'react';
 import { apiClient } from '@shared/apiClient';
 
 interface StockDetailModalProps {
@@ -111,7 +112,6 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                             {m.reason && <p className="text-[10px] italic text-slate-400 mt-1">{m.reason}</p>}
                                         </div>
                                     </div>
-                                Another item would go here...
                                 ))
                             ) : (
                                 <div className="text-center py-10 text-slate-400 text-sm">
