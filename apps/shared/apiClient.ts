@@ -11,13 +11,18 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {
+    public status: number;
+    public statusText: string;
+
     constructor(
-        public status: number,
-        public statusText: string,
+        status: number,
+        statusText: string,
         message: string
     ) {
         super(message);
         this.name = 'ApiError';
+        this.status = status;
+        this.statusText = statusText;
     }
 }
 
@@ -67,29 +72,29 @@ export async function apiFetch<T = unknown>(
 // while being migrated to the new hooks.
 export const apiClient = {
     // ---- INVENTORY ----
-    getInventory: () => apiFetch('/inventory'),
-    getItemMovements: (id: number) => apiFetch(`/inventory/${id}/movements`),
-    addInventoryItem: (data: unknown) => apiFetch('/inventory', { method: 'POST', body: JSON.stringify(data) }),
-    updateInventoryItem: (id: number, data: unknown) => apiFetch(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    submitOpname: (adjustments: unknown[]) => apiFetch('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
-    recordStockMovement: (inventoryId: number, data: unknown) => apiFetch(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
-    getWasteSummary: () => apiFetch('/inventory/waste/summary'),
-    getStockInHistory: () => apiFetch('/inventory/movements/in'),
-    getItemWaste: (id: number) => apiFetch(`/inventory/${id}/waste`),
+    getInventory: () => apiFetch<any[]>('/inventory'),
+    getItemMovements: (id: number) => apiFetch<any[]>(`/inventory/${id}/movements`),
+    addInventoryItem: (data: unknown) => apiFetch<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
+    updateInventoryItem: (id: number, data: unknown) => apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    submitOpname: (adjustments: unknown[]) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
+    recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
+    getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
+    getStockInHistory: () => apiFetch<any[]>('/inventory/movements/in'),
+    getItemWaste: (id: number) => apiFetch<any[]>(`/inventory/${id}/waste`),
 
     // ---- RECIPES ----
-    getRecipes: () => apiFetch('/recipes'),
-    createRecipe: (data: unknown) => apiFetch('/recipes', { method: 'POST', body: JSON.stringify(data) }),
-    updateRecipe: (id: number, data: unknown) => apiFetch(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteRecipe: (id: number) => apiFetch(`/recipes/${id}`, { method: 'DELETE' }),
+    getRecipes: () => apiFetch<any[]>('/recipes'),
+    createRecipe: (data: unknown) => apiFetch<any>('/recipes', { method: 'POST', body: JSON.stringify(data) }),
+    updateRecipe: (id: number, data: unknown) => apiFetch<any>(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteRecipe: (id: number) => apiFetch<any>(`/recipes/${id}`, { method: 'DELETE' }),
 
     // ---- SALES ----
-    checkoutCart: (checkoutData: unknown) => apiFetch('/sales', { method: 'POST', body: JSON.stringify(checkoutData) }),
+    checkoutCart: (checkoutData: unknown) => apiFetch<any>('/sales', { method: 'POST', body: JSON.stringify(checkoutData) }),
 
     // ---- FINANCE ----
-    getFinanceReports: () => apiFetch('/finance/reports'),
-    getExpenses: () => apiFetch('/finance/expenses'),
-    addExpense: (data: unknown) => apiFetch('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
-    deleteExpense: (id: number) => apiFetch(`/finance/expenses/${id}`, { method: 'DELETE' }),
-    getHPPAnalysis: () => apiFetch('/finance/hpp'),
+    getFinanceReports: () => apiFetch<any>('/finance/reports'),
+    getExpenses: () => apiFetch<any[]>('/finance/expenses'),
+    addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+    deleteExpense: (id: number) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),
+    getHPPAnalysis: () => apiFetch<any>('/finance/hpp'),
 };
