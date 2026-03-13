@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // Final deploy trigger
 import { apiClient } from '@shared/apiClient';
 
 interface StockDetailModalProps {
