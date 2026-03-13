@@ -167,7 +167,7 @@ export default function App() {
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Semua Pengeluaran</span>
                                 </div>
                                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                    Rp {(totalExpenses).toLocaleString('id-ID')}
+                                    Rp {(expenses).toLocaleString('id-ID')}
                                 </span>
                             </div>
                         </div>

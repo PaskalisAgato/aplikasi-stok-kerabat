@@ -61,7 +61,7 @@ function App() {
     }
   };
 
-  const hasAnyModalOpen = isExpenseModalOpen;
+  const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
@@ -76,7 +76,7 @@ function App() {
         <main className="p-4 space-y-6 pb-24">
           {activeTab === 'pengeluaran' ? (
             <>
-              <SummaryCard />
+              <SummaryCard total={totalExps} />
               {isLoading ? (
                   <div className="flex justify-center p-8">
                       <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
