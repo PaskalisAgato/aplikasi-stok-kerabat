@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import ThemeToggle from '@shared/ThemeToggle';
 import { apiClient } from '@shared/apiClient';
-import NavDrawer from '@shared/NavDrawer';
+
+import Layout from '@shared/Layout';
 
 function App() {
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,43 +47,33 @@ function App() {
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="bg-background-app text-main min-h-screen flex flex-col font-display antialiased transition-colors duration-300">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5186} />
-
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-4xl mx-auto shadow-2xl border-x border-border-dim overflow-x-hidden pb-32">
-                {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-app/90 backdrop-blur-md border-b border-border-dim px-4 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary active:scale-95">
-                                <span className="material-symbols-outlined">menu</span>
-                            </button>
-                            <h1 className="text-xl font-extrabold tracking-tight">Kasir (POS)</h1>
-                        </div>
-                        <ThemeToggle />
-                    </div>
-                </header>
-
+        <Layout 
+            currentPort={5186} 
+            title="Kasir (POS)" 
+            maxWidth="1024px"
+        >
+            <div className="relative flex min-h-[calc(100vh-200px)] w-full flex-col overflow-x-hidden pb-32">
+                
                 {/* Sales Summary Bar */}
-                <div className="bg-background-app transition-colors duration-300 p-4 border-b border-primary/10">
+                <div className="bg-surface p-6 rounded-2xl border border-border-dim mb-6 transition-all shadow-sm">
                     <div className="flex justify-between items-center px-1">
                         <div>
-                            <p className="text-[10px] uppercase font-black text-muted tracking-widest">Total Pesanan</p>
-                            <p className="text-2xl font-black text-primary">Rp {totalSalesValue.toLocaleString('id-ID')}</p>
+                            <p className="text-[10px] uppercase font-black text-muted tracking-widest mb-1">Total Pesanan</p>
+                            <p className="text-3xl font-black text-primary">Rp {totalSalesValue.toLocaleString('id-ID')}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] uppercase font-black text-muted tracking-widest">Item</p>
-                            <p className="text-xl font-bold text-main">{totalItems}</p>
+                            <p className="text-[10px] uppercase font-black text-muted tracking-widest mb-1">Item</p>
+                            <p className="text-2xl font-black text-main">{totalItems}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Cart Action & Header */}
-                <div className="p-4 flex items-center justify-between">
-                    <h2 className="font-bold text-lg">Keranjang</h2>
+                <div className="mb-6 flex items-center justify-between px-1">
+                    <h2 className="font-black text-sm uppercase tracking-widest text-muted">Item Keranjang</h2>
                     <button 
                         onClick={() => setShowAddMenu(true)}
-                        className="bg-primary/10 hover:bg-primary/20 text-primary font-bold text-sm px-4 py-2 rounded-xl transition-colors flex items-center gap-1 active:scale-95 border border-primary/20"
+                        className="bg-primary/10 hover:bg-primary/20 text-primary font-black text-xs px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 active:scale-95 border border-primary/20"
                     >
                         <span className="material-symbols-outlined text-[18px]">add</span>
                         Tambah Menu
@@ -92,43 +81,43 @@ function App() {
                 </div>
 
                 {/* Menu Grid / Cart Items */}
-                <main className="flex-1 px-4 space-y-3">
+                <div className="flex-1 space-y-4">
                     {activeCartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 text-center bg-surface rounded-2xl border border-border-dim border-dashed">
-                            <span className="material-symbols-outlined text-5xl text-muted/30 mb-3 block">shopping_cart</span>
-                            <p className="text-muted font-medium text-sm">Keranjang masih kosong.</p>
-                            <p className="text-muted/60 text-xs mt-1">Klik Tambah Menu untuk memulai.</p>
+                        <div className="flex flex-col items-center justify-center p-12 text-center bg-surface rounded-2xl border border-border-dim border-dashed opacity-60">
+                            <span className="material-symbols-outlined text-6xl text-muted/30 mb-4 block">shopping_cart</span>
+                            <p className="text-muted font-bold tracking-tight">Keranjang masih kosong</p>
+                            <p className="text-muted/60 text-xs mt-1">Tambahkan menu untuk memulai transaksi</p>
                         </div>
                     ) : (
                         activeCartItems.map(recipe => (
-                            <div key={recipe.id} className="flex items-center gap-4 bg-surface p-3 rounded-2xl border border-border-dim shadow-sm transition-all">
+                            <div key={recipe.id} className="flex items-center gap-4 bg-surface p-4 rounded-2xl border border-border-dim shadow-sm hover:border-primary/30 transition-all">
                                 <div
-                                    className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-border-dim"
+                                    className="size-20 rounded-xl bg-cover bg-center shrink-0 border border-border-dim shadow-inner"
                                     style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                     loading="lazy"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-main text-sm leading-tight truncate">{recipe.name}</h3>
-                                    <p className="text-primary font-black text-xs mt-1">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                    <h3 className="font-black text-main text-base leading-tight truncate px-1">{recipe.name}</h3>
+                                    <p className="text-primary font-black text-sm mt-1 px-1">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                 </div>
-                                <div className="flex items-center gap-2 bg-background-app p-1 rounded-xl border border-border-dim shrink-0 shadow-inner">
+                                <div className="flex items-center gap-2 bg-background-app p-1.5 rounded-xl border border-border-dim shrink-0 shadow-inner">
                                     <button
                                         onClick={() => updateQty(recipe.id, -1)}
-                                        className="size-8 flex items-center justify-center rounded-lg bg-surface text-primary hover:bg-primary/10 transition-colors shadow-sm"
+                                        className="size-9 flex items-center justify-center rounded-lg bg-surface text-primary hover:bg-primary/10 transition-colors shadow-sm font-black"
                                     >-</button>
-                                    <span className="w-6 text-center font-bold text-sm block text-main">{sales[recipe.id] || 0}</span>
+                                    <span className="w-8 text-center font-black text-base block text-main">{sales[recipe.id] || 0}</span>
                                     <button
                                         onClick={() => updateQty(recipe.id, 1)}
-                                        className="size-8 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
+                                        className="size-9 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm font-black"
                                     >+</button>
                                 </div>
                             </div>
                         ))
                     )}
-                </main>
+                </div>
 
                 {/* Footer Action */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-background-app/80 backdrop-blur-md border-t border-border-dim p-4 pb-8 z-50 max-w-4xl mx-auto shadow-2xl">
+                <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1024px] bg-background-app/80 backdrop-blur-md border-t border-border-dim p-4 pb-10 z-[40] shadow-2xl px-6 lg:px-10">
                     <button
                         onClick={async () => {
                             if (totalItems === 0) return;
@@ -151,20 +140,20 @@ function App() {
                                 };
 
                                 await apiClient.checkoutCart(checkoutData);
-                                alert('Berhasil! Pembelian telah direkam, dan stok bahan digudang otomatis terpotong (BOM)!');
+                                alert('Berhasil! Pembelian telah direkam.');
                                 setSales({});
                             } catch (e) {
                                 console.error('Checkout error:', e);
                                 alert('Transaksi kasir Gagal divalidasi API.');
                             }
                         }}
-                        className={`w-full py-4 rounded-2xl font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 
-               ${totalItems > 0 ? 'bg-gradient-to-r from-primary to-[#b36a2b] shadow-primary/30' : 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none'}`}
+                        className={`w-full py-5 rounded-2xl font-black text-white shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 
+               ${totalItems > 0 ? 'bg-gradient-to-r from-primary to-[#b36a2b] shadow-primary/40' : 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none'}`}
                     >
-                        <span className="material-symbols-outlined">payments</span>
+                        <span className="material-symbols-outlined text-[28px]">payments</span>
                         Catat Penjualan Hari Ini
                     </button>
-                </footer>
+                </div>
             </div>
 
             {/* Add Menu Modal */}

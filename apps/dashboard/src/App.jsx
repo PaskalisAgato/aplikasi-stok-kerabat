@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
 import KPICards from './components/KPICards';
 import SalesChart from './components/SalesChart';
 import CriticalStock from './components/CriticalStock';
 import NotificationModal from './components/NotificationModal';
-import NavDrawer from '@shared/NavDrawer';
 import { apiClient } from '@shared/apiClient';
 
+import Layout from '@shared/Layout';
+
 function App() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [reports, setReports] = useState(null);
   const [inventory, setInventory] = useState([]);
@@ -33,15 +32,26 @@ function App() {
     fetchData();
   }, []);
 
+  const DashboardHeaderExtras = (
+    <button 
+        onClick={() => setIsNotifOpen(true)} 
+        className="size-11 card flex items-center justify-center text-primary group transition-all hover:bg-primary/5 shrink-0"
+    >
+        <span className="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
+    </button>
+  );
+
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-app font-display antialiased transition-colors duration-300">
-      <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5173} />
-      <Header onMenuClick={() => setDrawerOpen(true)} onNotificationClick={() => setIsNotifOpen(true)} />
-      
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 space-y-8">
+    <Layout 
+        currentPort={5173} 
+        title="Dasbor" 
+        headerExtras={DashboardHeaderExtras}
+        maxWidth="1400px"
+    >
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center p-20">
-            <span className="material-symbols-outlined animate-spin text-primary text-5xl">refresh</span>
+          <div className="flex flex-col items-center justify-center py-24 space-y-6">
+            <span className="material-symbols-outlined animate-spin text-primary text-6xl">refresh</span>
+            <p className="text-sm font-black text-muted uppercase tracking-widest animate-pulse">Memuat Ringkasan...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -54,10 +64,9 @@ function App() {
             </div>
           </div>
         )}
-      </main>
 
       <NotificationModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
-    </div>
+    </Layout>
   )
 }
 

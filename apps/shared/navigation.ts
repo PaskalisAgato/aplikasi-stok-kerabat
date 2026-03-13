@@ -54,15 +54,15 @@ export const getTargetUrl = (port: number) => {
             // Production environment (GitHub Pages, Render, etc.)
             const appName = PORT_TO_APP[port];
             
-            // Detect if we are in a subdirectory (like GitHub Pages /repo-name/)
-            // or if the app name is already in the path
-            const hasRepoName = pathname.includes(`/${REPO_NAME}/`);
-            
-            if (hasRepoName) {
+            // On GitHub Pages, the base is often /REPO_NAME/
+            // We want to ensure we stay within that base if it exists
+            const segments = pathname.split('/').filter(Boolean);
+            const isGitHubPages = segments[0] === REPO_NAME;
+
+            if (isGitHubPages) {
                 return appName ? `/${REPO_NAME}/${appName}/` : `/${REPO_NAME}/`;
             } else {
-                // For Render/Vercel or Custom Domains where the app is at root
-                // We still use folder-based routing but without the repo-name prefix
+                // Root-level deployment or other environment
                 return appName ? `/${appName}/` : '/';
             }
         }
