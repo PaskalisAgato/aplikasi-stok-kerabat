@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+export default {`n  darkMode: "class",
   
   content: [
     "./index.html",
@@ -8,9 +8,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        "primary": "#d4823a",
-        "background-light": "#f8f7f6",
-        "background-dark": "#201912",
+        "primary": "var(--primary)",
+        "background-app": "var(--bg-app)",
+        "surface": "var(--bg-surface)",
+        "text-main": "var(--text-main)",
+        "text-muted": "var(--text-muted)",
+        "border-dim": "var(--border-dim)",
       },
       fontFamily: {
         "display": ["Inter", "sans-serif"]
@@ -28,5 +31,6 @@ export default {
     require('@tailwindcss/container-queries')
   ],
 }
+
 
 

@@ -169,12 +169,12 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
-            <div className="w-full bg-background-light  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
-                <header className="flex items-center p-4 border-b border-slate-200 ">
+            <div className="w-full bg-background-app rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-border-dim">
+                <header className="flex items-center p-4 border-b border-border-dim">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
                         <span className="material-symbols-outlined">arrow_back</span>
                     </button>
-                    <h2 className="text-slate-900  text-lg font-bold flex-1 ml-2">Update Stok Masuk</h2>
+                    <h2 className="text-main text-lg font-bold flex-1 ml-2">Update Stok Masuk</h2>
                     <button 
                         onClick={() => { setShowHistory(true); fetchHistory(); }}
                         className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors"
@@ -186,12 +186,12 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex-1 overflow-y-auto pb-40">
                     <div className="px-4 py-4 relative">
-                        <div className="flex w-full items-stretch rounded-xl h-12 shadow-sm bg-slate-100 ">
+                        <div className="flex w-full items-stretch rounded-xl h-12 shadow-sm bg-background-app border border-border-dim">
                             <div className="text-primary/70 flex items-center justify-center pl-4">
                                 <span className="material-symbols-outlined">search</span>
                             </div>
                             <input
-                                className="w-full bg-transparent border-none focus:ring-0 text-slate-900  placeholder:text-slate-400  px-4 pl-2 text-base"
+                                className="w-full bg-transparent border-none focus:ring-0 text-main placeholder:text-muted px-4 pl-2 text-base"
                                 placeholder="Cari bahan baku..."
                                 value={searchTerm}
                                 onChange={(e) => {
@@ -203,13 +203,13 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         {isSearching && searchTerm.length > 0 && (
-                            <div className="absolute left-4 right-4 top-16 bg-white  rounded-xl shadow-xl border border-slate-200  z-30 max-h-60 overflow-y-auto">
+                            <div className="absolute left-4 right-4 top-16 bg-surface rounded-xl shadow-xl border border-border-dim z-30 max-h-60 overflow-y-auto">
                                 {filteredInventory.length > 0 ? (
                                     filteredInventory.map(item => (
                                         <div 
                                             key={item.id}
                                             onClick={() => handleAddItem(item)}
-                                            className="p-3 hover:bg-primary/10 flex items-center gap-3 cursor-pointer border-b border-slate-100  last:border-0"
+                                            className="p-3 hover:bg-primary/10 flex items-center gap-3 cursor-pointer border-b border-border-dim last:border-0"
                                         >
                                             <div className="size-10 rounded bg-slate-100  flex items-center justify-center overflow-hidden">
                                                 {item.imageUrl ? (
@@ -219,8 +219,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-bold text-slate-900 ">{item.name}</p>
-                                                <p className="text-[10px] text-slate-500 uppercase tracking-wider">{item.currentStock} {item.unit} Tersedia</p>
+                                                <p className="text-sm font-bold text-main">{item.name}</p>
+                                                <p className="text-[10px] text-muted uppercase tracking-wider">{item.currentStock} {item.unit} Tersedia</p>
                                             </div>
                                             <span className="material-symbols-outlined text-primary text-xl">add_circle</span>
                                         </div>
@@ -235,19 +235,19 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="px-4 py-2 flex justify-between items-center">
-                        <h3 className="text-slate-900  text-lg font-bold">Bahan Terpilih</h3>
+                        <h3 className="text-main text-lg font-bold">Bahan Terpilih</h3>
                         <span className="text-xs font-semibold px-2 py-1 bg-primary/20 text-primary rounded-full uppercase tracking-wider">{items.length} Items</span>
                     </div>
 
                     <div className="space-y-3 px-4 py-2">
                         {items.length === 0 && (
-                            <div className="py-10 text-center text-slate-400">
+                            <div className="py-10 text-center text-muted">
                                 <span className="material-symbols-outlined text-4xl mb-2 opacity-20">inventory_2</span>
                                 <p className="text-sm">Belum ada bahan terpilih.<br/>Gunakan kolom cari di atas.</p>
                             </div>
                         )}
                         {items.map(item => (
-                            <div key={item.id} className="flex flex-col gap-4 bg-white  p-4 rounded-xl border border-slate-100  shadow-sm relative">
+                            <div key={item.id} className="flex flex-col gap-4 bg-surface p-4 rounded-xl border border-border-dim shadow-sm relative">
                                 <button 
                                     onClick={() => handleRemoveItem(item.id)}
                                     className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
@@ -257,19 +257,19 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                 <div className="flex gap-4 justify-between">
                                     <div className="flex items-start gap-4">
                                         <div
-                                            className="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-[64px] border border-slate-200 "
+                                            className="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-[64px] border border-border-dim"
                                             style={{ backgroundImage: `url("${item.image}")` }}
                                         />
                                         <div className="flex flex-1 flex-col justify-center gap-1">
-                                            <h4 className="text-slate-900  text-base font-bold leading-tight">{item.name}</h4>
-                                            <p className="text-slate-500  text-xs font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
+                                            <h4 className="text-main text-base font-bold leading-tight">{item.name}</h4>
+                                            <p className="text-muted text-xs font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
                                         </div>
                                     </div>
                                     <div className="shrink-0">
-                                        <div className="flex items-center gap-3 text-slate-900  bg-slate-100  p-1 rounded-full">
+                                        <div className="flex items-center gap-3 text-main bg-background-app p-1 rounded-full border border-border-dim">
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, -1)}
-                                                className="flex h-8 w-8 items-center justify-center rounded-full bg-white  text-primary shadow-sm active:scale-95 transition-transform"
+                                                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-primary shadow-sm active:scale-95 transition-transform"
                                             >
                                                 <span className="material-symbols-outlined text-sm font-bold">remove</span>
                                             </button>
@@ -277,7 +277,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                                 type="number"
                                                 value={item.quantity || ''}
                                                 onChange={(e) => handleQuantityInput(item.id, e.target.value)}
-                                                className="text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-slate-900  min-w-[32px] max-w-[100px]"
+                                                className="text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-main min-w-[32px] max-w-[100px]"
                                                 style={{ width: `${Math.max(2, String(item.quantity || '').length)}ch` }}
                                                 min="0"
                                             />
@@ -290,23 +290,23 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 ">
+                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border-dim">
                                     <div className="flex flex-col flex-1">
-                                        <p className="text-slate-500  text-xs font-medium pb-1 ml-1 uppercase">Harga Beli (Rp)</p>
+                                        <p className="text-muted text-xs font-medium pb-1 ml-1 uppercase">Harga Beli (Rp)</p>
                                         <input
                                             type="number"
                                             value={item.price}
                                             onChange={(e) => handleInputChange(item.id, 'price', e.target.value)}
-                                            className="w-full rounded-lg text-slate-900  focus:ring-2 focus:ring-primary/50 border border-slate-200  bg-transparent h-11 px-3 text-sm"
+                                            className="w-full rounded-lg text-main focus:ring-2 focus:ring-primary/50 border border-border-dim bg-transparent h-11 px-3 text-sm"
                                         />
                                     </div>
                                     <div className="flex flex-col flex-1">
-                                        <p className="text-slate-500  text-xs font-medium pb-1 ml-1 uppercase">Diskon (%)</p>
+                                        <p className="text-muted text-xs font-medium pb-1 ml-1 uppercase">Diskon (%)</p>
                                         <input
                                             type="number"
                                             value={item.discount}
                                             onChange={(e) => handleInputChange(item.id, 'discount', e.target.value)}
-                                            className="w-full rounded-lg text-slate-900  focus:ring-2 focus:ring-primary/50 border border-slate-200  bg-transparent h-11 px-3 text-sm"
+                                            className="w-full rounded-lg text-main focus:ring-2 focus:ring-primary/50 border border-border-dim bg-transparent h-11 px-3 text-sm"
                                         />
                                     </div>
                                 </div>
@@ -315,34 +315,34 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80  backdrop-blur-md border-t border-slate-200  z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-app/80 backdrop-blur-md border-t border-border-dim z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     <div className="max-w-md mx-auto space-y-3">
                         {items.length > 0 && (
                             <div className="grid grid-cols-2 gap-3 mb-2">
                                 <div>
-                                    <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Nama Supplier (Opsional)</label>
+                                    <label className="text-[10px] uppercase font-bold text-muted mb-1 block">Nama Supplier (Opsional)</label>
                                     <input 
                                         type="text" 
                                         placeholder="Ketik supplier..."
                                         value={supplierName}
                                         onChange={e => setSupplierName(e.target.value)}
-                                        className="w-full text-sm h-10 rounded-xl bg-slate-100  border-transparent focus:ring-primary focus:border-primary px-3 text-slate-900 "
+                                        className="w-full text-sm h-10 rounded-xl bg-background-app border border-border-dim focus:ring-primary focus:border-primary px-3 text-main"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Tanggal Masuk</label>
+                                    <label className="text-[10px] uppercase font-bold text-muted mb-1 block">Tanggal Masuk</label>
                                     <input 
                                         type="date" 
                                         value={customDate}
                                         onChange={e => setCustomDate(e.target.value)}
-                                        className="w-full text-sm h-10 rounded-xl bg-slate-100  border-transparent focus:ring-primary focus:border-primary px-3 text-slate-900 "
+                                        className="w-full text-sm h-10 rounded-xl bg-background-app border border-border-dim focus:ring-primary focus:border-primary px-3 text-main"
                                     />
                                 </div>
                             </div>
                         )}
                         <div className="flex justify-between items-center px-1">
-                            <span className="text-slate-500  text-sm">Total Belanja</span>
-                            <span className="text-slate-900  text-lg font-bold">
+                            <span className="text-muted text-sm">Total Belanja</span>
+                            <span className="text-main text-lg font-bold">
                                 Rp {calculateTotal().toLocaleString('id-ID')}
                             </span>
                         </div>
@@ -364,21 +364,21 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
 
             {/* HISTORY PANEL OVERLAY */}
             {showHistory && (
-                <div className="absolute inset-0 z-50 bg-background-light  flex flex-col">
-                    <header className="flex items-center p-4 border-b border-slate-200  sticky top-0 bg-background-light  z-10">
-                        <button onClick={() => setShowHistory(false)} className="text-slate-500 flex size-10 items-center justify-center rounded-full hover:bg-slate-100  transition-colors">
+                <div className="absolute inset-0 z-50 bg-background-app flex flex-col">
+                    <header className="flex items-center p-4 border-b border-border-dim sticky top-0 bg-background-app z-10">
+                        <button onClick={() => setShowHistory(false)} className="text-muted flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
                             <span className="material-symbols-outlined">close</span>
                         </button>
-                        <h2 className="text-slate-900  text-lg font-bold flex-1 ml-2">Riwayat Barang Masuk</h2>
+                        <h2 className="text-main text-lg font-bold flex-1 ml-2">Riwayat Barang Masuk</h2>
                     </header>
                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                         {isLoadingHistory ? (
-                            <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                            <div className="flex flex-col items-center justify-center h-40 text-muted">
                                 <span className="material-symbols-outlined animate-spin text-4xl mb-2">refresh</span>
                                 <p>Memuat riwayat...</p>
                             </div>
                         ) : historyData.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                            <div className="flex flex-col items-center justify-center h-40 text-muted">
                                 <span className="material-symbols-outlined text-4xl mb-2 opacity-30">history_toggle_off</span>
                                 <p>Belum ada riwayat barang masuk.</p>
                             </div>
@@ -390,28 +390,28 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
                                     const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                                     
                                     return (
-                                        <div key={record.id} className="bg-white  p-4 rounded-xl border border-slate-200  shadow-sm flex flex-col gap-2">
+                                        <div key={record.id} className="bg-surface p-4 rounded-xl border border-border-dim shadow-sm flex flex-col gap-2">
                                             <div className="flex justify-between items-start">
-                                                <h4 className="font-bold text-slate-900 ">{record.inventoryName}</h4>
+                                                <h4 className="font-bold text-main">{record.inventoryName}</h4>
                                                 <div className="text-right">
-                                                    <span className="text-xs text-slate-500 block">{dateStr}</span>
-                                                    <span className="text-[10px] text-slate-400 block">{timeStr}</span>
+                                                    <span className="text-xs text-muted block">{dateStr}</span>
+                                                    <span className="text-[10px] text-muted block">{timeStr}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between mt-1">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] uppercase text-primary font-bold tracking-wider">Jumlah Restok</span>
-                                                    <span className="text-lg font-black text-slate-900 ">+{parseFloat(record.quantity)} {record.unit}</span>
+                                                    <span className="text-lg font-black text-main">+{parseFloat(record.quantity)} {record.unit}</span>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end">
                                                     {record.supplierName && (
-                                                        <span className="text-xs font-semibold bg-slate-100  text-slate-700  px-2 py-0.5 rounded flex items-center gap-1 mb-1">
+                                                        <span className="text-xs font-semibold bg-background-app text-muted px-2 py-0.5 rounded flex items-center gap-1 mb-1 border border-border-dim">
                                                             <span className="material-symbols-outlined text-[12px]">local_shipping</span>
                                                             {record.supplierName}
                                                         </span>
                                                     )}
                                                     {record.reason && record.reason.includes('Rp') && (
-                                                        <span className="text-xs font-medium text-slate-500">
+                                                        <span className="text-xs font-medium text-muted">
                                                             {record.reason.split(' - ')[1]}
                                                         </span>
                                                     )}

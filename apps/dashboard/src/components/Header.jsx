@@ -1,6 +1,8 @@
+import ThemeToggle from '@shared/ThemeToggle';
+
 export default function Header({ onMenuClick, onNotificationClick }) {
     return (
-        <header className="flex items-center gap-2 p-4 sticky top-0 z-20 bg-background-light/80  backdrop-blur-md border-b border-primary/10">
+        <header className="flex items-center gap-2 p-4 sticky top-0 z-20 bg-background-app/80 backdrop-blur-md border-b border-border-dim">
             <button onClick={onMenuClick} className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-primary active:scale-95 shrink-0">
                 <span className="material-symbols-outlined">menu</span>
             </button>
@@ -14,13 +16,17 @@ export default function Header({ onMenuClick, onNotificationClick }) {
                 </div>
                 <div>
                     <p className="text-[9px] uppercase tracking-widest text-primary font-bold">Dashboard</p>
-                    <h1 className="text-base font-bold leading-tight tracking-tight">Kerabat Kopi Tiam</h1>
+                    <h1 className="text-base font-bold leading-tight tracking-tight text-main">Kerabat Kopi Tiam</h1>
                 </div>
             </div>
-            <button onClick={onNotificationClick} className="relative p-2 rounded-full hover:bg-primary/10 transition-colors shrink-0">
-                <span className="material-symbols-outlined text-slate-900 ">notifications</span>
-                <span className="absolute top-2 right-2 flex h-1.5 w-1.5 rounded-full bg-red-500"></span>
-            </button>
+            
+            <div className="flex items-center gap-1">
+                <ThemeToggle />
+                <button onClick={onNotificationClick} className="relative p-2 rounded-full hover:bg-primary/10 transition-colors shrink-0 text-main">
+                    <span className="material-symbols-outlined">notifications</span>
+                    <span className="absolute top-2.5 right-2.5 flex h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                </button>
+            </div>
         </header>
     );
 }

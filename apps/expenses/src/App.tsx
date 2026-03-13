@@ -71,13 +71,13 @@ function App() {
   const hasAnyModalOpen = isExpenseModalOpen;
 
   return (
-    <div className="bg-background-light  font-display text-slate-900  antialiased min-h-screen transition-colors duration-300">
+    <div className="bg-background-app font-display text-main antialiased min-h-screen transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5181} />
       
       <div className="flex flex-col min-h-screen lg:flex-row max-w-[1400px] mx-auto">
         
         {/* Desktop Sidebar - Side Controls */}
-        <aside className="hidden lg:flex w-80 h-screen sticky top-0 bg-surface border-r border-[var(--border-color)] flex-col p-8 space-y-10">
+        <aside className="hidden lg:flex w-80 h-screen sticky top-0 bg-surface border-r border-border-dim flex-col p-8 space-y-10">
             <div className="flex items-center gap-4">
                 <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                     <span className="material-symbols-outlined">menu</span>
@@ -86,7 +86,7 @@ function App() {
             </div>
 
             <div className="space-y-6">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Aksi Cepat</p>
+                <p className="text-xs font-black text-muted uppercase tracking-widest">Aksi Cepat</p>
                 <button 
                   onClick={() => setIsExpenseModalOpen(true)} 
                   className="w-full btn-primary py-4 shadow-xl shadow-primary/30"
@@ -96,7 +96,7 @@ function App() {
                 </button>
             </div>
 
-            <div className="mt-auto pt-8 border-t border-[var(--border-color)]">
+            <div className="mt-auto pt-8 border-t border-border-dim">
                 <SummaryCard total={totalExps} compact />
             </div>
         </aside>
@@ -104,7 +104,7 @@ function App() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
             {/* Header (Mobile) */}
-            <header className="lg:hidden sticky top-0 z-30 bg-background-light/80  backdrop-blur-md p-4 border-b border-[var(--border-color)]">
+            <header className="lg:hidden sticky top-0 z-30 bg-background-app/80 backdrop-blur-md p-4 border-b border-border-dim">
                 <div className="flex items-center gap-3">
                     <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                         <span className="material-symbols-outlined">menu</span>
@@ -119,16 +119,16 @@ function App() {
                 </div>
 
                 <div className="flex items-center justify-between mb-8 px-1">
-                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Riwayat Pengeluaran</h2>
-                    <p className="text-xs font-bold text-slate-500">Total {expensesList.length} Transaksi</p>
+                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted">Riwayat Pengeluaran</h2>
+                    <p className="text-xs font-bold text-muted">Total {expensesList.length} Transaksi</p>
                 </div>
 
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 space-y-6">
                         <span className="material-symbols-outlined animate-spin text-primary text-6xl">refresh</span>
                         <div className="text-center">
-                            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Memuat data server...</p>
-                            <p className="text-[10px] text-slate-400 italic mt-2">Cold start mungkin memerlukan waktu lebih lama.</p>
+                            <p className="text-sm font-black text-muted uppercase tracking-widest">Memuat data server...</p>
+                            <p className="text-[10px] text-muted italic mt-2">Cold start mungkin memerlukan waktu lebih lama.</p>
                         </div>
                     </div>
                 ) : (

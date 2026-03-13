@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ThemeToggle from '@shared/ThemeToggle';
 import { apiClient } from '@shared/apiClient';
 import NavDrawer from '@shared/NavDrawer';
 
@@ -47,30 +48,33 @@ function App() {
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="bg-background-light text-slate-900 min-h-screen flex flex-col font-display antialiased">
+        <div className="bg-background-app text-main min-h-screen flex flex-col font-display antialiased transition-colors duration-300">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5186} />
 
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-4xl mx-auto shadow-2xl border-x border-[var(--border-color)] overflow-x-hidden pb-32">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-4xl mx-auto shadow-2xl border-x border-border-dim overflow-x-hidden pb-32">
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[var(--border-color)] px-4 py-4">
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <span className="material-symbols-outlined">menu</span>
-                        </button>
-                        <h1 className="text-xl font-extrabold tracking-tight">Kasir (POS)</h1>
+                <header className="sticky top-0 z-30 bg-background-app/90 backdrop-blur-md border-b border-border-dim px-4 py-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary active:scale-95">
+                                <span className="material-symbols-outlined">menu</span>
+                            </button>
+                            <h1 className="text-xl font-extrabold tracking-tight">Kasir (POS)</h1>
+                        </div>
+                        <ThemeToggle />
                     </div>
                 </header>
 
                 {/* Sales Summary Bar */}
-                <div className="bg-primary/5 p-4 border-b border-primary/10">
+                <div className="bg-background-app transition-colors duration-300 p-4 border-b border-primary/10">
                     <div className="flex justify-between items-center px-1">
                         <div>
-                            <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest">Total Pesanan</p>
+                            <p className="text-[10px] uppercase font-black text-muted tracking-widest">Total Pesanan</p>
                             <p className="text-2xl font-black text-primary">Rp {totalSalesValue.toLocaleString('id-ID')}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest">Item</p>
-                            <p className="text-xl font-bold">{totalItems}</p>
+                            <p className="text-[10px] uppercase font-black text-muted tracking-widest">Item</p>
+                            <p className="text-xl font-bold text-main">{totalItems}</p>
                         </div>
                     </div>
                 </div>
@@ -90,29 +94,29 @@ function App() {
                 {/* Menu Grid / Cart Items */}
                 <main className="flex-1 px-4 space-y-3">
                     {activeCartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white rounded-2xl border border-slate-100 border-dashed">
-                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">shopping_cart</span>
-                            <p className="text-slate-500 font-medium text-sm">Keranjang masih kosong.</p>
-                            <p className="text-slate-400 text-xs mt-1">Klik Tambah Menu untuk memulai.</p>
+                        <div className="flex flex-col items-center justify-center p-8 text-center bg-surface rounded-2xl border border-border-dim border-dashed">
+                            <span className="material-symbols-outlined text-5xl text-muted/30 mb-3 block">shopping_cart</span>
+                            <p className="text-muted font-medium text-sm">Keranjang masih kosong.</p>
+                            <p className="text-muted/60 text-xs mt-1">Klik Tambah Menu untuk memulai.</p>
                         </div>
                     ) : (
                         activeCartItems.map(recipe => (
-                            <div key={recipe.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm transition-all">
+                            <div key={recipe.id} className="flex items-center gap-4 bg-surface p-3 rounded-2xl border border-border-dim shadow-sm transition-all">
                                 <div
-                                    className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-[var(--border-color)]"
+                                    className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-border-dim"
                                     style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                     loading="lazy"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-slate-900 text-sm leading-tight truncate">{recipe.name}</h3>
+                                    <h3 className="font-bold text-main text-sm leading-tight truncate">{recipe.name}</h3>
                                     <p className="text-primary font-black text-xs mt-1">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                 </div>
-                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-primary/10 shrink-0 shadow-inner">
+                                <div className="flex items-center gap-2 bg-background-app p-1 rounded-xl border border-border-dim shrink-0 shadow-inner">
                                     <button
                                         onClick={() => updateQty(recipe.id, -1)}
-                                        className="size-8 flex items-center justify-center rounded-lg bg-white text-primary hover:bg-primary/10 transition-colors shadow-sm"
+                                        className="size-8 flex items-center justify-center rounded-lg bg-surface text-primary hover:bg-primary/10 transition-colors shadow-sm"
                                     >-</button>
-                                    <span className="w-6 text-center font-bold text-sm block">{sales[recipe.id] || 0}</span>
+                                    <span className="w-6 text-center font-bold text-sm block text-main">{sales[recipe.id] || 0}</span>
                                     <button
                                         onClick={() => updateQty(recipe.id, 1)}
                                         className="size-8 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
@@ -124,7 +128,7 @@ function App() {
                 </main>
 
                 {/* Footer Action */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-[var(--border-color)] p-4 pb-8 z-50 max-w-4xl mx-auto shadow-2xl">
+                <footer className="fixed bottom-0 left-0 right-0 bg-background-app/80 backdrop-blur-md border-t border-border-dim p-4 pb-8 z-50 max-w-4xl mx-auto shadow-2xl">
                     <button
                         onClick={async () => {
                             if (totalItems === 0) return;
@@ -165,25 +169,25 @@ function App() {
 
             {/* Add Menu Modal */}
             {showAddMenu && (
-                <div className="fixed inset-0 z-[100] bg-white font-display flex flex-col max-w-4xl mx-auto h-full shadow-2xl">
-                    <header className="sticky top-0 z-10 bg-white border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+                <div className="fixed inset-0 z-[100] bg-background-app font-display flex flex-col max-w-4xl mx-auto h-full shadow-2xl">
+                    <header className="sticky top-0 z-10 bg-background-app border-b border-border-dim px-4 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setShowAddMenu(false)} className="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 text-primary">
+                            <button onClick={() => setShowAddMenu(false)} className="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 text-primary active:scale-95">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
-                            <h2 className="text-lg font-bold">Pilih Menu</h2>
+                            <h2 className="text-lg font-bold text-main">Pilih Menu</h2>
                         </div>
                     </header>
                     
-                    <div className="p-4 border-b border-primary/10 sticky top-[73px] bg-white z-10">
+                    <div className="p-4 border-b border-border-dim sticky top-[73px] bg-background-app z-10">
                         <div className="relative flex items-center group">
-                            <span className="material-symbols-outlined absolute left-4 text-slate-400">search</span>
+                            <span className="material-symbols-outlined absolute left-4 text-muted">search</span>
                             <input
                                 type="text"
                                 placeholder="Cari dari daftar resep/HPP..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/50 text-sm font-medium transition-all"
+                                className="w-full h-12 pl-12 pr-4 rounded-xl border border-border-dim bg-surface focus:ring-2 focus:ring-primary/50 text-main text-sm font-medium transition-all"
                                 autoFocus
                             />
                         </div>
@@ -196,18 +200,18 @@ function App() {
                              </div>
                         )}
                         {!isLoading && filteredRecipes.length === 0 ? (
-                            <p className="text-center text-slate-500 py-4">Menu tidak ditemukan.</p>
+                            <p className="text-center text-muted py-4">Menu tidak ditemukan.</p>
                         ) : filteredRecipes.map(recipe => {
                             const inCart = sales[recipe.id] > 0;
                             return (
-                                <div key={`add-${recipe.id}`} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                                <div key={`add-${recipe.id}`} className="flex items-center gap-4 bg-surface p-3 rounded-2xl border border-border-dim shadow-sm">
                                     <div
-                                        className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-primary/10"
+                                        className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-border-dim"
                                         style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                     />
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-slate-900 text-sm truncate">{recipe.name}</h3>
-                                        <p className="text-[10px] text-slate-500 font-medium mb-1 truncate">{recipe.category}</p>
+                                        <h3 className="font-bold text-main text-sm truncate">{recipe.name}</h3>
+                                        <p className="text-[10px] text-muted font-medium mb-1 truncate">{recipe.category}</p>
                                         <p className="text-primary font-black text-xs">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                     </div>
                                     <button
@@ -216,7 +220,7 @@ function App() {
                                         }}
                                         className={`px-4 py-2 rounded-xl font-bold text-sm transition-all focus:outline-none flex items-center gap-1 ${
                                             inCart 
-                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-transparent' 
+                                            ? 'bg-background-app text-muted cursor-not-allowed border border-transparent opacity-50' 
                                             : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-95 active:scale-90 border border-primary/20'
                                         }`}
                                     >

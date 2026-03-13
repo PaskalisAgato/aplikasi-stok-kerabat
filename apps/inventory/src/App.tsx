@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ThemeToggle from '@shared/ThemeToggle';
 import { apiClient } from '@shared/apiClient';
 
 import StockDetailModal from './components/StockDetailModal';
@@ -104,22 +105,22 @@ function App() {
   };
 
   return (
-    <div className="bg-background-light text-slate-900 antialiased font-display min-h-screen w-full transition-colors duration-300">
+    <div className="bg-background-app text-main antialiased font-display min-h-screen w-full transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5174} />
       
       <div className="flex flex-col min-h-screen lg:flex-row max-w-[1600px] mx-auto">
         
         {/* Desktop Sidebar (Filter) - Hidden on Mobile */}
-        <aside className="hidden lg:flex w-72 h-screen sticky top-0 bg-surface border-r border-[var(--border-color)] flex-col p-6 space-y-8">
+        <aside className="hidden lg:flex w-72 h-screen sticky top-0 bg-surface border-r border-border-dim flex-col p-6 space-y-8">
             <div className="flex items-center gap-3">
-                 <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                 <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary active:scale-95">
                     <span className="material-symbols-outlined">menu</span>
                 </button>
-                <h1 className="text-xl font-black tracking-tight">Inventory</h1>
+                <h1 className="text-xl font-black tracking-tight text-main">Inventory</h1>
             </div>
 
             <div className="space-y-4">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Filter Status</p>
+                <p className="text-xs font-black text-muted uppercase tracking-widest">Filter Status</p>
                 <div className="flex flex-col gap-2">
                     {['Semua', 'Kritis', 'Normal'].map(cat => (
                         <button 
@@ -133,12 +134,12 @@ function App() {
                 </div>
             </div>
 
-            <div className="pt-8 border-t border-[var(--border-color)] space-y-4">
+            <div className="pt-8 border-t border-border-dim space-y-4">
                 <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full">
                     <span className="material-symbols-outlined">add</span>
                     Tambah Bahan
                 </button>
-                <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-color)] text-slate-500 font-bold hover:bg-slate-50  transition-all">
+                <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border-dim text-muted font-bold hover:bg-primary/5 transition-all">
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Ekspor CSV
                 </button>
@@ -148,24 +149,25 @@ function App() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
             {/* Header (Unified Mobile/Desktop Search) */}
-            <header className="sticky top-0 z-20 bg-background-light/80  backdrop-blur-md p-4 md:p-6 border-b border-[var(--border-color)]">
+            <header className="sticky top-0 z-20 bg-background-app/80 backdrop-blur-md p-4 md:p-6 border-b border-border-dim">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => setDrawerOpen(true)} className="lg:hidden size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <button onClick={() => setDrawerOpen(true)} className="lg:hidden size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary active:scale-95">
                         <span className="material-symbols-outlined">menu</span>
                     </button>
                     
                     <div className="relative flex-1 group">
-                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted">search</span>
                         <input
                             type="text"
                             placeholder="Cari bahan baku (kopi, gula, susu...)"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-12 pl-12 pr-4 rounded-2xl border border-[var(--border-color)] bg-surface focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold"
+                            className="w-full h-12 pl-12 pr-4 rounded-2xl border border-border-dim bg-surface focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold text-main"
                         />
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                         <ThemeToggle />
                          <button onClick={() => setIsNotificationModalOpen(true)} className="size-12 card flex items-center justify-center text-primary group">
                             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
                         </button>
@@ -178,7 +180,7 @@ function App() {
                         <button 
                             key={`mob-cat-${cat}`}
                             onClick={() => setFilterType(cat)}
-                            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100  text-slate-500'}`}
+                            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background-app text-muted'}`}
                         >
                             {cat}
                         </button>
@@ -188,8 +190,8 @@ function App() {
 
             <main className="p-4 md:p-8">
                 <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Daftar Inventori</h2>
-                    <p className="text-xs font-bold text-slate-500">Menampilkan {filteredInventory.length} item</p>
+                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted">Daftar Inventori</h2>
+                    <p className="text-xs font-bold text-muted">Menampilkan {filteredInventory.length} item</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -217,19 +219,19 @@ function App() {
 
                       <div className="flex items-end justify-between mt-auto mb-4">
                            <div className="flex flex-col">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sisa Stok</p>
-                                <p className="text-2xl font-black text-slate-900">
+                                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Sisa Stok</p>
+                                <p className="text-2xl font-black text-main">
                                     {item.currentStock}
-                                    <span className="text-xs font-bold text-slate-400 ml-1 italic">{item.unit}</span>
+                                    <span className="text-xs font-bold text-muted ml-1 italic">{item.unit}</span>
                                 </p>
                            </div>
                            <div className="text-right flex flex-col items-end">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sistem</p>
-                                <p className="text-sm font-bold text-slate-500">{item.systemStock}{item.unit}</p>
+                                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Sistem</p>
+                                <p className="text-sm font-bold text-muted">{item.systemStock}{item.unit}</p>
                            </div>
                       </div>
 
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
+                      <div className="w-full bg-background-app h-2 rounded-full overflow-hidden shadow-inner">
                         <div className={`${item.status === 'KRITIS' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
                           item.status === 'HABIS' ? 'bg-slate-400' :
                             'bg-emerald-500 shadow-lg shadow-emerald-500/50'

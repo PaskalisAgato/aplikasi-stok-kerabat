@@ -13,7 +13,7 @@ interface NotificationCardProps {
 const NotificationCard: React.FC<NotificationCardProps> = ({
     image, title, status, time, stockInfo, showRestock, showUpdate
 }) => (
-    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+    <div className="bg-surface border border-border-dim rounded-xl overflow-hidden shadow-2xl">
         <div className="p-4 flex gap-4">
             <div
                 className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0"
@@ -27,13 +27,13 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
                         }`}>
                         {status}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-medium">{time}</span>
+                    <span className="text-[10px] text-muted font-medium">{time}</span>
                 </div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-main">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
                     {title}
                 </h3>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-muted">
                     Stok: <span className={`${status === 'CRITICAL' ? 'text-red-500' : 'text-orange-400'} font-semibold`}>
                         {stockInfo}
                     </span> tersisa
@@ -47,12 +47,12 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Restock Now
                     </button>
-                    <button className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-all">
+                    <button className="px-3 bg-surface hover:bg-primary/10 text-main rounded-lg border border-border-dim transition-all">
                         <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
                 </div>
             ) : showUpdate ? (
-                <button className="w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-lg font-semibold text-sm transition-all">
+                <button className="w-full bg-surface hover:bg-primary/10 text-main py-2.5 rounded-lg font-semibold text-sm transition-all border border-border-dim">
                     Update Stok
                 </button>
             ) : null}
@@ -72,25 +72,25 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
     const criticalItems = inventory.filter(item => item.status === 'KRITIS' || item.status === 'HABIS');
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background-dark text-slate-100 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-background-app text-main overflow-hidden">
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-background-dark/80 backdrop-blur-md border-b border-white/10 px-4 py-4 flex items-center gap-4">
+            <header className="sticky top-0 z-10 bg-background-app/80 backdrop-blur-md border-b border-border-dim px-4 py-4 flex items-center gap-4">
                 <button
                     onClick={onClose}
-                    className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                    className="p-2 hover:bg-surface rounded-full transition-colors"
                 >
-                    <span className="material-symbols-outlined text-slate-100">arrow_back</span>
+                    <span className="material-symbols-outlined text-main">arrow_back</span>
                 </button>
-                <h1 className="text-xl font-bold tracking-tight text-slate-100">Notifikasi Stok</h1>
+                <h1 className="text-xl font-bold tracking-tight text-main">Notifikasi Stok</h1>
             </header>
 
             {/* Filter Tabs */}
-            <div className="px-4 py-3 bg-background-dark/40 sticky top-0 z-10 backdrop-blur-sm">
+            <div className="px-4 py-3 bg-background-app/40 sticky top-0 z-10 backdrop-blur-sm border-b border-border-dim">
                 <div className="flex gap-2">
                     <button className="px-6 py-2 rounded-full bg-primary text-white text-xs font-bold transition-all shadow-lg shadow-primary/20">
                         Semua
                     </button>
-                    <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-bold hover:bg-white/10 transition-all">
+                    <button className="px-6 py-2 rounded-full bg-surface border border-border-dim text-muted text-xs font-bold hover:bg-primary/10 transition-all">
                         Belum Dibaca
                     </button>
                 </div>
@@ -101,11 +101,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-semibold uppercase tracking-wider text-primary font-bold">Stok Kritis / Habis</h2>
-                        <span className="text-xs text-slate-400">{criticalItems.length} Alerts</span>
+                        <span className="text-xs text-muted">{criticalItems.length} Alerts</span>
                     </div>
 
                     {criticalItems.length === 0 ? (
-                        <div className="text-center py-10 text-slate-500">
+                        <div className="text-center py-10 text-muted">
                             Semua stok dalam kondisi aman.
                         </div>
                     ) : (

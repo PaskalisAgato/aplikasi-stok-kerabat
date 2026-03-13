@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+export default {`n  darkMode: "class",
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}", "../shared/**/*.{js,ts,jsx,tsx}",
@@ -9,9 +9,11 @@ export default {
     extend: {
       colors: {
         "primary": "var(--primary)",
-        "background-light": "var(--bg-light)",
-        "background-dark": "var(--bg-light)",
-        "surface": "var(--surface-light)",
+        "background-app": "var(--bg-app)",
+        "surface": "var(--bg-surface)",
+        "text-main": "var(--text-main)",
+        "text-muted": "var(--text-muted)",
+        "border-dim": "var(--border-dim)",
       },
       fontFamily: {
         "display": ["Inter", "sans-serif"]
@@ -26,5 +28,6 @@ export default {
   },
   plugins: [],
 }
+
 
 

@@ -3,16 +3,29 @@
 :root {
   --primary: #d4823a;
   --primary-dark: #b36a2b;
-  --bg-light: #f8f7f6;
-  --surface-light: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border-color: rgba(15, 23, 42, 0.1);
+  
+  /* Light Theme Tokens */
+  --bg-app: #f8f7f6;
+  --bg-surface: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --border-dim: rgba(15, 23, 42, 0.1);
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.dark {
+  /* Dark Theme Tokens (Deep Charcoal / Matte Black) */
+  --bg-app: #0a0a0a;
+  --bg-surface: #121212;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-dim: rgba(248, 250, 252, 0.1);
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
 }
 
 @layer base {
   body {
-    @apply bg-[var(--bg-light)] text-[var(--text-primary)];
+    @apply bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-300;
   }
 }
 

@@ -39,14 +39,13 @@ export default function App() {
     const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(0) : 0;
 
     return (
-    return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen transition-colors duration-300">
+        <div className="bg-background-app font-display text-main min-h-screen transition-colors duration-300">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5175} />
             
             <div className="flex flex-col min-h-screen lg:flex-row max-w-[1400px] mx-auto">
                 
                 {/* Desktop Sidebar - Side Controls */}
-                <aside className="hidden lg:flex w-80 h-screen sticky top-0 bg-surface border-r border-[var(--border-color)] flex-col p-8 space-y-10">
+                <aside className="hidden lg:flex w-80 h-screen sticky top-0 bg-surface border-r border-border-dim flex-col p-8 space-y-10">
                     <div className="flex items-center gap-4">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                             <span className="material-symbols-outlined">menu</span>
@@ -56,16 +55,16 @@ export default function App() {
 
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Report Period</p>
+                            <p className="text-xs font-black text-muted uppercase tracking-widest">Report Period</p>
                             <span className="material-symbols-outlined text-primary text-sm">calendar_month</span>
                         </div>
                         <div className="space-y-4">
-                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 ">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dari</p>
+                            <div className="p-4 rounded-xl border border-border-dim bg-background-app/50">
+                                <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Dari</p>
                                 <p className="text-sm font-bold">1 Mar 2024</p>
                             </div>
-                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 ">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hingga</p>
+                            <div className="p-4 rounded-xl border border-border-dim bg-background-app/50">
+                                <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Hingga</p>
                                 <p className="text-sm font-bold">31 Mar 2024</p>
                             </div>
                             <button className="w-full btn-primary py-3">
@@ -75,7 +74,7 @@ export default function App() {
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-8 border-t border-[var(--border-color)] space-y-4">
+                    <div className="mt-auto pt-8 border-t border-border-dim space-y-4">
                          <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-primary text-primary font-black hover:bg-primary/5 transition-all">
                             <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
                             Export PDF
@@ -90,7 +89,7 @@ export default function App() {
                 {/* Main Dashboard Area */}
                 <div className="flex-1 flex flex-col min-w-0">
                     {/* Header (Mobile) */}
-                    <header className="lg:hidden sticky top-0 z-30 bg-background-light/80  backdrop-blur-md p-4 border-b border-[var(--border-color)]">
+                    <header className="lg:hidden sticky top-0 z-30 bg-background-app/80 backdrop-blur-md p-4 border-b border-border-dim">
                         <div className="flex items-center gap-3">
                             <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <span className="material-symbols-outlined">menu</span>
@@ -112,8 +111,8 @@ export default function App() {
                                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                                             <span className="material-symbols-outlined text-7xl text-primary">analytics</span>
                                         </div>
-                                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Total Pemasukan</p>
-                                        <p className="text-4xl font-black text-slate-900  mb-2">
+                                        <p className="text-xs font-black text-muted uppercase tracking-[0.2em] mb-3">Total Pemasukan</p>
+                                        <p className="text-4xl font-black text-main mb-2">
                                             Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k
                                         </p>
                                         <div className="flex items-center gap-2 text-emerald-500 font-black text-xs">
@@ -158,11 +157,11 @@ export default function App() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`size-3 rounded-full ${item.color} shadow-sm`}></div>
-                                                    <span className="text-sm font-black text-slate-600  uppercase tracking-tighter">{item.label}</span>
+                                                    <span className="text-sm font-black text-muted uppercase tracking-tighter">{item.label}</span>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-900 ">{item.val}</span>
+                                                <span className="text-sm font-black text-main">{item.val}</span>
                                             </div>
-                                            <div className="w-full bg-slate-100  h-2 rounded-full overflow-hidden shadow-inner">
+                                            <div className="w-full bg-background-app h-2 rounded-full overflow-hidden shadow-inner border border-border-dim">
                                                 <div className={`${item.color} h-full ${item.w} rounded-full transition-all duration-1000`}></div>
                                             </div>
                                         </div>
@@ -172,13 +171,13 @@ export default function App() {
 
                             <div className="space-y-8">
                                 {/* Operating Expenses with new card style */}
-                                <section className="card p-8 bg-slate-900 text-white border-transparent">
+                                <section className="card p-8 bg-surface text-main border border-border-dim">
                                     <div className="flex items-center justify-between mb-2">
-                                        <h3 className="font-black text-white/70 text-xs uppercase tracking-[0.2em]">Total Operating Expenses</h3>
-                                        <span className="material-symbols-outlined text-white/50">receipt_long</span>
+                                        <h3 className="font-black text-muted text-xs uppercase tracking-[0.2em]">Total Operating Expenses</h3>
+                                        <span className="material-symbols-outlined text-muted">receipt_long</span>
                                     </div>
-                                    <p className="text-3xl font-black text-white">Rp {(expenses).toLocaleString('id-ID')}</p>
-                                    <p className="text-[10px] font-bold text-white/40 mt-2 leading-relaxed">Ingredients, utilities, and labor costs synced from central API.</p>
+                                    <p className="text-3xl font-black text-main">Rp {(expenses).toLocaleString('id-ID')}</p>
+                                    <p className="text-[10px] font-bold text-muted mt-2 leading-relaxed">Ingredients, utilities, and labor costs synced from central API.</p>
                                 </section>
 
                                 {/* Mobile only export buttons */}

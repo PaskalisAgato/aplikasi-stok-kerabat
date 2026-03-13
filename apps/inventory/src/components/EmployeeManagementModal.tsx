@@ -65,9 +65,9 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background-light  text-slate-900  overflow-y-auto pb-24 antialiased">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app text-main overflow-y-auto pb-24 antialiased">
             {/* Header */}
-            <header className="sticky top-0 z-20 bg-background-light/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 flex items-center bg-background-app/80 backdrop-blur-md p-4 border-b border-border-dim">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}
@@ -75,7 +75,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                     >
                         <span className="material-symbols-outlined">arrow_back</span>
                     </button>
-                    <h1 className="text-xl font-bold tracking-tight">Kelola Karyawan</h1>
+                    <h1 className="text-xl font-bold tracking-tight text-main">Kelola Karyawan</h1>
                 </div>
                 <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
                     <span className="material-symbols-outlined">more_vert</span>
@@ -91,7 +91,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                             <span className="material-symbols-outlined">search</span>
                         </div>
                         <input
-                            className="block w-full pl-12 pr-4 py-4 bg-primary/5 border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-primary/40 text-base"
+                            className="block w-full pl-12 pr-4 py-4 bg-surface border border-border-dim rounded-xl focus:ring-2 focus:ring-primary/50 text-main placeholder:text-muted text-base"
                             placeholder="Cari nama atau peran karyawan"
                             type="text"
                             value={searchQuery}
@@ -103,37 +103,37 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                 {/* Employee List Section */}
                 <div className="px-4 space-y-4">
                     <div className="flex items-center justify-between pb-2">
-                        <h2 className="text-sm font-semibold uppercase tracking-wider text-primary/70">Daftar Karyawan</h2>
-                        <span className="text-xs font-medium text-primary/50">{filteredEmployees.length} Karyawan</span>
+                        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted font-bold">Daftar Karyawan</h2>
+                        <span className="text-xs font-medium text-muted">{filteredEmployees.length} Karyawan</span>
                     </div>
 
                     {filteredEmployees.map((employee) => (
                         <div
                             key={employee.id}
                             onClick={() => setIsEditEmployeeModalOpen(true)}
-                            className={`flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10 active:scale-[0.98] transition-all cursor-pointer hover:bg-primary/10 ${employee.status === 'Non-aktif' ? 'opacity-75' : ''}`}
+                            className={`flex items-center gap-4 p-4 rounded-xl bg-surface border border-border-dim active:scale-[0.98] transition-all cursor-pointer hover:border-primary/50 ${employee.status === 'Non-aktif' ? 'opacity-75' : ''}`}
                         >
                             <div className="relative">
-                                <div className={`h-14 w-14 rounded-full flex items-center justify-center overflow-hidden border-2 ${employee.status === 'Aktif' ? 'bg-primary/20 border-primary/20' : 'bg-slate-700 border-slate-600'}`}>
+                                <div className={`h-14 w-14 rounded-full flex items-center justify-center overflow-hidden border-2 ${employee.status === 'Aktif' ? 'bg-primary/20 border-primary/30' : 'bg-background-app border-border-dim'}`}>
                                     {employee.image ? (
                                         <img className="h-full w-full object-cover" src={employee.image} alt={employee.name} />
                                     ) : (
-                                        <span className="text-lg font-bold text-slate-400">{employee.initials}</span>
+                                        <span className="text-lg font-bold text-muted">{employee.initials}</span>
                                     )}
                                 </div>
-                                <div className={`absolute bottom-0 right-0 h-4 w-4 border-2 border-background-dark rounded-full ${employee.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-500'}`}></div>
+                                <div className={`absolute bottom-0 right-0 h-4 w-4 border-2 border-background-app rounded-full ${employee.status === 'Aktif' ? 'bg-emerald-500' : 'bg-muted'}`}></div>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-base font-bold truncate">{employee.name}</h3>
-                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${employee.status === 'Aktif' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
+                                    <h3 className="text-base font-bold truncate text-main">{employee.name}</h3>
+                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${employee.status === 'Aktif' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-background-app text-muted border-border-dim'}`}>
                                         {employee.status}
                                     </span>
                                 </div>
-                                <p className="text-sm text-primary font-medium">{employee.role}</p>
-                                <p className="text-xs text-primary/50 mt-1">Terakhir aktif: {employee.lastActive}</p>
+                                <p className="text-sm text-primary font-bold">{employee.role}</p>
+                                <p className="text-xs text-muted mt-1 font-semibold">Terakhir aktif: {employee.lastActive}</p>
                             </div>
-                            <span className="material-symbols-outlined text-primary/30">chevron_right</span>
+                            <span className="material-symbols-outlined text-muted">chevron_right</span>
                         </div>
                     ))}
                 </div>
@@ -142,19 +142,19 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
             {/* FAB */}
             <button
                 onClick={() => setIsAddEmployeeModalOpen(true)}
-                className="fixed bottom-24 right-6 size-16 bg-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center text-background-dark z-30 active:scale-95 transition-all hover:scale-110"
+                className="fixed bottom-24 right-6 size-16 bg-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center text-white z-30 active:scale-95 transition-all hover:scale-110"
             >
                 <span className="material-symbols-outlined text-3xl font-bold">add</span>
             </button>
 
             {/* Navigation Bottom Bar (Visual match) */}
-            <nav className="fixed bottom-0 inset-x-0 bg-background-light  border-t border-primary/10 px-4 pb-6 pt-2 z-40">
+            <nav className="fixed bottom-0 inset-x-0 bg-background-app border-t border-border-dim px-4 pb-6 pt-2 z-40">
                 <div className="flex items-center justify-around max-w-md mx-auto">
-                    <button className="flex flex-col items-center gap-1 p-2 text-primary/50">
+                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
                         <span className="material-symbols-outlined">dashboard</span>
                         <span className="text-[10px] font-medium uppercase tracking-tighter">Dashboard</span>
                     </button>
-                    <button className="flex flex-col items-center gap-1 p-2 text-primary/50">
+                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
                         <span className="material-symbols-outlined">receipt_long</span>
                         <span className="text-[10px] font-medium uppercase tracking-tighter">Pesanan</span>
                     </button>
@@ -162,7 +162,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
                         <span className="text-[10px] font-bold uppercase tracking-tighter">Karyawan</span>
                     </button>
-                    <button className="flex flex-col items-center gap-1 p-2 text-primary/50">
+                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
                         <span className="material-symbols-outlined">settings</span>
                         <span className="text-[10px] font-medium uppercase tracking-tighter">Settings</span>
                     </button>

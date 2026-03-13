@@ -13,13 +13,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
     return (
         <div className="fixed inset-0 z-[100] flex">
             <div
-                className="absolute inset-0 bg-slate-900/50"
+                className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
                 onClick={onClose}
             />
-            <div className="relative w-72 max-w-[80vw] bg-white [#0f172a] h-full flex flex-col shadow-2xl animate-slideInLeft border-r border-slate-200  pointer-events-auto">
-                <div className="flex items-center justify-between p-4 border-b border-slate-200  bg-white [#0f172a]">
-                    <h2 className="text-xl font-bold text-slate-900 ">Menu</h2>
-                    <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100   rounded-lg transition-colors">
+            <div className="relative w-72 max-w-[80vw] bg-surface h-full flex flex-col shadow-2xl animate-slideInLeft border-r border-border-dim pointer-events-auto">
+                <div className="flex items-center justify-between p-4 border-b border-border-dim bg-surface">
+                    <h2 className="text-xl font-bold text-main">Menu</h2>
+                    <button onClick={onClose} className="p-2 text-muted hover:text-main hover:bg-primary/10 rounded-lg transition-colors">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
@@ -41,8 +41,8 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 className={`
                                     flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
                                     ${isActive
-                                        ? 'bg-blue-50 text-blue-600  '
-                                        : 'text-slate-600 hover:bg-slate-50  [#1e293b]'}
+                                        ? 'bg-primary/10 text-primary font-black'
+                                        : 'text-muted hover:bg-primary/5 hover:text-main'}
                                 `}
                             >
                                 <span className="material-symbols-outlined">{link.icon}</span>
