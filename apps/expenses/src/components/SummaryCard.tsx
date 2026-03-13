@@ -10,7 +10,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ total }) => {
             <div className="flex flex-col gap-1">
                 <p className="text-xs uppercase tracking-wider font-semibold text-primary">Ringkasan</p>
                 <h2 className="text-base font-medium opacity-80">Total Pengeluaran Bulan Ini</h2>
-                <p className="text-3xl font-bold mt-1 text-slate-900 dark:text-white">Rp {(total || 0).toLocaleString('id-ID')}</p>
+                <p className="text-3xl font-bold mt-1 text-slate-900 ">Rp {(total || 0).toLocaleString('id-ID')}</p>
             </div>
             {/* Decorative icon */}
             <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">
@@ -21,3 +21,4 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ total }) => {
 };
 
 export default SummaryCard;
+

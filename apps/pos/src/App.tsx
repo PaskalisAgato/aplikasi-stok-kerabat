@@ -47,118 +47,12 @@ function App() {
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
     return (
-    return (
-        <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased">
+        <div className="bg-background-light text-slate-900 min-h-screen flex flex-col font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5186} />
 
-            {/* Desktop Layout (hidden on mobile) */}
-            <div className="hidden lg:flex h-screen overflow-hidden">
-                {/* Categories Sidebar */}
-                <aside className="w-64 bg-surface border-r border-[var(--border-color)] flex flex-col pt-4">
-                    <div className="px-6 mb-8 flex items-center gap-3">
-                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary">
-                            <span className="material-symbols-outlined">menu</span>
-                        </button>
-                        <h1 className="text-xl font-extrabold tracking-tight">Kasir</h1>
-                    </div>
-                    <nav className="flex-1 overflow-y-auto px-4 space-y-2">
-                        {['Semua', ...new Set(recipesList.map(r => r.category))].map(cat => (
-                            <button key={cat} className="w-full text-left px-4 py-3 rounded-xl font-bold transition-all hover:bg-primary/5 hover:text-primary text-slate-500">
-                                {cat}
-                            </button>
-                        ))}
-                    </nav>
-                </aside>
-
-                {/* Main Content Area */}
-                <main className="flex-1 flex flex-col bg-background-light dark:bg-background-dark">
-                    <header className="h-20 border-b border-[var(--border-color)] flex items-center justify-between px-8 bg-surface/50 backdrop-blur-md">
-                        <div className="relative group w-96">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                            <input
-                                type="text"
-                                placeholder="Cari menu..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-11 pl-12 pr-4 rounded-xl border border-[var(--border-color)] bg-background-light dark:bg-white/5 focus:ring-2 focus:ring-primary/50 text-sm font-medium transition-all"
-                            />
-                        </div>
-                        <button onClick={() => setShowAddMenu(true)} className="btn-primary py-2.5">
-                             <span className="material-symbols-outlined">add</span>
-                             Custom Item
-                        </button>
-                    </header>
-
-                    <div className="flex-1 overflow-y-auto p-8">
-                        <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                            {filteredRecipes.map(recipe => (
-                                <div key={recipe.id} className="card group hover:scale-[1.02] active:scale-95 cursor-pointer" onClick={() => updateQty(recipe.id, 1)}>
-                                    <div 
-                                        className="h-48 bg-cover bg-center"
-                                        style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=400&auto=format&fit=crop"}')` }}
-                                        loading="lazy"
-                                    />
-                                    <div className="p-4">
-                                        <h3 className="font-bold text-lg truncate">{recipe.name}</h3>
-                                        <p className="text-primary font-black text-xl mt-2">Rp {recipe.price.toLocaleString('id-ID')}</p>
-                                        <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-bold">{recipe.category}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </main>
-
-                {/* Cart Sidebar */}
-                <aside className="w-96 bg-surface border-l border-[var(--border-color)] flex flex-col">
-                    <div className="p-6 border-b border-[var(--border-color)]">
-                        <h2 className="text-xl font-black flex items-center gap-2">
-                             <span className="material-symbols-outlined text-primary">shopping_basket</span>
-                             Keranjang
-                        </h2>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {activeCartItems.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-50">
-                                <span className="material-symbols-outlined text-6xl">shopping_cart</span>
-                                <p className="font-bold mt-4">Belum ada pesanan</p>
-                            </div>
-                        ) : (
-                           activeCartItems.map(recipe => (
-                               <div key={`cart-${recipe.id}`} className="flex items-center gap-4">
-                                   <div className="flex-1">
-                                       <p className="font-bold text-sm truncate">{recipe.name}</p>
-                                       <p className="text-primary font-bold text-xs mt-0.5">Rp {(recipe.price * sales[recipe.id]).toLocaleString('id-ID')}</p>
-                                   </div>
-                                   <div className="flex items-center gap-3 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
-                                        <button onClick={() => updateQty(recipe.id, -1)} className="size-8 rounded-lg bg-surface flex items-center justify-center font-bold shadow-sm">-</button>
-                                        <span className="font-bold text-sm">{sales[recipe.id]}</span>
-                                        <button onClick={() => updateQty(recipe.id, 1)} className="size-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold shadow-sm">+</button>
-                                   </div>
-                               </div>
-                           ))
-                        )}
-                    </div>
-                    <div className="p-6 bg-primary/5 border-t border-[var(--border-color)] space-y-6">
-                        <div className="flex justify-between items-end">
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Total</p>
-                            <p className="text-3xl font-black text-primary">Rp {totalSalesValue.toLocaleString('id-ID')}</p>
-                        </div>
-                        <button 
-                            disabled={totalItems === 0}
-                            className={`w-full py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${totalItems > 0 ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
-                        >
-                            <span className="material-symbols-outlined">payments</span>
-                            SELESAIKAN PEMBAYARAN
-                        </button>
-                    </div>
-                </aside>
-            </div>
-
-            {/* Mobile Layout (unchanged logic, updated styling) */}
-            <div className="lg:hidden relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-[var(--border-color)] overflow-x-hidden pb-32">
-                {/* Mobile Header */}
-                <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-[var(--border-color)] px-4 py-4">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-4xl mx-auto shadow-2xl border-x border-[var(--border-color)] overflow-x-hidden pb-32">
+                {/* Header */}
+                <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[var(--border-color)] px-4 py-4">
                     <div className="flex items-center gap-3">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                             <span className="material-symbols-outlined">menu</span>
@@ -168,7 +62,7 @@ function App() {
                 </header>
 
                 {/* Sales Summary Bar */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 border-b border-primary/10">
+                <div className="bg-primary/5 p-4 border-b border-primary/10">
                     <div className="flex justify-between items-center px-1">
                         <div>
                             <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest">Total Pesanan</p>
@@ -196,27 +90,27 @@ function App() {
                 {/* Menu Grid / Cart Items */}
                 <main className="flex-1 px-4 space-y-3">
                     {activeCartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-primary/5 rounded-2xl border border-slate-100 dark:border-primary/10 border-dashed">
-                            <span className="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600 mb-3 block">shopping_cart</span>
+                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white rounded-2xl border border-slate-100 border-dashed">
+                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">shopping_cart</span>
                             <p className="text-slate-500 font-medium text-sm">Keranjang masih kosong.</p>
                             <p className="text-slate-400 text-xs mt-1">Klik Tambah Menu untuk memulai.</p>
                         </div>
                     ) : (
                         activeCartItems.map(recipe => (
-                            <div key={recipe.id} className="flex items-center gap-4 bg-white dark:bg-primary/5 p-3 rounded-2xl border border-slate-100 dark:border-primary/10 shadow-sm transition-all">
+                            <div key={recipe.id} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm transition-all">
                                 <div
                                     className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-[var(--border-color)]"
                                     style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                     loading="lazy"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-tight truncate">{recipe.name}</h3>
+                                    <h3 className="font-bold text-slate-900 text-sm leading-tight truncate">{recipe.name}</h3>
                                     <p className="text-primary font-black text-xs mt-1">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                 </div>
-                                <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 p-1 rounded-xl border border-primary/10 shrink-0 shadow-inner">
+                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-primary/10 shrink-0 shadow-inner">
                                     <button
                                         onClick={() => updateQty(recipe.id, -1)}
-                                        className="size-8 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 text-primary hover:bg-primary/10 transition-colors shadow-sm"
+                                        className="size-8 flex items-center justify-center rounded-lg bg-white text-primary hover:bg-primary/10 transition-colors shadow-sm"
                                     >-</button>
                                     <span className="w-6 text-center font-bold text-sm block">{sales[recipe.id] || 0}</span>
                                     <button
@@ -229,8 +123,8 @@ function App() {
                     )}
                 </main>
 
-                {/* Mobile Footer Action */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-md border-t border-[var(--border-color)] p-4 pb-8 z-50 max-w-md mx-auto shadow-2xl">
+                {/* Footer Action */}
+                <footer className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-[var(--border-color)] p-4 pb-8 z-50 max-w-4xl mx-auto shadow-2xl">
                     <button
                         onClick={async () => {
                             if (totalItems === 0) return;
@@ -248,20 +142,20 @@ function App() {
                                         };
                                     }).filter(i => i.quantity > 0),
                                     totalAmount: totalSalesValue,
-                                    paymentMethod: 'CASH', // default simplified
+                                    paymentMethod: 'CASH',
                                     shiftId: null
                                 };
 
                                 await apiClient.checkoutCart(checkoutData);
                                 alert('Berhasil! Pembelian telah direkam, dan stok bahan digudang otomatis terpotong (BOM)!');
-                                setSales({}); // Reset cart
+                                setSales({});
                             } catch (e) {
                                 console.error('Checkout error:', e);
                                 alert('Transaksi kasir Gagal divalidasi API.');
                             }
                         }}
                         className={`w-full py-4 rounded-2xl font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 
-               ${totalItems > 0 ? 'bg-gradient-to-r from-primary to-[#b36a2b] shadow-primary/30' : 'bg-slate-300 dark:bg-slate-800 cursor-not-allowed text-slate-500 shadow-none'}`}
+               ${totalItems > 0 ? 'bg-gradient-to-r from-primary to-[#b36a2b] shadow-primary/30' : 'bg-slate-300 cursor-not-allowed text-slate-500 shadow-none'}`}
                     >
                         <span className="material-symbols-outlined">payments</span>
                         Catat Penjualan Hari Ini
@@ -271,8 +165,8 @@ function App() {
 
             {/* Add Menu Modal */}
             {showAddMenu && (
-                <div className="fixed inset-0 z-[100] bg-background-light dark:bg-background-dark font-display flex flex-col max-w-md mx-auto h-full">
-                    <header className="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+                <div className="fixed inset-0 z-[100] bg-white font-display flex flex-col max-w-4xl mx-auto h-full shadow-2xl">
+                    <header className="sticky top-0 z-10 bg-white border-b border-primary/10 px-4 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <button onClick={() => setShowAddMenu(false)} className="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 text-primary">
                                 <span className="material-symbols-outlined">close</span>
@@ -281,7 +175,7 @@ function App() {
                         </div>
                     </header>
                     
-                    <div className="p-4 border-b border-primary/10 sticky top-[73px] bg-background-light dark:bg-background-dark z-10">
+                    <div className="p-4 border-b border-primary/10 sticky top-[73px] bg-white z-10">
                         <div className="relative flex items-center group">
                             <span className="material-symbols-outlined absolute left-4 text-slate-400">search</span>
                             <input
@@ -289,7 +183,7 @@ function App() {
                                 placeholder="Cari dari daftar resep/HPP..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-primary/10 bg-slate-50 dark:bg-primary/5 focus:ring-2 focus:ring-primary/50 text-sm font-medium transition-all dark:text-white"
+                                className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/50 text-sm font-medium transition-all"
                                 autoFocus
                             />
                         </div>
@@ -306,13 +200,13 @@ function App() {
                         ) : filteredRecipes.map(recipe => {
                             const inCart = sales[recipe.id] > 0;
                             return (
-                                <div key={`add-${recipe.id}`} className="flex items-center gap-4 bg-white dark:bg-primary/5 p-3 rounded-2xl border border-slate-100 dark:border-primary/10 shadow-sm">
+                                <div key={`add-${recipe.id}`} className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
                                     <div
                                         className="size-16 rounded-xl bg-cover bg-center shrink-0 border border-primary/10"
                                         style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                     />
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm truncate">{recipe.name}</h3>
+                                        <h3 className="font-bold text-slate-900 text-sm truncate">{recipe.name}</h3>
                                         <p className="text-[10px] text-slate-500 font-medium mb-1 truncate">{recipe.category}</p>
                                         <p className="text-primary font-black text-xs">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                     </div>
@@ -322,7 +216,7 @@ function App() {
                                         }}
                                         className={`px-4 py-2 rounded-xl font-bold text-sm transition-all focus:outline-none flex items-center gap-1 ${
                                             inCart 
-                                            ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-transparent' 
+                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-transparent' 
                                             : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-95 active:scale-90 border border-primary/20'
                                         }`}
                                     >
@@ -344,3 +238,4 @@ function App() {
 }
 
 export default App;
+

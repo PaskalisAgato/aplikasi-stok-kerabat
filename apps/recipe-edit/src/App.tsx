@@ -52,12 +52,12 @@ function App() {
     const margin = hargaJual > 0 ? ((laba / hargaJual) * 100).toFixed(1) : '0.0';
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5185} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Top App Bar */}
-                <header className="sticky top-0 z-50 bg-background-light dark:bg-background-dark border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+                <header className="sticky top-0 z-50 bg-background-light  border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-90 ">
                     <button
                         onClick={() => setDrawerOpen(true)}
                         className="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0"
@@ -67,9 +67,9 @@ function App() {
                     <div className="flex-1 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <button className="flex items-center justify-center p-2 hover:bg-primary/10 rounded-full transition-colors active:scale-95">
-                                <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+                                <span className="material-symbols-outlined text-slate-900 ">arrow_back</span>
                             </button>
-                            <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">Detail Resep: Kopi O</h1>
+                            <h1 className="text-lg font-bold tracking-tight text-slate-900 ">Detail Resep: Kopi O</h1>
                         </div>
                         <button
                             className="text-primary font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 transition-colors active:scale-95"
@@ -92,11 +92,11 @@ function App() {
 
                         <div className="space-y-3">
                             {ingredients.map(ing => (
-                                <div key={ing.id} className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl p-4 shadow-sm">
+                                <div key={ing.id} className="bg-white  border border-slate-200  rounded-2xl p-4 shadow-sm">
                                     <div className="flex justify-between items-start mb-3.5">
                                         <div>
-                                            <p className="font-bold text-[15px] text-slate-900 dark:text-slate-100 tracking-tight">{ing.name}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                            <p className="font-bold text-[15px] text-slate-900  tracking-tight">{ing.name}</p>
+                                            <p className="text-xs text-slate-500  mt-0.5 font-medium">
                                                 Harga: Rp {ing.pricePerG.toLocaleString('id-ID')} / {ing.unit}
                                             </p>
                                         </div>
@@ -109,14 +109,14 @@ function App() {
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-1 border border-primary/15 shadow-inner">
+                                        <div className="flex items-center gap-2 bg-slate-50  rounded-xl p-1 border border-primary/15 shadow-inner">
                                             <button
                                                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-lg hover:bg-primary/20 transition-colors active:scale-90"
                                                 onClick={() => changeQty(ing.id, -1)}
                                             >-</button>
                                             <div className="flex items-center gap-1">
                                                 <input
-                                                    className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-extrabold text-base text-slate-900 dark:text-slate-100"
+                                                    className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-extrabold text-base text-slate-900 "
                                                     type="number"
                                                     value={ing.qty}
                                                     onChange={e => setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, qty: Math.max(0, parseInt(e.target.value) || 0) } : i))}
@@ -146,13 +146,13 @@ function App() {
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                                    <h2 className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">Overhead & Buffer (%)</h2>
+                                    <h2 className="text-sm font-bold tracking-tight text-slate-900 ">Overhead & Buffer (%)</h2>
                                 </div>
                                 <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20 uppercase tracking-wider">Opsional</span>
                             </div>
                             <div className="relative">
                                 <input
-                                    className="w-full bg-white dark:bg-slate-800/50 border border-primary/20 rounded-xl py-3.5 px-4 focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors pr-10 font-bold text-slate-900 dark:text-slate-100 shadow-sm"
+                                    className="w-full bg-white  border border-primary/20 rounded-xl py-3.5 px-4 focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors pr-10 font-bold text-slate-900  shadow-sm"
                                     placeholder="Biaya tambahan"
                                     type="number"
                                     value={overhead}
@@ -169,18 +169,18 @@ function App() {
 
                     {/* Margin Analysis Section */}
                     <section className="p-4 mt-2">
-                        <h2 className="text-base font-bold mb-4 border-l-4 border-primary pl-3 text-slate-900 dark:text-slate-100 tracking-tight">Analisa Margin</h2>
+                        <h2 className="text-base font-bold mb-4 border-l-4 border-primary pl-3 text-slate-900  tracking-tight">Analisa Margin</h2>
 
-                        <div className="bg-white dark:bg-slate-800/40 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-primary/10">
+                        <div className="bg-white  rounded-2xl p-5 shadow-sm border border-slate-200 ">
                             <div className="space-y-4">
 
                                 {/* Selling Price */}
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Harga Jual per Cup</span>
+                                    <span className="text-sm font-medium text-slate-500 ">Harga Jual per Cup</span>
                                     <div className="flex items-center gap-1.5 border-b-2 border-primary/30 pb-1">
-                                        <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Rp</span>
+                                        <span className="text-xs font-extrabold text-slate-700 ">Rp</span>
                                         <input
-                                            className="bg-transparent border-none p-0 text-right font-extrabold text-lg focus:ring-0 w-24 text-slate-900 dark:text-slate-100"
+                                            className="bg-transparent border-none p-0 text-right font-extrabold text-lg focus:ring-0 w-24 text-slate-900 "
                                             type="text"
                                             value={hargaJual.toLocaleString('id-ID')}
                                             onChange={e => setHargaJual(parseInt(e.target.value.replace(/\./g, '')) || 0)}
@@ -190,21 +190,21 @@ function App() {
 
                                 {/* Total HPP */}
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium text-slate-500 dark:text-slate-400">Total HPP (Bahan + Overhead)</span>
-                                    <span className="font-bold text-slate-900 dark:text-slate-100">{formatRp(totalHPP)}</span>
+                                    <span className="font-medium text-slate-500 ">Total HPP (Bahan + Overhead)</span>
+                                    <span className="font-bold text-slate-900 ">{formatRp(totalHPP)}</span>
                                 </div>
 
                                 <hr className="border-dashed border-primary/20" />
 
                                 {/* Margin Result */}
-                                <div className="flex justify-between items-center py-2.5 px-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/10">
+                                <div className="flex justify-between items-center py-2.5 px-4 bg-primary/5  rounded-xl border border-primary/10">
                                     <div>
                                         <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Gross Profit Margin</p>
                                         <p className="text-3xl font-black text-primary tracking-tight">{margin}%</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Laba per Cup</p>
-                                        <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">{formatRp(laba)}</p>
+                                        <p className="text-xl font-extrabold text-slate-900  tracking-tight">{formatRp(laba)}</p>
                                     </div>
                                 </div>
 
@@ -214,7 +214,7 @@ function App() {
                 </main>
 
                 {/* Bottom Actions */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#110d08] border-t border-primary/10 p-4 pb-8 z-50 max-w-md mx-auto shadow-[0_-8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.4)]">
+                <footer className="fixed bottom-0 left-0 right-0 bg-white [#110d08] border-t border-primary/10 p-4 pb-8 z-50 max-w-md mx-auto shadow-[0_-8px_32px_rgba(0,0,0,0.12)] [0_-8px_32px_rgba(0,0,0,0.4)]">
                     <div className="flex gap-3">
                         <button className="flex-[1] py-4 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-2xl transition-all active:scale-95 border border-primary/20 shadow-sm">
                             Draft
@@ -232,3 +232,4 @@ function App() {
 }
 
 export default App;
+

@@ -115,7 +115,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
             {/* Bottom Sheet */}
-            <div className="w-full bg-background-light dark:bg-background-dark rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
+            <div className="w-full bg-background-light  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
 
                 {/* Drag Handle */}
                 <div className="flex h-6 w-full items-center justify-center flex-shrink-0">
@@ -126,7 +126,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 <div className="flex-1 overflow-y-auto px-6 pb-8">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Add New Expense</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 ">Add New Expense</h2>
                         <button
                             onClick={onClose}
                             className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary"
@@ -145,7 +145,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 onChange={e => setName(e.target.value)}
                                 placeholder="e.g. Arabica Beans Supply"
                                 required
-                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 placeholder:text-slate-500"
+                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
                             />
                         </div>
 
@@ -160,7 +160,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     onChange={e => setAmount(e.target.value)}
                                     placeholder="0"
                                     required
-                                    className="w-full h-14 pl-12 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 text-xl font-bold"
+                                    className="w-full h-14 pl-12 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  text-xl font-bold"
                                 />
                             </div>
                         </div>
@@ -172,7 +172,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 type="date"
                                 value={expenseDate}
                                 onChange={e => setExpenseDate(e.target.value)}
-                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 font-medium"
+                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  font-medium"
                             />
                         </div>
 
@@ -206,7 +206,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     value={categorySearch}
                                     onChange={e => setCategorySearch(e.target.value)}
                                     placeholder="Search categories..."
-                                    className="w-full h-11 pl-11 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:text-slate-100 text-sm placeholder:text-slate-500"
+                                    className="w-full h-11 pl-11 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  text-sm placeholder:text-slate-500"
                                 />
                             </div>
 
@@ -264,7 +264,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     className="aspect-square rounded-lg border-2 border-dashed border-primary/30 flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-primary mb-2" style={{ fontSize: '32px' }}>add_a_photo</span>
-                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Take Photo</span>
+                                    <span className="text-xs font-medium text-slate-500 ">Take Photo</span>
                                 </button>
 
                                 {/* Thumbnail Preview */}
@@ -316,3 +316,4 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 };
 
 export default AddExpenseModal;
+

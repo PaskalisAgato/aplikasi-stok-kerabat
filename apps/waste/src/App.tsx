@@ -27,14 +27,14 @@ function App() {
     const topOffenders = wasteSummary?.topOffenders || [];
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen pb-24 antialiased">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30 overflow-x-hidden">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen pb-24 antialiased">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden">
 
                 {/* Hamburger Drawer Overlay */}
                 <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
+                <header className="sticky top-0 z-50 bg-background-light/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
                     <button
                         onClick={() => setDrawerOpen(true)}
                         className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0"
@@ -55,21 +55,21 @@ function App() {
                         <>
                             {/* Total Waste Metric Card */}
                             <section>
-                                <div className="bg-primary/10 dark:bg-primary/5 border border-primary/20 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
-                                    <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-5 transition-transform duration-700 group-hover:scale-110 pointer-events-none">
+                                <div className="bg-primary/10  border border-primary/20 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
+                                    <div className="absolute -right-4 -top-4 opacity-10  transition-transform duration-700 group-hover:scale-110 pointer-events-none">
                                         <span className="material-symbols-outlined text-[140px] text-primary">delete_outline</span>
                                     </div>
-                                    <p className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">Total Pemborosan Bulan Ini</p>
+                                    <p className="text-sm font-semibold tracking-tight text-slate-600 ">Total Pemborosan Bulan Ini</p>
                                     <div className="mt-2.5 flex items-baseline gap-2.5">
-                                        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+                                        <h2 className="text-3xl font-extrabold text-slate-900  tracking-tight">
                                             Rp {totalWasteValue.toLocaleString('id-ID')}
                                         </h2>
-                                        <span className="text-emerald-600 dark:text-emerald-500 text-[13px] font-bold flex items-center gap-0.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                                        <span className="text-emerald-600  text-[13px] font-bold flex items-center gap-0.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
                                             <span className="material-symbols-outlined text-[16px]">trending_down</span>
                                             Healthy
                                         </span>
                                     </div>
-                                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-500 mt-2">Dihitung dari log stock movement 'WASTE'</p>
+                                    <p className="text-[11px] font-medium text-slate-500  mt-2">Dihitung dari log stock movement 'WASTE'</p>
                                 </div>
                             </section>
 
@@ -81,9 +81,9 @@ function App() {
                                         {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}
                                     </span>
                                 </div>
-                                <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl p-5 shadow-sm">
+                                <div className="bg-white  border border-slate-200  rounded-2xl p-5 shadow-sm">
                                     <div className="flex flex-col gap-1 mb-5">
-                                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rata-rata Harian Est.</p>
+                                        <p className="text-xs font-semibold text-slate-500  uppercase tracking-wider">Rata-rata Harian Est.</p>
                                         <p className="text-2xl font-extrabold tracking-tight">Rp {(totalWasteValue / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}</p>
                                     </div>
                                     <div className="h-40 w-full relative">
@@ -102,7 +102,7 @@ function App() {
                                             <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="#d4823a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
                                         </svg>
                                     </div>
-                                    <div className="flex justify-between mt-3 text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider relative z-10">
+                                    <div className="flex justify-between mt-3 text-[10px] text-slate-400  font-bold uppercase tracking-wider relative z-10">
                                         <span>7 Hari</span><span>14 Hari</span><span>21 Hari</span><span>Sekarang</span>
                                     </div>
                                 </div>
@@ -113,12 +113,12 @@ function App() {
                                 <h3 className="text-base font-bold tracking-tight mb-3 px-1">Top Waste Offenders</h3>
                                 <div className="space-y-2.5">
                                     {topOffenders.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-primary/5 rounded-2xl border border-slate-100 dark:border-primary/10 border-dashed">
+                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white  rounded-2xl border border-slate-100  border-dashed">
                                             <p className="text-slate-500 font-medium text-sm italic">Belum ada data pemborosan recorded.</p>
                                         </div>
                                     ) : (
                                         topOffenders.map((item: any) => (
-                                            <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm hover:border-primary/30 transition-colors">
+                                            <div key={item.id} className="flex items-center justify-between p-4 bg-white  border border-slate-200  rounded-2xl shadow-sm hover:border-primary/30 transition-colors">
                                                 <div className="flex items-center gap-3.5">
                                                     <div className={`w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20`}>
                                                         <span className={`material-symbols-outlined text-red-500`}>inventory_2</span>
@@ -130,7 +130,7 @@ function App() {
                                                 </div>
                                                 <div className="text-right flex flex-col gap-1 items-end">
                                                     <p className="font-bold text-sm tracking-tight text-red-500">Rp {parseFloat(item.totalWasteValue).toLocaleString('id-ID')}</p>
-                                                    <p className={`text-[9px] text-red-600 dark:text-red-400 font-extrabold uppercase tracking-wider bg-red-500/10 px-1.5 py-0.5 rounded shadow-sm border border-red-500/20`}>MAJOR</p>
+                                                    <p className={`text-[9px] text-red-600  font-extrabold uppercase tracking-wider bg-red-500/10 px-1.5 py-0.5 rounded shadow-sm border border-red-500/20`}>MAJOR</p>
                                                 </div>
                                             </div>
                                         ))
@@ -141,7 +141,7 @@ function App() {
                             {/* Waste Reasons Breakdown */}
                             <section>
                                 <h3 className="text-base font-bold tracking-tight mb-3 px-1">Penyebab Pemborosan (Estimasi)</h3>
-                                <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl p-5 shadow-sm">
+                                <div className="bg-white  border border-slate-200  rounded-2xl p-5 shadow-sm">
                                     <div className="flex flex-col gap-5">
                                         {[{ label: 'Expired / Kedaluwarsa', pct: 54, opacity: '' }, { label: 'Spillage / Kerusakan', pct: 28, opacity: '/70' }, { label: 'Kesalahan Pembuatan', pct: 18, opacity: '/40' }].map(r => (
                                             <div key={r.label}>
@@ -149,7 +149,7 @@ function App() {
                                                     <span className="text-sm font-bold tracking-tight">{r.label}</span>
                                                     <span className="text-sm font-extrabold">{r.pct}%</span>
                                                 </div>
-                                                <div className="w-full bg-slate-100 dark:bg-slate-800/50 rounded-full h-2.5 overflow-hidden shadow-inner">
+                                                <div className="w-full bg-slate-100  rounded-full h-2.5 overflow-hidden shadow-inner">
                                                     <div className={`bg-primary${r.opacity} h-full rounded-full transition-all duration-1000 ease-out`} style={{ width: `${r.pct}%` }}></div>
                                                 </div>
                                             </div>
@@ -169,13 +169,13 @@ function App() {
                                         { icon: 'shopping_cart_checkout', title: 'Optimalkan Stok Susu', desc: 'Pesan dalam batch lebih kecil (2L vs 5L) untuk mengurangi risiko expired hingga 30%.' },
                                         { icon: 'groups', title: 'Retraining Barista', desc: 'Lakukan tinjauan SOP pembuatan kopi susu untuk mengurangi spillage harian.' },
                                     ].map(rec => (
-                                        <div key={rec.title} className="p-4 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 border-l-4 border-l-primary rounded-xl flex gap-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                                        <div key={rec.title} className="p-4 bg-white  border border-slate-200  border-l-4 border-l-primary rounded-xl flex gap-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
                                             <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                                 <span className="material-symbols-outlined text-primary">{rec.icon}</span>
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <p className="text-sm font-bold tracking-tight mb-0.5">{rec.title}</p>
-                                                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{rec.desc}</p>
+                                                <p className="text-[11px] font-medium text-slate-500  leading-relaxed">{rec.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -188,7 +188,7 @@ function App() {
                 {/* Floating Action Button */}
                 <button
                     onClick={() => setIsLogModalOpen(true)}
-                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-light dark:ring-background-dark transition-transform active:scale-95 font-bold text-sm"
+                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-light  transition-transform active:scale-95 font-bold text-sm"
                 >
                     <span className="material-symbols-outlined text-[22px]">delete_sweep</span>
                     Catat Waste
@@ -208,3 +208,4 @@ function App() {
 }
 
 export default App;
+

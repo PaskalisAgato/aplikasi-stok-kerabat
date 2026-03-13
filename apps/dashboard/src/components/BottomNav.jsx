@@ -8,7 +8,7 @@ export default function BottomNav() {
     const reportsUrl = getTargetUrl(5175);
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 max-w-[390px] mx-auto bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 px-6 pb-6 pt-3 flex justify-between items-center z-40">
+        <nav className="fixed bottom-0 left-0 right-0 max-w-[390px] mx-auto bg-background-light/90  backdrop-blur-xl border-t border-slate-200  px-6 pb-6 pt-3 flex justify-between items-center z-40">
             {/* Home (active) */}
             <a className="flex flex-col items-center gap-1 group" href="#">
                 <div className="bg-primary/20 p-1.5 rounded-xl">
@@ -43,3 +43,4 @@ export default function BottomNav() {
         </nav>
     );
 }
+

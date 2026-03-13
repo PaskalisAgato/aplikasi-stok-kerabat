@@ -104,8 +104,7 @@ function App() {
   };
 
   return (
-  return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display min-h-screen w-full transition-colors duration-300">
+    <div className="bg-background-light text-slate-900 antialiased font-display min-h-screen w-full transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5174} />
       
       <div className="flex flex-col min-h-screen lg:flex-row max-w-[1600px] mx-auto">
@@ -139,7 +138,7 @@ function App() {
                     <span className="material-symbols-outlined">add</span>
                     Tambah Bahan
                 </button>
-                <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-color)] text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-color)] text-slate-500 font-bold hover:bg-slate-50  transition-all">
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Ekspor CSV
                 </button>
@@ -149,7 +148,7 @@ function App() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
             {/* Header (Unified Mobile/Desktop Search) */}
-            <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 md:p-6 border-b border-[var(--border-color)]">
+            <header className="sticky top-0 z-20 bg-background-light/80  backdrop-blur-md p-4 md:p-6 border-b border-[var(--border-color)]">
                 <div className="flex items-center gap-4">
                     <button onClick={() => setDrawerOpen(true)} className="lg:hidden size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                         <span className="material-symbols-outlined">menu</span>
@@ -179,7 +178,7 @@ function App() {
                         <button 
                             key={`mob-cat-${cat}`}
                             onClick={() => setFilterType(cat)}
-                            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 dark:bg-primary/10 text-slate-500'}`}
+                            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100  text-slate-500'}`}
                         >
                             {cat}
                         </button>
@@ -193,10 +192,6 @@ function App() {
                     <p className="text-xs font-bold text-slate-500">Menampilkan {filteredInventory.length} item</p>
                 </div>
 
-        {/* Inventory List */}
-        <main className="flex-1 px-4 pt-4 space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 dark:text-primary/50 mb-2 px-1">Daftar Stok Bahan</h2>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredInventory.map(item => (
                     <div 
@@ -206,7 +201,7 @@ function App() {
                     >
                       <div className="flex justify-between items-start mb-6">
                         <div className="min-w-0">
-                          <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg leading-tight truncate px-1">{item.name}</h3>
+                          <h3 className="font-black text-slate-900 text-lg leading-tight truncate px-1">{item.name}</h3>
                           <p className="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1">
                                <span className="material-symbols-outlined text-[14px]">local_shipping</span>
                                {item.supplier || 'No Supplier'}
@@ -223,7 +218,7 @@ function App() {
                       <div className="flex items-end justify-between mt-auto mb-4">
                            <div className="flex flex-col">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sisa Stok</p>
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                                <p className="text-2xl font-black text-slate-900">
                                     {item.currentStock}
                                     <span className="text-xs font-bold text-slate-400 ml-1 italic">{item.unit}</span>
                                 </p>
@@ -234,7 +229,7 @@ function App() {
                            </div>
                       </div>
 
-                      <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden shadow-inner">
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
                         <div className={`${item.status === 'KRITIS' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
                           item.status === 'HABIS' ? 'bg-slate-400' :
                             'bg-emerald-500 shadow-lg shadow-emerald-500/50'
@@ -246,24 +241,24 @@ function App() {
                   ))}
                 </div>
 
-          {isLoading && (
-            <div className="flex justify-center items-center py-10">
-              <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-            </div>
-          )}
-          
-          {!isLoading && filteredInventory.length === 0 && (
-             <div className="text-center py-10 text-slate-500">
-               <p>Belum ada stok bahan baku</p>
-             </div>
-          )}
-        </main>
+                {isLoading && (
+                  <div className="flex justify-center items-center py-10">
+                    <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                  </div>
+                )}
+                
+                {!isLoading && filteredInventory.length === 0 && (
+                   <div className="text-center py-10 text-slate-500">
+                     <p>Belum ada stok bahan baku</p>
+                   </div>
+                )}
+            </main>
 
             {/* Mobile Floating Action Button (shown only on mobile) */}
             <div className="lg:hidden fixed bottom-6 right-6 flex flex-col items-end gap-3 z-30">
                 <button
                     onClick={() => setIsAddStockModalOpen(true)}
-                    className="size-14 bg-white dark:bg-slate-800 text-primary rounded-full shadow-2xl flex items-center justify-center border border-primary/10"
+                    className="size-14 bg-white  text-primary rounded-full shadow-2xl flex items-center justify-center border border-primary/10"
                 >
                     <span className="material-symbols-outlined">input</span>
                 </button>
@@ -324,3 +319,4 @@ function App() {
 }
 
 export default App;
+

@@ -88,23 +88,23 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 layout
-                                className="flex items-center gap-4 p-3 rounded-lg bg-slate-50 dark:bg-primary/5 border border-primary/10 transition-colors group"
+                                className="flex items-center gap-4 p-3 rounded-lg bg-slate-50  border border-primary/10 transition-colors group"
                             >
                                 <div
-                                    className="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-primary/20 bg-slate-200 dark:bg-slate-800"
+                                    className="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-primary/20 bg-slate-200 "
                                     style={{ backgroundImage: `url('${expense.imageUrl}')` }}
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold truncate">{expense.title}</p>
-                                    <p className="text-[10px] text-slate-500 font-medium bg-slate-200 dark:bg-slate-800 rounded px-1.5 py-0.5 inline-block mt-1">{expense.category}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{formatDisplayDate(expense.date)}</p>
+                                    <p className="text-[10px] text-slate-500 font-medium bg-slate-200  rounded px-1.5 py-0.5 inline-block mt-1">{expense.category}</p>
+                                    <p className="text-xs text-slate-500  mt-1">{formatDisplayDate(expense.date)}</p>
                                 </div>
                                 <div className="text-right flex flex-col items-end gap-2">
                                     <p className="font-bold text-primary">Rp {Number(expense.amount).toLocaleString('id-ID')}</p>
                                     {onDelete && (
                                         <button 
                                             onClick={() => onDelete(expense.id)}
-                                            className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 transition-colors"
+                                            className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100  text-red-600 hover:bg-red-200 transition-colors"
                                         >
                                             <span className="material-symbols-outlined text-[16px]">delete</span>
                                         </button>
@@ -120,3 +120,4 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
 };
 
 export default ExpenseList;
+

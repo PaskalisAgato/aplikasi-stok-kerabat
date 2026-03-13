@@ -65,9 +65,9 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-y-auto pb-24 antialiased">
+        <div className="fixed inset-0 z-50 flex flex-col bg-background-light  text-slate-900  overflow-y-auto pb-24 antialiased">
             {/* Header */}
-            <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-20 bg-background-light/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}
@@ -91,7 +91,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                             <span className="material-symbols-outlined">search</span>
                         </div>
                         <input
-                            className="block w-full pl-12 pr-4 py-4 bg-primary/5 border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-slate-100 placeholder:text-primary/40 text-base"
+                            className="block w-full pl-12 pr-4 py-4 bg-primary/5 border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-primary/40 text-base"
                             placeholder="Cari nama atau peran karyawan"
                             type="text"
                             value={searchQuery}
@@ -148,7 +148,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
             </button>
 
             {/* Navigation Bottom Bar (Visual match) */}
-            <nav className="fixed bottom-0 inset-x-0 bg-background-light dark:bg-background-dark border-t border-primary/10 px-4 pb-6 pt-2 z-40">
+            <nav className="fixed bottom-0 inset-x-0 bg-background-light  border-t border-primary/10 px-4 pb-6 pt-2 z-40">
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     <button className="flex flex-col items-center gap-1 p-2 text-primary/50">
                         <span className="material-symbols-outlined">dashboard</span>
@@ -183,3 +183,4 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
 };
 
 export default EmployeeManagementModal;
+

@@ -9,7 +9,7 @@ export default function SalesChart({ reports }) {
         <section className="card p-6">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-slate-900 dark:text-white text-lg font-black leading-tight">5 Menu Terlaris</h2>
+                    <h2 className="text-slate-900  text-lg font-black leading-tight">5 Menu Terlaris</h2>
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Berdasarkan volume penjualan</p>
                 </div>
                 <span className="material-symbols-outlined text-primary text-3xl">analytics</span>
@@ -29,7 +29,7 @@ export default function SalesChart({ reports }) {
                                     <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded-full shadow-lg font-black z-10">#1</div>
                                 )}
                             </div>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-black truncate w-full text-center uppercase tracking-tighter" title={item.name}>
+                            <span className="text-[10px] text-slate-500  font-black truncate w-full text-center uppercase tracking-tighter" title={item.name}>
                                 {item.name}
                             </span>
                         </div>
@@ -46,3 +46,4 @@ export default function SalesChart({ reports }) {
         </section>
     );
 }
+

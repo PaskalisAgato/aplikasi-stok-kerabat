@@ -8,7 +8,7 @@ export default function CriticalStock({ inventory }) {
     return (
         <section className="mt-2 px-0">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-slate-900 dark:text-white text-lg font-black flex items-center gap-2">
+                <h2 className="text-slate-900  text-lg font-black flex items-center gap-2">
                     <span className="material-symbols-outlined text-orange-500 text-2xl">warning</span>
                     Stok Kritis
                 </h2>
@@ -23,9 +23,9 @@ export default function CriticalStock({ inventory }) {
                             <span className="material-symbols-outlined text-red-500 text-2xl">inventory_2</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h3>
+                            <h3 className="text-sm font-bold text-slate-900  truncate">{item.name}</h3>
                             <p className="text-xs text-slate-500 mt-1">Sisa: <span className="text-red-500 font-black">{item.currentStock} {item.unit}</span></p>
-                            <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div className="w-full bg-slate-100  h-1.5 rounded-full mt-2 overflow-hidden">
                                 <div 
                                     className="bg-red-500 h-full rounded-full" 
                                     style={{ width: `${Math.min(100, (parseFloat(item.currentStock)/parseFloat(item.minStock || 1)) * 100)}%` }}
@@ -43,3 +43,4 @@ export default function CriticalStock({ inventory }) {
         </section>
     );
 }
+

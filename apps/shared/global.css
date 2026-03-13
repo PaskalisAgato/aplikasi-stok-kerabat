@@ -10,17 +10,9 @@
   --border-color: rgba(15, 23, 42, 0.1);
 }
 
-:root.dark {
-  --bg-light: #0a0a0a; /* Matte Black */
-  --surface-light: #121212; /* Deep Charcoal */
-  --text-primary: #f8fafc; /* Off-White */
-  --text-secondary: #94a3b8; /* Light Gray */
-  --border-color: rgba(248, 250, 252, 0.1);
-}
-
 @layer base {
   body {
-    @apply bg-[var(--bg-light)] text-[var(--text-primary)] transition-colors duration-300;
+    @apply bg-[var(--bg-light)] text-[var(--text-primary)];
   }
 }
 
@@ -33,3 +25,4 @@
     @apply bg-[var(--surface-light)] border border-[var(--border-color)] rounded-2xl shadow-sm overflow-hidden transition-all;
   }
 }
+

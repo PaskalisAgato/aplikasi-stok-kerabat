@@ -6,11 +6,11 @@
 
 @layer base {
   html {
-    @apply bg-background-light dark:bg-background-dark;
+    @apply bg-background-light ;
   }
 
   body {
-    @apply font-display text-slate-900 dark:text-slate-100 antialiased;
+    @apply font-display text-slate-900  antialiased;
     min-height: max(884px, 100dvh);
   }
 }

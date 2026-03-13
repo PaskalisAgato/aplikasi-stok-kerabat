@@ -26,12 +26,12 @@ function App() {
     const ingredientsHPP = hppData?.ingredientsHPP || [];
 
     return (
-        <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen pb-24 font-display antialiased">
+        <div className="bg-background-light  text-slate-900  min-h-screen pb-24 font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30">
+            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 dark:border-slate-800/30 px-4 py-4">
+                <header className="sticky top-0 z-30 bg-background-light/80  backdrop-blur-md border-b border-primary/10  px-4 py-4">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="p-2 rounded-full hover:bg-primary/10 transition-colors text-primary flex items-center justify-center active:scale-95 shrink-0">
                             <span className="material-symbols-outlined">menu</span>
@@ -42,7 +42,7 @@ function App() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold leading-tight tracking-tight">Analisis HPP</h1>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-tight">Kerabat Kopi Tiam • Live Data</p>
+                                <p className="text-xs text-slate-500  font-medium tracking-tight">Kerabat Kopi Tiam • Live Data</p>
                             </div>
                         </div>
                     </div>
@@ -57,14 +57,14 @@ function App() {
                         <>
                             {/* Summary Stats */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-xl p-4">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total HPP (30 Hari)</p>
+                                <div className="bg-primary/5  border border-primary/10  rounded-xl p-4">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 ">Total HPP (30 Hari)</p>
                                     <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">Rp {totalHPPBahan.toLocaleString('id-ID')}</p>
                                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 block">Berdasarkan BOM & Penjualan</span>
                                 </div>
 
-                                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-xl p-4">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jumlah Bahan</p>
+                                <div className="bg-primary/5  border border-primary/10  rounded-xl p-4">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 ">Jumlah Bahan</p>
                                     <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">{ingredientsHPP.length}</p>
                                     <div className="flex items-center gap-1 mt-2 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
                                         <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -77,9 +77,9 @@ function App() {
                             <section>
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-base font-bold tracking-tight">Tren HPP <span className="text-slate-500 text-sm font-semibold">(30 Hari Terakhir)</span></h2>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Avg: Rp {(totalHPPBahan / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}/hari</span>
+                                    <span className="text-xs text-slate-500  font-medium">Avg: Rp {(totalHPPBahan / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}/hari</span>
                                 </div>
-                                <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 border border-primary/5 dark:border-slate-800 relative z-0">
+                                <div className="bg-slate-50  rounded-xl p-4 border border-primary/5  relative z-0">
                                     <div className="h-40 w-full relative">
                                         <svg className="w-full h-full overflow-visible" viewBox="0 0 400 100" preserveAspectRatio="none">
                                             <defs>
@@ -104,24 +104,24 @@ function App() {
                                     <h2 className="text-base font-bold tracking-tight">Bahan Kontribusi HPP Tertinggi</h2>
                                 </div>
 
-                                <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-primary/5 dark:border-slate-800 overflow-hidden divide-y divide-slate-200 dark:divide-slate-800/50">
+                                <div className="bg-slate-50  rounded-xl border border-primary/5  overflow-hidden divide-y divide-slate-200 ">
                                     {ingredientsHPP.length === 0 ? (
                                         <p className="p-8 text-center text-slate-500 italic text-sm">Belum ada data penjualan tercatat.</p>
                                     ) : (
                                         ingredientsHPP.map((ing: any) => (
-                                            <div key={ing.id} className="p-4 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                                            <div key={ing.id} className="p-4 flex items-center justify-between hover:bg-slate-100  transition-colors cursor-pointer">
                                                 <div className="flex items-center gap-4">
                                                     <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                                                         <span className="material-symbols-outlined text-primary text-xl">inventory_2</span>
                                                     </div>
                                                     <div>
-                                                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{ing.name}</h3>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{ing.totalQty.toFixed(2)} unit digunakan</p>
+                                                        <h3 className="text-sm font-bold text-slate-900 ">{ing.name}</h3>
+                                                        <p className="text-xs text-slate-500  font-medium">{ing.totalQty.toFixed(2)} unit digunakan</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end">
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
-                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}% <span className="text-[9px] uppercase tracking-wider font-medium">Beban</span></p>
+                                                    <p className="text-sm font-bold text-slate-900 ">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
+                                                    <p className="text-[10px] text-slate-500  font-bold">{( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}% <span className="text-[9px] uppercase tracking-wider font-medium">Beban</span></p>
                                                 </div>
                                             </div>
                                         ))
@@ -131,12 +131,12 @@ function App() {
 
                             {/* Info Section */}
                             <section className="pb-8">
-                                <div className="p-5 bg-primary/10 dark:bg-primary/5 border border-primary/20 rounded-2xl">
+                                <div className="p-5 bg-primary/10  border border-primary/20 rounded-2xl">
                                     <div className="flex gap-4 items-start">
                                         <span className="material-symbols-outlined text-primary text-3xl">lightbulb</span>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Apa itu Analisis HPP?</h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                            <h3 className="font-bold text-slate-900  text-sm">Apa itu Analisis HPP?</h3>
+                                            <p className="text-xs text-slate-500  mt-1 leading-relaxed">
                                                 Angka di atas dihitung secara otomatis berdasarkan Bill of Materials (BOM) setiap menu dikalikan dengan data penjualan nyata dari modul Kasir (POS). Ini memberikan gambaran biaya bahan baku langsung yang keluar.
                                             </p>
                                             <a href={getTargetUrl(5184)} className="inline-flex items-center gap-1.5 text-xs text-primary font-bold mt-4 hover:underline">
@@ -156,3 +156,4 @@ function App() {
 }
 
 export default App;
+

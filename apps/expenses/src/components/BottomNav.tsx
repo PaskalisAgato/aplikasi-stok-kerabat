@@ -8,13 +8,13 @@ const BottomNav: React.FC = () => {
     const laporanUrl = getTargetUrl(5175);
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-primary/20 px-4 pb-6 pt-2 z-30">
+        <nav className="fixed bottom-0 left-0 right-0 bg-background-light  border-t border-primary/20 px-4 pb-6 pt-2 z-30">
             <div className="flex justify-around items-center max-w-md mx-auto">
-                <a className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href={homeUrl}>
+                <a className="flex flex-col items-center gap-1 text-slate-400 " href={homeUrl}>
                     <span className="material-symbols-outlined">home</span>
                     <p className="text-[10px] font-medium uppercase tracking-tighter">Home</p>
                 </a>
-                <a className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href={stokUrl}>
+                <a className="flex flex-col items-center gap-1 text-slate-400 " href={stokUrl}>
                     <span className="material-symbols-outlined">inventory_2</span>
                     <p className="text-[10px] font-medium uppercase tracking-tighter">Stok</p>
                 </a>
@@ -27,7 +27,7 @@ const BottomNav: React.FC = () => {
                     </span>
                     <p className="text-[10px] font-bold uppercase tracking-tighter">Transaksi</p>
                 </a>
-                <a className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href={laporanUrl}>
+                <a className="flex flex-col items-center gap-1 text-slate-400 " href={laporanUrl}>
                     <span className="material-symbols-outlined">bar_chart_4_bars</span>
                     <p className="text-[10px] font-medium uppercase tracking-tighter">Laporan</p>
                 </a>
@@ -37,3 +37,4 @@ const BottomNav: React.FC = () => {
 };
 
 export default BottomNav;
+

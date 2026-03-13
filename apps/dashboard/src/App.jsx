@@ -34,7 +34,7 @@ function App() {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display antialiased transition-colors duration-300">
+    <div className="relative flex min-h-screen w-full flex-col bg-background-light  font-display antialiased transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5173} />
       <Header onMenuClick={() => setDrawerOpen(true)} onNotificationClick={() => setIsNotifOpen(true)} />
       
@@ -62,3 +62,4 @@ function App() {
 }
 
 export default App;
+

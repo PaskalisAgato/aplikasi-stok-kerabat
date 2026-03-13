@@ -66,10 +66,10 @@ function App() {
     );
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen flex flex-col antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5178} />
             {/* Header */}
-            <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
+            <header className="sticky top-0 z-20 bg-background-light/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
                 <button
                     onClick={() => setDrawerOpen(true)}
                     className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors active:scale-95 shrink-0"
@@ -90,7 +90,7 @@ function App() {
                             <span className="material-symbols-outlined">search</span>
                         </div>
                         <input
-                            className="block w-full pl-12 pr-4 py-4 bg-primary/5 border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-slate-100 placeholder:text-primary/40 text-base transition-all"
+                            className="block w-full pl-12 pr-4 py-4 bg-primary/5 border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-primary/40 text-base transition-all"
                             placeholder="Cari nama atau peran karyawan"
                             type="text"
                             value={searchQuery}
@@ -163,3 +163,4 @@ function App() {
 }
 
 export default App;
+

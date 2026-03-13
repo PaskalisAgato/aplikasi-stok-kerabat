@@ -71,7 +71,7 @@ function App() {
   const hasAnyModalOpen = isExpenseModalOpen;
 
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen transition-colors duration-300">
+    <div className="bg-background-light  font-display text-slate-900  antialiased min-h-screen transition-colors duration-300">
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5181} />
       
       <div className="flex flex-col min-h-screen lg:flex-row max-w-[1400px] mx-auto">
@@ -104,7 +104,7 @@ function App() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
             {/* Header (Mobile) */}
-            <header className="lg:hidden sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-[var(--border-color)]">
+            <header className="lg:hidden sticky top-0 z-30 bg-background-light/80  backdrop-blur-md p-4 border-b border-[var(--border-color)]">
                 <div className="flex items-center gap-3">
                     <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                         <span className="material-symbols-outlined">menu</span>
@@ -161,3 +161,4 @@ function App() {
 }
 
 export default App;
+

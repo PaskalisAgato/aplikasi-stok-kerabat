@@ -8,10 +8,10 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen pb-24 antialiased">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen pb-24 antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
             {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-primary/10 gap-2">
+            <header className="sticky top-0 z-50 flex items-center bg-background-light/80  backdrop-blur-md p-4 border-b border-primary/10 gap-2">
                 <button
                     onClick={() => setDrawerOpen(true)}
                     className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors active:scale-95 shrink-0"
@@ -43,7 +43,7 @@ function App() {
                     </div>
                     <div className="text-center">
                         <h2 className="text-xl font-bold italic text-primary">Kerabat Kopi Tiam</h2>
-                        <p className="text-slate-500 dark:text-primary/60 text-sm">Traditional Taste, Modern Connection</p>
+                        <p className="text-slate-500  text-sm">Traditional Taste, Modern Connection</p>
                     </div>
                 </section>
 
@@ -55,26 +55,26 @@ function App() {
                     </div>
                     <div className="space-y-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Store Name</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Store Name</label>
                             <input
-                                className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-primary/40"
+                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  placeholder:text-slate-400 "
                                 type="text"
                                 defaultValue="Kerabat Kopi Tiam"
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Tagline / Slogan</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Tagline / Slogan</label>
                             <input
-                                className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-primary/40"
+                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  placeholder:text-slate-400 "
                                 placeholder="e.g. Authentic Brews"
                                 type="text"
                                 defaultValue="Traditional Taste, Modern Connection"
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Address</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Address</label>
                             <textarea
-                                className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100 resize-none placeholder:text-slate-400 dark:placeholder:text-primary/40"
+                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  resize-none placeholder:text-slate-400 "
                                 rows={3}
                                 defaultValue="Jl. Gajah Mada No. 123, Central Jakarta, Indonesia"
                             />
@@ -90,32 +90,32 @@ function App() {
                     </div>
                     <div className="space-y-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">WhatsApp Number</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">WhatsApp Number</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">call</span>
                                 <input
-                                    className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100"
+                                    className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
                                     type="tel"
                                     defaultValue="+62 812-3456-7890"
                                 />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Email Address</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Email Address</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">mail</span>
                                 <input
-                                    className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100"
+                                    className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
                                     type="email"
                                     defaultValue="hello@kerabatkopi.id"
                                 />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Currency Preference</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Currency Preference</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">payments</span>
-                                <select className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100 appearance-none">
+                                <select className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  appearance-none">
                                     <option value="IDR">Indonesian Rupiah (IDR)</option>
                                     <option value="USD">US Dollar (USD)</option>
                                     <option value="SGD">Singapore Dollar (SGD)</option>
@@ -134,20 +134,20 @@ function App() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Opening Time</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Opening Time</label>
                             <div className="relative">
                                 <input
-                                    className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100"
+                                    className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
                                     type="time"
                                     defaultValue="07:00"
                                 />
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-primary/70 ml-1 uppercase">Closing Time</label>
+                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Closing Time</label>
                             <div className="relative">
                                 <input
-                                    className="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-slate-100"
+                                    className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
                                     type="time"
                                     defaultValue="22:00"
                                 />
@@ -174,3 +174,4 @@ function App() {
 }
 
 export default App;
+

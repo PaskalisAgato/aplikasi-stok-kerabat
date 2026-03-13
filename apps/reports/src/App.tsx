@@ -40,7 +40,7 @@ export default function App() {
 
     return (
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen transition-colors duration-300">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5175} />
             
             <div className="flex flex-col min-h-screen lg:flex-row max-w-[1400px] mx-auto">
@@ -60,11 +60,11 @@ export default function App() {
                             <span className="material-symbols-outlined text-primary text-sm">calendar_month</span>
                         </div>
                         <div className="space-y-4">
-                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 dark:bg-white/5">
+                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 ">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dari</p>
                                 <p className="text-sm font-bold">1 Mar 2024</p>
                             </div>
-                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 dark:bg-white/5">
+                            <div className="p-4 rounded-xl border border-[var(--border-color)] bg-background-light/50 ">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hingga</p>
                                 <p className="text-sm font-bold">31 Mar 2024</p>
                             </div>
@@ -90,7 +90,7 @@ export default function App() {
                 {/* Main Dashboard Area */}
                 <div className="flex-1 flex flex-col min-w-0">
                     {/* Header (Mobile) */}
-                    <header className="lg:hidden sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-[var(--border-color)]">
+                    <header className="lg:hidden sticky top-0 z-30 bg-background-light/80  backdrop-blur-md p-4 border-b border-[var(--border-color)]">
                         <div className="flex items-center gap-3">
                             <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <span className="material-symbols-outlined">menu</span>
@@ -113,7 +113,7 @@ export default function App() {
                                             <span className="material-symbols-outlined text-7xl text-primary">analytics</span>
                                         </div>
                                         <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Total Pemasukan</p>
-                                        <p className="text-4xl font-black text-slate-900 dark:text-white mb-2">
+                                        <p className="text-4xl font-black text-slate-900  mb-2">
                                             Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k
                                         </p>
                                         <div className="flex items-center gap-2 text-emerald-500 font-black text-xs">
@@ -158,11 +158,11 @@ export default function App() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`size-3 rounded-full ${item.color} shadow-sm`}></div>
-                                                    <span className="text-sm font-black text-slate-600 dark:text-slate-300 uppercase tracking-tighter">{item.label}</span>
+                                                    <span className="text-sm font-black text-slate-600  uppercase tracking-tighter">{item.label}</span>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-900 dark:text-white">{item.val}</span>
+                                                <span className="text-sm font-black text-slate-900 ">{item.val}</span>
                                             </div>
-                                            <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden shadow-inner">
+                                            <div className="w-full bg-slate-100  h-2 rounded-full overflow-hidden shadow-inner">
                                                 <div className={`${item.color} h-full ${item.w} rounded-full transition-all duration-1000`}></div>
                                             </div>
                                         </div>
@@ -200,5 +200,6 @@ export default function App() {
         </div>
     );
 }
+
 
 

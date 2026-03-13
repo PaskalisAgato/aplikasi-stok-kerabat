@@ -50,3 +50,4 @@ const TransactionsBg: React.FC<TransactionsBgProps> = ({ onOpenStockDetail }) =>
 };
 
 export default TransactionsBg;
+

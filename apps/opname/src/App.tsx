@@ -71,12 +71,12 @@ function App() {
     };
 
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+        <div className="bg-background-light  font-display text-slate-900  min-h-screen flex flex-col antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 dark:border-slate-800/30">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Top Navigation Header */}
-                <header className="sticky top-0 z-30 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+                <header className="sticky top-0 z-30 bg-background-light/90  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95 shrink-0">
                             <span className="material-symbols-outlined">menu</span>
@@ -96,7 +96,7 @@ function App() {
                                 <span className="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
                             </div>
                             <input
-                                className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                className="block w-full pl-11 pr-4 py-3 bg-white  border border-slate-200  rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm font-medium outline-none placeholder:text-slate-400 "
                                 placeholder="Cari bahan baku..."
                                 type="text"
                             />
@@ -105,7 +105,7 @@ function App() {
 
                     {/* Section Header */}
                     <div className="px-4 py-2 flex items-center justify-between">
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">Daftar Bahan Baku</h3>
+                        <h3 className="font-bold text-slate-900  tracking-tight">Daftar Bahan Baku</h3>
                         <span className="text-[10px] bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow-sm">
                             {inventoryList.length} Items
                         </span>
@@ -123,18 +123,18 @@ function App() {
                             const diff = physical - system;
 
                             return (
-                                <div key={item.id} className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-2xl p-4 shadow-sm relative overflow-hidden group">
+                                <div key={item.id} className="bg-white  border border-slate-200  rounded-2xl p-4 shadow-sm relative overflow-hidden group">
                                     <div className="flex gap-4 items-start mb-5">
                                         <div
-                                            className="size-16 rounded-xl shrink-0 border border-slate-200 dark:border-primary/20 shadow-inner bg-cover bg-center bg-slate-100"
+                                            className="size-16 rounded-xl shrink-0 border border-slate-200  shadow-inner bg-cover bg-center bg-slate-100"
                                             style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
                                         >
                                             {!item.imageUrl && <span className="material-symbols-outlined text-slate-300 flex items-center justify-center h-full">image</span>}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-bold text-base tracking-tight text-slate-900 dark:text-slate-100">{item.name}</p>
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Satuan: {item.unit}</p>
-                                            <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded border border-slate-200 dark:border-primary/20 bg-slate-50 dark:bg-primary/10 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider shadow-sm">
+                                            <p className="font-bold text-base tracking-tight text-slate-900 ">{item.name}</p>
+                                            <p className="text-[11px] text-slate-500  font-medium mt-0.5">Satuan: {item.unit}</p>
+                                            <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded border border-slate-200  bg-slate-50  text-[10px] font-bold text-slate-600  uppercase tracking-wider shadow-sm">
                                                 <span className="material-symbols-outlined text-[14px]">inventory_2</span>
                                                 Sistem: {item.currentStock}
                                             </div>
@@ -143,10 +143,10 @@ function App() {
 
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Stok Fisik</label>
+                                            <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Stok Fisik</label>
                                             <div className="relative">
                                                 <input
-                                                    className="w-full bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl text-center font-bold text-lg py-2.5 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-primary/10 transition-all outline-none"
+                                                    className="w-full bg-slate-50  border border-slate-200  rounded-xl text-center font-bold text-lg py-2.5 focus:ring-2 focus:ring-primary focus:bg-white  transition-all outline-none"
                                                     type="number"
                                                     value={physicalStocks[item.id] || ''}
                                                     onChange={(e) => handleStockChange(item.id, e.target.value)}
@@ -154,21 +154,21 @@ function App() {
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Selisih</label>
-                                            <div className={`w-full rounded-xl text-center font-extrabold text-lg py-2.5 border flex items-center justify-center gap-1 shadow-sm ${diff < 0 ? 'bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/30' :
-                                                    diff > 0 ? 'bg-green-50 dark:bg-green-900/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/30' :
-                                                        'bg-slate-50 dark:bg-slate-900/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800/30'
+                                            <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Selisih</label>
+                                            <div className={`w-full rounded-xl text-center font-extrabold text-lg py-2.5 border flex items-center justify-center gap-1 shadow-sm ${diff < 0 ? 'bg-red-50  text-red-600  border-red-200 ' :
+                                                    diff > 0 ? 'bg-green-50  text-green-600  border-green-200 ' :
+                                                        'bg-slate-50  text-slate-600  border-slate-200 '
                                                 }`}>
                                                 {diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-800/50 pt-4 mt-2">
-                                        <label className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Alasan Penyesuaian</label>
+                                    <div className="space-y-1.5 border-t border-slate-100  pt-4 mt-2">
+                                        <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Alasan Penyesuaian</label>
                                         <div className="relative">
                                             <select 
-                                                className="w-full bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 py-3 pl-3 pr-10 focus:ring-2 focus:ring-primary appearance-none outline-none transition-all"
+                                                className="w-full bg-slate-50  border border-slate-200  rounded-xl text-sm font-medium text-slate-700  py-3 pl-3 pr-10 focus:ring-2 focus:ring-primary appearance-none outline-none transition-all"
                                                 value={reasons[item.id] || ''}
                                                 onChange={(e) => handleReasonChange(item.id, e.target.value)}
                                             >
@@ -187,7 +187,7 @@ function App() {
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-primary/10 z-40 max-w-md mx-auto">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-light/80  backdrop-blur-md border-t border-primary/10 z-40 max-w-md mx-auto">
                     <button 
                         onClick={handleSaveOpname}
                         disabled={isSaving || isLoading}
@@ -207,3 +207,4 @@ function App() {
 }
 
 export default App;
+

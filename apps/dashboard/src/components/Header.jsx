@@ -1,6 +1,6 @@
 export default function Header({ onMenuClick, onNotificationClick }) {
     return (
-        <header className="flex items-center gap-2 p-4 sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+        <header className="flex items-center gap-2 p-4 sticky top-0 z-20 bg-background-light/80  backdrop-blur-md border-b border-primary/10">
             <button onClick={onMenuClick} className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors text-primary active:scale-95 shrink-0">
                 <span className="material-symbols-outlined">menu</span>
             </button>
@@ -18,9 +18,10 @@ export default function Header({ onMenuClick, onNotificationClick }) {
                 </div>
             </div>
             <button onClick={onNotificationClick} className="relative p-2 rounded-full hover:bg-primary/10 transition-colors shrink-0">
-                <span className="material-symbols-outlined text-slate-900 dark:text-slate-100">notifications</span>
+                <span className="material-symbols-outlined text-slate-900 ">notifications</span>
                 <span className="absolute top-2 right-2 flex h-1.5 w-1.5 rounded-full bg-red-500"></span>
             </button>
         </header>
     );
 }
+

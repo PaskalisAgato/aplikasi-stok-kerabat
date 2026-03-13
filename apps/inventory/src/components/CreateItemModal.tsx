@@ -139,13 +139,13 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-            <div className="w-full max-w-2xl bg-background-light dark:bg-background-dark rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] border border-primary/20 overflow-hidden">
-                <header className="flex items-center p-4 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+            <div className="w-full max-w-2xl bg-background-light  rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] border border-primary/20 overflow-hidden">
+                <header className="flex items-center p-4 border-b border-slate-200  bg-background-light  sticky top-0 z-10">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
                         <span className="material-symbols-outlined font-bold">close</span>
                     </button>
                     <div className="flex-1 text-center">
-                        <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold">Tambah Bahan Baku ({drafts.length})</h2>
+                        <h2 className="text-slate-900  text-lg font-bold">Tambah Bahan Baku ({drafts.length})</h2>
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Mode Banyak Barang</p>
                     </div>
                     <button onClick={handleAddRow} className="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
@@ -158,7 +158,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                     <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleImageChange} className="hidden" />
 
                     {drafts.map((draft, index) => (
-                        <div key={draft.id} className="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/20 p-4 relative shadow-sm hover:border-primary/30 transition-colors">
+                        <div key={draft.id} className="bg-white  rounded-2xl border border-slate-200  p-4 relative shadow-sm hover:border-primary/30 transition-colors">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">Item #{index + 1}</span>
                                 <button onClick={() => handleRemoveRow(draft.id)} className="text-red-500 hover:bg-red-50 flex size-8 items-center justify-center rounded-full transition-colors">
@@ -189,23 +189,23 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                 {/* Inputs Grid */}
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Nama Bahan</label>
+                                        <label className="text-[10px] font-bold text-slate-400  uppercase ml-1 block mb-1">Nama Bahan</label>
                                         <input 
                                             type="text" 
                                             value={draft.name} 
                                             onChange={(e) => handleFieldChange(draft.id, 'name', e.target.value)}
                                             placeholder="Nama bahannya apa?"
-                                            className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-4 text-slate-900 dark:text-slate-100 text-sm"
+                                            className="w-full rounded-xl bg-slate-100  border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-4 text-slate-900  text-sm"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Kategori</label>
+                                            <label className="text-[10px] font-bold text-slate-400  uppercase ml-1 block mb-1">Kategori</label>
                                             <select 
                                                 value={draft.category} 
                                                 onChange={(e) => handleFieldChange(draft.id, 'category', e.target.value)}
-                                                className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-3 text-slate-900 dark:text-slate-100 text-sm appearance-none"
+                                                className="w-full rounded-xl bg-slate-100  border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-3 text-slate-900  text-sm appearance-none"
                                             >
                                                 <option value="Biji Kopi">Biji Kopi</option>
                                                 <option value="Susu & Krimer">Susu & Krimer</option>
@@ -215,11 +215,11 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Satuan</label>
+                                            <label className="text-[10px] font-bold text-slate-400  uppercase ml-1 block mb-1">Satuan</label>
                                             <select 
                                                 value={draft.unit} 
                                                 onChange={(e) => handleFieldChange(draft.id, 'unit', e.target.value)}
-                                                className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-3 text-slate-900 dark:text-slate-100 text-sm appearance-none"
+                                                className="w-full rounded-xl bg-slate-100  border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-3 text-slate-900  text-sm appearance-none"
                                             >
                                                 <option value="g">Gram (g)</option>
                                                 <option value="Kg">Kilogram (Kg)</option>
@@ -230,14 +230,14 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 dark:text-primary/50 uppercase ml-1 block mb-1">Minimum Stok</label>
+                                            <label className="text-[10px] font-bold text-slate-400  uppercase ml-1 block mb-1">Minimum Stok</label>
                                             <input 
                                                 type="number" 
                                                 value={draft.minStock} 
                                                 onChange={(e) => handleFieldChange(draft.id, 'minStock', e.target.value)}
                                                 placeholder="Batas peringatan"
                                                 min="0"
-                                                className="w-full rounded-xl bg-slate-100 dark:bg-primary/10 border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-4 text-slate-900 dark:text-slate-100 text-sm"
+                                                className="w-full rounded-xl bg-slate-100  border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-11 px-4 text-slate-900  text-sm"
                                             />
                                         </div>
                                     </div>
@@ -249,7 +249,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                     ))}
                 </div>
 
-                <div className="p-4 border-t border-slate-200 dark:border-primary/20 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md absolute bottom-0 left-0 right-0">
+                <div className="p-4 border-t border-slate-200  bg-white/80  backdrop-blur-md absolute bottom-0 left-0 right-0">
                     <button 
                         onClick={handleSaveAll}
                         disabled={isSaving}
@@ -273,8 +273,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
             {/* Image Menu Overlay */}
             {imageMenuOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-background-dark w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-primary/20 space-y-4">
-                        <h3 className="text-center font-bold text-slate-900 dark:text-slate-100 text-lg mb-4">Pilih Sumber Foto</h3>
+                    <div className="bg-white  w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-slate-200  space-y-4">
+                        <h3 className="text-center font-bold text-slate-900  text-lg mb-4">Pilih Sumber Foto</h3>
                         <button 
                             onClick={() => handleImageTrigger(activeDraftId.current!, 'camera')}
                             className="w-full flex items-center justify-center gap-3 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
@@ -284,7 +284,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         </button>
                         <button 
                             onClick={() => handleImageTrigger(activeDraftId.current!, 'gallery')}
-                            className="w-full flex items-center justify-center gap-3 bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 py-3 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-primary/20 transition-colors"
+                            className="w-full flex items-center justify-center gap-3 bg-slate-100  text-slate-700  py-3 rounded-xl font-bold hover:bg-slate-200  transition-colors"
                         >
                             <span className="material-symbols-outlined">photo_library</span>
                             Pilih dari Galeri
@@ -303,3 +303,4 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
 };
 
 export default CreateItemModal;
+

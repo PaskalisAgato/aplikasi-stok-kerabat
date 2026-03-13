@@ -64,7 +64,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
-            <div className="w-full bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
+            <div className="w-full bg-background-light  rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
                 {/* Drag Handle */}
                 <div className="flex h-6 w-full items-center justify-center flex-shrink-0">
                     <div className="h-1.5 w-12 rounded-full bg-primary/30" />
@@ -74,7 +74,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                     {/* Header */}
                     <div className="flex justify-between items-center mb-5">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Catat Waste</h2>
+                            <h2 className="text-xl font-bold text-slate-900 ">Catat Waste</h2>
                             <p className="text-xs text-slate-500 mt-0.5">Log barang rusak atau terbuang</p>
                         </div>
                         <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center bg-primary/10 text-primary">
@@ -96,14 +96,14 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                                     className="w-full pl-10 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none text-sm font-medium"
                                 />
                             </div>
-                            <div className="max-h-40 overflow-y-auto space-y-1.5 rounded-xl border border-slate-200 dark:border-primary/10 p-1 bg-slate-50 dark:bg-primary/5">
+                            <div className="max-h-40 overflow-y-auto space-y-1.5 rounded-xl border border-slate-200  p-1 bg-slate-50 ">
                                 {filteredInventory.map(item => (
                                     <button
                                         key={item.id}
                                         onClick={() => setSelectedItem(item)}
                                         className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-sm ${selectedItem?.id === item.id
                                             ? 'bg-primary text-white'
-                                            : 'hover:bg-primary/10 text-slate-700 dark:text-slate-300'
+                                            : 'hover:bg-primary/10 text-slate-700 '
                                             }`}
                                     >
                                         <span className="font-bold">{item.name}</span>
@@ -144,7 +144,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                                         onClick={() => setReason(r.id)}
                                         className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${reason === r.id
                                             ? 'bg-red-500 border-red-500 text-white'
-                                            : 'bg-primary/5 border-primary/20 text-slate-600 dark:text-slate-300 hover:border-red-400/50'
+                                            : 'bg-primary/5 border-primary/20 text-slate-600  hover:border-red-400/50'
                                             }`}
                                     >
                                         <span className="material-symbols-outlined text-[18px]">{r.icon}</span>
@@ -173,3 +173,4 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
         </div>
     );
 }
+

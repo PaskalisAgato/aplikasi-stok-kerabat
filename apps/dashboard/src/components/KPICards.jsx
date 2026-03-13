@@ -10,7 +10,7 @@ export default function KPICards({ reports }) {
                     <span className="material-symbols-outlined text-green-500 text-4xl">payments</span>
                 </div>
                 <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Penjualan Hari Ini</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">Rp {(revenueToday || 0).toLocaleString('id-ID')}</p>
+                <p className="text-3xl font-black text-slate-900  mt-2">Rp {(revenueToday || 0).toLocaleString('id-ID')}</p>
                 <div className="mt-4 px-3 py-1 bg-emerald-500/10 rounded-full">
                     <p className="text-[10px] text-emerald-500 font-bold uppercase">Real-time Data</p>
                 </div>
@@ -21,7 +21,7 @@ export default function KPICards({ reports }) {
                     <span className="material-symbols-outlined text-red-500 text-4xl">shopping_cart</span>
                 </div>
                 <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Pengeluaran</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">Rp {(expenses || 0).toLocaleString('id-ID')}</p>
+                <p className="text-3xl font-black text-slate-900  mt-2">Rp {(expenses || 0).toLocaleString('id-ID')}</p>
                 <div className="mt-4 px-3 py-1 bg-red-500/10 rounded-full">
                     <p className="text-[10px] text-red-500 font-bold uppercase">Operasional</p>
                 </div>
@@ -40,3 +40,4 @@ export default function KPICards({ reports }) {
         </section>
     );
 }
+
