@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { INVENTORY } from '../../shared/mockDatabase';
 import NavDrawer from '../../shared/NavDrawer';
-import './App.css';
 
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
