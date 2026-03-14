@@ -91,9 +91,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 if (uploadError) {
                     console.error('Supabase upload error:', uploadError);
                     let userMessage = uploadError.message;
-                    if (uploadError.message.includes('bucket_not_found') || uploadError.message.toLowerCase().includes('bucket not found')) {
-                        userMessage = 'Bucket "expenses" tidak ditemukan di Supabase. Pastikan bucket sudah dibuat dan diatur ke Public.';
+                    
+                    // Specific handling for bucket errors
+                    if (uploadError.message.includes('bucket_not_found') || 
+                        uploadError.message.toLowerCase().includes('bucket not found')) {
+                        userMessage = 'Bucket "expenses" tidak ditemukan di Supabase. Silakan buat bucket "expenses" di dashboard Supabase dan pastikan statusnya "Public".';
+                    } else if (uploadError.message.includes('Permission denied') || uploadError.status === 403) {
+                        userMessage = 'Izin upload ditolak. Pastikan kebijakan storage (RLS) untuk bucket "expenses" sudah diatur ke "Allow all" atau sesuai kebutuhan.';
                     }
+                    
                     throw new Error(userMessage);
                 }
 

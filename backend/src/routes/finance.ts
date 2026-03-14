@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { requireAdmin } from '../index';
 
 export const financeRouter = Router();
 
@@ -118,7 +119,7 @@ financeRouter.put('/expenses/:id', async (req: Request, res: Response) => {
 });
 
 // GET Dashboard & P&L Report Summary
-financeRouter.get('/reports', async (req: Request, res: Response) => {
+financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -164,7 +165,7 @@ financeRouter.get('/reports', async (req: Request, res: Response) => {
 });
 
 // GET HPP (COGS) Analysis
-financeRouter.get('/hpp', async (req: Request, res: Response) => {
+financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -248,7 +249,7 @@ financeRouter.get('/expenses/categories', async (req: Request, res: Response) =>
 });
 
 // POST new expense category
-financeRouter.post('/expenses/categories', async (req: Request, res: Response) => {
+financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, res: Response) => {
     try {
         const { name, icon } = req.body;
         if (!name) return res.status(400).json({ error: 'Category name is required' });
@@ -266,7 +267,7 @@ financeRouter.post('/expenses/categories', async (req: Request, res: Response) =
 });
 
 // DELETE expense category
-financeRouter.delete('/expenses/categories/:id', async (req: Request, res: Response) => {
+financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id as string);
         if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });

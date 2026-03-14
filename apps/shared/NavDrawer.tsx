@@ -1,5 +1,6 @@
 import React from 'react';
 import { NAV_LINKS, getTargetUrl } from './navigation';
+import { useSession } from './authClient';
 
 interface NavDrawerProps {
     open: boolean;
@@ -8,7 +9,16 @@ interface NavDrawerProps {
 }
 
 const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => {
+    const { data: session } = useSession();
+    const userRole = (session?.user as any)?.role || 'Karyawan';
+
     if (!open) return null;
+
+    // Filter links based on role
+    const filteredLinks = NAV_LINKS.filter(link => {
+        if (userRole === 'Admin') return true; // Admin sees everything
+        return link.requiredRole === 'Karyawan'; // Karyawan only sees Karyawan-level links
+    });
 
     return (
         <div className="fixed inset-0 z-[100] flex">
@@ -24,7 +34,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                     </button>
                 </div>
                 <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-                    {NAV_LINKS.map((link) => {
+                    {filteredLinks.map((link) => {
                         const isActive = currentPort === link.port;
                         const targetUrl = getTargetUrl(link.port);
 

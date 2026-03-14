@@ -1,127 +1,162 @@
-/**
- * apps/shared/AuthPage.tsx
- *
- * Self-contained login page using Better Auth React client.
- * Displayed when `useSession()` returns no active session.
- *
- * Usage in any app's App.tsx:
- *
- *   import { useSession } from '@shared/authClient';
- *   import { AuthPage } from '@shared/AuthPage';
- *
- *   function App() {
- *     const { data: session, isPending } = useSession();
- *     if (isPending) return <Spinner />;
- *     if (!session) return <AuthPage />;
- *     return <MainContent />;
- *   }
- */
-
 import React, { useState } from 'react';
-import { signIn } from './authClient';
 
-interface AuthPageProps {
-    /** Optional: called after a successful login */
-    onSuccess?: () => void;
-}
+type AuthMode = 'select' | 'pin';
+type Role = 'Admin' | 'Karyawan';
 
-export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
+    const [mode, setMode] = useState<AuthMode>('select');
+    const [role, setRole] = useState<Role | null>(null);
+    const [pin, setPin] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleRoleSelect = (selectedRole: Role) => {
+        setRole(selectedRole);
+        setMode('pin');
+        setPin('');
+        setError(null);
+    };
+
+    const handleNumberClick = (num: string) => {
+        if (pin.length < 6) {
+            const newPin = pin + num;
+            setPin(newPin);
+            if (newPin.length >= 4) {
+               // Optional: trigger login automatically or wait for submit
+            }
+        }
+    };
+
+    const handleDelete = () => {
+        setPin(prev => prev.slice(0, -1));
+    };
+
+    const handleLogin = async () => {
+        if (!role || pin.length < 4) return;
+        
         setError(null);
         setIsLoading(true);
 
         try {
-            const result = await signIn.email({ email, password });
-            if (result.error) {
-                setError(result.error.message ?? 'Login gagal. Cek email dan password Anda.');
+            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiBaseUrl}/auth/login-pin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role, pin })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || 'Login gagal');
             } else {
-                onSuccess?.();
-                // Better Auth updates the session reactively — page will re-render
+                // Success - the cookie is set by the backend
+                // Reload the page to let useSession find the new session
+                window.location.reload();
             }
         } catch (err) {
-            setError('Terjadi kesalahan jaringan. Coba lagi.');
+            setError('Terjadi kesalahan jaringan');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-background-app font-display flex items-center justify-center p-6">
-            <div className="w-full max-w-sm space-y-8">
-                {/* Logo / Branding */}
+        <div className="min-h-screen bg-background-app flex items-center justify-center p-6 text-main">
+            <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-300">
                 <div className="text-center space-y-2">
-                    <div className="size-16 rounded-2xl bg-primary flex items-center justify-center mx-auto shadow-xl shadow-primary/30">
-                        <span className="material-symbols-outlined text-white text-3xl">store</span>
+                    <div className="size-20 rounded-3xl bg-primary flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-4 transform hover:scale-110 transition-transform">
+                        <span className="material-symbols-outlined text-white text-4xl">store</span>
                     </div>
-                    <h1 className="text-3xl font-black text-main tracking-tight">Kerabat POS</h1>
-                    <p className="text-sm text-muted">Masuk ke sistem kasir</p>
+                    <h1 className="text-4xl font-black tracking-tighter">KERABAT POS</h1>
+                    <p className="text-muted font-medium">Sistem Inventori & Kasir Terpadu</p>
                 </div>
 
-                {/* Login Form */}
-                <form onSubmit={handleSubmit} className="card p-8 space-y-5">
-                    <div className="space-y-2">
-                        <label htmlFor="email" className="text-xs font-black text-muted uppercase tracking-widest">
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            autoComplete="email"
-                            required
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="kasir@kerabat.com"
-                            className="w-full h-12 px-4 rounded-xl border border-border-dim bg-surface text-main text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
+                {mode === 'select' ? (
+                    <div className="grid grid-cols-2 gap-6 p-2">
+                        <button 
+                            onClick={() => handleRoleSelect('Admin')}
+                            className="aspect-square bg-surface border border-border-dim rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-primary transition-all hover:shadow-xl group"
+                        >
+                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                <span className="material-symbols-outlined text-3xl">admin_panel_settings</span>
+                            </div>
+                            <span className="font-black tracking-widest text-sm uppercase">ADMIN</span>
+                        </button>
+                        <button 
+                            onClick={() => handleRoleSelect('Karyawan')}
+                            className="aspect-square bg-surface border border-border-dim rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-primary transition-all hover:shadow-xl group"
+                        >
+                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                <span className="material-symbols-outlined text-3xl">badge</span>
+                            </div>
+                            <span className="font-black tracking-widest text-sm uppercase">KARYAWAN</span>
+                        </button>
                     </div>
+                ) : (
+                    <div className="bg-surface rounded-3xl border border-border-dim shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+                        <div className="p-8 space-y-8">
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setMode('select')} className="size-10 rounded-full hover:bg-primary/10 flex items-center justify-center text-primary">
+                                    <span className="material-symbols-outlined">arrow_back</span>
+                                </button>
+                                <div className="flex-1 text-center pr-10">
+                                    <h2 className="text-xl font-black">LOGIN {role}</h2>
+                                    <p className="text-xs text-muted font-bold tracking-widest uppercase">MASUKKAN PIN ANDA</p>
+                                </div>
+                            </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="password" className="text-xs font-black text-muted uppercase tracking-widest">
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            autoComplete="current-password"
-                            required
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full h-12 px-4 rounded-xl border border-border-dim bg-surface text-main text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
-                    </div>
+                            <div className="flex justify-center gap-3">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className={`size-4 rounded-full border-2 transition-all duration-300 ${pin.length >= i ? 'bg-primary border-primary scale-125' : 'border-border-dim'}`} />
+                                ))}
+                            </div>
 
-                    {error && (
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
-                            <span className="material-symbols-outlined text-sm shrink-0">error</span>
-                            <p className="text-xs font-bold">{error}</p>
+                            {error && (
+                                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-xs font-bold flex items-center gap-3 animate-pulse">
+                                    <span className="material-symbols-outlined text-sm">error</span>
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-3 gap-4 pb-4">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                                    <button 
+                                        key={n} 
+                                        onClick={() => handleNumberClick(n.toString())}
+                                        className="h-16 rounded-2xl bg-background-app hover:bg-primary hover:text-white text-xl font-black transition-all active:scale-95"
+                                    >
+                                        {n}
+                                    </button>
+                                ))}
+                                <button className="h-16" /> {/* Placeholder */}
+                                <button 
+                                    onClick={() => handleNumberClick('0')}
+                                    className="h-16 rounded-2xl bg-background-app hover:bg-primary hover:text-white text-xl font-black transition-all active:scale-95"
+                                >
+                                    0
+                                </button>
+                                <button 
+                                    onClick={handleDelete}
+                                    className="h-16 rounded-2xl bg-background-app hover:text-red-500 transition-colors flex items-center justify-center"
+                                >
+                                    <span className="material-symbols-outlined text-2xl">backspace</span>
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={handleLogin}
+                                disabled={isLoading || pin.length < 4}
+                                className={`w-full h-16 rounded-2xl text-white font-black text-lg transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 ${isLoading || pin.length < 4 ? 'bg-slate-700 opacity-50 cursor-not-allowed' : 'bg-primary hover:shadow-primary/30'}`}
+                            >
+                                {isLoading ? <span className="material-symbols-outlined animate-spin">refresh</span> : 'LOGIN SEKARANG'}
+                            </button>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full btn-primary py-3.5 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? (
-                            <span className="material-symbols-outlined animate-spin text-xl">refresh</span>
-                        ) : (
-                            <>
-                                <span className="material-symbols-outlined text-xl">login</span>
-                                Masuk
-                            </>
-                        )}
-                    </button>
-                </form>
-
-                <p className="text-center text-xs text-muted">
-                    Hubungi administrator untuk akun baru.
+                <p className="text-center text-[10px] text-muted font-bold tracking-[0.2em] uppercase opacity-50">
+                    &copy; 2026 Kerabat Coffee . All Rights Reserved
                 </p>
             </div>
         </div>

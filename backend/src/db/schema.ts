@@ -10,7 +10,8 @@ export const users = pgTable('user', {
     email: text('email').notNull().unique(),
     emailVerified: boolean('emailVerified').notNull(),
     image: text('image'),
-    role: text('role').default('Barista').notNull(),
+    role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
+    pin: text('pin'), // 4-6 digit numeric PIN
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 });
