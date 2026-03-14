@@ -139,6 +139,13 @@ export const expenses = pgTable('expenses', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
+export const expenseCategories = pgTable('expense_categories', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull().unique(),
+    icon: text('icon').default('category').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 // -----------------------------------------------------------------------------
 // 5. AUDIT LOGS
 // -----------------------------------------------------------------------------

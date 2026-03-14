@@ -4,41 +4,58 @@ import { apiClient } from '@shared/apiClient';
 
 const RECEIPT_PLACEHOLDER = "https://lh3.googleusercontent.com/aida-public/AB6AXuBTvM5Q12GfACKk9r_zhhw0OCgi9ANw5ZQbnmRdZetIXY2IR3efM2tFVbCE_z-ayy4fuevoCkOqm5uVU-5A_uCSbNe4ZFN94yJ2SjBO18yqrqxlF4ER2zBQsumlEyrSfloxdwmMNMwXfuoAKplmadbY_WOY6XMEr4WzFOlNFSx5QKyxrOv0efcANCpDWZxf6x2jCbs2QPvmD9xqQQCmQpYywyNcr07DFBxMHCFKiMltoQHOUZfUx1QcRDaJmkBdRjf2MnLxircFQKo";
 
-interface Category {
-    id: string;
-    label: string;
-    icon: string;
-}
-
-const ALL_CATEGORIES: Category[] = [
-    { id: 'coffee', label: 'Coffee & Beans', icon: 'coffee' },
-    { id: 'utilities', label: 'Utilities', icon: 'bolt' },
-    { id: 'maintenance', label: 'Maintenance', icon: 'build' },
-    { id: 'salary', label: 'Staff Salary', icon: 'groups' },
-    { id: 'other', label: 'Other', icon: 'category' },
-];
-
-const FREQUENT_CATEGORIES: Category[] = [
-    { id: 'coffee', label: 'Coffee Beans', icon: 'coffee' },
-    { id: 'milk', label: 'Milk', icon: 'water_drop' },
-    { id: 'packaging', label: 'Packaging', icon: 'inventory_2' },
-];
-
 interface AddExpenseModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdd: (expense: any) => void;
+    initialData?: any;
 }
 
-const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAdd }) => {
+const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAdd, initialData }) => {
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('coffee');
+    const [categories, setCategories] = useState<any[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [categorySearch, setCategorySearch] = useState('');
     const [receipt, setReceipt] = useState<string | null>(RECEIPT_PLACEHOLDER);
     const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    const fetchCategories = async () => {
+        try {
+            const data = await apiClient.getExpenseCategories();
+            setCategories(data);
+            if (data.length > 0 && !selectedCategory && !initialData) {
+                setSelectedCategory(data[0].name);
+            }
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+        }
+    };
+
+    React.useEffect(() => {
+        if (isOpen) {
+            fetchCategories();
+        }
+    }, [isOpen]);
+
+    React.useEffect(() => {
+        if (initialData && isOpen && categories.length > 0) {
+            setName(initialData.title || '');
+            setAmount(initialData.amount?.toString() || '');
+            setSelectedCategory(initialData.category || '');
+            setReceipt(initialData.imageUrl || RECEIPT_PLACEHOLDER);
+            setExpenseDate(new Date(initialData.date).toISOString().split('T')[0]);
+        } else if (isOpen && !initialData) {
+            // Reset for new expense
+            setName('');
+            setAmount('');
+            if (categories.length > 0) setSelectedCategory(categories[0].name);
+            setReceipt(RECEIPT_PLACEHOLDER);
+            setExpenseDate(new Date().toISOString().split('T')[0]);
+        }
+    }, [initialData, isOpen, categories]);
 
     if (!isOpen) return null;
 
@@ -61,14 +78,20 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             // 1. If there's a new file, upload to Supabase Storage
             if (selectedFile) {
                 const fileExt = selectedFile.name.split('.').pop();
-                const fileName = `${Math.random()}.${fileExt}`;
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                 const filePath = `receipts/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('expenses') // Ensure you have this bucket in Supabase
-                    .upload(filePath, selectedFile);
+                    .from('expenses')
+                    .upload(filePath, selectedFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
 
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    console.error('Supabase upload error:', uploadError);
+                    throw new Error(`Upload failed: ${uploadError.message}`);
+                }
 
                 const { data: { publicUrl } } = supabase.storage
                     .from('expenses')
@@ -77,16 +100,20 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 finalReceiptUrl = publicUrl;
             }
 
-            // 2. Add Expense to database
-            const cat = ALL_CATEGORIES.find(c => c.id === selectedCategory);
-            
-            await apiClient.addExpense({
+            // 2. Add or Update Expense in database
+            const expensePayload = {
                 title: name,
-                category: cat?.label ?? 'Other',
+                category: selectedCategory || 'Other',
                 amount: Number(amount),
                 receiptUrl: finalReceiptUrl,
                 date: expenseDate
-            });
+            };
+
+            if (initialData?.id) {
+                await apiClient.updateExpense(initialData.id, expensePayload);
+            } else {
+                await apiClient.addExpense(expensePayload);
+            }
 
             onAdd({}); 
             setName('');
@@ -96,20 +123,44 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setReceipt(RECEIPT_PLACEHOLDER);
             setSelectedFile(null);
             onClose();
-        } catch (error) {
-            console.error('Failed to save expense', error);
-            alert('Gagal merekam pengeluaran. Pastikan koneksi internet stabil dan credentials Supabase benar.');
+        } catch (error: any) {
+            console.error('Failed to save expense:', error);
+            alert(`Gagal merekam pengeluaran: ${error.message || 'Unknown error'}`);
         } finally {
             setIsUploading(false);
         }
     };
 
-    const filteredCategories = ALL_CATEGORIES.filter(c =>
-        c.label.toLowerCase().includes(categorySearch.toLowerCase())
+    const filteredCategories = categories.filter(c =>
+        c.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
 
-    const handleToggleCategory = (id: string) => {
-        setSelectedCategory(prev => prev === id ? '' : id);
+    const handleToggleCategory = (name: string) => {
+        setSelectedCategory(prev => prev === name ? '' : name);
+    };
+
+    const handleAddCategory = async () => {
+        const catName = prompt('Enter new category name:');
+        if (!catName) return;
+        try {
+            await apiClient.addExpenseCategory({ name: catName, icon: 'category' });
+            fetchCategories();
+        } catch (error) {
+            console.error('Failed to add category:', error);
+            alert('Gagal menambah kategori');
+        }
+    };
+
+    const handleDeleteCategory = async (e: React.MouseEvent, id: number) => {
+        e.stopPropagation();
+        if (!confirm('Hapus kategori ini?')) return;
+        try {
+            await apiClient.deleteExpenseCategory(id);
+            fetchCategories();
+        } catch (error) {
+            console.error('Failed to delete category:', error);
+            alert('Gagal menghapus kategori');
+        }
     };
 
     return (
@@ -126,7 +177,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 <div className="flex-1 overflow-y-auto px-6 pb-8">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-slate-900 ">Add New Expense</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 ">{initialData ? 'Edit Expense' : 'Add New Expense'}</h2>
                         <button
                             onClick={onClose}
                             className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary"
@@ -180,24 +231,6 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Categories</label>
 
-                            {/* Frequently Used */}
-                            <div className="flex flex-col gap-2 mb-4">
-                                <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Frequently Used</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {FREQUENT_CATEGORIES.map(fc => (
-                                        <button
-                                            key={fc.id}
-                                            type="button"
-                                            onClick={() => handleToggleCategory(fc.id)}
-                                            className="px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-slate-400 flex items-center gap-1.5 hover:bg-primary/10 transition-all text-xs font-medium"
-                                        >
-                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{fc.icon}</span>
-                                            {fc.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
                             {/* Category Search */}
                             <div className="relative mb-4">
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/60" style={{ fontSize: '20px' }}>search</span>
@@ -213,22 +246,26 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                             {/* Category Chips */}
                             <div className="flex flex-wrap gap-2">
                                 {filteredCategories.map(cat => {
-                                    const isSelected = selectedCategory === cat.id;
+                                    const isSelected = selectedCategory === cat.name;
                                     return (
                                         <button
                                             key={cat.id}
                                             type="button"
-                                            onClick={() => handleToggleCategory(cat.id)}
+                                            onClick={() => handleToggleCategory(cat.name)}
                                             className={`px-4 py-2 rounded-full border flex items-center gap-2 transition-all ${isSelected
                                                     ? 'border-primary/40 bg-primary text-white'
                                                     : 'border-primary/20 bg-primary/5 text-slate-400 hover:bg-primary/10'
                                                 }`}
                                         >
-                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{cat.icon}</span>
-                                            <span className="text-sm font-medium">{cat.label}</span>
-                                            {isSelected && (
-                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
-                                            )}
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{cat.icon || 'category'}</span>
+                                            <span className="text-sm font-medium">{cat.name}</span>
+                                            <span 
+                                                onClick={(e) => handleDeleteCategory(e, cat.id)}
+                                                className="material-symbols-outlined hover:text-red-400 p-0.5 rounded-full transition-colors" 
+                                                style={{ fontSize: '14px' }}
+                                            >
+                                                close
+                                            </span>
                                         </button>
                                     );
                                 })}
@@ -236,7 +273,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 {/* Add new category button */}
                                 <button
                                     type="button"
-                                    className="w-9 h-9 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center text-primary bg-primary/5"
+                                    onClick={handleAddCategory}
+                                    className="w-9 h-9 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
                                 >
                                     <span className="material-symbols-outlined">add</span>
                                 </button>
@@ -305,7 +343,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 ) : (
                                     <span className="material-symbols-outlined">check_circle</span>
                                 )}
-                                {isUploading ? 'Uploading & Saving...' : 'Save Expense'}
+                                {isUploading ? 'Uploading & Saving...' : (initialData ? 'Update Expense' : 'Save Expense')}
                             </button>
                         </div>
                     </form>

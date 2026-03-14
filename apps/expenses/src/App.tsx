@@ -11,6 +11,7 @@ function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [expensesList, setExpensesList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
 
   const fetchExpenses = async () => {
     try {
@@ -42,6 +43,11 @@ function App() {
 
   const handleAddExpense = () => {
     fetchExpenses();
+  };
+
+  const handleEditExpense = (expense: any) => {
+    setEditingExpense(expense);
+    setIsExpenseModalOpen(true);
   };
 
   const handleDeleteExpense = async (id: number) => {
@@ -102,14 +108,21 @@ function App() {
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <ExpenseList expenses={expensesList} onDelete={handleDeleteExpense} />
+                 <ExpenseList 
+                   expenses={expensesList} 
+                   onDelete={handleDeleteExpense} 
+                   onEdit={handleEditExpense}
+                 />
             </div>
         )}
 
         {/* Mobile Floating Action Button */}
         <div className="lg:hidden fixed bottom-10 right-8 z-[100]">
             <button
-                onClick={() => setIsExpenseModalOpen(true)}
+                onClick={() => {
+                    setEditingExpense(null);
+                    setIsExpenseModalOpen(true);
+                }}
                 className="size-16 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-95 transition-transform"
             >
                 <span className="material-symbols-outlined text-3xl">add</span>
@@ -118,8 +131,12 @@ function App() {
 
       <AddExpenseModal
         isOpen={isExpenseModalOpen}
-        onClose={() => setIsExpenseModalOpen(false)}
+        onClose={() => {
+            setIsExpenseModalOpen(false);
+            setEditingExpense(null);
+        }}
         onAdd={handleAddExpense}
+        initialData={editingExpense}
       />
     </Layout>
   );

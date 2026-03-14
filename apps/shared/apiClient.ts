@@ -95,6 +95,10 @@ export const apiClient = {
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
     getExpenses: () => apiFetch<any[]>('/finance/expenses'),
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+    updateExpense: (id: number, data: unknown) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteExpense: (id: number) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),
+    getExpenseCategories: () => apiFetch<any[]>('/finance/expenses/categories'),
+    addExpenseCategory: (data: unknown) => apiFetch<any>('/finance/expenses/categories', { method: 'POST', body: JSON.stringify(data) }),
+    deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
     getHPPAnalysis: () => apiFetch<any>('/finance/hpp'),
 };

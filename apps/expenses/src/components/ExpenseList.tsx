@@ -13,6 +13,7 @@ interface Expense {
 interface ExpenseListProps {
     expenses: Expense[];
     onDelete?: (id: number) => void;
+    onEdit?: (expense: Expense) => void;
 }
 
 const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
@@ -101,14 +102,24 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
                                 </div>
                                 <div className="text-right flex flex-col items-end gap-2">
                                     <p className="font-bold text-primary">Rp {Number(expense.amount).toLocaleString('id-ID')}</p>
-                                    {onDelete && (
-                                        <button 
-                                            onClick={() => onDelete(expense.id)}
-                                            className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100  text-red-600 hover:bg-red-200 transition-colors"
-                                        >
-                                            <span className="material-symbols-outlined text-[16px]">delete</span>
-                                        </button>
-                                    )}
+                                    <div className="flex gap-2">
+                                        {onEdit && (
+                                            <button 
+                                                onClick={() => onEdit(expense)}
+                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                                            </button>
+                                        )}
+                                        {onDelete && (
+                                            <button 
+                                                onClick={() => onDelete(expense.id)}
+                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100  text-red-600 hover:bg-red-200 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </motion.div>
                         ))

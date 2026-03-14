@@ -73,6 +73,50 @@ financeRouter.delete('/expenses/:id', async (req: Request, res: Response) => {
     }
 });
 
+// UPDATE expense
+financeRouter.put('/expenses/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid expense ID' });
+        }
+
+        const { title, category, amount, date, receiptUrl } = req.body;
+
+        if (!title || !category || amount === undefined || isNaN(Number(amount))) {
+            return res.status(400).json({ error: 'Missing or invalid required expense fields' });
+        }
+
+        let expenseDate = new Date();
+        if (date) {
+            expenseDate = new Date(date);
+            if (isNaN(expenseDate.getTime())) {
+                return res.status(400).json({ error: 'Invalid date format' });
+            }
+        }
+
+        const [updatedExpense] = await db.update(schema.expenses)
+            .set({
+                title,
+                category,
+                amount: amount.toString(),
+                receiptUrl: receiptUrl || null,
+                expenseDate: expenseDate
+            })
+            .where(eq(schema.expenses.id, id))
+            .returning();
+
+        if (!updatedExpense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.json(updatedExpense);
+    } catch (error) {
+        console.error('Error updating expense:', error);
+        res.status(500).json({ error: 'Failed to update expense' });
+    }
+});
+
 // GET Dashboard & P&L Report Summary
 financeRouter.get('/reports', async (req: Request, res: Response) => {
     try {
@@ -189,5 +233,52 @@ financeRouter.get('/hpp', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error calculating HPP:', error);
         res.status(500).json({ error: 'Failed to calculate HPP analysis' });
+    }
+});
+
+// GET all expense categories
+financeRouter.get('/expenses/categories', async (req: Request, res: Response) => {
+    try {
+        const cats = await db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        res.json(cats);
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ error: 'Failed to fetch expense categories' });
+    }
+});
+
+// POST new expense category
+financeRouter.post('/expenses/categories', async (req: Request, res: Response) => {
+    try {
+        const { name, icon } = req.body;
+        if (!name) return res.status(400).json({ error: 'Category name is required' });
+
+        const [newCat] = await db.insert(schema.expenseCategories).values({
+            name,
+            icon: icon || 'category'
+        }).returning();
+
+        res.status(201).json(newCat);
+    } catch (error) {
+        console.error('Error adding category:', error);
+        res.status(500).json({ error: 'Failed to add expense category' });
+    }
+});
+
+// DELETE expense category
+financeRouter.delete('/expenses/categories/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+
+        const [deleted] = await db.delete(schema.expenseCategories)
+            .where(eq(schema.expenseCategories.id, id))
+            .returning();
+
+        if (!deleted) return res.status(404).json({ error: 'Category not found' });
+        res.json({ message: 'Category deleted' });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({ error: 'Failed to delete expense category' });
     }
 });
