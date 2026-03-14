@@ -82,7 +82,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 const filePath = `receipts/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('expenses')
+                    .from('EXPENSES')
                     .upload(filePath, selectedFile, {
                         cacheControl: '3600',
                         upsert: false
@@ -94,7 +94,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 }
 
                 const { data: { publicUrl } } = supabase.storage
-                    .from('expenses')
+                    .from('EXPENSES')
                     .getPublicUrl(filePath);
                 
                 finalReceiptUrl = publicUrl;
