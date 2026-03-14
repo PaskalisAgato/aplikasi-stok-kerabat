@@ -25,8 +25,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const fetchCategories = async () => {
         try {
             const data = await apiClient.getExpenseCategories();
-            setCategories(data);
-            if (data.length > 0 && !selectedCategory && !initialData) {
+            setCategories(Array.isArray(data) ? data : []);
+            if (Array.isArray(data) && data.length > 0 && !selectedCategory && !initialData) {
                 setSelectedCategory(data[0].name);
             }
         } catch (error) {
@@ -131,8 +131,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
         }
     };
 
-    const filteredCategories = categories.filter(c =>
-        c.name.toLowerCase().includes(categorySearch.toLowerCase())
+    const filteredCategories = (Array.isArray(categories) ? categories : []).filter(c =>
+        c && c.name && c.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
 
     const handleToggleCategory = (name: string) => {

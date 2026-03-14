@@ -16,7 +16,7 @@ interface ExpenseListProps {
     onEdit?: (expense: Expense) => void;
 }
 
-const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
+const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit }) => {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
