@@ -1,0 +1,8 @@
+﻿--- Supabase Diagnostic ---
+Project URL: https://naklryyhioikogvpcdxd.supabase.co
+Testing connection...
+Ô£à Connection successful!
+Total Buckets found: 0
+ÔØî "expenses" bucket is MISSING from this project.
+PROBABLE CAUSE: You added the bucket to a DIFFERENT project than the one configured in the app.
+Sample Public URL generated: https://naklryyhioikogvpcdxd.supabase.co/storage/v1/object/public/expenses/test.jpg

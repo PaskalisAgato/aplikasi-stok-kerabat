@@ -1,0 +1,6 @@
+﻿
+--- Checking Project 1 (Active): https://naklryyhioikogvpcdxd.supabase.co ---
+Buckets found: 0
+
+--- Checking Project 2 (Commented): https://lvfqfynqzgxjbkotlccp.supabase.co ---
+Skipping: No key found for this project.

@@ -82,7 +82,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 const filePath = `receipts/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('EXPENSES')
+                    .from('expenses')
                     .upload(filePath, selectedFile, {
                         cacheControl: '3600',
                         upsert: false
@@ -90,11 +90,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
                 if (uploadError) {
                     console.error('Supabase upload error:', uploadError);
-                    throw new Error(`Upload failed: ${uploadError.message}`);
+                    let userMessage = uploadError.message;
+                    if (uploadError.message.includes('bucket_not_found') || uploadError.message.toLowerCase().includes('bucket not found')) {
+                        userMessage = 'Bucket "expenses" tidak ditemukan di Supabase. Pastikan bucket sudah dibuat dan diatur ke Public.';
+                    }
+                    throw new Error(userMessage);
                 }
 
                 const { data: { publicUrl } } = supabase.storage
-                    .from('EXPENSES')
+                    .from('expenses')
                     .getPublicUrl(filePath);
                 
                 finalReceiptUrl = publicUrl;
