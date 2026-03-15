@@ -28,18 +28,22 @@ process.on('unhandledRejection', (reason, promise) => {
 
 log('--- STARTING BACKEND BOOTSTRAP ---');
 
+log('--- Phase 1: Environment & Base Config ---');
 import 'dotenv/config';
 log('Loaded dotenv');
+log(`NODE_ENV: ${process.env.NODE_ENV}`);
 
+log('--- Phase 2: Loading Auth Configuration ---');
 import { auth } from './config/auth';
 import { toNodeHandler } from "better-auth/node";
 import { getSessionManually } from './lib/session';
-log('Loaded Auth & Sessions');
+log('Loaded Auth & Sessions Modules');
 
+log('--- Phase 3: Initializing Express ---');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-log('Initializing middleware');
+log('--- Phase 4: Setting up Middleware ---');
 const corsOptions = {
     origin: [
         'http://localhost:5173',
