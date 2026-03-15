@@ -40,23 +40,46 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 log('Initializing middleware');
-app.use(cors({
+const corsOptions = {
     origin: [
-        'http://localhost:5173', // Dashboard
-        'http://localhost:5174', // Inventory
-        'http://localhost:5175', // Reports
-        'http://localhost:5176', // HPP
-        'http://localhost:5177', // Opname
-        'http://localhost:5178', // Employees (Karyawan)
-        'http://localhost:5179', // Settings
-        'http://localhost:5180', // COGS
-        'http://localhost:5181', // Expenses
-        'http://localhost:5186', // POS
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:5175',
+        'http://localhost:5176',
+        'http://localhost:5177',
+        'http://localhost:5178',
+        'http://localhost:5179',
+        'http://localhost:5180',
+        'http://localhost:5181',
+        'http://localhost:5186',
         'https://paskalisagato.github.io'
     ],
     credentials: true,
-}));
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+// Handle OPTIONS specifically if cors middleware doesn't catch it early enough
+app.options('*', cors(corsOptions));
+
 app.use(express.json({ limit: '10mb' }));
+
+// Diagnostic: Log View Route (Remote Debugging)
+app.get('/api/logs', (req, res) => {
+    try {
+        if (fs.existsSync(logPath)) {
+            const logs = fs.readFileSync(logPath, 'utf8');
+            res.header('Content-Type', 'text/plain').send(logs);
+        } else {
+            res.status(404).send('Log file not found');
+        }
+    } catch (e) {
+        res.status(500).send('Error reading logs');
+    }
+});
 
 // Request Logger
 app.use((req, res, next) => {
