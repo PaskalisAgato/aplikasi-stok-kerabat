@@ -59,7 +59,7 @@ usersRouter.put('/:id', requireAdmin, async (req: Request, res: Response) => {
                 pin,
                 updatedAt: new Date()
             })
-            .where(eq(users.id, id))
+            .where(eq(users.id, id as string))
             .returning();
 
         if (!updatedUser) {
@@ -79,7 +79,7 @@ usersRouter.delete('/:id', requireAdmin, async (req: Request, res: Response) => 
         const { id } = req.params;
         
         const [deletedUser] = await db.delete(users)
-            .where(eq(users.id, id))
+            .where(eq(users.id, id as string))
             .returning();
 
         if (!deletedUser) {

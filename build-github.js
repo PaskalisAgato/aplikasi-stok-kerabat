@@ -51,8 +51,12 @@ for (const app of apps) {
   const appPath = path.join(APPS_DIR, app);
   const base = `/${REPO_NAME}/${urlSegment}/`;
 
+  // Support customs API URL for production
+  const apiUrl = process.env.API_URL;
+  const buildEnv = apiUrl ? `VITE_API_URL=${apiUrl} ` : '';
+
   try {
-    execSync(`npx vite build --base=${base}`, { cwd: appPath, stdio: 'inherit' });
+    execSync(`${buildEnv}npx vite build --base=${base}`, { cwd: appPath, stdio: 'inherit' });
 
     // Copy the dist folder
     const sourceDist = path.join(appPath, 'dist');

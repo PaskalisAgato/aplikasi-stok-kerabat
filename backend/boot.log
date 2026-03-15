@@ -94,3 +94,18 @@
 [2026-03-15T05:40:54.363Z] Loaded DB & Middleware
 [2026-03-15T05:40:54.410Z] 🚀 Kerabat Backend is running on http://localhost:5000
 [2026-03-15T05:40:54.413Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T05:55:37.338Z] GET /api/health
+[2026-03-15T05:57:38.439Z] GET /api/auth/get-session
+[2026-03-15T05:57:39.234Z] GET /api/users
+[2026-03-15T05:57:41.279Z] GET /api/users
+[2026-03-15T05:57:45.028Z] POST /api/auth/logout-manual
+[2026-03-15T05:57:45.341Z] GET /api/auth/get-session
+[2026-03-15T05:57:45.368Z] GET /api/users
+[2026-03-15T05:57:46.449Z] GET /api/users
+[2026-03-15T05:57:50.382Z] POST /api/auth/logout-manual
+[2026-03-15T05:57:50.657Z] GET /api/auth/get-session
+[2026-03-15T05:57:50.689Z] GET /api/users
+[2026-03-15T05:57:51.756Z] GET /api/users
+[2026-03-15T06:02:29.373Z] GET /api/auth/get-session
+[2026-03-15T06:02:29.502Z] GET /api/users
+[2026-03-15T06:02:29.536Z] GET /api/auth/get-session
