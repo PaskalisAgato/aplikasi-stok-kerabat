@@ -75,8 +75,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// Handle OPTIONS specifically if cors middleware doesn't catch it early enough
-app.options('*', cors(corsOptions));
+// In Express 5, '*' without a name is invalid. We use '(.*)' for all paths.
+app.options('(.*)', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 
