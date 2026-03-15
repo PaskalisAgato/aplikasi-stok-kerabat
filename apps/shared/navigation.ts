@@ -27,7 +27,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5175: 'reports',
     5176: 'analisis-hpp',
     5177: 'stok-opname',
-    5178: 'employees',
+    5178: 'karyawan',
     5179: 'pengaturan',
     5180: 'analisis-cogs',
     5181: 'pengeluaran',
