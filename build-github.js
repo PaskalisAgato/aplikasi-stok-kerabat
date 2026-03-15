@@ -52,8 +52,8 @@ for (const app of apps) {
   const base = `/${REPO_NAME}/${urlSegment}/`;
 
   // Support customs API URL for production
-  // Defaulting to the live Render backend if API_URL environment variable is not explicitly provided.
-  const apiUrl = process.env.API_URL || "https://aplikasi-stok-kerabat.onrender.com";
+  // Read from VITE_API_URL (set by GitHub Actions) or API_URL, with a correct default including /api
+  const apiUrl = process.env.VITE_API_URL || process.env.API_URL || "https://aplikasi-stok-kerabat.onrender.com/api";
   const buildEnv = `VITE_API_URL="${apiUrl}" `;
 
   try {
