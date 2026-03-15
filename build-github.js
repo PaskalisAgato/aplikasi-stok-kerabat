@@ -52,8 +52,9 @@ for (const app of apps) {
   const base = `/${REPO_NAME}/${urlSegment}/`;
 
   // Support customs API URL for production
-  const apiUrl = process.env.API_URL;
-  const buildEnv = apiUrl ? `VITE_API_URL=${apiUrl} ` : '';
+  // Defaulting to the live Render backend if API_URL environment variable is not explicitly provided.
+  const apiUrl = process.env.API_URL || "https://aplikasi-stok-kerabat.onrender.com";
+  const buildEnv = `VITE_API_URL="${apiUrl}" `;
 
   try {
     execSync(`${buildEnv}npx vite build --base=${base}`, { cwd: appPath, stdio: 'inherit' });
