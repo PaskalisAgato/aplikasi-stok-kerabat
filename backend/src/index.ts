@@ -153,8 +153,8 @@ app.post('/api/auth/login-pin', async (req, res) => {
 
         res.cookie('better-auth.session_token', sessionId, {
             httpOnly: true,
-            secure: false, 
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production', // Must be true for cross-origin
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-origin
             expires: expiresAt,
             path: '/'
         });
@@ -173,7 +173,11 @@ app.get('/api/auth/get-session', async (req, res) => {
 });
 
 app.post('/api/auth/logout-manual', (req, res) => {
-    res.clearCookie('better-auth.session_token', { path: '/' });
+    res.clearCookie('better-auth.session_token', { 
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    });
     res.json({ success: true });
 });
 
