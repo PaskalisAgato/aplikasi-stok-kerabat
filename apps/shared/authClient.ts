@@ -11,7 +11,7 @@
 
 import { createAuthClient } from 'better-auth/react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
 
 // Strip trailing /api if present so Better Auth can construct /api/auth paths
 const AUTH_BASE_URL = API_BASE_URL.replace(/\/api$/, '');

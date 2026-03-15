@@ -7,7 +7,8 @@
  * `apiClient` — legacy compat object (still used by older components).
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Default to Render URL in production build if env var is missing
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {

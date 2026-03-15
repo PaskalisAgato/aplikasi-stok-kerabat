@@ -38,7 +38,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
         setIsLoading(true);
 
         try {
-            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
             const response = await fetch(`${apiBaseUrl}/auth/login-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
