@@ -154,6 +154,24 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Kerabat Backend API is running' });
 });
 
+app.get('/api/diag', (req, res) => {
+    res.json({
+        status: 'ok',
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            PORT: process.env.PORT,
+            BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+            FRONTEND_URL: process.env.FRONTEND_URL,
+            DATABASE_CONNECTED: !!db
+        },
+        time: new Date().toISOString()
+    });
+});
+
+app.get('/api/test-cors', (req, res) => {
+    res.json({ message: "CORS is working if you can see this", origin: req.headers.origin });
+});
+
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/recipes', recipesRouter);
 app.use('/api/sales', salesRouter);
@@ -167,6 +185,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 app.listen(PORT, () => {
-    log(`🚀 Kerabat Backend is running on http://localhost:${PORT}`);
-    log(`Auth endpoints ready at http://localhost:${PORT}/api/auth`);
+    log(`🚀 Kerabat Backend is running on port ${PORT}`);
+    log(`Environment: ${process.env.NODE_ENV}`);
 });
