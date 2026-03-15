@@ -177,18 +177,29 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Kerabat Backend API is running' });
 });
 
-app.get('/api/diag', (req, res) => {
-    res.json({
-        status: 'ok',
-        env: {
-            NODE_ENV: process.env.NODE_ENV,
-            PORT: process.env.PORT,
-            BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
-            FRONTEND_URL: process.env.FRONTEND_URL,
-            DATABASE_CONNECTED: !!db
-        },
-        time: new Date().toISOString()
-    });
+app.get('/api/diag', async (req, res) => {
+    try {
+        const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+        const invCount = await db.select({ count: sql<number>`count(*)` }).from(schema.inventory);
+        
+        res.json({
+            status: 'ok',
+            env: {
+                NODE_ENV: process.env.NODE_ENV,
+                PORT: process.env.PORT,
+                BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+                FRONTEND_URL: process.env.FRONTEND_URL,
+                DATABASE_CONNECTED: !!db
+            },
+            data: {
+                users: userCount[0].count,
+                inventory: invCount[0].count
+            },
+            time: new Date().toISOString()
+        });
+    } catch (e: any) {
+        res.status(500).json({ status: 'error', message: e.message });
+    }
 });
 
 app.get('/api/test-cors', (req, res) => {
@@ -204,7 +215,10 @@ app.use('/api/users', usersRouter);
 // Global Error Handler for Express
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     log(`EXPRESS ERROR: ${err.message}\n${err.stack}`);
-    res.status(500).json({ error: "Internal Server Error" });
+    // Explicitly set CORS headers for error responses
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.status(500).json({ error: "Internal Server Error", detail: err.message });
 });
 
 app.listen(PORT, () => {
