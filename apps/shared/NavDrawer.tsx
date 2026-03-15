@@ -67,16 +67,21 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                         onClick={async () => {
                             if (confirm('Apakah Anda yakin ingin keluar?')) {
                                 try {
+                                    const { signOut } = await import('./authClient');
+                                    // 1. Better Auth official sign out
+                                    await signOut();
+                                    
+                                    // 2. Clear our specific manual session cookie if it exists
                                     const apiUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
                                     await fetch(`${apiUrl}/auth/logout-manual`, {
                                         method: 'POST',
                                         credentials: 'include'
                                     });
-                                    window.location.reload();
+                                    
+                                    // 3. Final cleanup and redirect to base
+                                    window.location.href = '/aplikasi-stok-kerabat/';
                                 } catch (error) {
                                     console.error("Logout failed:", error);
-                                    // Fallback if API fails
-                                    document.cookie = 'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                                     window.location.reload();
                                 }
                             }
