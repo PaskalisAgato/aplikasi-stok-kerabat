@@ -174,7 +174,7 @@ import { financeRouter } from './routes/finance';
 import { usersRouter } from './routes/users';
 
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'Kerabat Backend API is running' });
+    res.status(200).json({ status: 'ok', message: 'Kerabat Backend API v1.0.1 is running' });
 });
 
 app.get('/api/diag', (req, res) => {
