@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AddEmployeeModal from './AddEmployeeModal';
 import EditEmployeeModal from './EditEmployeeModal';
-import { useEmployees, type User } from '../../../shared/hooks/useEmployees';
+import { useEmployees, type User } from '../hooks/useEmployees';
 
 interface EmployeeManagementModalProps {
     isOpen: boolean;
@@ -33,15 +33,12 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}
-                        className="flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                        className="flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95"
                     >
                         <span className="material-symbols-outlined">arrow_back</span>
                     </button>
                     <h1 className="text-xl font-bold tracking-tight text-main">Kelola Karyawan</h1>
                 </div>
-                <button className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
-                    <span className="material-symbols-outlined">more_vert</span>
-                </button>
             </header>
 
             {/* Main Content */}
@@ -74,7 +71,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
                     ) : error ? (
-                        <div className="p-4 bg-red-500/10 text-red-500 rounded-xl text-center">
+                        <div className="p-4 bg-red-500/10 text-red-500 rounded-xl text-center font-bold">
                             Gagal memuat data karyawan
                         </div>
                     ) : (
@@ -82,10 +79,10 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                             <div
                                 key={employee.id}
                                 onClick={() => setSelectedEmployee(employee)}
-                                className={`flex items-center gap-4 p-4 rounded-xl bg-surface border border-border-dim active:scale-[0.98] transition-all cursor-pointer hover:border-primary/50 ${employee.status === 'Non-aktif' ? 'opacity-75' : ''}`}
+                                className={`flex items-center gap-4 p-4 rounded-xl bg-surface border border-border-dim active:scale-[0.98] transition-all cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 ${employee.status === 'Non-aktif' ? 'opacity-75' : ''}`}
                             >
                                 <div className="relative">
-                                    <div className={`h-14 w-14 rounded-full flex items-center justify-center overflow-hidden border-2 bg-primary/20 border-primary/30`}>
+                                    <div className={`h-14 w-14 rounded-full flex items-center justify-center overflow-hidden border-2 bg-primary/10 border-primary/20`}>
                                         {employee.image ? (
                                             <img className="h-full w-full object-cover" src={employee.image} alt={employee.name} />
                                         ) : (
@@ -113,32 +110,10 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
             {/* FAB */}
             <button
                 onClick={() => setIsAddEmployeeModalOpen(true)}
-                className="fixed bottom-24 right-6 size-16 bg-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center text-white z-30 active:scale-95 transition-all hover:scale-110"
+                className="fixed bottom-10 right-6 size-16 bg-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center text-white z-30 active:scale-95 transition-all hover:scale-110"
             >
                 <span className="material-symbols-outlined text-3xl font-bold">add</span>
             </button>
-
-            {/* Navigation Bottom Bar (Visual match) */}
-            <nav className="fixed bottom-0 inset-x-0 bg-background-app border-t border-border-dim px-4 pb-6 pt-2 z-40">
-                <div className="flex items-center justify-around max-w-md mx-auto">
-                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
-                        <span className="material-symbols-outlined">dashboard</span>
-                        <span className="text-[10px] font-medium uppercase tracking-tighter">Dashboard</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
-                        <span className="material-symbols-outlined">receipt_long</span>
-                        <span className="text-[10px] font-medium uppercase tracking-tighter">Pesanan</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 text-primary">
-                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
-                        <span className="text-[10px] font-bold uppercase tracking-tighter">Karyawan</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 p-2 text-muted">
-                        <span className="material-symbols-outlined">settings</span>
-                        <span className="text-[10px] font-medium uppercase tracking-tighter">Settings</span>
-                    </button>
-                </div>
-            </nav>
 
             <AddEmployeeModal
                 isOpen={isAddEmployeeModalOpen}
@@ -155,4 +130,3 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
 };
 
 export default EmployeeManagementModal;
-

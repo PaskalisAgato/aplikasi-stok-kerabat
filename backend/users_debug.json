@@ -1,0 +1,26 @@
+[
+  {
+    "id": "admin_1773541986611",
+    "role": "Admin",
+    "name": "Admin Toko",
+    "pin": "1234"
+  },
+  {
+    "id": "emp_1773541986850",
+    "role": "Karyawan",
+    "name": "Karyawan Toko",
+    "pin": "5678"
+  },
+  {
+    "id": "nO1ES14f1AVIoC1G4vXGyfhZ24QILJk9",
+    "role": "Barista",
+    "name": "Test User",
+    "pin": null
+  },
+  {
+    "id": "bF7A3uSXwVmnHbzvPwuSz9KBMVcT4xeA",
+    "role": "Barista",
+    "name": "Capturer",
+    "pin": null
+  }
+]

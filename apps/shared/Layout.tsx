@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import NavDrawer from './NavDrawer';
 import ThemeToggle from './ThemeToggle';
+import { useSession } from './authClient';
+import AuthPage from './AuthPage';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -20,6 +22,19 @@ const Layout: React.FC<LayoutProps> = ({
     maxWidth = '1600px'
 }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const { data: session, isPending } = useSession();
+
+    if (isPending) {
+        return (
+            <div className="min-h-screen bg-background-app flex items-center justify-center">
+                <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
+            </div>
+        );
+    }
+
+    if (!session) {
+        return <AuthPage />;
+    }
 
     return (
         <div className="bg-background-app text-main antialiased font-display min-h-screen w-full transition-colors duration-300">

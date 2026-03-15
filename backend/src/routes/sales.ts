@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
-import { requireAuth } from '../index'; 
+import { requireAuth } from '../middleware/auth'; 
 
 export const salesRouter = Router();
 

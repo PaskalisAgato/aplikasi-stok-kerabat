@@ -61,6 +61,32 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                         );
                     })}
                 </nav>
+
+                <div className="p-4 border-t border-border-dim">
+                    <button 
+                        onClick={async () => {
+                            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                                try {
+                                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                                    await fetch(`${apiUrl}/auth/logout-manual`, {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    window.location.reload();
+                                } catch (error) {
+                                    console.error("Logout failed:", error);
+                                    // Fallback if API fails
+                                    document.cookie = 'better-auth.session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                                    window.location.reload();
+                                }
+                            }
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors font-bold"
+                    >
+                        <span className="material-symbols-outlined">logout</span>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
             <style>{`
                 @keyframes slideInLeft {

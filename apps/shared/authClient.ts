@@ -18,6 +18,9 @@ const AUTH_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 export const authClient = createAuthClient({
     baseURL: AUTH_BASE_URL,
+    fetchOptions: {
+        credentials: 'include'
+    }
 });
 
 // Named re-exports for convenience

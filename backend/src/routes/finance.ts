@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
-import { requireAdmin } from '../index';
+import { requireAdmin } from '../middleware/auth';
 
 export const financeRouter = Router();
 

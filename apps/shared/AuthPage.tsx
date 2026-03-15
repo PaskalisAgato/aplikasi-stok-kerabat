@@ -42,6 +42,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
             const response = await fetch(`${apiBaseUrl}/auth/login-pin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // Important for cross-origin cookies
                 body: JSON.stringify({ role, pin })
             });
 

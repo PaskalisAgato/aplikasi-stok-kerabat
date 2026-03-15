@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUpdateEmployee, useDeleteEmployee, type User } from '../../../shared/hooks/useEmployees';
+import { useUpdateEmployee, useDeleteEmployee, type User } from '../hooks/useEmployees';
 
 interface EditEmployeeModalProps {
     isOpen: boolean;
@@ -104,6 +104,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
                         >
                             <option value="Admin">Admin</option>
                             <option value="Karyawan">Karyawan</option>
+                            <option value="Barista">Barista</option>
                         </select>
                     </div>
 

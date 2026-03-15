@@ -1,53 +1,135 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+
+// Use file logging since terminal output is unstable
+const logPath = path.join(process.cwd(), 'boot.log');
+const log = (msg: string) => {
+    const timestamp = new Date().toISOString();
+    try {
+        fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
+    } catch (e) {
+        // Fallback if file system is locked
+    }
+    console.log(msg);
+};
+
+// Global Error Catching
+process.on('uncaughtException', (err) => {
+    log(`FATAL: Uncaught Exception: ${err.message}\n${err.stack}`);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    log(`FATAL: Unhandled Rejection at: ${promise}, reason: ${reason}`);
+});
+
+log('--- STARTING BACKEND BOOTSTRAP ---');
+
 import 'dotenv/config';
+log('Loaded dotenv');
+
 import { auth } from './config/auth';
 import { toNodeHandler } from "better-auth/node";
+import { getSessionManually } from './lib/session';
+log('Loaded Auth & Sessions');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 1. Core Middlewares
+log('Initializing middleware');
 app.use(cors({
-    origin: [process.env.FRONTEND_URL || '*', 'https://paskalisagato.github.io'],
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:5174', 
+        'http://localhost:5186', 
+        'https://paskalisagato.github.io'
+    ],
     credentials: true,
 }));
-app.use(express.json({ limit: '10mb' })); // Parse JSON payloads
+app.use(express.json({ limit: '10mb' }));
 
-// 2. Authentication Middleware Integration (Better Auth)
-// Mount Better Auth endpoints at /api/auth
-app.use("/api/auth", toNodeHandler(auth));
+import { requireAuth, requireAdmin } from './middleware/auth';
+import { db } from './db';
+import { users, sessions } from './db/schema';
+import { eq, and, or } from 'drizzle-orm';
+log('Loaded DB & Middleware');
 
-// Custom Auth Middleware that can be attached to protected Routes
-export const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.post('/api/auth/login-pin', async (req, res) => {
+    const { role, pin } = req.body;
+    log(`Login attempt: role=${role}, pin=${pin?.replace(/./g, '*')}`);
+
+    if (!role || !pin) return res.status(400).json({ error: "Role and PIN are required" });
+
     try {
-        const session = await auth.api.getSession({
-            headers: new Headers(req.headers as Record<string, string>)
-        });
-        
-        if (!session) {
-            return res.status(401).json({ error: "Unauthorized / Session Expired" });
-        }
-        
-        // Attach user info to request context
-        (req as any).user = session.user;
-        next();
-    } catch (err) {
-        res.status(500).json({ error: "Auth Validation Error" });
-    }
-};
-
-// --- Admin-Only Middleware ---
-export const requireAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    await requireAuth(req, res, () => {
-        const user = (req as any).user;
-        if (user && user.role === 'Admin') {
-            next();
+        // If they select 'Karyawan', we also allow other staff roles like 'Barista'
+        let userQuery;
+        if (role === 'Karyawan') {
+            userQuery = await db.query.users.findFirst({
+                where: and(
+                    or(eq(users.role, 'Karyawan'), eq(users.role, 'Barista')),
+                    eq(users.pin, pin)
+                )
+            });
         } else {
-            res.status(403).json({ error: "Akses ditolak. Fitur ini hanya untuk Admin." });
+            userQuery = await db.query.users.findFirst({
+                where: and(eq(users.role, role), eq(users.pin, pin))
+            });
         }
-    });
-};
+        
+        const foundUser = userQuery;
+
+        if (!foundUser) {
+            log(`Login failed: role=${role}, pin incorrect or user not found`);
+            return res.status(401).json({ error: "PIN atau Peran salah" });
+        }
+
+        const sessionId = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const hashedToken = crypto.createHash('sha256').update(sessionId).digest('hex');
+
+        await db.insert(sessions).values({
+            id: sessionId,
+            token: hashedToken,
+            userId: foundUser.id,
+            expiresAt: expiresAt,
+            createdAt: now,
+            updatedAt: now,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
+        res.cookie('better-auth.session_token', sessionId, {
+            httpOnly: true,
+            secure: false, 
+            sameSite: 'lax',
+            expires: expiresAt,
+            path: '/'
+        });
+
+        log(`Session created for user ${foundUser.id}`);
+        res.json({ user: foundUser, session: { id: sessionId, expiresAt } });
+    } catch (err: any) {
+        log(`PIN Auth Error: ${err.message}`);
+        res.status(500).json({ error: "Gagal memproses login" });
+    }
+});
+
+app.get('/api/auth/get-session', async (req, res) => {
+    const session = await getSessionManually(req);
+    return res.json(session);
+});
+
+app.post('/api/auth/logout-manual', (req, res) => {
+    res.clearCookie('better-auth.session_token', { path: '/' });
+    res.json({ success: true });
+});
+
+app.get('/api/auth', (req, res) => res.send("Auth API is active."));
+app.use("/api/auth", toNodeHandler(auth));
 
 import { inventoryRouter } from './routes/inventory';
 import { recipesRouter } from './routes/recipes';
@@ -55,73 +137,17 @@ import { salesRouter } from './routes/sales';
 import { financeRouter } from './routes/finance';
 import { usersRouter } from './routes/users';
 
-// 3. Application Routes (Placeholders)
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Kerabat Backend API is running' });
 });
 
-// Mount Routes
-app.use('/api/inventory', inventoryRouter); // Both can access
-app.use('/api/recipes', recipesRouter); // Both can access
-app.use('/api/sales', salesRouter); // Both can access
-app.use('/api/finance', financeRouter); // Protected internally
-app.use('/api/users', usersRouter); // Protected internally via requireAdmin
+app.use('/api/inventory', inventoryRouter);
+app.use('/api/recipes', recipesRouter);
+app.use('/api/sales', salesRouter);
+app.use('/api/finance', financeRouter);
+app.use('/api/users', usersRouter);
 
-// --- PIN Authentication Endpoint ---
-import { db } from './db';
-import { users, sessions } from './db/schema';
-import { eq, and } from 'drizzle-orm';
-
-app.post('/api/auth/login-pin', async (req, res) => {
-    const { role, pin } = req.body;
-
-    if (!role || !pin) {
-        return res.status(400).json({ error: "Role and PIN are required" });
-    }
-
-    try {
-        // Find user by role and pin
-        // Note: In production, pins should be hashed. For this simplicity request, we compare directly or use role-based fixed accounts.
-        const foundUser = await db.query.users.findFirst({
-            where: and(eq(users.role, role), eq(users.pin, pin))
-        });
-
-        if (!foundUser) {
-            return res.status(401).json({ error: "PIN atau Peran salah" });
-        }
-
-        // Create a session for the user manually
-        // Since better-auth handles sessions in its own table, we can create one.
-        const sessionId = Math.random().toString(36).substring(7) + Date.now();
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-        await db.insert(sessions).values({
-            id: sessionId,
-            userId: foundUser.id,
-            expiresAt: expiresAt,
-            ipAddress: req.ip,
-            userAgent: req.headers['user-agent']
-        });
-
-        // Set session cookie manually so the frontend authClient can pick it up
-        // Better Auth typically looks for 'better-auth.session_token'
-        res.cookie('better-auth.session_token', sessionId, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            expires: expiresAt,
-            path: '/'
-        });
-
-        res.json({ user: foundUser, session: { id: sessionId, expiresAt } });
-    } catch (err: any) {
-        console.error("PIN Auth Error:", err);
-        res.status(500).json({ error: "Gagal memproses login" });
-    }
-});
-
-// Start Server
 app.listen(PORT, () => {
-    console.log(`🚀 Kerabat Backend is running on http://localhost:${PORT}`);
-    console.log(`Auth endpoints ready at http://localhost:${PORT}/api/auth`);
+    log(`🚀 Kerabat Backend is running on http://localhost:${PORT}`);
+    log(`Auth endpoints ready at http://localhost:${PORT}/api/auth`);
 });

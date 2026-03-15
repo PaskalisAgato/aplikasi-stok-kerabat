@@ -1,0 +1,74 @@
+Ditemukan 12 sesi di database.
+
+- Session ID: r0lj4l1773542218451
+  Token: null
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:36:58 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: yraksu1773542224277
+  Token: null
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:37:04 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: xd75u1773542253623
+  Token: null
+  User: Karyawan Toko (Role: Karyawan)
+  Expires: Sun Mar 22 2026 09:37:33 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: xpab8c1773542391497
+  Token: null
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:39:51 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: o1fdw1773542400212
+  Token: null
+  User: Karyawan Toko (Role: Karyawan)
+  Expires: Sun Mar 22 2026 09:40:00 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: d35jha1773542577246
+  Token: null
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:42:57 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: 1hve4a1773542585698
+  Token: null
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:43:05 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:47:46 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: wk4gr1773542974729
+  Token: wk4gr1773542974729
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:49:34 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:49:34 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: npym7c1773543094339
+  Token: npym7c1773543094339
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:51:34 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:51:34 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: c7eee7ac-ab51-4a04-b52e-3e2b51bc2ab1
+  Token: c7eee7ac-ab51-4a04-b52e-3e2b51bc2ab1
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 09:56:00 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 09:56:00 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: 94771e0e-0ffb-4204-beb5-0600eac6939d
+  Token: 14768633f46ccdd493de71fe29fef85ec572614f16716d7e7239af18de2fed6b
+  User: Admin Toko (Role: Admin)
+  Expires: Sun Mar 22 2026 10:04:37 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 10:04:37 GMT+0700 (Western Indonesia Time)
+-------------------
+- Session ID: 82248bae-887b-4c4f-b420-0a7562e00c62
+  Token: 82f01185ea452793b890859fc72af45998d3a4afce998fd48c90f75f53ab3bec
+  User: Karyawan Toko (Role: Karyawan)
+  Expires: Sun Mar 22 2026 10:05:09 GMT+0700 (Western Indonesia Time)
+  Created: Sun Mar 15 2026 10:05:09 GMT+0700 (Western Indonesia Time)
+-------------------

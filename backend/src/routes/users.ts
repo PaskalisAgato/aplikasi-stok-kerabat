@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { requireAdmin } from '../index';
+import { requireAdmin } from '../middleware/auth';
 
 export const usersRouter = Router();
 
@@ -27,7 +28,7 @@ usersRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
         }
 
         const [newUser] = await db.insert(users).values({
-            id: Math.random().toString(36).substring(7),
+            id: crypto.randomUUID(), // Use UUID for consistency
             name,
             email,
             emailVerified: true,
@@ -41,5 +42,53 @@ usersRouter.post('/', requireAdmin, async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error adding user:', error);
         res.status(500).json({ error: 'Failed to create user account' });
+    }
+});
+
+// PUT update user (Admin only)
+usersRouter.put('/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, email, role, pin } = req.body;
+
+        const [updatedUser] = await db.update(users)
+            .set({ 
+                name, 
+                email, 
+                role, 
+                pin,
+                updatedAt: new Date()
+            })
+            .where(eq(users.id, id))
+            .returning();
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user account' });
+    }
+});
+
+// DELETE user (Admin only)
+usersRouter.delete('/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        
+        const [deletedUser] = await db.delete(users)
+            .where(eq(users.id, id))
+            .returning();
+
+        if (!deletedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ message: 'User deleted successfully', user: deletedUser });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Failed to delete user account' });
     }
 });

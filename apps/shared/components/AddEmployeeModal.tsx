@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCreateEmployee } from '../../../shared/hooks/useEmployees';
+import { useCreateEmployee } from '../hooks/useEmployees';
 
 interface AddEmployeeModalProps {
     isOpen: boolean;
@@ -79,6 +79,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                             >
                                 <option value="Karyawan">Karyawan</option>
                                 <option value="Admin">Admin</option>
+                                <option value="Barista">Barista</option>
                             </select>
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
                         </div>
@@ -133,4 +134,3 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
 };
 
 export default AddEmployeeModal;
-

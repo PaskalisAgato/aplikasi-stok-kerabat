@@ -262,10 +262,6 @@ function App() {
         onClose={() => setIsStoreProfileModalOpen(false)}
       />
 
-      <EmployeeManagementModal
-        isOpen={isEmployeeModalOpen}
-        onClose={() => setIsEmployeeModalOpen(false)}
-      />
     </Layout>
   );
 }

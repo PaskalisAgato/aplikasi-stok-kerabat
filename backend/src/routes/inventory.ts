@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { eq, sql, and, gte } from 'drizzle-orm';
-import { requireAuth } from '../index'; // Optional if protected
+import { requireAuth } from '../middleware/auth';
 
 export const inventoryRouter = Router();
 

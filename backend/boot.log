@@ -1,0 +1,85 @@
+[2026-03-15T03:53:45.166Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T03:53:45.310Z] Loaded dotenv
+[2026-03-15T03:53:45.324Z] Loaded Auth & Sessions
+[2026-03-15T03:53:45.337Z] Initializing middleware
+[2026-03-15T03:53:45.364Z] Loaded DB & Middleware
+[2026-03-15T03:53:45.495Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:28:27.361Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:28:27.367Z] Loaded dotenv
+[2026-03-15T04:28:27.368Z] Loaded Auth & Sessions
+[2026-03-15T04:28:27.370Z] Initializing middleware
+[2026-03-15T04:28:27.372Z] Loaded DB & Middleware
+[2026-03-15T04:28:27.388Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:28:27.389Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:30:01.192Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:30:01.196Z] Loaded dotenv
+[2026-03-15T04:30:01.197Z] Loaded Auth & Sessions
+[2026-03-15T04:30:01.198Z] Initializing middleware
+[2026-03-15T04:30:01.200Z] Loaded DB & Middleware
+[2026-03-15T04:30:01.208Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:30:01.209Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:34:01.391Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:34:01.395Z] Loaded dotenv
+[2026-03-15T04:34:01.396Z] Loaded Auth & Sessions
+[2026-03-15T04:34:01.399Z] Initializing middleware
+[2026-03-15T04:34:01.400Z] Loaded DB & Middleware
+[2026-03-15T04:34:01.416Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:34:01.417Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:34:24.019Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:34:24.024Z] Loaded dotenv
+[2026-03-15T04:34:24.025Z] Loaded Auth & Sessions
+[2026-03-15T04:34:24.028Z] Initializing middleware
+[2026-03-15T04:34:24.030Z] Loaded DB & Middleware
+[2026-03-15T04:34:24.043Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:34:24.044Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:45:48.067Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:45:48.070Z] Loaded dotenv
+[2026-03-15T04:45:48.071Z] Loaded Auth & Sessions
+[2026-03-15T04:45:48.074Z] Initializing middleware
+[2026-03-15T04:45:48.075Z] Loaded DB & Middleware
+[2026-03-15T04:45:48.096Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:45:48.097Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:52:37.602Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:52:37.607Z] Loaded dotenv
+[2026-03-15T04:52:37.608Z] Loaded Auth & Sessions
+[2026-03-15T04:52:37.610Z] Initializing middleware
+[2026-03-15T04:52:37.612Z] Loaded DB & Middleware
+[2026-03-15T04:52:37.625Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:52:37.626Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:52:50.962Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:52:50.969Z] Loaded dotenv
+[2026-03-15T04:52:50.970Z] Loaded Auth & Sessions
+[2026-03-15T04:52:50.972Z] Initializing middleware
+[2026-03-15T04:52:50.973Z] Loaded DB & Middleware
+[2026-03-15T04:52:50.985Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:52:50.985Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:52:55.260Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:52:55.263Z] Loaded dotenv
+[2026-03-15T04:52:55.264Z] Loaded Auth & Sessions
+[2026-03-15T04:52:55.266Z] Initializing middleware
+[2026-03-15T04:52:55.267Z] Loaded DB & Middleware
+[2026-03-15T04:52:55.276Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:52:55.277Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T04:54:28.815Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T04:54:28.825Z] Loaded dotenv
+[2026-03-15T04:54:28.826Z] Loaded Auth & Sessions
+[2026-03-15T04:54:28.832Z] Initializing middleware
+[2026-03-15T04:54:28.837Z] Loaded DB & Middleware
+[2026-03-15T04:54:28.865Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T04:54:28.868Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T05:04:04.709Z] Login attempt: role=Admin, pin=****
+[2026-03-15T05:04:05.492Z] Session created for user admin_1773541986611
+[2026-03-15T05:05:03.413Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T05:05:03.448Z] Loaded dotenv
+[2026-03-15T05:05:03.463Z] Loaded Auth & Sessions
+[2026-03-15T05:05:03.511Z] Initializing middleware
+[2026-03-15T05:05:03.528Z] Loaded DB & Middleware
+[2026-03-15T05:05:03.645Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T05:05:03.711Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T05:06:42.804Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T05:06:42.808Z] Loaded dotenv
+[2026-03-15T05:06:42.809Z] Loaded Auth & Sessions
+[2026-03-15T05:06:42.811Z] Initializing middleware
+[2026-03-15T05:06:42.813Z] Loaded DB & Middleware
+[2026-03-15T05:06:42.829Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T05:06:42.830Z] Auth endpoints ready at http://localhost:5000/api/auth
