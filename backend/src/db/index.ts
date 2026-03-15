@@ -3,6 +3,11 @@ import { Pool } from 'pg';
 import * as schema from './schema';
 import 'dotenv/config';
 
+console.log('--- DB Module: Initializing PG Pool ---');
+if (!process.env.DATABASE_URL) {
+    console.error('!!! FATAL: DATABASE_URL is missing in db/index.ts');
+}
+
 // Create a Postgres connection pool
 export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -10,6 +15,10 @@ export const pool = new Pool({
     ssl: {
         rejectUnauthorized: false
     }
+});
+
+pool.on('connect', () => {
+    console.log('--- DB Module: Pool connected to Postgres ---');
 });
 
 // Initialize Drizzle ORM

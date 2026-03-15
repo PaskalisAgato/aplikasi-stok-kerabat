@@ -31,7 +31,16 @@ log('--- STARTING BACKEND BOOTSTRAP ---');
 log('--- Phase 1: Environment & Base Config ---');
 import 'dotenv/config';
 log('Loaded dotenv');
-log(`NODE_ENV: ${process.env.NODE_ENV}`);
+log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+log(`PORT: ${process.env.PORT || '5000 (default)'}`);
+log(`DATABASE_URL: ${process.env.DATABASE_URL ? 'FOUND' : 'MISSING'}`);
+log(`BETTER_AUTH_SECRET: ${process.env.BETTER_AUTH_SECRET ? 'FOUND' : 'MISSING'}`);
+log(`BETTER_AUTH_URL: ${process.env.BETTER_AUTH_URL || 'NOT SET (defaults to localhost:5000)'}`);
+log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'NOT SET'}`);
+
+if (!process.env.DATABASE_URL) {
+    log('ERROR: DATABASE_URL is required but missing!');
+}
 
 log('--- Phase 2: Loading Auth Configuration ---');
 import { auth } from './config/auth';
