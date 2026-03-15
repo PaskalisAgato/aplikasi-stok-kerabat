@@ -42,14 +42,27 @@ const PORT = process.env.PORT || 5000;
 log('Initializing middleware');
 app.use(cors({
     origin: [
-        'http://localhost:5173', 
-        'http://localhost:5174', 
-        'http://localhost:5186', 
+        'http://localhost:5173', // Dashboard
+        'http://localhost:5174', // Inventory
+        'http://localhost:5175', // Reports
+        'http://localhost:5176', // HPP
+        'http://localhost:5177', // Opname
+        'http://localhost:5178', // Employees (Karyawan)
+        'http://localhost:5179', // Settings
+        'http://localhost:5180', // COGS
+        'http://localhost:5181', // Expenses
+        'http://localhost:5186', // POS
         'https://paskalisagato.github.io'
     ],
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// Request Logger
+app.use((req, res, next) => {
+    log(`${req.method} ${req.url}`);
+    next();
+});
 
 import { requireAuth, requireAdmin } from './middleware/auth';
 import { db } from './db';
@@ -146,6 +159,12 @@ app.use('/api/recipes', recipesRouter);
 app.use('/api/sales', salesRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/users', usersRouter);
+
+// Global Error Handler for Express
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    log(`EXPRESS ERROR: ${err.message}\n${err.stack}`);
+    res.status(500).json({ error: "Internal Server Error" });
+});
 
 app.listen(PORT, () => {
     log(`🚀 Kerabat Backend is running on http://localhost:${PORT}`);

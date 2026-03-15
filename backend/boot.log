@@ -87,3 +87,10 @@
 [2026-03-15T05:30:27.491Z] Session created for user admin_1773541986611
 [2026-03-15T05:30:55.579Z] Login attempt: role=Karyawan, pin=****
 [2026-03-15T05:30:59.141Z] Session created for user emp_1773541986850
+[2026-03-15T05:40:54.329Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T05:40:54.346Z] Loaded dotenv
+[2026-03-15T05:40:54.353Z] Loaded Auth & Sessions
+[2026-03-15T05:40:54.358Z] Initializing middleware
+[2026-03-15T05:40:54.363Z] Loaded DB & Middleware
+[2026-03-15T05:40:54.410Z] 🚀 Kerabat Backend is running on http://localhost:5000
+[2026-03-15T05:40:54.413Z] Auth endpoints ready at http://localhost:5000/api/auth
