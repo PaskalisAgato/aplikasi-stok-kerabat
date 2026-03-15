@@ -129,10 +129,13 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT update inventory item master data
-inventoryRouter.put('/:id', async (req: Request, res: Response) => {
+inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
         const { name, category, unit, minStock, imageUrl } = req.body;
+        const user = (req as any).user;
+
+        const oldItem = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
 
         const [updatedItem] = await db.update(schema.inventory)
             .set({
@@ -148,6 +151,16 @@ inventoryRouter.put('/:id', async (req: Request, res: Response) => {
         if (!updatedItem) {
             return res.status(404).json({ error: 'Item not found' });
         }
+
+        // Log to Audit
+        await db.insert(schema.auditLogs).values({
+            userId: user.id,
+            action: `UPDATE_INVENTORY: ${updatedItem.name}`,
+            tableName: 'inventory',
+            oldData: JSON.stringify(oldItem[0]),
+            newData: JSON.stringify(updatedItem),
+            createdAt: new Date()
+        });
 
         res.json(updatedItem);
     } catch (error) {
@@ -208,33 +221,27 @@ inventoryRouter.get('/movements/in', async (req: Request, res: Response) => {
 });
 
 // POST Movement (In, Out, Waste, Adjust)
-inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
+inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
         const { type, quantity, reason, supplierId, supplierName, expiryDate, createdAt } = req.body;
-        // type: 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
+        const user = (req as any).user;
 
         if (!type || quantity === undefined || isNaN(Number(quantity))) {
              return res.status(400).json({ error: 'Missing or invalid type or quantity' });
         }
 
         const numericQty = parseFloat(quantity);
-        // Determine sign based on type
         let multiplier = 1;
         if (type === 'OUT' || type === 'WASTE') {
             multiplier = -1;
-        } else if (type === 'OPNAME_ADJUSTMENT') {
-            multiplier = 1; 
         }
 
         const adjustment = numericQty * multiplier;
 
-        console.log(`[Movement] ID: ${inventoryId}, Type: ${type}, Qty: ${quantity}, Adjustment: ${adjustment}`);
-
         await db.transaction(async (tx) => {
             let finalSupplierId = supplierId;
             
-            // Auto-create supplier if name provided
             if (supplierName && !finalSupplierId) {
                 const existingSupplier = await tx.select().from(schema.suppliers).where(eq(schema.suppliers.name, supplierName)).limit(1);
                 if (existingSupplier.length > 0) {
@@ -245,7 +252,6 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
                 }
             }
 
-            // 1. Insert Movement Record
             const expiry = expiryDate ? new Date(expiryDate) : null;
             const customDate = createdAt ? new Date(createdAt) : undefined;
             
@@ -259,14 +265,21 @@ inventoryRouter.post('/:id/movement', async (req: Request, res: Response) => {
                 ...(customDate && { createdAt: customDate })
             });
 
-            console.log(`[Movement] Updating stock for inventory ${inventoryId} by ${adjustment}`);
-
-            // 2. Adjust Current Stock
-            await tx.update(schema.inventory)
+            const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
                     currentStock: sql`${schema.inventory.currentStock} + ${adjustment}`
                 })
-                .where(eq(schema.inventory.id, inventoryId));
+                .where(eq(schema.inventory.id, inventoryId))
+                .returning();
+
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `STOCK_MOVEMENT: ${type} ${quantity} for ${updatedInventory.name}`,
+                tableName: 'stock_movements',
+                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock }),
+                createdAt: new Date()
+            });
         });
 
         res.status(200).json({ success: true, message: 'Stock updated' });

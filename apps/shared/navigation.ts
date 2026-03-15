@@ -12,11 +12,12 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Laporan (Laba Rugi)', icon: 'bar_chart', port: 5175, requiredRole: 'Admin' },
     { label: 'Analisis HPP', icon: 'analytics', port: 5176, requiredRole: 'Admin' },
     { label: 'Stok Opname', icon: 'fact_check', port: 5177, requiredRole: 'Karyawan' },
-    { label: 'Karyawan', icon: 'badge', port: 5178, requiredRole: 'Admin' },
-    { label: 'Pengaturan', icon: 'settings', port: 5179, requiredRole: 'Admin' },
-    { label: 'Analisis COGS', icon: 'donut_small', port: 5180, requiredRole: 'Admin' },
-    { label: 'Pengeluaran', icon: 'payments', port: 5181, requiredRole: 'Karyawan' },
-    { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182, requiredRole: 'Admin' },
+    { label: 'Analisis Keuangan', icon: 'payments', port: 5179, requiredRole: 'Admin' },
+    { label: 'Riwayat Aktivitas', icon: 'history', port: 5180, requiredRole: 'Admin' },
+    { label: 'Kelola Karyawan', icon: 'badge', port: 5178, requiredRole: 'Admin' },
+    { label: 'Analisis COGS', icon: 'donut_small', port: 5183, requiredRole: 'Admin' },
+    { label: 'Pengeluaran', icon: 'payments', port: 5184, requiredRole: 'Karyawan' },
+    { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5185, requiredRole: 'Admin' },
 ];
 
 const REPO_NAME = 'aplikasi-stok-kerabat';
@@ -28,13 +29,11 @@ export const PORT_TO_APP: Record<number, string> = {
     5176: 'analisis-hpp',
     5177: 'stok-opname',
     5178: 'karyawan',
-    5179: 'pengaturan',
-    5180: 'analisis-cogs',
-    5181: 'pengeluaran',
-    5182: 'analisis-pemborosan',
-    5183: 'waste-detail',
-    5184: 'recipes',
-    5185: 'recipe-edit',
+    5179: 'analisis-keuangan',
+    5180: 'activity-history',
+    5183: 'analisis-cogs',
+    5184: 'pengeluaran',
+    5185: 'analisis-pemborosan',
     5186: 'pos',
 };
 

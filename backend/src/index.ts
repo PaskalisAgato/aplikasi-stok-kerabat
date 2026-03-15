@@ -189,6 +189,7 @@ import { recipesRouter } from './routes/recipes';
 import { salesRouter } from './routes/sales';
 import { financeRouter } from './routes/finance';
 import { usersRouter } from './routes/users';
+import { auditRouter } from './routes/audit';
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Kerabat Backend API v1.0.1 is running' });
@@ -219,8 +220,9 @@ app.use('/api/recipes', recipesRouter);
 app.use('/api/sales', salesRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/audit', auditRouter);
 
-// Global Error Handler for Express
+// --- 8. Error Handling (Express 5 style) ---
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     log(`EXPRESS ERROR: ${err.message}\n${err.stack}`);
     // Explicitly set CORS headers for error responses
