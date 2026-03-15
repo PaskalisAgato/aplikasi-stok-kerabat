@@ -1,0 +1,22 @@
+import { db } from './db';
+import * as schema from './db/schema';
+import 'dotenv/config';
+
+async function testInventory() {
+    console.log('Testing Inventory Fetch...');
+    try {
+        const items = await db.select().from(schema.inventory);
+        console.log(`Success! Fetched ${items.length} items.`);
+        if (items.length > 0) {
+            console.log('Sample item:', JSON.stringify(items[0], null, 2));
+        }
+        process.exit(0);
+    } catch (error: any) {
+        console.error('FAILED to fetch inventory:');
+        console.error(error.message);
+        console.error(error.stack);
+        process.exit(1);
+    }
+}
+
+testInventory();

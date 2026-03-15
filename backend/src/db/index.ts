@@ -6,7 +6,10 @@ import 'dotenv/config';
 // Create a Postgres connection pool
 export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 20, // max connection limits optimized for rate limits & multi-transaction
+    max: 20,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 // Initialize Drizzle ORM
