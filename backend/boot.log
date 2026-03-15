@@ -83,3 +83,7 @@
 [2026-03-15T05:06:42.813Z] Loaded DB & Middleware
 [2026-03-15T05:06:42.829Z] 🚀 Kerabat Backend is running on http://localhost:5000
 [2026-03-15T05:06:42.830Z] Auth endpoints ready at http://localhost:5000/api/auth
+[2026-03-15T05:30:26.397Z] Login attempt: role=Admin, pin=****
+[2026-03-15T05:30:27.491Z] Session created for user admin_1773541986611
+[2026-03-15T05:30:55.579Z] Login attempt: role=Karyawan, pin=****
+[2026-03-15T05:30:59.141Z] Session created for user emp_1773541986850
