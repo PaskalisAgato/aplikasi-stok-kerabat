@@ -75,8 +75,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// In Express 5, '*' without a name is invalid. We use '(.*)' for all paths.
-app.options('(.*)', cors(corsOptions));
+// Use RegExp to catch all routes safely in Express 5, circumventing path-to-regexp string limitations
+app.options(/^.*$/, cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 

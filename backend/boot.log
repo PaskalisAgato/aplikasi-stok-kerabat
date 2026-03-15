@@ -109,3 +109,60 @@
 [2026-03-15T06:02:29.373Z] GET /api/auth/get-session
 [2026-03-15T06:02:29.502Z] GET /api/users
 [2026-03-15T06:02:29.536Z] GET /api/auth/get-session
+[2026-03-15T18:14:37.820Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T18:14:37.882Z] Loaded dotenv
+[2026-03-15T18:14:43.649Z] Loaded Auth & Sessions
+[2026-03-15T18:14:43.660Z] Initializing middleware
+[2026-03-15T18:14:43.673Z] FATAL: Uncaught Exception: Missing parameter name at index 1: *; visit https://git.new/pathToRegexpError for info
+TypeError: Missing parameter name at index 1: *; visit https://git.new/pathToRegexpError for info
+    at name (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:96:19)
+    at parse (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:113:68)
+    at pathToRegexp (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:267:58)
+    at Object.match (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:237:30)
+    at matcher (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\lib\layer.js:86:23)
+    at new Layer (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\lib\layer.js:93:62)
+    at router.route (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\index.js:428:17)
+    at app.route (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\express\lib\application.js:257:22)
+    at app.<computed> [as options] (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\express\lib\application.js:478:22)
+    at Object.<anonymous> (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\dist\index.js:63:5)
+[2026-03-15T18:16:18.949Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T18:16:19.048Z] --- Phase 1: Environment & Base Config ---
+[2026-03-15T18:16:19.112Z] Loaded dotenv
+[2026-03-15T18:16:19.123Z] NODE_ENV: development
+[2026-03-15T18:16:19.127Z] PORT: 5000
+[2026-03-15T18:16:19.145Z] DATABASE_URL: FOUND
+[2026-03-15T18:16:19.151Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-15T18:16:19.159Z] BETTER_AUTH_URL: http://localhost:5000
+[2026-03-15T18:16:19.161Z] FRONTEND_URL: http://localhost:5173
+[2026-03-15T18:16:19.164Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-15T18:16:23.723Z] Loaded Auth & Sessions Modules
+[2026-03-15T18:16:23.724Z] --- Phase 3: Initializing Express ---
+[2026-03-15T18:16:23.727Z] --- Phase 4: Setting up Middleware ---
+[2026-03-15T18:16:23.735Z] FATAL: Uncaught Exception: Missing parameter name at index 3: (.*); visit https://git.new/pathToRegexpError for info
+TypeError: Missing parameter name at index 3: (.*); visit https://git.new/pathToRegexpError for info
+    at name (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:96:19)
+    at parse (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:113:68)
+    at pathToRegexp (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:267:58)
+    at Object.match (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\path-to-regexp\dist\index.js:237:30)
+    at matcher (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\lib\layer.js:86:23)
+    at new Layer (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\lib\layer.js:93:62)
+    at router.route (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\router\index.js:428:17)
+    at app.route (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\express\lib\application.js:257:22)
+    at app.<computed> [as options] (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\node_modules\express\lib\application.js:478:22)
+    at Object.<anonymous> (D:\PROJECT\Desktop\Laporan Kerabat\APLIKASI POS STOK KERABAT\backend\dist\index.js:75:5)
+[2026-03-15T18:18:05.872Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-15T18:18:05.878Z] --- Phase 1: Environment & Base Config ---
+[2026-03-15T18:18:05.888Z] Loaded dotenv
+[2026-03-15T18:18:05.889Z] NODE_ENV: development
+[2026-03-15T18:18:05.890Z] PORT: 5000
+[2026-03-15T18:18:05.891Z] DATABASE_URL: FOUND
+[2026-03-15T18:18:05.892Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-15T18:18:05.894Z] BETTER_AUTH_URL: http://localhost:5000
+[2026-03-15T18:18:05.895Z] FRONTEND_URL: http://localhost:5173
+[2026-03-15T18:18:05.896Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-15T18:18:08.546Z] Loaded Auth & Sessions Modules
+[2026-03-15T18:18:08.549Z] --- Phase 3: Initializing Express ---
+[2026-03-15T18:18:08.552Z] --- Phase 4: Setting up Middleware ---
+[2026-03-15T18:18:08.559Z] Loaded DB & Middleware
+[2026-03-15T18:18:08.597Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-15T18:18:08.599Z] Environment: undefined
