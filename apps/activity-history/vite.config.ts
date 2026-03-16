@@ -1,0 +1,20 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  base: '/aplikasi-stok-kerabat/activity-history/',
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@shared': path.resolve(__dirname, '../shared'),
+    },
+  },
+  server: {
+    port: 5180,
+    strictPort: true,
+  },
+  define: {
+    'process.env': {}
+  }
+});

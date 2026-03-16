@@ -34,7 +34,9 @@
     "build:recipe-edit": "npm run build -w apps/recipe-edit",
     "dev:pos": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/pos",
     "build:pos": "npm run build -w apps/pos",
-    "dev:all": "concurrently \"npm run dev:dashboard\" \"npm run dev:inventory\" \"npm run dev:reports\" \"npm run dev:hpp\" \"npm run dev:opname\" \"npm run dev:employees\" \"npm run dev:settings\" \"npm run dev:cogs\" \"npm run dev:expenses\" \"npm run dev:waste\" \"npm run dev:waste-detail\" \"npm run dev:recipes\" \"npm run dev:recipe-edit\" \"npm run dev:pos\"",
+    "dev:activity-history": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/activity-history",
+    "build:activity-history": "npm run build -w apps/activity-history",
+    "dev:all": "concurrently \"npm run dev:dashboard\" \"npm run dev:inventory\" \"npm run dev:reports\" \"npm run dev:hpp\" \"npm run dev:opname\" \"npm run dev:employees\" \"npm run dev:settings\" \"npm run dev:cogs\" \"npm run dev:expenses\" \"npm run dev:waste\" \"npm run dev:waste-detail\" \"npm run dev:recipes\" \"npm run dev:recipe-edit\" \"npm run dev:pos\" \"npm run dev:activity-history\"",
     "build:pages": "node build-github.js"
   },
   "devDependencies": {

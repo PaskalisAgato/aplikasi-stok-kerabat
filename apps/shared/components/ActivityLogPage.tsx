@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useAuditLogs, type AuditLog } from '../hooks/useAuditLogs';
+import { useState } from 'react';
+import { useAuditLogs } from '../hooks/useAuditLogs';
 import NavDrawer from '../NavDrawer';
 
 const ActivityLogPage: React.FC = () => {

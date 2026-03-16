@@ -35,7 +35,8 @@ const FOLDER_TO_URL = {
   'settings': 'pengaturan',
   'cogs': 'analisis-cogs',
   'expenses': 'pengeluaran',
-  'waste': 'analisis-pemborosan'
+  'waste': 'analisis-pemborosan',
+  'activity-history': 'activity-history'
 };
 
 const apps = fs.readdirSync(APPS_DIR).filter(file => {
