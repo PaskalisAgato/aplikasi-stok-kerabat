@@ -78,7 +78,10 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                         credentials: 'include'
                                     });
                                     
-                                    // 3. Final cleanup and redirect to base
+                                    // 3. Clear our specific manual session token
+                                    localStorage.removeItem('kerabat_auth_token');
+                                    
+                                    // 4. Final cleanup and redirect to base
                                     window.location.href = '/aplikasi-stok-kerabat/';
                                 } catch (error) {
                                     console.error("Logout failed:", error);

@@ -15,9 +15,10 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Analisis Keuangan', icon: 'payments', port: 5179, requiredRole: 'Admin' },
     { label: 'Riwayat Aktivitas', icon: 'history', port: 5180, requiredRole: 'Admin' },
     { label: 'Kelola Karyawan', icon: 'badge', port: 5178, requiredRole: 'Admin' },
+    { label: 'Kelola Resep', icon: 'restaurant_menu', port: 5184, requiredRole: 'Admin' },
     { label: 'Analisis COGS', icon: 'donut_small', port: 5183, requiredRole: 'Admin' },
-    { label: 'Pengeluaran', icon: 'payments', port: 5184, requiredRole: 'Karyawan' },
-    { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5185, requiredRole: 'Admin' },
+    { label: 'Pengeluaran', icon: 'payments', port: 5181, requiredRole: 'Karyawan' },
+    { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182, requiredRole: 'Admin' },
 ];
 
 const REPO_NAME = 'aplikasi-stok-kerabat';
@@ -26,15 +27,18 @@ export const PORT_TO_APP: Record<number, string> = {
     5173: 'dashboard',
     5174: 'inventory',
     5175: 'reports',
-    5176: 'analisis-hpp',
-    5177: 'stok-opname',
-    5178: 'karyawan',
+    5176: 'hpp',
+    5177: 'opname',
+    5178: 'employees',
     5179: 'analisis-keuangan',
     5180: 'activity-history',
-    5183: 'analisis-cogs',
-    5184: 'pengeluaran',
-    5185: 'analisis-pemborosan',
+    5181: 'expenses',
+    5182: 'waste',
+    5183: 'cogs',
+    5184: 'recipes',
+    5185: 'waste-detail',
     5186: 'pos',
+    5187: 'recipe-edit',
 };
 
 export const getBaseUrl = () => {

@@ -19,7 +19,14 @@ const AUTH_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 export const authClient = createAuthClient({
     baseURL: AUTH_BASE_URL,
     fetchOptions: {
-        credentials: 'include'
+        credentials: 'include',
+        // Optional: Include token in Better Auth's own requests if cookie fails
+        async onRequest(context: any) {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('kerabat_auth_token') : null;
+            if (token && context.request) {
+                context.request.headers.set('Authorization', `Bearer ${token}`);
+            }
+        }
     }
 });
 

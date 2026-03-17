@@ -51,6 +51,11 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
             if (!response.ok) {
                 setError(data.error || 'Login gagal');
             } else {
+                // Success - save the token to localStorage as a fallback for iOS
+                if (data.session?.id) {
+                    localStorage.setItem('kerabat_auth_token', data.session.id);
+                }
+                
                 // Success - the cookie is set by the backend
                 // Reload the page to let useSession find the new session
                 window.location.reload();

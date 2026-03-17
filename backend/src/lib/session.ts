@@ -23,7 +23,13 @@ export async function getSessionManually(req: express.Request): Promise<SessionD
             }
         });
         
-        const sessionId = cookies['better-auth.session_token'];
+        let sessionId = cookies['better-auth.session_token'];
+        
+        // 2. Fallback to Authorization header (for iOS Safari compat)
+        if (!sessionId && req.headers.authorization?.startsWith('Bearer ')) {
+            sessionId = req.headers.authorization.split(' ')[1];
+        }
+
         if (!sessionId) return null;
 
         // 2. Hash it (following our new SHA-256 standard)

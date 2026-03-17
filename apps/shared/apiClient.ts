@@ -41,8 +41,11 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
     const url = `${API_BASE_URL}${path}`;
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('kerabat_auth_token') : null;
+
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(init.headers ?? {}),
     };
 
