@@ -167,7 +167,7 @@ app.post('/api/auth/login-pin', async (req, res) => {
     }
 });
 
-app.get('/api/auth/get-session', async (req, res) => {
+app.get('/api/auth/session', async (req, res) => {
     const session = await getSessionManually(req);
     return res.json(session);
 });

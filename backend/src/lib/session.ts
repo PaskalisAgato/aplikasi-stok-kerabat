@@ -13,15 +13,15 @@ export async function getSessionManually(req: express.Request): Promise<SessionD
     try {
         // 1. Get cookie from headers
         const cookieHeader = req.headers.cookie;
-        if (!cookieHeader) return null;
-
         const cookies: Record<string, string> = {};
-        cookieHeader.split(';').forEach(c => {
-            const parts = c.trim().split('=');
-            if (parts.length === 2) {
-                cookies[parts[0]] = parts[1];
-            }
-        });
+        if (cookieHeader) {
+            cookieHeader.split(';').forEach(c => {
+                const parts = c.trim().split('=');
+                if (parts.length === 2) {
+                    cookies[parts[0]] = parts[1];
+                }
+            });
+        }
         
         let sessionId = cookies['better-auth.session_token'];
         
