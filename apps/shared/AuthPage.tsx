@@ -60,8 +60,9 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
                 // Reload the page to let useSession find the new session
                 window.location.reload();
             }
-        } catch (err) {
-            setError('Terjadi kesalahan jaringan');
+        } catch (err: any) {
+            console.error('Login error:', err);
+            setError(`Kesalahan Jaringan: ${err.message || 'Cek koneksi internet Anda atau coba lagi nanti.'}`);
         } finally {
             setIsLoading(false);
         }

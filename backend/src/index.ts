@@ -64,19 +64,27 @@ const corsOptions = {
         'http://localhost:5179',
         'http://localhost:5180',
         'http://localhost:5181',
+        'http://localhost:5184',
         'http://localhost:5186',
         'https://paskalisagato.github.io'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'Cookie', 
+        'Accept', 
+        'Origin', 
+        'X-Requested-With'
+    ],
     preflightContinue: false,
     optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
-// Use RegExp to catch all routes safely in Express 5, circumventing path-to-regexp string limitations
-app.options(/^.*$/, cors(corsOptions));
+// Handle preflight for all routes
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -151,10 +159,12 @@ app.post('/api/auth/login-pin', async (req, res) => {
             userAgent: req.headers['user-agent']
         });
 
+        const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+
         res.cookie('better-auth.session_token', sessionId, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Must be true for cross-origin
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-origin
+            secure: isProd, // Must be true for cross-origin (SameSite=None)
+            sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-origin
             expires: expiresAt,
             path: '/'
         });
