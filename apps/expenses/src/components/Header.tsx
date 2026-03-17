@@ -10,7 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, onMenuClick }) => {
     return (
-        <header className="sticky top-0 z-10 bg-background-light/80  backdrop-blur-md border-b border-primary/20">
+        <header className="sticky top-0 z-10 bg-background-app/80  backdrop-blur-md border-b border-primary/20">
             <div className="flex items-center p-4 gap-2">
                 <button
                     onClick={onMenuClick}

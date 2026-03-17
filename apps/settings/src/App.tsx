@@ -8,10 +8,10 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen pb-24 antialiased">
+        <div className="bg-background-app  font-display text-slate-900  min-h-screen pb-24 antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
             {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-light/80  backdrop-blur-md p-4 border-b border-primary/10 gap-2">
+            <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10 gap-2">
                 <button
                     onClick={() => setDrawerOpen(true)}
                     className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors active:scale-95 shrink-0"

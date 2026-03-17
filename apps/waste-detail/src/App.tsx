@@ -34,7 +34,7 @@ function App() {
 
     if (isLoading) {
         return (
-            <div className="bg-background-light  min-h-screen flex items-center justify-center">
+            <div className="bg-background-app  min-h-screen flex items-center justify-center">
                  <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
             </div>
         );
@@ -42,7 +42,7 @@ function App() {
 
     if (!item) {
         return (
-            <div className="bg-background-light  min-h-screen flex flex-col items-center justify-center p-4">
+            <div className="bg-background-app  min-h-screen flex flex-col items-center justify-center p-4">
                  <p className="text-slate-500 font-bold">Bahan tidak ditemukan.</p>
                  <button onClick={() => window.history.back()} className="mt-4 text-primary font-bold">Kembali</button>
             </div>
@@ -53,12 +53,12 @@ function App() {
     const nilaiKerugian = totalTerbuang * parseFloat(item.pricePerUnit);
 
     return (
-        <div className="bg-background-light  text-slate-900  min-h-screen flex flex-col font-display antialiased">
+        <div className="bg-background-app  text-slate-900  min-h-screen flex flex-col font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden pb-8">
 
                 {/* Header Section */}
-                <header className="sticky top-0 z-50 bg-background-light/90  backdrop-blur-md border-b border-primary/10">
+                <header className="sticky top-0 z-50 bg-background-app/90  backdrop-blur-md border-b border-primary/10">
                     <div className="flex items-center p-4 gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0">
                             <span className="material-symbols-outlined">menu</span>

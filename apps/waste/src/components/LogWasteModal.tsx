@@ -64,7 +64,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
-            <div className="w-full bg-background-light  rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
+            <div className="w-full bg-background-app  rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
                 {/* Drag Handle */}
                 <div className="flex h-6 w-full items-center justify-center flex-shrink-0">
                     <div className="h-1.5 w-12 rounded-full bg-primary/30" />

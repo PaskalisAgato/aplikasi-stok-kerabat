@@ -176,7 +176,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
             {/* Bottom Sheet */}
-            <div className="w-full bg-background-light  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
+            <div className="w-full bg-background-app  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
 
                 {/* Drag Handle */}
                 <div className="flex h-6 w-full items-center justify-center flex-shrink-0">

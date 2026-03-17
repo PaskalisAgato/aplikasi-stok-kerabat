@@ -27,14 +27,14 @@ function App() {
     const topOffenders = wasteSummary?.topOffenders || [];
 
     return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen pb-24 antialiased">
+        <div className="bg-background-app  font-display text-slate-900  min-h-screen pb-24 antialiased">
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden">
 
                 {/* Hamburger Drawer Overlay */}
                 <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-50 bg-background-light/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
+                <header className="sticky top-0 z-50 bg-background-app/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
                     <button
                         onClick={() => setDrawerOpen(true)}
                         className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0"
@@ -188,7 +188,7 @@ function App() {
                 {/* Floating Action Button */}
                 <button
                     onClick={() => setIsLogModalOpen(true)}
-                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-light  transition-transform active:scale-95 font-bold text-sm"
+                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-app  transition-transform active:scale-95 font-bold text-sm"
                 >
                     <span className="material-symbols-outlined text-[22px]">delete_sweep</span>
                     Catat Waste

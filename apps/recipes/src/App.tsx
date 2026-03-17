@@ -37,12 +37,12 @@ function App() {
     });
 
     return (
-        <div className="bg-background-light  text-slate-900  min-h-screen flex flex-col font-display antialiased">
+        <div className="bg-background-app text-slate-900 min-h-screen flex flex-col font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden pb-8">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 overflow-x-hidden pb-8">
 
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-light/90  backdrop-blur-md border-b border-primary/10 px-4 py-4">
+                <header className="sticky top-0 z-30 bg-background-app/90 backdrop-blur-md border-b border-primary/10 px-4 py-4">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors active:scale-95 text-primary shrink-0">
                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>menu</span>
@@ -60,7 +60,7 @@ function App() {
                 </header>
 
                 {/* Search & Filters */}
-                <div className="px-4 pt-6 pb-2 space-y-4 sticky top-[73px] z-20 bg-background-light/95  backdrop-blur-sm">
+                <div className="px-4 pt-6 pb-2 space-y-4 sticky top-[73px] z-20 bg-background-app/95 backdrop-blur-sm">
                     <label className="relative flex items-center group">
                         <span className="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors text-[22px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>search</span>
                         <input
@@ -158,7 +158,7 @@ function App() {
                         margin: 0,
                         ingredients: []
                     })}
-                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-light  transition-transform active:scale-95 group">
+                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-app transition-transform active:scale-95 group">
                     <span className="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
                 </button>
                 {/* Edit Recipe Modal */}

@@ -11,9 +11,9 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background-light  text-slate-900  overflow-y-auto pb-24 antialiased">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  text-slate-900  overflow-y-auto pb-24 antialiased">
             {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-light/80  backdrop-blur-md p-4 border-b border-primary/10">
+            <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}
@@ -64,10 +64,10 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>work</span>
                             <select className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-slate-900  text-sm font-medium appearance-none transition-all">
                                 <option value="" disabled selected hidden>Pilih Jabatan</option>
-                                <option className="bg-background-light " value="barista_senior">Barista Senior</option>
-                                <option className="bg-background-light " value="barista">Barista</option>
-                                <option className="bg-background-light " value="kasir">Kasir</option>
-                                <option className="bg-background-light " value="admin_gudang">Admin Gudang</option>
+                                <option className="bg-background-app " value="barista_senior">Barista Senior</option>
+                                <option className="bg-background-app " value="barista">Barista</option>
+                                <option className="bg-background-app " value="kasir">Kasir</option>
+                                <option className="bg-background-app " value="admin_gudang">Admin Gudang</option>
                             </select>
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
                         </div>

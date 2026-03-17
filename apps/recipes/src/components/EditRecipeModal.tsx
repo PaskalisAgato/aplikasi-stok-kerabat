@@ -24,6 +24,7 @@ function formatRp(n: number) {
 export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProps) {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [namaResep, setNamaResep] = useState(recipe.name || '');
+    const [category, setCategory] = useState(recipe.category || 'Minuman');
     const [overhead, setOverhead] = useState(10); // Default overhead
     const [hargaJual, setHargaJual] = useState(recipe.price);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
@@ -154,7 +155,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
 
             const payload = {
                 name: namaResep,
-                category: recipe.category,
+                category: category,
                 price: hargaJual,
                 margin: parseFloat(margin),
                 imageUrl: recipe.imageUrl,
@@ -178,10 +179,10 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-background-light  font-display text-slate-900  min-h-screen antialiased overflow-y-auto">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl bg-background-light  pb-32">
+        <div className="fixed inset-0 z-[100] bg-background-app font-display text-slate-900 min-h-screen antialiased overflow-y-auto">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app pb-32 border-x border-slate-200">
                 {/* Top App Bar */}
-                <header className="sticky top-0 z-50 bg-background-light  border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-90 ">
+                <header className="sticky top-0 z-50 bg-background-app border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-95">
                     <div className="flex-1 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <button
@@ -204,15 +205,35 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
 
                 <main className="flex-1">
                     {/* Recipe Name Input */}
-                    <div className="px-4 pt-4">
+                    <div className="px-4 pt-6">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Nama Resep</label>
                         <input
                             type="text"
                             value={namaResep}
                             onChange={(e) => setNamaResep(e.target.value)}
                             placeholder="Masukkan nama resep..."
-                            className="w-full bg-white  border border-primary/20 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm "
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm "
                         />
+                    </div>
+
+                    {/* Category Selection */}
+                    <div className="px-4 pt-6">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1 text-center">Kategori Menu</label>
+                        <div className="flex gap-2 justify-center">
+                            {['Minuman', 'Makanan', 'Snack'].map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setCategory(cat as 'Minuman' | 'Makanan' | 'Snack')}
+                                    className={`px-6 py-2.5 rounded-full text-xs font-black transition-all active:scale-90 border-2 ${
+                                        category === cat 
+                                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
+                                        : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     {/* Ingredients Section */}
                     <section className="p-4">

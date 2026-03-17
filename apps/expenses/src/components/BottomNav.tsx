@@ -7,7 +7,7 @@ const BottomNav: React.FC = () => {
     const laporanUrl = getTargetUrl(5175);
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-background-light  border-t border-primary/20 px-4 pb-6 pt-2 z-30">
+        <nav className="fixed bottom-0 left-0 right-0 bg-background-app  border-t border-primary/20 px-4 pb-6 pt-2 z-30">
             <div className="flex justify-around items-center max-w-md mx-auto">
                 <a className="flex flex-col items-center gap-1 text-slate-400 " href={homeUrl}>
                     <span className="material-symbols-outlined">home</span>

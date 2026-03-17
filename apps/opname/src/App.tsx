@@ -71,12 +71,12 @@ function App() {
     };
 
     return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen flex flex-col antialiased">
+        <div className="bg-background-app  font-display text-slate-900  min-h-screen flex flex-col antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Top Navigation Header */}
-                <header className="sticky top-0 z-30 bg-background-light/90  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
+                <header className="sticky top-0 z-30 bg-background-app/90  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95 shrink-0">
                             <span className="material-symbols-outlined">menu</span>
@@ -187,7 +187,7 @@ function App() {
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-light/80  backdrop-blur-md border-t border-primary/10 z-40 max-w-md mx-auto">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-app/80  backdrop-blur-md border-t border-primary/10 z-40 max-w-md mx-auto">
                     <button 
                         onClick={handleSaveOpname}
                         disabled={isSaving || isLoading}

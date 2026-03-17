@@ -5,11 +5,11 @@ import NavDrawer from '../../shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen flex flex-col antialiased">
+        <div className="bg-background-app  font-display text-slate-900  min-h-screen flex flex-col antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5180} />
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
                 {/* Header Section */}
-                <div className="flex items-center bg-background-light/90  backdrop-blur-md p-4 pb-3 sticky top-0 z-30 border-b border-primary/10  gap-2">
+                <div className="flex items-center bg-background-app/90  backdrop-blur-md p-4 pb-3 sticky top-0 z-30 border-b border-primary/10  gap-2">
                     <button onClick={() => setDrawerOpen(true)} className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0">
                         <span className="material-symbols-outlined">menu</span>
                     </button>

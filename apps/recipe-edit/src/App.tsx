@@ -52,12 +52,12 @@ function App() {
     const margin = hargaJual > 0 ? ((laba / hargaJual) * 100).toFixed(1) : '0.0';
 
     return (
-        <div className="bg-background-light  font-display text-slate-900  min-h-screen antialiased">
+        <div className="bg-background-app  font-display text-slate-900  min-h-screen antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5185} />
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Top App Bar */}
-                <header className="sticky top-0 z-50 bg-background-light  border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-90 ">
+                <header className="sticky top-0 z-50 bg-background-app  border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-90 ">
                     <button
                         onClick={() => setDrawerOpen(true)}
                         className="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0"

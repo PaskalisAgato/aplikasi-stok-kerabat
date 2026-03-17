@@ -12,9 +12,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background-light  text-slate-900  overflow-x-hidden antialiased">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  text-slate-900  overflow-x-hidden antialiased">
             {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-light/80  backdrop-blur-md p-4 border-b border-primary/10 ">
+            <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10 ">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}

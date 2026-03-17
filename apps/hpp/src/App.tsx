@@ -26,12 +26,12 @@ function App() {
     const ingredientsHPP = hppData?.ingredientsHPP || [];
 
     return (
-        <div className="bg-background-light  text-slate-900  min-h-screen pb-24 font-display antialiased">
+        <div className="bg-background-app  text-slate-900  min-h-screen pb-24 font-display antialiased">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
             <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
 
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-light/80  backdrop-blur-md border-b border-primary/10  px-4 py-4">
+                <header className="sticky top-0 z-30 bg-background-app/80  backdrop-blur-md border-b border-primary/10  px-4 py-4">
                     <div className="flex items-center gap-2">
                         <button onClick={() => setDrawerOpen(true)} className="p-2 rounded-full hover:bg-primary/10 transition-colors text-primary flex items-center justify-center active:scale-95 shrink-0">
                             <span className="material-symbols-outlined">menu</span>
