@@ -178,6 +178,7 @@ app.post('/api/auth/login-pin', async (req, res) => {
 });
 
 app.get('/api/auth/session', async (req, res) => {
+    log(`Incoming session check: ${req.headers.authorization ? 'Has Authorization' : 'No Authorization'}`);
     const session = await getSessionManually(req);
     return res.json(session);
 });

@@ -28,11 +28,15 @@ export async function getSessionManually(req: express.Request): Promise<SessionD
         // 2. Fallback to Authorization header (for iOS Safari compat)
         if (!sessionId && req.headers.authorization?.startsWith('Bearer ')) {
             sessionId = req.headers.authorization.split(' ')[1];
+            console.log(`[AUTH] Session from Bearer: ${sessionId?.substring(0, 8)}...`);
         }
 
-        if (!sessionId) return null;
+        if (!sessionId) {
+            console.log(`[AUTH] No session ID found in Cookie or Authorization header`);
+            return null;
+        }
 
-        // 2. Hash it (following our new SHA-256 standard)
+        // 3. Hash it (following our new SHA-256 standard)
         const hashedToken = crypto
             .createHash('sha256')
             .update(sessionId)
