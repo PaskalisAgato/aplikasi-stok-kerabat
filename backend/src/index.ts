@@ -7,11 +7,21 @@ import path from 'path';
 // Use file logging since terminal output is unstable
 const logPath = path.join(process.cwd(), 'boot.log');
 const log = (msg: string) => {
-    const timestamp = new Date().toISOString();
-    try {
-        fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
-    } catch (e) {
-        // Fallback if file system is locked
+    // Only log to file in development OR if specifically needed. 
+    // In production (Render), big files cause OOM.
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    
+    if (!isProd) {
+        const timestamp = new Date().toISOString();
+        try {
+            // Cap file size at ~5MB
+            if (fs.existsSync(logPath) && fs.statSync(logPath).size > 5 * 1024 * 1024) {
+                fs.writeFileSync(logPath, `[${timestamp}] --- LOG TRUNCATED ---\n`);
+            }
+            fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
+        } catch (e) {
+            // Fallback if file system is locked
+        }
     }
     console.log(msg);
 };
@@ -94,8 +104,15 @@ app.use(express.json({ limit: '10mb' }));
 app.get('/api/logs', (req, res) => {
     try {
         if (fs.existsSync(logPath)) {
-            const logs = fs.readFileSync(logPath, 'utf8');
-            res.header('Content-Type', 'text/plain').send(logs);
+            const stats = fs.statSync(logPath);
+            const bufferSize = Math.min(stats.size, 50000);
+            const startByte = Math.max(0, stats.size - bufferSize);
+            const buffer = Buffer.alloc(bufferSize);
+            const fd = fs.openSync(logPath, 'r');
+            fs.readSync(fd, buffer, 0, bufferSize, startByte);
+            fs.closeSync(fd);
+            const content = buffer.toString('utf8').replace(/\u0000/g, '');
+            res.header('Content-Type', 'text/plain').send((startByte > 0 ? '... (older logs truncated)\n' : '') + content);
         } else {
             res.status(404).send('Log file not found');
         }
@@ -106,7 +123,13 @@ app.get('/api/logs', (req, res) => {
 
 // Request Logger
 app.use((req, res, next) => {
-    log(`${req.method} ${req.url}`);
+    // Only log essential requests in production to save memory/IO
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    const isStatic = req.url.includes('.') || req.url.includes('health') || req.url.includes('session');
+    
+    if (!isProd || !isStatic) {
+        log(`${req.method} ${req.url}`);
+    }
     next();
 });
 
