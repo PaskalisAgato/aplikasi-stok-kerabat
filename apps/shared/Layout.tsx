@@ -22,10 +22,18 @@ const Layout: React.FC<LayoutProps> = ({
     maxWidth = '1600px'
 }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const { data: session, isPending } = useSession();
+    const { data: session, isPending, refetch } = useSession();
 
-    // Secondary check for manual token in case hook is stale/failing
+    // Secondary check for manual token to avoid flicking to login on Safari
     const hasManualToken = typeof window !== 'undefined' && !!localStorage.getItem('kerabat_auth_token');
+
+    // If we have a token but no session, try to refetch once
+    React.useEffect(() => {
+        if (!isPending && !session && hasManualToken) {
+            console.log("Session null but token exists, refetching...");
+            refetch();
+        }
+    }, [session, isPending, hasManualToken, refetch]);
 
     if (isPending) {
         return (
