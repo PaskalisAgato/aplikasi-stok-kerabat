@@ -143,6 +143,7 @@ inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => 
                 ...(category && { category }),
                 ...(unit && { unit }),
                 ...(minStock !== undefined && { minStock: minStock.toString() }),
+                ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
                 ...(imageUrl !== undefined && { imageUrl })
             })
             .where(eq(schema.inventory.id, inventoryId))

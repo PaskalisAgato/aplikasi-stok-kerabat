@@ -10,6 +10,7 @@ interface Ingredient {
     qty: number;
     purchasePrice?: number;
     purchaseQty?: number;
+    isPriceModified?: boolean;
 }
 
 interface EditRecipeModalProps {
@@ -169,8 +170,24 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                 alert('Resep berhasil diupdate!');
             } else {
                 await apiClient.createRecipe(payload);
-                alert('Resep baru berhasil disimpan!');
             }
+
+            // Sync modified prices back to inventory
+            const modifiedIngredients = ingredients.filter(ing => ing.isPriceModified);
+            for (const ing of modifiedIngredients) {
+                // Adjust back if it was Kg/L (inventory stores as price per Kg/L)
+                const inventoryItem = inventoryData.find(item => item.id === ing.id);
+                let priceToSave = ing.pricePerG;
+                if (inventoryItem && (inventoryItem.unit === 'Kg' || inventoryItem.unit === 'L')) {
+                    priceToSave = ing.pricePerG * 1000;
+                }
+                
+                await apiClient.updateInventoryItem(ing.id, { 
+                    pricePerUnit: priceToSave 
+                });
+            }
+
+            alert('Resep berhasil disimpan dan harga bahan diperbarui!');
             onClose();
         } catch (error) {
             console.error(error);
@@ -290,9 +307,19 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                     <div className="flex justify-between items-start mb-3.5">
                                         <div>
                                             <p className="font-bold text-[15px] text-slate-900  tracking-tight">{ing.name}</p>
-                                            <p className="text-[10px] text-slate-500  mt-1 font-bold uppercase tracking-wider">
-                                                Harga Unit: Rp {ing.pricePerG.toLocaleString('id-ID')} / {ing.unit}
-                                            </p>
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Harga Unit: Rp </p>
+                                                <input 
+                                                    type="number"
+                                                    value={ing.pricePerG}
+                                                    onChange={e => {
+                                                        const newPrice = parseFloat(e.target.value) || 0;
+                                                        setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, pricePerG: newPrice, isPriceModified: true } : i));
+                                                    }}
+                                                    className="w-16 bg-primary/5 border-none focus:ring-0 p-0 text-[10px] font-bold text-primary underline decoration-dotted"
+                                                />
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider"> / {ing.unit}</p>
+                                            </div>
                                         </div>
                                         <button
                                             className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10 active:scale-90"
