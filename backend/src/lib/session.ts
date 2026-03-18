@@ -42,29 +42,34 @@ export async function getSessionManually(req: express.Request): Promise<SessionD
             .update(sessionId)
             .digest('hex');
 
-        // 3. Lookup in DB
-        const foundSession = await db.query.sessions.findFirst({
-            where: eq(sessions.token, hashedToken)
-        });
+        // 4. Lookup session and user in one go using a join
+        const result = await db
+            .select({
+                session: sessions,
+                user: users
+            })
+            .from(sessions)
+            .innerJoin(users, eq(sessions.userId, users.id))
+            .where(eq(sessions.token, hashedToken))
+            .limit(1);
 
-        if (!foundSession) return null;
-
-        // 4. Check expiration
-        if (new Date() > foundSession.expiresAt) {
+        if (result.length === 0) {
+            console.log(`[AUTH] Session not found in DB for token: ${hashedToken.substring(0, 8)}...`);
             return null;
         }
 
-        // 5. Get user
-        const foundUser = await db.query.users.findFirst({
-            where: eq(users.id, foundSession.userId)
-        });
+        const { session, user } = result[0];
 
-        if (!foundUser) return null;
+        // 5. Check expiration
+        if (new Date() > session.expiresAt) {
+            console.log(`[AUTH] Session expired for user ${user.id}`);
+            return null;
+        }
 
         // 6. Return in Better Auth format
         return {
-            user: foundUser,
-            session: foundSession
+            user,
+            session
         };
     } catch (error) {
         console.error("getSessionManually Error:", error);

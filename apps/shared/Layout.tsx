@@ -23,30 +23,44 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { data: session, isPending, refetch } = useSession();
+    const [hasRetried, setHasRetried] = useState(false);
 
     // Secondary check for manual token to avoid flicking to login on Safari
     const hasManualToken = typeof window !== 'undefined' && !!localStorage.getItem('kerabat_auth_token');
 
-    // If we have a token but no session, try to refetch once
+    // If we have a token but no session, try to refetch ONCE
     React.useEffect(() => {
-        if (!isPending && !session && hasManualToken) {
-            console.log("Session null but token exists, refetching...");
+        if (!isPending && !session && hasManualToken && !hasRetried) {
+            console.log("Session null but token exists, refetching (Attempt 1)...");
+            setHasRetried(true);
             refetch();
         }
-    }, [session, isPending, hasManualToken, refetch]);
+    }, [session, isPending, hasManualToken, refetch, hasRetried]);
 
     if (isPending) {
         return (
             <div className="min-h-screen bg-background-app flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted">Memeriksa Sesi...</p>
+                <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
+                    <div className="relative">
+                        <span className="material-symbols-outlined animate-spin text-primary text-5xl">sync</span>
+                        <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-primary/30 text-2xl">shield_person</span>
+                    </div>
+                    <div className="text-center space-y-2">
+                        <p className="text-xs font-black uppercase tracking-[0.3em] text-primary animate-pulse">Memeriksa Sesi</p>
+                        <p className="text-[10px] font-bold text-muted uppercase tracking-widest opacity-60">Mohon Tunggu Sebentar...</p>
+                    </div>
                 </div>
             </div>
         );
     }
 
     if (!session && !hasManualToken) {
+        return <AuthPage />;
+    }
+
+    // Final failure after retry
+    if (!session && hasRetried) {
+        localStorage.removeItem('kerabat_auth_token');
         return <AuthPage />;
     }
 
