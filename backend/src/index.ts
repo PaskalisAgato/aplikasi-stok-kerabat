@@ -76,10 +76,12 @@ const corsOptions = {
         'Cookie', 
         'Accept', 
         'Origin', 
-        'X-Requested-With'
+        'X-Requested-With',
+        'X-Auth-Token'
     ],
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
+    maxAge: 86400 // Cache preflight for 24 hours (helpful for Safari)
 };
 
 app.use(cors(corsOptions));

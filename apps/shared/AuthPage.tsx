@@ -64,7 +64,10 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
             }
         } catch (err: any) {
             console.error('Login error:', err);
-            setError(`Kesalahan Jaringan: ${err.message || 'Cek koneksi internet Anda atau coba lagi nanti.'}`);
+            const isNetworkError = err.message?.includes('fetch') || err.message?.includes('Network');
+            setError(isNetworkError 
+                ? 'Kesalahan Jaringan: Koneksi Terblokir (Coba matikan "Hide IP Address" di Pengaturan Safari atau gunakan WiFi lain/VPN)'
+                : `Kesalahan: ${err.message || 'Coba lagi nanti'}`);
         } finally {
             setIsLoading(false);
         }
