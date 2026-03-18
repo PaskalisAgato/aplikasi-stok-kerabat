@@ -49,7 +49,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || 'Login gagal');
+                setError(data.error || 'Login gagal. Silakan cek PIN Anda.');
             } else {
                 // Success - save the token to localStorage as a fallback for iOS
                 if (data.session?.id) {
@@ -64,9 +64,9 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
             }
         } catch (err: any) {
             console.error('Login error:', err);
-            const isNetworkError = err.message?.includes('fetch') || err.message?.includes('Network');
+            const isNetworkError = err.name === 'TypeError' || err.message?.includes('fetch') || err.message?.includes('Network');
             setError(isNetworkError 
-                ? 'Kesalahan Jaringan: Koneksi Terblokir (Coba gunakan WiFi lain/VPN atau cek "Setelan Browser > Privasi > Gunakan DNS Aman")'
+                ? 'Koneksi Terblokir: Sistem tidak dapat menjangkau server. Coba aktifkan VPN atau gunakan Data Seluler.'
                 : `Kesalahan: ${err.message || 'Coba lagi nanti'}`);
         } finally {
             setIsLoading(false);
