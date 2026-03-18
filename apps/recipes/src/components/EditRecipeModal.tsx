@@ -179,8 +179,8 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-background-app font-display text-slate-900 min-h-screen antialiased overflow-y-auto">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app pb-32 border-x border-slate-200">
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex justify-center items-start overflow-y-auto sm:p-4 animate-in fade-in duration-300">
+            <div className="relative flex h-auto min-h-screen sm:min-h-[500px] w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app sm:rounded-3xl pb-32 border-x sm:border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Top App Bar */}
                 <header className="sticky top-0 z-50 bg-background-app border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-95">
                     <div className="flex-1 flex items-center justify-between">
