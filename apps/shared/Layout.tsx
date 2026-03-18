@@ -24,15 +24,21 @@ const Layout: React.FC<LayoutProps> = ({
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { data: session, isPending } = useSession();
 
+    // Secondary check for manual token in case hook is stale/failing
+    const hasManualToken = typeof window !== 'undefined' && !!localStorage.getItem('kerabat_auth_token');
+
     if (isPending) {
         return (
             <div className="min-h-screen bg-background-app flex items-center justify-center">
-                <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
+                <div className="flex flex-col items-center gap-4">
+                    <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted">Memeriksa Sesi...</p>
+                </div>
             </div>
         );
     }
 
-    if (!session) {
+    if (!session && !hasManualToken) {
         return <AuthPage />;
     }
 
