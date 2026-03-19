@@ -87,9 +87,13 @@ function App() {
             </div>
         </div>
         <div className="pt-10 border-t border-[var(--border-dim)] space-y-4">
-            <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full py-4 rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-primary/20">
+            <a href="/pos/" className="w-full flex items-center justify-center gap-4 bg-emerald-500 text-slate-950 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-emerald-500/20 active:scale-95 transition-all">
+                <span className="material-symbols-outlined font-black">payments</span>
+                Catat Penjualan
+            </a>
+            <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full py-5 rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-primary/20">
                 <span className="material-symbols-outlined font-black">add_circle</span>
-                Tambah Bahan
+                Bahan Baru
             </button>
             <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-[var(--border-dim)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all active:scale-[0.97]">
                 <span className="material-symbols-outlined text-lg font-black">download</span>

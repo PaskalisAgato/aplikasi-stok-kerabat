@@ -7,7 +7,7 @@ export interface NavLink {
 
 export const NAV_LINKS: NavLink[] = [
     { label: 'Dasbor', icon: 'dashboard', port: 5173, requiredRole: 'Admin' },
-    { label: 'Kasir (POS)', icon: 'point_of_sale', port: 5186, requiredRole: 'Karyawan' },
+    { label: 'Input Penjualan (Kasir)', icon: 'point_of_sale', port: 5186, requiredRole: 'Karyawan' },
     { label: 'Inventori', icon: 'inventory_2', port: 5174, requiredRole: 'Karyawan' },
     { label: 'Laporan (Laba Rugi)', icon: 'bar_chart', port: 5175, requiredRole: 'Admin' },
     { label: 'Analisis HPP', icon: 'analytics', port: 5176, requiredRole: 'Admin' },

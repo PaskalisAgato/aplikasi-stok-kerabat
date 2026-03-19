@@ -216,42 +216,28 @@ function App() {
                                     <p className="text-sm font-black uppercase tracking-widest">Menu tidak ditemukan</p>
                                 </div>
                             ) : filteredRecipes.map(recipe => {
-                                const inCart = sales[recipe.id] > 0;
+                                const qty = sales[recipe.id] || 0;
                                 return (
-                                    <div key={`add-${recipe.id}`} className="card flex items-center gap-5 hover:scale-[1.01] active:scale-[0.98] transition-all">
+                                    <div key={`add-${recipe.id}`} className="card flex items-center gap-5 hover:scale-[1.01] transition-all">
                                         <div
                                             className="size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/5"
                                             style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
                                         />
                                         <div className="flex-1 min-w-0 space-y-1">
                                             <h3 className="font-black text-[var(--text-main)] text-base truncate font-display tracking-tight uppercase">{recipe.name}</h3>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase tracking-widest">{recipe.category}</span>
-                                            </div>
-                                            <p className="text-primary font-black text-sm pt-1">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                            <p className="text-primary font-black text-xs">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                if (!inCart) updateQty(recipe.id, 1);
-                                            }}
-                                            className={`h-12 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
-                                                inCart 
-                                                ? 'bg-emerald-500/10 text-emerald-500 cursor-not-allowed border border-emerald-500/20' 
-                                                : 'btn-primary h-12 px-6'
-                                            }`}
-                                        >
-                                            {inCart ? (
-                                                <>
-                                                    <span className="material-symbols-outlined text-sm font-black text-emerald-500">check_circle</span>
-                                                    OK
-                                                </>
-                                            ) : (
-                                                <>
-                                                  <span className="material-symbols-outlined text-sm font-black">add_shopping_cart</span>
-                                                  Pilih
-                                                </>
-                                            )}
-                                        </button>
+                                        <div className="flex items-center gap-3 glass p-1.5 rounded-xl shrink-0">
+                                            <button
+                                                onClick={() => updateQty(recipe.id, -1)}
+                                                className="size-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-primary hover:bg-red-500/10 hover:text-red-500 transition-all font-black"
+                                            >-</button>
+                                            <span className="w-8 text-center font-black text-lg font-display text-[var(--text-main)]">{qty}</span>
+                                            <button
+                                                onClick={() => updateQty(recipe.id, 1)}
+                                                className="size-9 flex items-center justify-center rounded-lg bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-md font-black"
+                                            >+</button>
+                                        </div>
                                     </div>
                                 );
                             })}
