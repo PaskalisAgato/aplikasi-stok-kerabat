@@ -5,9 +5,12 @@
  */
 
 // Deployment URL (Dynamic via environment variables)
-export const API_BASE_URL = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
+const rawUrl = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
-    || 'https://aplikasi-stok-kerabat.onrender.com/api'; // Default fallback back to Render
+    || 'https://aplikasi-stok-kerabat.onrender.com/api';
+
+// Pastikan URL diakhiri dengan /api
+export const API_BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api`;
 
 // ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
 // Ping server setiap 10 menit agar tidak sleep (membantu meskipun tidak 100%)

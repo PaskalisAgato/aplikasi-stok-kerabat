@@ -18,16 +18,25 @@ import { errorHandler } from './middleware/error.middleware';
 const app = express();
 
 // 1. Global Middlewares
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://paskalisagato.github.io'
+];
+
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(o => o.trim()).filter(Boolean));
+}
+
 app.use(cors({
-    origin: (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).concat([
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://paskalisagato.github.io'
-    ]),
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
 }));
+
+// Explicitly handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 app.use(cookieParser());
