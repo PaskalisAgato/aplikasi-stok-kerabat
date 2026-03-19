@@ -11,7 +11,9 @@ salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
     try {
         const { shiftId, items, subTotal, totalAmount, paymentMethod } = req.body;
         // Mock userId if auth not attached. Better Auth usually injects req.user
-        const userId = (req as any).user.id; 
+        const userId = (req as any).user?.id || 'anonymous';
+        console.log(`[CHECKOUT] User ID: ${userId}, items count: ${items?.length}, shiftId: ${shiftId}`);
+        console.log(`[CHECKOUT] Payload SubTotal: ${subTotal}, TotalAmount: ${totalAmount}`);
         
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
@@ -19,11 +21,19 @@ salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
 
         // Calculate totals if missing to avoid .toString() crashes
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
-        if (calculatedSubTotal === 0) {
-            calculatedSubTotal = items.reduce((acc, item) => acc + (parseFloat(item.price?.toString() || '0') * (item.quantity || 0)), 0);
+        if (isNaN(calculatedSubTotal)) calculatedSubTotal = 0;
+
+        if (calculatedSubTotal === 0 && items) {
+            calculatedSubTotal = items.reduce((acc, item) => {
+                const p = parseFloat(item.price?.toString() || '0');
+                return acc + (isNaN(p) ? 0 : p * (item.quantity || 0));
+            }, 0);
         }
 
-        const finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
+        let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
+        if (isNaN(finalTotalAmount)) finalTotalAmount = calculatedSubTotal;
+        
+        console.log(`[CHECKOUT] Calculated SubTotal: ${calculatedSubTotal}, Final Total: ${finalTotalAmount}`);
         
         await db.transaction(async (tx) => {
             // 1. Record Sale
@@ -39,7 +49,10 @@ salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
 
             // 2. Record Sale Items
             for (const item of items) {
-                const itemSubtotal = item.subtotal ? parseFloat(item.subtotal.toString()) : (parseFloat(item.price?.toString() || '0') * (item.quantity || 0));
+                const itemPriceRaw = parseFloat(item.price?.toString() || '0');
+                const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
+                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
+                const itemSubtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
                 
                 await tx.insert(schema.saleItems).values({
                     saleId: newSale.id,
@@ -47,8 +60,7 @@ salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
                     quantity: item.quantity,
                     subtotal: itemSubtotal.toString()
                 });
-
-                // 3. BOM Automation: Deduct Stock
+                 // 3. BOM Automation: Deduct Stock
                 const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
                 
                 for (const bom of recipeIngs) {
@@ -83,8 +95,13 @@ salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
         });
 
         res.status(201).json({ success: true, message: 'Checkout completed successfully' });
-    } catch (error) {
-        console.error('Error during checkout transaction:', error);
-        res.status(500).json({ error: 'POS Transaction Failed' });
+    } catch (error: any) {
+        console.error('--- POS CHECKOUT FATAL ERROR ---');
+        console.error('Message:', error.message);
+        console.error('Stack:', error.stack);
+        if (error.code) console.error('DB Error Code:', error.code);
+        if (error.detail) console.error('DB Error Detail:', error.detail);
+        console.error('--------------------------------');
+        res.status(500).json({ error: 'POS Transaction Failed', detail: error.message });
     }
 });

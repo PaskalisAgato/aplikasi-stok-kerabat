@@ -92,6 +92,7 @@ function App() {
         <Layout
             currentPort={5186}
             title="Kasir (POS)"
+            subtitle="Premium Sales Entry"
             footer={PosFooter}
         >
             <div className="space-y-10">
