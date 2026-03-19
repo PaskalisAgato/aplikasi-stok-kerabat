@@ -468,18 +468,18 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                 </main>
 
                 {/* Bottom Actions */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-white [#110d08] border-t border-primary/10 p-4 pb-8 z-50 max-w-md mx-auto shadow-[0_-8px_32px_rgba(0,0,0,0.12)] [0_-8px_32px_rgba(0,0,0,0.4)]">
-                    <div className="flex gap-3">
+                <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-primary/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.1)]">
+                    <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={onClose}
-                            className="flex-[1] py-4 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-2xl transition-all active:scale-95 border border-primary/20 shadow-sm">
+                            className="py-4.5 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest rounded-[1.5rem] transition-all active:scale-95 border border-slate-200">
                             Batal
                         </button>
                         <button
                             onClick={handleSaveAPI}
-                            className="flex-[3] py-4 bg-gradient-to-r from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <span className="material-symbols-outlined text-[22px]">save</span>
-                            Simpan Resep
+                            className="py-4.5 bg-gradient-to-r from-primary to-amber-600 text-white font-black text-xs uppercase tracking-widest rounded-[1.5rem] shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group">
+                            <span className="material-symbols-outlined text-[20px] font-black group-hover:rotate-12 transition-transform">save</span>
+                            Simpan resep
                         </button>
                     </div>
                 </footer>
