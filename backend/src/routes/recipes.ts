@@ -73,7 +73,7 @@ recipesRouter.post('/', async (req: Request, res: Response) => {
     try {
         const { name, category, price, margin, imageUrl, ingredients } = req.body;
         
-        if (!name || !category || !price) {
+        if (!name || !category || price === undefined || price === null) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -101,7 +101,7 @@ recipesRouter.post('/', async (req: Request, res: Response) => {
         res.status(201).json(result);
     } catch (error) {
         console.error('Error creating recipe:', error);
-        res.status(500).json({ error: 'Failed to create recipe' });
+        res.status(500).json({ error: 'Failed to create recipe', detail: (error as Error).message });
     }
 });
 
@@ -111,7 +111,7 @@ recipesRouter.put('/:id', async (req: Request, res: Response) => {
         const id = parseInt(req.params.id as string);
         const { name, category, price, margin, imageUrl, ingredients } = req.body;
 
-        if (!name || !category || !price) {
+        if (!name || !category || price === undefined || price === null) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -145,7 +145,7 @@ recipesRouter.put('/:id', async (req: Request, res: Response) => {
         res.json({ success: true, message: 'Recipe updated' });
     } catch (error) {
         console.error('Error updating recipe:', error);
-        res.status(500).json({ error: 'Failed to update recipe' });
+        res.status(500).json({ error: 'Failed to update recipe', detail: (error as Error).message });
     }
 });
 

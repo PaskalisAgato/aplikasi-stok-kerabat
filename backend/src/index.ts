@@ -103,8 +103,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// Handle preflight for all routes
-app.options(/.*/, cors(corsOptions));
+// CORS preflight is already handled by the middleware above
 
 app.use(express.json({ limit: '10mb' }));
 

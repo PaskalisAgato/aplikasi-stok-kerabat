@@ -8,7 +8,8 @@ export interface SessionData {
     user: any;
     session: any;
 }
-
+export async function getSessionManually(req: express.Request): Promise<SessionData | null> {
+    try {
         let sessionId: string | undefined;
 
         // 1. Priority: Authorization header (Manual Bearer token)
