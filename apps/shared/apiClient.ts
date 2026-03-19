@@ -4,10 +4,10 @@
  * Base HTTP utility for the Kerabat POS monorepo.
  */
 
-// Deployment URL (Cyclic for backend)
+// Deployment URL (Dynamic via environment variables)
 export const API_BASE_URL = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
-    || 'https://kerabat-pos-api.cyclic.app/api';
+    || '/api'; // Fallback to relative path for proxying or local use
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {
