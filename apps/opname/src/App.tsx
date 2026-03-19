@@ -71,12 +71,11 @@ function App() {
     };
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
-
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
+                
                 {/* Top Navigation Header */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -91,7 +90,7 @@ function App() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-8 space-y-10 custom-scrollbar animate-in fade-in zoom-in duration-1000">
+                <main className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in duration-1000">
                     {/* Search Bar */}
                     <section className="animate-in fade-in slide-in-from-top-4 duration-700">
                         <div className="relative group">
@@ -118,7 +117,7 @@ function App() {
                     </div>
 
                     {/* Inventory List */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 pb-20">
                         {isLoading ? (
                             <div className="flex flex-col justify-center items-center py-20 gap-6 glass rounded-[3rem] opacity-60">
                                 <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
@@ -207,7 +206,7 @@ function App() {
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 p-8 glass border-t border-white/10 z-50 max-w-2xl mx-auto shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+                <footer className="p-8 glass border-t border-white/10 z-50 shrink-0 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
                     <button 
                         onClick={handleSaveOpname}
                         disabled={isSaving || isLoading}
@@ -220,7 +219,9 @@ function App() {
                         )}
                         {isSaving ? 'MEMPROSES AUDIT...' : 'FINALISASI STOK OPNAME'}
                     </button>
-                </div>
+                </footer>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
             </div>
         </div>
     );

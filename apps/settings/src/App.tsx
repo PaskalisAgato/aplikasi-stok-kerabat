@@ -8,12 +8,11 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
                 
                 {/* Header */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -31,7 +30,7 @@ function App() {
                     </button>
                 </header>
 
-                <main className="flex-1 p-8 space-y-12 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <main className="flex-1 p-8 space-y-12 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     {/* Logo Section */}
                     <section className="flex flex-col items-center gap-8 py-6">
                         <div className="relative group">
@@ -161,17 +160,18 @@ function App() {
                             </div>
                         </div>
                     </section>
-
-                    {/* Save Button */}
-                    <div className="pt-6">
-                        <button
-                            className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
-                        >
-                            <span className="material-symbols-outlined font-black">verified_user</span>
-                            Simpan Seluruh Perubahan
-                        </button>
-                    </div>
                 </main>
+
+                <footer className="p-8 glass border-t border-white/10 shrink-0 z-50">
+                    <button
+                        className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
+                    >
+                        <span className="material-symbols-outlined font-black">verified_user</span>
+                        Simpan Seluruh Perubahan
+                    </button>
+                </footer>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
             </div>
         </div>
     );

@@ -26,12 +26,11 @@ function App() {
     const ingredientsHPP = hppData?.ingredientsHPP || [];
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
-
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
+                
                 {/* Header */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -46,7 +45,7 @@ function App() {
                     </div>
                 </header>
 
-                <main className="p-8 space-y-10 flex-1 custom-scrollbar">
+                <main className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
                     {isLoading ? (
                         <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
                             <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
@@ -177,6 +176,8 @@ function App() {
                         </>
                     )}
                 </main>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
             </div>
         </div>
     );

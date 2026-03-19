@@ -52,12 +52,11 @@ function App() {
     const margin = hargaJual > 0 ? ((laba / hargaJual) * 100).toFixed(1) : '0.0';
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-48 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5185} />
-
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
+                
                 {/* Top App Bar */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -78,7 +77,7 @@ function App() {
                     </button>
                 </header>
 
-                <main className="flex-1 p-8 space-y-12 custom-scrollbar animate-in fade-in zoom-in duration-1000">
+                <main className="flex-1 p-8 space-y-12 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in duration-1000">
                     {/* Ingredients Section */}
                     <section className="space-y-8 animate-in slide-in-from-top-4 duration-700">
                         <div className="flex items-center justify-between px-2">
@@ -239,7 +238,7 @@ function App() {
                 </main>
 
                 {/* Bottom Actions */}
-                <footer className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 p-8 z-50 max-w-2xl mx-auto shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+                <footer className="p-8 glass border-t border-white/10 z-50 shrink-0 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
                     <div className="flex gap-6">
                         <button className="flex-[1] py-5 glass border-white/10 text-primary font-black text-[10px] uppercase tracking-widest rounded-3xl hover:bg-primary/10 transition-all active:scale-95">
                             Draft
@@ -250,6 +249,8 @@ function App() {
                         </button>
                     </div>
                 </footer>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5185} />
             </div>
         </div>
     );

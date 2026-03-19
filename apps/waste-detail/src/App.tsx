@@ -53,12 +53,11 @@ function App() {
     const nilaiKerugian = totalTerbuang * parseFloat(item.pricePerUnit);
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
                 
                 {/* Header */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -79,7 +78,7 @@ function App() {
                     </button>
                 </header>
 
-                <main className="flex-1 p-8 space-y-12 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <main className="flex-1 p-8 space-y-12 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     {/* Item Hero */}
                     <section className="flex flex-col items-center gap-8 py-6">
                         <div className="relative group">
@@ -185,7 +184,7 @@ function App() {
                 </main>
 
                 {/* Sticky Action */}
-                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-8 z-50">
+                <footer className="p-8 glass border-t border-white/5 shrink-0 z-50">
                     <button 
                         onClick={() => window.history.back()}
                         className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-3xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
@@ -193,7 +192,9 @@ function App() {
                         <span className="material-symbols-outlined font-black">arrow_back</span>
                         Kembali ke Ringkasan
                     </button>
-                </div>
+                </footer>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
             </div>
         </div>
     );

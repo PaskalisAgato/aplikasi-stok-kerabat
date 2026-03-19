@@ -5,12 +5,11 @@ import NavDrawer from '../../shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5180} />
-
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
+            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
+                
                 {/* Header Section */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -25,7 +24,7 @@ function App() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-8 space-y-10 custom-scrollbar animate-in fade-in zoom-in duration-1000">
+                <main className="flex-1 p-8 space-y-10 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in duration-1000">
                     {/* Ingredient Summary */}
                     <section className="animate-in fade-in slide-in-from-top-4 duration-700">
                         <div className="card group p-8 flex flex-col sm:flex-row gap-8 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border-white/5 relative overflow-hidden">
@@ -90,8 +89,12 @@ function App() {
                         </div>
                     </section>
                 </main>
+
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5180} />
             </div>
         </div>
+    );
+}
     );
 }
 export default App;

@@ -28,7 +28,7 @@ function App() {
 
     return (
         <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen antialiased animate-in fade-in duration-700 overflow-hidden">
-            <div className="fixed inset-0 flex flex-col max-w-2xl mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
+            <div className="fixed inset-0 flex flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
 
                 {/* Hamburger Drawer Overlay */}
 
