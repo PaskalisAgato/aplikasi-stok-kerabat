@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import NavDrawer from '@shared/NavDrawer';
+import Layout from '@shared/Layout';
 import EmployeeManagementModal from '@shared/components/EmployeeManagementModal';
 import QueryProvider from '@shared/QueryProvider';
 
 function AppContent() {
     return (
-        <div className="bg-background-app font-display text-main min-h-screen antialiased flex flex-col">
+        <Layout
+            currentPort={5178}
+            title="Manajemen Karyawan"
+            subtitle="Staff & Access Control"
+        >
             <EmployeeManagementModal 
                 isOpen={true} 
                 onClose={() => {}} 
                 isStandalone={true}
             />
-        </div>
+        </Layout>
     );
 }
 

@@ -1,8 +1,15 @@
-import ActivityLogPage from '../../shared/components/ActivityLogPage';
+import Layout from '@shared/Layout';
+import ActivityLogPage from '@shared/components/ActivityLogPage';
 
 function App() {
   return (
-    <ActivityLogPage />
+    <Layout
+      currentPort={5180}
+      title="Riwayat Aktivitas"
+      subtitle="Security & Operation Logs"
+    >
+      <ActivityLogPage />
+    </Layout>
   );
 }
 

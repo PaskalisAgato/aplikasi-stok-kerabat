@@ -1,6 +1,6 @@
 import React from 'react';
 import { NAV_LINKS, getTargetUrl } from './navigation';
-import { useSession } from './authClient';
+import { useSession, signOut } from './authClient';
 
 interface NavDrawerProps {
     open: boolean;
@@ -19,6 +19,32 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
         if (userRole === 'Admin') return true; // Admin sees everything
         return link.requiredRole === 'Karyawan'; // Karyawan only sees Karyawan-level links
     });
+
+    const handleLogout = async () => {
+        if (!confirm('Apakah Anda yakin ingin keluar?')) return;
+
+        try {
+            // 1. Clear local fallback token immediately
+            localStorage.removeItem('kerabat_auth_token');
+
+            // 2. Call Better Auth sign out (clears cookies/session)
+            await signOut();
+
+            // 3. Optional: Call manual logout endpoint for extra safety
+            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
+            await fetch(`${apiBaseUrl}/auth/logout-manual`, {
+                method: 'POST',
+                credentials: 'include'
+            }).catch(err => console.error("Manual logout fetch failed:", err));
+
+            // 4. Reload the current page. Layout will see no session and show AuthPage.
+            window.location.reload();
+        } catch (error) {
+            console.error("Logout process error:", error);
+            // Even if something fails, hard refresh to trigger session check
+            window.location.reload();
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex">
@@ -94,24 +120,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                         <div className="h-px bg-[var(--border-dim)] my-1"></div>
 
                         <button 
-                            onClick={async () => {
-                                if (confirm('Apakah Anda yakin ingin keluar?')) {
-                                    try {
-                                        const { signOut } = await import('./authClient');
-                                        await signOut();
-                                        const apiUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
-                                        await fetch(`${apiUrl}/auth/logout-manual`, {
-                                            method: 'POST',
-                                            credentials: 'include'
-                                        });
-                                        localStorage.removeItem('kerabat_auth_token');
-                                        window.location.href = '/aplikasi-stok-kerabat/';
-                                    } catch (error) {
-                                        console.error("Logout failed:", error);
-                                        window.location.reload();
-                                    }
-                                }
-                            }}
+                            onClick={handleLogout}
                             className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-black"
                         >
                             <span className="material-symbols-outlined font-black">logout</span>

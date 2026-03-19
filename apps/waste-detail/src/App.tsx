@@ -1,26 +1,22 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
-import NavDrawer from '@shared/NavDrawer';
+import Layout from '@shared/Layout';
 
 function App() {
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [item, setItem] = useState<any>(null);
     const [wasteLogs, setWasteLogs] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // In a real app, ID would come from URL. Mocking ID 1 for now or from query param.
     const urlParams = new URLSearchParams(window.location.search);
     const itemId = parseInt(urlParams.get('id') || '1');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch inventory master to get name/image
                 const inventory = await apiClient.getInventory();
                 const foundItem = inventory.find((i: any) => i.id === itemId);
                 setItem(foundItem);
 
-                // Fetch waste logs
                 const logs = await apiClient.getItemWaste(itemId);
                 setWasteLogs(logs);
             } catch (error) {
@@ -32,53 +28,39 @@ function App() {
         fetchData();
     }, [itemId]);
 
-    if (isLoading) {
-        return (
-            <div className="bg-background-app  min-h-screen flex items-center justify-center">
-                 <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
-            </div>
-        );
-    }
-
-    if (!item) {
-        return (
-            <div className="bg-background-app  min-h-screen flex flex-col items-center justify-center p-4">
-                 <p className="text-slate-500 font-bold">Bahan tidak ditemukan.</p>
-                 <button onClick={() => window.history.back()} className="mt-4 text-primary font-bold">Kembali</button>
-            </div>
-        );
-    }
-
     const totalTerbuang = wasteLogs.reduce((sum, log) => sum + parseFloat(log.quantity), 0);
-    const nilaiKerugian = totalTerbuang * parseFloat(item.pricePerUnit);
+    const nilaiKerugian = item ? totalTerbuang * parseFloat(item.pricePerUnit) : 0;
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] h-screen antialiased overflow-hidden">
-            <div className="relative flex h-screen w-full flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl">
-                
-                {/* Header */}
-                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => setDrawerOpen(true)}
-                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
-                        >
-                            <span className="material-symbols-outlined font-black">menu</span>
-                        </button>
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none">Waste Detail</h1>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 leading-tight">Loss Intelligence</p>
-                        </div>
-                    </div>
+        <Layout
+            currentPort={5185}
+            title={item?.name || "Waste Detail"}
+            subtitle="Loss Intelligence"
+            footer={
+                <footer className="p-8 glass border-t border-white/5 shrink-0 z-50">
                     <button 
                         onClick={() => window.history.back()}
-                        className="size-12 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
+                        className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-3xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
                     >
                         <span className="material-symbols-outlined font-black">arrow_back</span>
+                        Kembali ke Ringkasan
                     </button>
-                </header>
-
-                <main className="flex-1 p-8 space-y-12 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                </footer>
+            }
+        >
+            {isLoading ? (
+                <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
+                    <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Menganalisis Detail...</p>
+                </div>
+            ) : !item ? (
+                <div className="flex flex-col items-center justify-center p-16 text-center glass rounded-[3rem] border-dashed border-2 opacity-40">
+                    <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">error</span>
+                    <p className="font-black text-xs uppercase tracking-widest">Bahan tidak ditemukan</p>
+                    <button onClick={() => window.history.back()} className="mt-4 text-primary font-bold uppercase text-[10px] tracking-widest">Kembali</button>
+                </div>
+            ) : (
+                <div className="space-y-12">
                     {/* Item Hero */}
                     <section className="flex flex-col items-center gap-8 py-6">
                         <div className="relative group">
@@ -145,13 +127,12 @@ function App() {
                     </section>
 
                     {/* Recent Logs */}
-                    <section className="space-y-6 pb-20">
+                    <section className="space-y-6 pb-10">
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-4">
                                 <span className="material-symbols-outlined text-primary font-black">history</span>
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Audit Trail</h3>
                             </div>
-                            <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">See All</button>
                         </div>
 
                         <div className="space-y-4">
@@ -181,22 +162,13 @@ function App() {
                             )}
                         </div>
                     </section>
-                </main>
+                </div>
+            )}
+        </Layout>
+    );
+}
 
-                {/* Sticky Action */}
-                <footer className="p-8 glass border-t border-white/5 shrink-0 z-50">
-                    <button 
-                        onClick={() => window.history.back()}
-                        className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-3xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
-                    >
-                        <span className="material-symbols-outlined font-black">arrow_back</span>
-                        Kembali ke Ringkasan
-                    </button>
-                </footer>
-
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
-            </div>
-        </div>
+export default App;
     );
 }
 

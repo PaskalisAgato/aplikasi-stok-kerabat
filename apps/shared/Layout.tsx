@@ -8,8 +8,10 @@ interface LayoutProps {
     children: React.ReactNode;
     currentPort: number;
     title: string;
+    subtitle?: string;
     sidebar?: React.ReactNode;
     headerExtras?: React.ReactNode;
+    footer?: React.ReactNode;
     maxWidth?: string;
 }
 
@@ -17,12 +19,15 @@ const Layout: React.FC<LayoutProps> = ({
     children, 
     currentPort, 
     title, 
+    subtitle,
     sidebar, 
     headerExtras,
+    footer,
     maxWidth = '1600px'
 }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { data: session, isPending, refetch, error: sessionError } = useSession();
+    if (sessionError) console.error("Session verification failed:", sessionError);
     const [retryCount, setRetryCount] = useState(0);
     const [isRetrying, setIsRetrying] = useState(false);
     const maxRetries = 3;
@@ -55,6 +60,10 @@ const Layout: React.FC<LayoutProps> = ({
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="material-symbols-outlined text-primary text-4xl">local_cafe</span>
                         </div>
+                    </div>
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">{title}</h1>
+                        {subtitle && <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">{subtitle}</p>}
                     </div>
                     <div className="space-y-4">
                         <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary animate-pulse">
@@ -132,10 +141,10 @@ const Layout: React.FC<LayoutProps> = ({
     }
 
     return (
-        <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500">
+        <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
             
-            <div className={`flex flex-col min-h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative`} style={{ maxWidth }}>
+            <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative`} style={{ maxWidth }}>
                 
                 {/* Desktop Sidebar (Floating Glass Effect) */}
                 {sidebar && (
@@ -146,7 +155,8 @@ const Layout: React.FC<LayoutProps> = ({
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Kerabat POS</p>
-                                <h1 className="text-xl font-black tracking-tight truncate font-display">{title}</h1>
+                                <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
+                                {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto hide-scrollbar pr-2 -mr-2">
@@ -156,9 +166,9 @@ const Layout: React.FC<LayoutProps> = ({
                 )}
 
                 {/* Main Viewport */}
-                <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                     {/* Shell Header (Glass) */}
-                    <header className="sticky top-0 z-30 px-6 py-5">
+                    <header className="px-6 py-5 shrink-0">
                         <div className="glass rounded-[2rem] px-6 py-4 flex items-center gap-6">
                             <button 
                                 onClick={() => setDrawerOpen(true)} 
@@ -172,7 +182,10 @@ const Layout: React.FC<LayoutProps> = ({
                                      <div className="size-10 rounded-xl accent-gradient flex items-center justify-center text-slate-950">
                                         <span className="material-symbols-outlined text-xl">coffee</span>
                                     </div>
-                                    <h1 className="text-xl font-black tracking-tight truncate font-display">{title}</h1>
+                                    <div className="space-y-0.5">
+                                        <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
+                                        {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
+                                    </div>
                                 </div>
                             )}
                             
@@ -187,11 +200,18 @@ const Layout: React.FC<LayoutProps> = ({
                     </header>
 
                     {/* Content Area */}
-                    <main className="flex-1 px-6 md:px-10 pb-10">
+                    <main className="flex-1 px-6 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             {children}
                         </div>
                     </main>
+
+                    {/* Fixed Footer */}
+                    {footer && (
+                        <div className="shrink-0">
+                            {footer}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

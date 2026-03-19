@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
-
-
-
-import NavDrawer from '@shared/NavDrawer';
+import Layout from '@shared/Layout';
 
 export default function App() {
     const [financeData, setFinanceData] = useState({
@@ -12,7 +9,6 @@ export default function App() {
         netProfit: 0
     });
     const [isLoading, setIsLoading] = useState(true);
-    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         const fetchReports = async () => {
@@ -71,157 +67,132 @@ export default function App() {
         </div>
     );
 
+    const ReportsFooter = (
+        <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4 lg:hidden">
+            <button className="flex-1 flex items-center justify-center gap-3 glass border-primary/40 text-primary font-black py-5 rounded-[1.5rem] active:scale-95 transition-all text-xs uppercase tracking-widest shadow-xl">
+                <span className="material-symbols-outlined">picture_as_pdf</span>
+                PDF
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-3 bg-emerald-500 text-slate-950 font-black py-5 rounded-[1.5rem] shadow-2xl shadow-emerald-500/30 active:scale-95 transition-all border-none text-xs uppercase tracking-widest">
+                <span className="material-symbols-outlined font-black">table_view</span>
+                Excel
+            </button>
+        </footer>
+    );
+
     return (
-        <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full overflow-hidden">
-            <div className="fixed inset-0 flex flex-col max-w-[1600px] mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
-                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => setDrawerOpen(true)}
-                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
-                        >
-                            <span className="material-symbols-outlined font-black">menu</span>
-                        </button>
+        <Layout
+            currentPort={5175}
+            title="Laporan"
+            sidebar={ReportsSidebar}
+            footer={ReportsFooter}
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+                {isLoading ? (
+                    <div className="col-span-full h-64 flex flex-col items-center justify-center gap-6 glass rounded-[3rem]">
+                        <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghitung Laba Rugi...</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="card relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-transform group-hover:scale-110"></div>
+                            <div className="relative z-10 space-y-6">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Pemasukan</p>
+                                        <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
+                                            Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k
+                                        </h2>
+                                    </div>
+                                    <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                                        <span className="material-symbols-outlined text-3xl font-black">analytics</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 text-emerald-500 font-black text-[10px] uppercase tracking-widest bg-emerald-500/10 w-fit px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                                    <span className="material-symbols-outlined text-sm font-black">trending_up</span>
+                                    +12.5% vs bulan lalu
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card accent-gradient text-slate-950 border-none shadow-2xl shadow-primary/30 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 size-64 bg-white/10 rounded-full blur-[60px] -mr-24 -mt-24"></div>
+                            <div className="relative z-10 space-y-6">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] opacity-80">Profit Bersih (Net)</p>
+                                        <h2 className="text-4xl font-black font-display tracking-tighter uppercase">
+                                            Rp {((netProfit || 0) / 1000).toLocaleString('id-ID')}k
+                                        </h2>
+                                    </div>
+                                    <div className="size-14 rounded-2xl bg-slate-900/10 flex items-center justify-center text-slate-950 shadow-inner">
+                                        <span className="material-symbols-outlined text-3xl font-black">account_balance_wallet</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 text-slate-950 font-black text-[10px] uppercase tracking-widest bg-slate-950/10 w-fit px-3 py-1.5 rounded-lg border border-slate-950/20">
+                                    <span className="material-symbols-outlined text-sm font-black">payments</span>
+                                    Margin {margin}% Akumulasi
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 animate-in fade-in zoom-in duration-1000">
+                <div className="card relative overflow-hidden space-y-10 group">
+                    <div className="flex items-center justify-between relative z-10">
                         <div className="space-y-1">
-                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">Laporan</h1>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">Analitik Keuangan</p>
+                            <h3 className="text-2xl font-black font-display tracking-tight uppercase">Segmentasi Penjualan</h3>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] opacity-80">Distribusi pendapatan per kategori</p>
+                        </div>
+                        <div className="size-12 rounded-2xl glass flex items-center justify-center text-primary border-white/5">
+                            <span className="material-symbols-outlined font-black">donut_large</span>
                         </div>
                     </div>
-                </header>
 
-                <div className="flex-1 flex overflow-hidden">
-                    {/* Desktop Sidebar */}
-                    <aside className="hidden lg:flex w-80 glass border-r border-white/5 flex-col p-8 space-y-10 shrink-0 overflow-y-auto custom-scrollbar">
-                        {ReportsSidebar}
-                    </aside>
-
-                    <main className="flex-1 overflow-y-auto px-8 py-10 custom-scrollbar pb-32 lg:pb-10">
-                        {/* Status Summary Section */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-                            {isLoading ? (
-                                <div className="col-span-full h-64 flex flex-col items-center justify-center gap-6 glass rounded-[3rem]">
-                                    <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghitung Laba Rugi...</p>
+                    <div className="space-y-8 relative z-10">
+                        {[
+                            { label: 'Kopi & Espresso', val: 'Rp 22,180k', color: 'bg-primary shadow-primary/20', w: 'w-[57%]' },
+                            { label: 'Teh & Non-Kopi', val: 'Rp 8,540k', color: 'bg-amber-500 shadow-amber-500/20', w: 'w-[22%]' },
+                            { label: 'Makanan & Snack', val: 'Rp 8,200k', color: 'bg-slate-400 shadow-slate-400/20', w: 'w-[21%]' }
+                        ].map((item, id) => (
+                            <div key={id} className="space-y-3 group/item transition-all hover:translate-x-1">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`size-3 rounded-full ${item.color} shadow-lg`}></div>
+                                        <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] opacity-80 group-hover/item:text-primary transition-colors">{item.label}</span>
+                                    </div>
+                                    <span className="text-sm font-black text-[var(--text-main)] font-display tracking-wide">{item.val}</span>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="card relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-transform group-hover:scale-110"></div>
-                                        <div className="relative z-10 space-y-6">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Pemasukan</p>
-                                                    <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
-                                                        Rp {((revenue || 0) / 1000).toLocaleString('id-ID')}k
-                                                    </h2>
-                                                </div>
-                                                <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                                    <span className="material-symbols-outlined text-3xl font-black">analytics</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-emerald-500 font-black text-[10px] uppercase tracking-widest bg-emerald-500/10 w-fit px-3 py-1.5 rounded-lg border border-emerald-500/20">
-                                                <span className="material-symbols-outlined text-sm font-black">trending_up</span>
-                                                +12.5% vs bulan lalu
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="card accent-gradient text-slate-950 border-none shadow-2xl shadow-primary/30 relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 size-64 bg-white/10 rounded-full blur-[60px] -mr-24 -mt-24"></div>
-                                        <div className="relative z-10 space-y-6">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] opacity-80">Profit Bersih (Net)</p>
-                                                    <h2 className="text-4xl font-black font-display tracking-tighter uppercase">
-                                                        Rp {((netProfit || 0) / 1000).toLocaleString('id-ID')}k
-                                                    </h2>
-                                                </div>
-                                                <div className="size-14 rounded-2xl bg-slate-900/10 flex items-center justify-center text-slate-950 shadow-inner">
-                                                    <span className="material-symbols-outlined text-3xl font-black">account_balance_wallet</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-slate-950 font-black text-[10px] uppercase tracking-widest bg-slate-950/10 w-fit px-3 py-1.5 rounded-lg border border-slate-950/20">
-                                                <span className="material-symbols-outlined text-sm font-black">payments</span>
-                                                Margin {margin}% Akumulasi
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Breakdown Section */}
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 animate-in fade-in zoom-in duration-1000">
-                            <div className="card relative overflow-hidden space-y-10 group">
-                                <div className="flex items-center justify-between relative z-10">
-                                    <div className="space-y-1">
-                                        <h3 className="text-2xl font-black font-display tracking-tight uppercase">Segmentasi Penjualan</h3>
-                                        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] opacity-80">Distribusi pendapatan per kategori</p>
-                                    </div>
-                                    <div className="size-12 rounded-2xl glass flex items-center justify-center text-primary border-white/5">
-                                        <span className="material-symbols-outlined font-black">donut_large</span>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-8 relative z-10">
-                                    {[
-                                        { label: 'Kopi & Espresso', val: 'Rp 22,180k', color: 'bg-primary shadow-primary/20', w: 'w-[57%]' },
-                                        { label: 'Teh & Non-Kopi', val: 'Rp 8,540k', color: 'bg-amber-500 shadow-amber-500/20', w: 'w-[22%]' },
-                                        { label: 'Makanan & Snack', val: 'Rp 8,200k', color: 'bg-slate-400 shadow-slate-400/20', w: 'w-[21%]' }
-                                    ].map((item, id) => (
-                                        <div key={id} className="space-y-3 group/item transition-all hover:translate-x-1">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`size-3 rounded-full ${item.color} shadow-lg`}></div>
-                                                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] opacity-80 group-hover/item:text-primary transition-colors">{item.label}</span>
-                                                </div>
-                                                <span className="text-sm font-black text-[var(--text-main)] font-display tracking-wide">{item.val}</span>
-                                            </div>
-                                            <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner border border-white/5">
-                                                <div className={`${item.color} h-full ${item.w} rounded-full transition-all duration-1000 accent-glow`}></div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner border border-white/5">
+                                    <div className={`${item.color} h-full ${item.w} rounded-full transition-all duration-1000 accent-glow`}></div>
                                 </div>
                             </div>
-
-                            <div className="space-y-8">
-                                <section className="card group relative overflow-hidden transition-all duration-500 hover:border-red-500/20">
-                                    <div className="absolute top-0 right-0 size-32 bg-red-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                                    <div className="flex items-center justify-between mb-8 relative z-10">
-                                        <div className="space-y-1">
-                                            <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em]">Biaya Operasional</h3>
-                                            <p className="text-3xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">Rp {(expenses).toLocaleString('id-ID')}</p>
-                                        </div>
-                                        <div className="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shadow-inner group-hover:scale-110 transition-transform">
-                                            <span className="material-symbols-outlined text-3xl font-black">receipt_long</span>
-                                        </div>
-                                    </div>
-                                    <div className="glass p-4 rounded-xl border-white/5 opacity-80">
-                                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">Seluruh biaya bahan baku, utilitas, dan upah karyawan disinkronisasi otomatis dari Kerabat Cloud.</p>
-                                    </div>
-                                </section>
-                            </div>
-                        </div>
-                    </main>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Static Footer Actions for Mobile */}
-                <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4 lg:hidden">
-                    <button className="flex-1 flex items-center justify-center gap-3 glass border-primary/40 text-primary font-black py-5 rounded-[1.5rem] active:scale-95 transition-all text-xs uppercase tracking-widest shadow-xl">
-                        <span className="material-symbols-outlined">picture_as_pdf</span>
-                        PDF
-                    </button>
-                    <button className="flex-1 flex items-center justify-center gap-3 bg-emerald-500 text-slate-950 font-black py-5 rounded-[1.5rem] shadow-2xl shadow-emerald-500/30 active:scale-95 transition-all border-none text-xs uppercase tracking-widest">
-                        <span className="material-symbols-outlined font-black">table_view</span>
-                        Excel
-                    </button>
-                </footer>
-
-                {/* Hamburger Drawer Overlay */}
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5175} />
+                <div className="space-y-8">
+                    <section className="card group relative overflow-hidden transition-all duration-500 hover:border-red-500/20">
+                        <div className="absolute top-0 right-0 size-32 bg-red-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="space-y-1">
+                                <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em]">Biaya Operasional</h3>
+                                <p className="text-3xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">Rp {(expenses).toLocaleString('id-ID')}</p>
+                            </div>
+                            <div className="size-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shadow-inner group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-3xl font-black">receipt_long</span>
+                            </div>
+                        </div>
+                        <div className="glass p-4 rounded-xl border-white/5 opacity-80">
+                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">Seluruh biaya bahan baku, utilitas, dan upah karyawan disinkronisasi otomatis dari Kerabat Cloud.</p>
+                        </div>
+                    </section>
+                </div>
             </div>
-        </div>
+        </Layout>
     );
 }
 
