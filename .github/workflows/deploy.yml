@@ -149,6 +149,8 @@ jobs:
       - name: Assemble dist-pages
         run: |
           mkdir -p dist-pages
+          # Copy root redirector
+          cp index.html dist-pages/index.html || true
           # Copy each app's build output into dist-pages
           for app in pos dashboard inventory recipes recipe-edit reports employees settings waste waste-detail opname hpp expenses cogs activity-history; do
             dir="apps/$app/dist"
@@ -159,9 +161,8 @@ jobs:
               echo "Skipping $app (no dist folder)"
             fi
           done
-          # Copy root redirect pages
-          cp dist-pages/index.html dist-pages/index.html 2>/dev/null || true
-          cp dist-pages/404.html dist-pages/404.html 2>/dev/null || true
+          # Copy root redirect pages (fallback)
+          cp dist-pages/index.html dist-pages/404.html 2>/dev/null || true
           ls -la dist-pages/
 
       - name: Deploy to GitHub Pages
