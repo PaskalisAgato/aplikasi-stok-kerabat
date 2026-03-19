@@ -196,8 +196,8 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex justify-center items-start overflow-y-auto sm:p-4 animate-in fade-in duration-300">
-            <div className="relative flex h-auto min-h-screen sm:min-h-[500px] w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app sm:rounded-3xl pb-32 border-x sm:border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex justify-center items-center sm:p-4 animate-in fade-in duration-300">
+            <div className="relative flex h-full max-h-screen sm:max-h-[90vh] sm:min-h-[500px] w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app sm:rounded-[2.5rem] border-x sm:border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Top App Bar */}
                 <header className="sticky top-0 z-50 bg-background-app border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-95">
                     <div className="flex-1 flex items-center justify-between">
@@ -220,7 +220,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                     </div>
                 </header>
 
-                <main className="flex-1">
+                <main className="flex-1 overflow-y-auto custom-scrollbar">
                     {/* Recipe Name Input */}
                     <div className="px-4 pt-6">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Nama Resep</label>
@@ -465,13 +465,10 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                             </div>
                         </div>
                     </section>
-                    
-                    {/* Add extra spacer for bottom footer visibility */}
-                    <div className="h-48"></div>
                 </main>
 
-                {/* Bottom Actions */}
-                <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-primary/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.1)]">
+                {/* Bottom Actions (Non-fixed, always at bottom of flex container) */}
+                <footer className="bg-white border-t border-primary/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.05)] w-full">
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={onClose}
