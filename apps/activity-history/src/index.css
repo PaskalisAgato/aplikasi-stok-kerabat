@@ -1,21 +1,25 @@
+@import "../../shared/global.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #f59e0b;
-  --bg-app: #0b0f1a;
-  --bg-surface: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-dim: #3341551a;
+body {
+    @apply m-0 antialiased bg-[var(--bg-app)] text-[var(--text-main)];
 }
 
-body {
-  margin: 0;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-app);
-  color: var(--text-main);
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-100 rounded-full;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-800;
 }

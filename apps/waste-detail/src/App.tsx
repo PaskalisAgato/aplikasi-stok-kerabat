@@ -53,108 +53,129 @@ function App() {
     const nilaiKerugian = totalTerbuang * parseFloat(item.pricePerUnit);
 
     return (
-        <div className="bg-background-app  text-slate-900  min-h-screen flex flex-col font-display antialiased">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden pb-8">
-
-                {/* Header Section */}
-                <header className="sticky top-0 z-50 bg-background-app/90  backdrop-blur-md border-b border-primary/10">
-                    <div className="flex items-center p-4 gap-2">
-                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0">
-                            <span className="material-symbols-outlined">menu</span>
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5183} />
+                
+                {/* Header */}
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
                         </button>
-                        <div className="flex-1">
-                            <h1 className="text-xs font-bold text-primary uppercase tracking-wider mb-0.5">Detail Pemborosan</h1>
-                            <h2 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 ">{item.name}</h2>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none">Waste Detail</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 leading-tight">Loss Intelligence</p>
                         </div>
                     </div>
+                    <button 
+                        onClick={() => window.history.back()}
+                        className="size-12 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
+                    >
+                        <span className="material-symbols-outlined font-black">arrow_back</span>
+                    </button>
                 </header>
 
-                <main className="flex-1 overflow-y-auto">
-
-                    {/* Ingredient Context */}
-                    <div className="p-4 flex items-center gap-4">
-                        <div
-                            className="size-20 rounded-2xl bg-white  bg-cover bg-center border border-slate-200  shadow-sm shrink-0"
-                            style={{ backgroundImage: `url('${item.imageUrl || "https://images.unsplash.com/photo-1550508127-160fa31b2628?q=80&w=200&auto=format&fit=crop"}')` }}
-                            title={item.name}
-                        ></div>
-                        <div className="flex-1">
-                            <p className="text-slate-500  text-xs font-semibold uppercase tracking-wider mb-0.5">Outlet</p>
-                            <p className="font-extrabold text-lg tracking-tight text-slate-900 ">Kerabat Kopi Tiam</p>
-                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                                <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-primary/10  text-primary border border-primary/20  uppercase tracking-wider shadow-sm">{item.category}</span>
-                                <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-emerald-500/10  text-emerald-600  border border-emerald-500/20  uppercase tracking-wider shadow-sm">In Stock</span>
+                <main className="flex-1 p-8 space-y-12 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    {/* Item Hero */}
+                    <section className="flex flex-col items-center gap-8 py-6">
+                        <div className="relative group">
+                            <div
+                                className="size-40 rounded-[2.5rem] glass border-4 border-white/10 bg-cover bg-center overflow-hidden shadow-2xl group-hover:rotate-3 transition-transform duration-500"
+                                style={{ backgroundImage: `url('${item.imageUrl || "https://images.unsplash.com/photo-1550508127-160fa31b2628?q=80&w=200&auto=format&fit=crop"}')` }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-white p-3 rounded-2xl shadow-2xl border-4 border-[var(--bg-app)]">
+                                <span className="material-symbols-outlined text-xl font-black">inventory_2</span>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Summary Cards Grid */}
-                    <div className="px-4 grid grid-cols-2 gap-3 pb-2 pt-2">
-                        <div className="col-span-2 bg-slate-50  border border-slate-200  rounded-2xl p-5 shadow-sm">
-                            <p className="text-slate-500  text-xs font-bold uppercase tracking-widest">Total Terbuang (30 Hari)</p>
-                            <div className="flex items-end justify-between mt-2">
-                                <p className="text-3xl font-extrabold text-slate-900  tracking-tight">
-                                    {totalTerbuang} <span className="text-lg font-semibold text-slate-500  ml-1">{item.unit}</span>
-                                </p>
-                                <div className="flex flex-col items-end gap-1">
-                                    <span className="text-rose-600  flex items-center gap-0.5 text-[11px] font-bold bg-rose-500/10 px-2 py-0.5 rounded shadow-sm border border-rose-500/20">
-                                         Live Data
-                                    </span>
-                                </div>
+                        <div className="text-center space-y-2">
+                            <h2 className="text-3xl font-black font-display tracking-tight text-primary uppercase leading-none">{item.name}</h2>
+                            <div className="flex items-center justify-center gap-3">
+                                <span className="px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">{item.category}</span>
+                                <span className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">Active Analysis</span>
                             </div>
                         </div>
+                    </section>
 
-                        <div className="bg-slate-50  border border-slate-200  rounded-2xl p-4 shadow-sm">
-                            <p className="text-slate-500  text-[10px] font-bold uppercase tracking-wider">Nilai Kerugian</p>
-                            <p className="text-lg font-extrabold mt-1.5 tracking-tight text-slate-900 ">Rp {nilaiKerugian.toLocaleString('id-ID')}</p>
-                        </div>
-
-                        <div className="bg-slate-50  border border-slate-200  rounded-2xl p-4 shadow-sm">
-                            <p className="text-slate-500  text-[10px] font-bold uppercase tracking-wider">Harga Satuan</p>
-                            <p className="text-lg font-extrabold mt-1.5 tracking-tight text-slate-900 ">Rp {parseFloat(item.pricePerUnit).toLocaleString('id-ID')}</p>
-                        </div>
-                    </div>
-
-                    {/* Waste Reasons Breakdown - Remains static representation for now */}
-                    <section className="mt-8 px-4">
-                        <h3 className="text-[11px] font-extrabold text-slate-500  uppercase tracking-widest mb-4">Penyebab Utama</h3>
-                        <div className="space-y-4.5 flex flex-col gap-4">
-                            <div className="group">
-                                <div className="flex justify-between items-end mb-1.5 text-sm">
-                                    <span className="font-bold tracking-tight text-slate-800 ">Kadaluarsa (Expired)</span>
-                                    <span className="text-primary font-extrabold">50%</span>
+                    {/* Impact Metrics */}
+                    <section className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2 card p-8 border-white/5 bg-gradient-to-br from-primary/10 to-transparent relative overflow-hidden group">
+                            <div className="relative z-10 space-y-2">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Total Loss (30D)</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-5xl font-black font-display tracking-tighter text-[var(--text-main)] group-hover:scale-105 transition-transform origin-left">{totalTerbuang}</p>
+                                    <p className="text-xl font-black text-primary uppercase opacity-60">{item.unit}</p>
                                 </div>
-                                <div className="w-full bg-slate-100  h-2.5 rounded-full overflow-hidden shadow-inner flex">
-                                    <div className="bg-primary hover:bg-primary/90 transition-colors h-full rounded-full" style={{ width: '50%' }}></div>
+                            </div>
+                            <span className="absolute -right-4 -bottom-4 material-symbols-outlined text-[100px] text-primary/5 font-black rotate-12">trending_down</span>
+                        </div>
+
+                        <div className="glass p-6 rounded-[2rem] border-white/5 space-y-2">
+                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Revenue Loss</p>
+                            <p className="text-xl font-black font-display text-[var(--text-main)]">Rp {nilaiKerugian.toLocaleString('id-ID')}</p>
+                        </div>
+
+                        <div className="glass p-6 rounded-[2rem] border-white/5 space-y-2">
+                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Unit Cost</p>
+                            <p className="text-xl font-black font-display text-[var(--text-main)]">Rp {parseFloat(item.pricePerUnit).toLocaleString('id-ID')}</p>
+                        </div>
+                    </section>
+
+                    {/* Breakdown */}
+                    <section className="space-y-6">
+                        <div className="flex items-center gap-4 px-2">
+                            <span className="material-symbols-outlined text-primary font-black">bar_chart</span>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Causal Analysis</h3>
+                        </div>
+                        <div className="card p-8 border-white/5">
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                    <span className="text-[var(--text-main)]">Kadaluarsa (Expired)</span>
+                                    <span className="text-primary">50%</span>
+                                </div>
+                                <div className="h-4 w-full glass rounded-full overflow-hidden p-1 border-white/5">
+                                    <div className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(255,191,0,0.4)]" style={{ width: '50%' }}></div>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* Recent Waste Log */}
-                    <section className="mt-8 px-4 pb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-[11px] font-extrabold text-slate-500  uppercase tracking-widest">Log Pembuangan</h3>
+                    {/* Recent Logs */}
+                    <section className="space-y-6 pb-20">
+                        <div className="flex items-center justify-between px-2">
+                            <div className="flex items-center gap-4">
+                                <span className="material-symbols-outlined text-primary font-black">history</span>
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Audit Trail</h3>
+                            </div>
+                            <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">See All</button>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {wasteLogs.length === 0 ? (
-                                <p className="text-center text-slate-400 py-8 italic text-sm">Tidak ada log pembuangan untuk bahan ini.</p>
+                                <div className="card p-12 text-center border-dashed border-white/10 opacity-40">
+                                    <p className="text-xs font-black uppercase tracking-widest">No Records Found</p>
+                                </div>
                             ) : (
                                 wasteLogs.map((log: any) => (
-                                    <div key={log.id} className="bg-white  p-4 rounded-2xl border border-slate-200  shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex flex-col gap-0.5">
-                                                <p className="font-extrabold text-sm tracking-tight text-slate-900 ">{log.quantity} {item.unit}</p>
-                                                <p className="text-[11px] font-medium text-slate-500 ">{log.reason || 'Tidak ada alasan'}</p>
-                                            </div>
-                                            <div className="text-right flex flex-col gap-1 items-end">
-                                                <p className="text-[11px] font-bold text-slate-700 ">
-                                                    {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                                </p>
-                                                <p className="text-[9px] text-primary font-extrabold uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">SYSTEM</p>
-                                            </div>
+                                    <div key={log.id} className="card p-6 border-white/5 hover:bg-white/5 transition-all flex items-center justify-between group">
+                                        <div className="space-y-1">
+                                            <p className="text-lg font-black font-display text-[var(--text-main)] leading-none group-hover:text-primary transition-colors">
+                                                {log.quantity} {item.unit}
+                                            </p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">{log.reason || 'Manual Adjustment'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">
+                                                {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                            </p>
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40">
+                                                {new Date(log.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
                                         </div>
                                     </div>
                                 ))
@@ -163,14 +184,16 @@ function App() {
                     </section>
                 </main>
 
-                {/* Bottom Action */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-light  to-transparent pt-10 max-w-md mx-auto z-40">
-                    <button onClick={() => window.history.back()} className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined">arrow_back</span>
+                {/* Sticky Action */}
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-8 z-50">
+                    <button 
+                        onClick={() => window.history.back()}
+                        className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-3xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
+                    >
+                        <span className="material-symbols-outlined font-black">arrow_back</span>
                         Kembali ke Ringkasan
                     </button>
                 </div>
-
             </div>
         </div>
     );

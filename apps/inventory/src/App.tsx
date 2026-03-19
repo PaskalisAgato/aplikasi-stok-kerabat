@@ -7,7 +7,6 @@ import CreateItemModal from './components/CreateItemModal';
 import NotificationModal from './components/NotificationModal';
 import EditItemModal from './components/EditItemModal';
 import StoreProfileModal from './components/StoreProfileModal';
-import EmployeeManagementModal from './components/EmployeeManagementModal';
 
 
 import Layout from '@shared/Layout';
@@ -19,7 +18,6 @@ function App() {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
-  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStock, setSelectedStock] = useState<any>(null);
@@ -74,28 +72,31 @@ function App() {
 
   // Sidebar Component for Layout
   const InventorySidebar = (
-    <div className="space-y-8">
-        <div className="space-y-4">
-            <p className="text-xs font-black text-muted uppercase tracking-widest">Filter Status</p>
-            <div className="flex flex-col gap-2">
+    <div className="space-y-10 animate-in fade-in slide-in-from-left duration-700">
+        <div className="space-y-6">
+            <div className="flex items-center gap-2 px-2">
+                <span className="material-symbols-outlined text-primary text-sm font-black">filter_list</span>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Status</p>
+            </div>
+            <div className="flex flex-col gap-3">
                 {['Semua', 'Kritis', 'Normal'].map(cat => (
                     <button 
                         key={cat} 
                         onClick={() => setFilterType(cat)}
-                        className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-500 hover:bg-primary/5 hover:text-primary'}`}
+                        className={`w-full text-left px-5 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-[0.97] ${filterType === cat ? 'accent-gradient text-slate-950 shadow-xl shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-primary/5 hover:text-primary glass border-transparent'}`}
                     >
                         {cat}
                     </button>
                 ))}
             </div>
         </div>
-        <div className="pt-8 border-t border-border-dim space-y-4">
-            <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full">
-                <span className="material-symbols-outlined">add</span>
+        <div className="pt-10 border-t border-[var(--border-dim)] space-y-4">
+            <button onClick={() => setIsCreateItemModalOpen(true)} className="btn-primary w-full py-4 rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-primary/20">
+                <span className="material-symbols-outlined font-black">add_circle</span>
                 Tambah Bahan
             </button>
-            <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border-dim text-muted font-bold hover:bg-primary/5 transition-all">
-                <span className="material-symbols-outlined text-[18px]">download</span>
+            <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-[var(--border-dim)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all active:scale-[0.97]">
+                <span className="material-symbols-outlined text-lg font-black">download</span>
                 Ekspor CSV
             </button>
         </div>
@@ -104,19 +105,22 @@ function App() {
 
   // Header Extras (Search + Notifications)
   const InventoryHeaderExtras = (
-    <div className="flex items-center gap-4 flex-1 max-w-xl">
+    <div className="flex items-center gap-6 flex-1 max-w-2xl">
         <div className="relative flex-1 group">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted">search</span>
+            <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">search</span>
             <input
                 type="text"
                 placeholder="Cari bahan baku..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-12 pr-4 rounded-2xl border border-border-dim bg-surface focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold text-main"
+                className="w-full h-14 pl-14 pr-6 rounded-2xl glass focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-sm font-bold text-[var(--text-main)] shadow-inner border-none"
             />
         </div>
-        <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 card flex items-center justify-center text-primary group shrink-0">
-            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
+        <button onClick={() => setIsNotificationModalOpen(true)} className="size-14 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
+            <div className="relative">
+                <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
+                <span className="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[var(--bg-surface)] animate-pulse"></span>
+            </div>
         </button>
     </div>
   );
@@ -124,103 +128,123 @@ function App() {
   return (
     <Layout 
         currentPort={5174} 
-        title="Inventory" 
+        title="Inventori" 
         sidebar={InventorySidebar}
         headerExtras={InventoryHeaderExtras}
+        maxWidth="1600px"
     >
         {/* Mobile Filter Scroll */}
-        <div className="lg:hidden flex gap-2 overflow-x-auto hide-scrollbar mb-6 pb-2">
+        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-8 pb-2">
             {['Semua', 'Kritis', 'Normal'].map(cat => (
                 <button 
                     key={`mob-cat-${cat}`}
                     onClick={() => setFilterType(cat)}
-                    className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-black transition-all ${filterType === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background-app text-muted'}`}
+                    className={`whitespace-nowrap px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 ${filterType === cat ? 'accent-gradient text-slate-950 shadow-lg shadow-primary/20' : 'glass text-[var(--text-muted)] border-transparent'}`}
                 >
                     {cat}
                 </button>
             ))}
         </div>
 
-        <div className="flex items-center justify-between mb-8 px-1">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted">Daftar Inventori</h2>
-            <p className="text-xs font-bold text-muted">Menampilkan {filteredInventory.length} item</p>
+        <div className="flex items-center justify-between mb-10 px-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
+            <div className="space-y-1">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Manajemen Stok</h2>
+                <p className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Daftar Inventori</p>
+            </div>
+            <div className="glass px-5 py-2 rounded-2xl border-white/5 shadow-inner">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-80">{filteredInventory.length} ITEM AKTIF</p>
+            </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-in fade-in zoom-in duration-700">
           {filteredInventory.map(item => (
             <div 
               key={item.id} 
               onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
-              className="card p-6 flex flex-col hover:border-primary/40 active:scale-[0.98] group cursor-pointer"
+              className="card group cursor-pointer relative overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="min-w-0">
-                  <h3 className="font-black text-main text-lg leading-tight truncate px-1">{item.name}</h3>
-                  <p className="text-xs font-bold text-muted mt-1 flex items-center gap-1">
-                       <span className="material-symbols-outlined text-[14px]">local_shipping</span>
-                       {item.supplier || 'No Supplier'}
-                  </p>
+              {/* Status Indicator */}
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className="min-w-0 space-y-1">
+                  <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</h3>
+                  <div className="flex items-center gap-2 opacity-60">
+                       <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
+                       <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate">{item.supplier || 'Pemasok Umum'}</p>
+                  </div>
                 </div>
-                <span className={`text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm ${item.status === 'KRITIS' ? 'text-red-600 bg-red-100' :
-                    item.status === 'HABIS' ? 'text-slate-600 bg-slate-200' :
-                      'text-emerald-600 bg-emerald-100'
-                    }`}>
+                <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
+                    item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
+                    item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10 border-slate-500/20' :
+                    'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10'
+                }`}>
                     {item.status}
-                </span>
+                </div>
               </div>
 
-              <div className="flex items-end justify-between mt-auto mb-4">
-                   <div className="flex flex-col">
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">Sisa Stok</p>
-                        <p className="text-2xl font-black text-main">
+              {/* Stock Values */}
+              <div className="flex items-end justify-between mt-auto mb-6 relative z-10">
+                   <div className="space-y-1">
+                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
+                        <p className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter">
                             {item.currentStock}
-                            <span className="text-xs font-bold text-muted ml-1 italic">{item.unit}</span>
+                            <span className="text-xs font-black text-[var(--text-muted)] ml-2 uppercase opacity-60 font-sans tracking-widest">{item.unit}</span>
                         </p>
                    </div>
-                   <div className="text-right flex flex-col items-end">
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">Sistem</p>
-                        <p className="text-sm font-bold text-muted">{item.systemStock}{item.unit}</p>
+                   <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5">
+                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Ideal Prod</p>
+                        <p className="text-sm font-black text-[var(--text-main)] opacity-80">{item.systemStock} {item.unit}</p>
                    </div>
               </div>
 
-              <div className="w-full bg-background-app h-2 rounded-full overflow-hidden shadow-inner">
-                <div className={`${item.status === 'KRITIS' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
-                  item.status === 'HABIS' ? 'bg-slate-400' :
-                    'bg-emerald-500 shadow-lg shadow-emerald-500/50'
-                  } h-full rounded-full transition-all duration-700`}
-                  style={{ width: `${Math.min(100, (parseFloat(item.currentStock) / (parseFloat(item.minStock) * 2 || 100)) * 100)}%` }}>
+              {/* Progress Bar */}
+              <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner relative z-10 border border-white/5">
+                <div className={`${item.status === 'KRITIS' ? 'bg-red-500 accent-glow shadow-red-500/40' :
+                  item.status === 'HABIS' ? 'bg-slate-500' :
+                    'bg-emerald-500 accent-glow shadow-emerald-500/40'
+                  } h-full rounded-full transition-all duration-1000 ease-out`}
+                  style={{ width: `${Math.max(5, Math.min(100, (parseFloat(item.currentStock) / (parseFloat(item.minStock) * 2 || 100)) * 100))}%` }}>
                 </div>
+              </div>
+              
+              {/* Bottom Info */}
+              <div className="mt-4 flex items-center justify-between relative z-10 opacity-60">
+                   <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ambang Batas: {item.minStock} {item.unit}</p>
+                   <span className="material-symbols-outlined text-sm font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>
             </div>
           ))}
         </div>
 
         {isLoading && (
-          <div className="flex justify-center items-center py-10">
-            <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          <div className="flex flex-col justify-center items-center py-24 gap-6">
+            <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menyelaraskan Stok...</p>
           </div>
         )}
         
         {!isLoading && filteredInventory.length === 0 && (
-           <div className="flex flex-col items-center justify-center py-20 text-muted opacity-50">
-             <span className="material-symbols-outlined text-6xl mb-4">inventory_2</span>
-             <p className="font-bold">Belum ada stok bahan baku</p>
+           <div className="flex flex-col items-center justify-center py-32 glass rounded-[3rem] opacity-40 border-dashed border-2 m-4 animate-in fade-in zoom-in duration-700">
+             <div className="size-24 rounded-full bg-[var(--bg-app)] flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-7xl text-primary font-black">inventory_2</span>
+             </div>
+             <p className="font-black text-lg uppercase tracking-widest text-[var(--text-main)]">Gudang Kosong</p>
+             <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Belum ada bahan baku yang terdaftar</p>
            </div>
         )}
 
-        {/* Mobile Floating Action Button */}
-        <div className="lg:hidden fixed bottom-6 right-6 flex flex-col items-end gap-3 z-30">
+        {/* Mobile Floating Action Button (Premium) */}
+        <div className="lg:hidden fixed bottom-8 right-8 flex flex-col items-end gap-4 z-50">
             <button
                 onClick={() => setIsAddStockModalOpen(true)}
-                className="size-14 bg-surface text-primary rounded-full shadow-2xl flex items-center justify-center border border-border-dim"
+                className="size-14 glass text-primary rounded-[1.25rem] shadow-2xl flex items-center justify-center border-white/20 active:scale-75 transition-all"
             >
-                <span className="material-symbols-outlined">input</span>
+                <span className="material-symbols-outlined font-black">input</span>
             </button>
             <button
                 onClick={() => setIsCreateItemModalOpen(true)}
-                className="size-16 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center"
+                className="size-16 accent-gradient text-slate-950 rounded-[1.5rem] shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-75 transition-all"
             >
-                <span className="material-symbols-outlined text-3xl">add</span>
+                <span className="material-symbols-outlined text-4xl font-black">add</span>
             </button>
         </div>
 

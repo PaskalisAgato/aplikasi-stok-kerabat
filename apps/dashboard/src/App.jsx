@@ -35,9 +35,12 @@ function App() {
   const DashboardHeaderExtras = (
     <button 
         onClick={() => setIsNotifOpen(true)} 
-        className="size-11 card flex items-center justify-center text-primary group transition-all hover:bg-primary/5 shrink-0"
+        className="size-12 glass flex items-center justify-center text-primary group transition-all hover:bg-primary/10 rounded-2xl shrink-0 active:scale-90"
     >
-        <span className="material-symbols-outlined group-hover:scale-110 transition-transform">notifications</span>
+        <div className="relative">
+            <span className="material-symbols-outlined font-bold group-hover:scale-110 transition-transform">notifications</span>
+            <span className="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[var(--bg-surface)] animate-bounce"></span>
+        </div>
     </button>
   );
 
@@ -46,16 +49,24 @@ function App() {
         currentPort={5173} 
         title="Dasbor" 
         headerExtras={DashboardHeaderExtras}
-        maxWidth="1400px"
+        maxWidth="1600px"
     >
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 space-y-6">
-            <span className="material-symbols-outlined animate-spin text-primary text-6xl">refresh</span>
-            <p className="text-sm font-black text-muted uppercase tracking-widest animate-pulse">Memuat Ringkasan...</p>
+          <div className="flex flex-col items-center justify-center py-32 space-y-8 animate-in fade-in zoom-in duration-700">
+            <div className="relative accent-glow">
+                <div className="size-20 rounded-full border-4 border-primary/10 border-t-primary animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-3xl">analytics</span>
+                </div>
+            </div>
+            <div className="text-center space-y-2">
+                <p className="text-sm font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menganalisis Data...</p>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">Menghubungkan ke Kerabat Cloud</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-8 space-y-10">
                 <KPICards reports={reports} />
                 <SalesChart reports={reports} />
             </div>

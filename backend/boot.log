@@ -166,3 +166,19 @@ TypeError: Missing parameter name at index 3: (.*); visit https://git.new/pathTo
 [2026-03-15T18:18:08.559Z] Loaded DB & Middleware
 [2026-03-15T18:18:08.597Z] 🚀 Kerabat Backend is running on port 5000
 [2026-03-15T18:18:08.599Z] Environment: undefined
+[2026-03-19T02:21:30.507Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-19T02:21:30.516Z] --- Phase 1: Environment & Base Config ---
+[2026-03-19T02:21:30.517Z] Loaded dotenv
+[2026-03-19T02:21:30.517Z] NODE_ENV: development
+[2026-03-19T02:21:30.517Z] PORT: 5000
+[2026-03-19T02:21:30.518Z] DATABASE_URL: FOUND
+[2026-03-19T02:21:30.518Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-19T02:21:30.518Z] BETTER_AUTH_URL: https://aplikasi-stok-kerabat.onrender.com
+[2026-03-19T02:21:30.518Z] FRONTEND_URL: https://paskalisagato.github.io
+[2026-03-19T02:21:30.520Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-19T02:21:30.520Z] Loaded Auth & Sessions Modules
+[2026-03-19T02:21:30.520Z] --- Phase 3: Initializing Express ---
+[2026-03-19T02:21:30.524Z] --- Phase 4: Setting up Middleware ---
+[2026-03-19T02:21:30.528Z] Loaded DB & Middleware
+[2026-03-19T02:21:30.562Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-19T02:21:30.563Z] Environment: undefined

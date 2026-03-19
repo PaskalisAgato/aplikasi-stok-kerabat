@@ -39,84 +39,98 @@ const ActivityLogPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-background-app text-main min-h-screen antialiased flex flex-col">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5180} />
-            
-            {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-app/80 backdrop-blur-md p-4 border-b border-border-dim">
-                <div className="flex items-center gap-3 max-w-5xl mx-auto w-full">
-                    <button
-                        onClick={() => setDrawerOpen(true)}
-                        className="flex items-center justify-center p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95"
-                    >
-                        <span className="material-symbols-outlined">menu</span>
-                    </button>
-                    <h1 className="text-xl font-bold tracking-tight text-main">Riwayat Aktivitas</h1>
-                </div>
-            </header>
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5180} />
+                
+                {/* Header */}
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
+                        </button>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none">Aktivitas</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 leading-tight">System Audit & Logs</p>
+                        </div>
+                    </div>
+                </header>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto pb-24">
-                <div className="max-w-5xl mx-auto w-full p-4">
+                {/* Main Content */}
+                <main className="flex-1 p-8 space-y-10 custom-scrollbar">
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                            <p className="text-muted font-bold animate-pulse">Memuat riwayat...</p>
+                        <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
+                            <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menelusuri Jejak Digital...</p>
                         </div>
                     ) : error ? (
-                        <div className="p-8 bg-red-500/10 text-red-500 rounded-3xl text-center font-bold border border-red-500/20">
-                            <span className="material-symbols-outlined text-4xl mb-2">error</span>
-                            <p>Gagal memuat riwayat aktivitas</p>
+                        <div className="p-10 card bg-red-500/5 border-red-500/20 text-center animate-in zoom-in duration-500">
+                            <span className="material-symbols-outlined text-5xl text-red-500 font-black mb-4">gpp_maybe</span>
+                            <p className="text-red-500 font-black uppercase text-xs tracking-widest">Sinkronasi Log Gagal</p>
+                            <p className="text-[10px] text-red-500/60 uppercase tracking-widest mt-2">{error.message || 'Error Koneksi Database'}</p>
                         </div>
                     ) : logs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
-                            <span className="material-symbols-outlined text-6xl">history_toggle_off</span>
-                            <p className="text-xl font-bold">Belum ada aktivitas tercatat</p>
+                        <div className="flex flex-col items-center justify-center py-32 glass rounded-[3rem] border-dashed border-2 opacity-40">
+                            <span className="material-symbols-outlined text-7xl text-primary font-black mb-6">history_toggle_off</span>
+                            <p className="font-black text-xs uppercase tracking-[0.3em] text-[var(--text-main)]">Log Masih Bersih</p>
+                            <p className="text-[9px] uppercase tracking-widest mt-2 opacity-60">Belum ada aktivitas yang terekam hari ini.</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            {logs.map((log) => (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                            {logs.map((log, idx) => (
                                 <div
                                     key={log.id}
-                                    className="p-5 rounded-3xl bg-surface border border-border-dim shadow-sm hover:shadow-md transition-all group"
+                                    className="card group p-6 flex items-start gap-6 hover:scale-[1.01] active:scale-[0.99] transition-all border-white/5 relative overflow-hidden"
+                                    style={{ animationDelay: `${idx * 50}ms` }}
                                 >
-                                    <div className="flex items-start gap-4">
-                                        {/* User Initial */}
-                                        <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black border-2 border-primary/20 shrink-0">
-                                            {getInitials(log.userName)}
+                                    {/* User Initial Avatar */}
+                                    <div className="size-14 rounded-2xl glass flex items-center justify-center font-black text-primary border-primary/20 shadow-inner group-hover:rotate-6 transition-transform shrink-0 relative z-10">
+                                        <span className="text-lg">{getInitials(log.userName)}</span>
+                                    </div>
+
+                                    <div className="flex-1 min-w-0 space-y-4 relative z-10">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0">
+                                                <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none truncate group-hover:text-primary transition-colors">
+                                                    {log.userName || 'Sistem Otomatis'}
+                                                </h3>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="material-symbols-outlined text-[10px] text-[var(--text-muted)] font-black">schedule</span>
+                                                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">
+                                                        {formatDate(log.createdAt)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-inner ${getActionColor(log.action)}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[14px] font-black">{getActionIcon(log.action)}</span>
+                                                    {log.action.split(':')[0].replace(/_/g, ' ')}
+                                                </div>
+                                            </span>
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <h3 className="text-base font-black truncate text-main group-hover:text-primary transition-colors">
-                                                    {log.userName || 'Sistem'}
-                                                </h3>
-                                                <span className="text-[10px] font-bold text-muted uppercase tracking-tighter">
-                                                    {formatDate(log.createdAt)}
-                                                </span>
+                                        <div className="p-4 glass rounded-2xl border-white/5 space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                                                <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Obyek: <span className="opacity-60">{log.tableName}</span></p>
                                             </div>
-
-                                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                                                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border flex items-center gap-1.5 ${getActionColor(log.action)}`}>
-                                                    <span className="material-symbols-outlined text-xs">{getActionIcon(log.action)}</span>
-                                                    {log.action.split(':')[0].replace(/_/g, ' ')}
-                                                </span>
-                                                <span className="text-xs font-medium text-muted">
-                                                    pada tabel <code className="bg-primary/5 px-1.5 py-0.5 rounded text-primary">{log.tableName}</code>
-                                                </span>
-                                            </div>
-
-                                            <p className="mt-3 text-sm font-medium text-main/80 leading-relaxed bg-background-app/50 p-3 rounded-2xl border border-border-dim/50">
+                                            <p className="text-[11px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest italic opacity-80">
                                                 {log.action.includes(':') ? log.action.split(':').slice(1).join(':').trim() : log.action}
                                             </p>
                                         </div>
                                     </div>
+
+                                    {/* Decorative Background Blob for Each Item */}
+                                    <div className="absolute right-0 bottom-0 size-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mb-12 group-hover:bg-primary/10 transition-colors"></div>
                                 </div>
                             ))}
                         </div>
                     )}
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 };

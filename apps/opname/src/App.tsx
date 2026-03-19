@@ -71,134 +71,154 @@ function App() {
     };
 
     return (
-        <div className="bg-background-app  font-display text-slate-900  min-h-screen flex flex-col antialiased">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5177} />
 
                 {/* Top Navigation Header */}
-                <header className="sticky top-0 z-30 bg-background-app/90  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95 shrink-0">
-                            <span className="material-symbols-outlined">menu</span>
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
                         </button>
-                        <div>
-                            <h1 className="text-lg font-bold leading-tight tracking-tight">Stock Opname</h1>
-                            <p className="text-[10px] text-primary font-bold uppercase tracking-wider mt-0.5">Kerabat Kopi Tiam</p>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Stock Opname</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">Inventory Audit Portal</p>
                         </div>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto pb-32">
+                <main className="flex-1 p-8 space-y-10 custom-scrollbar animate-in fade-in zoom-in duration-1000">
                     {/* Search Bar */}
-                    <div className="p-4 relative z-20">
-                        <div className="relative group shadow-sm rounded-xl">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <span className="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                    <section className="animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                <span className="material-symbols-outlined text-primary/40 group-focus-within:text-primary transition-colors font-black">search</span>
                             </div>
                             <input
-                                className="block w-full pl-11 pr-4 py-3 bg-white  border border-slate-200  rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm font-medium outline-none placeholder:text-slate-400 "
-                                placeholder="Cari bahan baku..."
+                                className="block w-full pl-14 pr-6 py-5 glass border-white/10 rounded-3xl focus:ring-4 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm font-black uppercase tracking-widest outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-40"
+                                placeholder="Cari Bahan Baku..."
                                 type="text"
                             />
                         </div>
-                    </div>
+                    </section>
 
                     {/* Section Header */}
-                    <div className="px-4 py-2 flex items-center justify-between">
-                        <h3 className="font-bold text-slate-900  tracking-tight">Daftar Bahan Baku</h3>
-                        <span className="text-[10px] bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wider shadow-sm">
-                            {inventoryList.length} Items
+                    <div className="flex items-center justify-between px-2">
+                        <div className="space-y-1">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Inventory List</h3>
+                            <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Katalog Bahan</p>
+                        </div>
+                        <span className="px-5 py-2 glass rounded-full text-[10px] font-black text-primary uppercase tracking-widest border border-primary/20 shadow-inner">
+                            {inventoryList.length} Items Sync
                         </span>
                     </div>
 
                     {/* Inventory List */}
-                    <div className="px-4 space-y-4 pt-2">
+                    <div className="space-y-6">
                         {isLoading ? (
-                            <div className="flex justify-center py-10">
-                                <span className="material-symbols-outlined animate-spin text-primary">refresh</span>
+                            <div className="flex flex-col justify-center items-center py-20 gap-6 glass rounded-[3rem] opacity-60">
+                                <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan ke Cold Storage...</p>
                             </div>
-                        ) : inventoryList.map(item => {
+                        ) : inventoryList.map((item, idx) => {
                             const physical = parseFloat(physicalStocks[item.id] || item.currentStock);
                             const system = parseFloat(item.currentStock);
                             const diff = physical - system;
 
                             return (
-                                <div key={item.id} className="bg-white  border border-slate-200  rounded-2xl p-4 shadow-sm relative overflow-hidden group">
-                                    <div className="flex gap-4 items-start mb-5">
+                                <div 
+                                    key={item.id} 
+                                    className="card group p-6 border-white/5 hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
+                                    style={{ animationDelay: `${idx * 50}ms` }}
+                                >
+                                    <div className="flex gap-6 items-start mb-8 relative z-10">
                                         <div
-                                            className="size-16 rounded-xl shrink-0 border border-slate-200  shadow-inner bg-cover bg-center bg-slate-100"
+                                            className="size-20 rounded-2xl shrink-0 border-2 border-white/10 shadow-2xl bg-cover bg-center bg-[var(--bg-app)] group-hover:rotate-3 transition-transform duration-500"
                                             style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
                                         >
-                                            {!item.imageUrl && <span className="material-symbols-outlined text-slate-300 flex items-center justify-center h-full">image</span>}
+                                            {!item.imageUrl && (
+                                                <div className="flex items-center justify-center h-full text-white/10 bg-white/5">
+                                                    <span className="material-symbols-outlined text-3xl font-black">image</span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="font-bold text-base tracking-tight text-slate-900 ">{item.name}</p>
-                                            <p className="text-[11px] text-slate-500  font-medium mt-0.5">Satuan: {item.unit}</p>
-                                            <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded border border-slate-200  bg-slate-50  text-[10px] font-bold text-slate-600  uppercase tracking-wider shadow-sm">
-                                                <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                                                Sistem: {item.currentStock}
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                            <h4 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none truncate group-hover:text-primary transition-colors">{item.name}</h4>
+                                            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Satuan: {item.unit}</p>
+                                            
+                                            <div className="flex items-center gap-3 mt-4">
+                                                <div className="px-3 py-1.5 glass rounded-lg border-white/5 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[14px]">terminal</span>
+                                                    System: {item.currentStock}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Stok Fisik</label>
-                                            <div className="relative">
-                                                <input
-                                                    className="w-full bg-slate-50  border border-slate-200  rounded-xl text-center font-bold text-lg py-2.5 focus:ring-2 focus:ring-primary focus:bg-white  transition-all outline-none"
-                                                    type="number"
-                                                    value={physicalStocks[item.id] || ''}
-                                                    onChange={(e) => handleStockChange(item.id, e.target.value)}
-                                                />
-                                            </div>
+                                    <div className="grid grid-cols-2 gap-6 mb-6 relative z-10">
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Stok Fisik</label>
+                                            <input
+                                                className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
+                                                type="number"
+                                                value={physicalStocks[item.id] || ''}
+                                                onChange={(e) => handleStockChange(item.id, e.target.value)}
+                                            />
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Selisih</label>
-                                            <div className={`w-full rounded-xl text-center font-extrabold text-lg py-2.5 border flex items-center justify-center gap-1 shadow-sm ${diff < 0 ? 'bg-red-50  text-red-600  border-red-200 ' :
-                                                    diff > 0 ? 'bg-green-50  text-green-600  border-green-200 ' :
-                                                        'bg-slate-50  text-slate-600  border-slate-200 '
-                                                }`}>
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Varian (Diff)</label>
+                                            <div className={`w-full rounded-2xl text-center font-black text-2xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
+                                                diff < 0 ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-red-500/10' :
+                                                diff > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10' :
+                                                'glass border-white/10 text-[var(--text-muted)] opacity-40'
+                                            }`}>
                                                 {diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5 border-t border-slate-100  pt-4 mt-2">
-                                        <label className="text-[10px] uppercase font-extrabold text-slate-500  tracking-wider">Alasan Penyesuaian</label>
+                                    <div className="space-y-3 border-t border-white/5 pt-6 relative z-10">
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Memo Penyesuaian</label>
                                         <div className="relative">
                                             <select 
-                                                className="w-full bg-slate-50  border border-slate-200  rounded-xl text-sm font-medium text-slate-700  py-3 pl-3 pr-10 focus:ring-2 focus:ring-primary appearance-none outline-none transition-all"
+                                                className="w-full glass border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest py-4 pl-6 pr-12 focus:ring-4 focus:ring-primary/20 appearance-none outline-none transition-all cursor-pointer"
                                                 value={reasons[item.id] || ''}
                                                 onChange={(e) => handleReasonChange(item.id, e.target.value)}
                                             >
-                                                <option value="">Pilih Alasan</option>
-                                                <option value="Spillage">Tumpah/Rusak</option>
-                                                <option value="Counting Error">Salah Hitung</option>
-                                                <option value="Theft/Missing">Gak Jelas/Hilang</option>
-                                                <option value="Expired">Kadaluwarsa</option>
+                                                <option value="" className="bg-[var(--bg-app)]">Pilih Alasan Audit</option>
+                                                <option value="Spillage" className="bg-[var(--bg-app)]">Kerusakan / Tumpah</option>
+                                                <option value="Counting Error" className="bg-[var(--bg-app)]">Kesalahan Hitung</option>
+                                                <option value="Theft/Missing" className="bg-[var(--bg-app)]">Kehilangan / Shrinkage</option>
+                                                <option value="Expired" className="bg-[var(--bg-app)]">Kadaluwarsa / Bad Stock</option>
                                             </select>
-                                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                                            <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-primary font-black pointer-events-none">expand_more</span>
                                         </div>
                                     </div>
+
+                                    {/* Decorative Background Blob */}
+                                    <div className="absolute -right-8 -top-8 size-40 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                 </div>
                             );
                         })}
                     </div>
                 </main>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-app/80  backdrop-blur-md border-t border-primary/10 z-40 max-w-md mx-auto">
+                <div className="fixed bottom-0 left-0 right-0 p-8 glass border-t border-white/10 z-50 max-w-2xl mx-auto shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
                     <button 
                         onClick={handleSaveOpname}
                         disabled={isSaving || isLoading}
-                        className="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:bg-slate-400"
+                        className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-3xl shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all disabled:bg-white/5 disabled:text-white/20 disabled:shadow-none font-display"
                     >
                         {isSaving ? (
-                            <span className="material-symbols-outlined animate-spin">refresh</span>
+                            <span className="material-symbols-outlined animate-spin font-black">autorenew</span>
                         ) : (
-                            <span className="material-symbols-outlined">save</span>
+                            <span className="material-symbols-outlined font-black">verified_user</span>
                         )}
-                        {isSaving ? 'Menyimpan...' : 'Simpan Hasil Opname'}
+                        {isSaving ? 'MEMPROSES AUDIT...' : 'FINALISASI STOK OPNAME'}
                     </button>
                 </div>
             </div>

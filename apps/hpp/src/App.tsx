@@ -26,102 +26,126 @@ function App() {
     const ingredientsHPP = hppData?.ingredientsHPP || [];
 
     return (
-        <div className="bg-background-app  text-slate-900  min-h-screen pb-24 font-display antialiased">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl border-x border-slate-800/10 ">
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5176} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-app/80  backdrop-blur-md border-b border-primary/10  px-4 py-4">
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setDrawerOpen(true)} className="p-2 rounded-full hover:bg-primary/10 transition-colors text-primary flex items-center justify-center active:scale-95 shrink-0">
-                            <span className="material-symbols-outlined">menu</span>
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
                         </button>
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                                <span className="material-symbols-outlined">analytics</span>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-bold leading-tight tracking-tight">Analisis HPP</h1>
-                                <p className="text-xs text-slate-500  font-medium tracking-tight">Kerabat Kopi Tiam • Live Data</p>
-                            </div>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Analisis HPP</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">Cost of Goods Sold Analytics</p>
                         </div>
                     </div>
                 </header>
 
-                <main className="p-4 space-y-8 flex-1">
+                <main className="p-8 space-y-10 flex-1 custom-scrollbar">
                     {isLoading ? (
-                         <div className="flex justify-center items-center py-20">
-                            <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
-                         </div>
+                        <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
+                            <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghitung Beban Produksi...</p>
+                        </div>
                     ) : (
                         <>
                             {/* Summary Stats */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-primary/5  border border-primary/10  rounded-xl p-4">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 ">Total HPP (30 Hari)</p>
-                                    <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">Rp {totalHPPBahan.toLocaleString('id-ID')}</p>
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 block">Berdasarkan BOM & Penjualan</span>
-                                </div>
-
-                                <div className="bg-primary/5  border border-primary/10  rounded-xl p-4">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 ">Jumlah Bahan</p>
-                                    <p className="text-2xl font-extrabold mt-1 text-primary tracking-tight">{ingredientsHPP.length}</p>
-                                    <div className="flex items-center gap-1 mt-2 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
-                                        <span className="material-symbols-outlined text-sm">check_circle</span>
-                                        <span>Live Sync</span>
+                            <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+                                <div className="card group p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 border-white/5">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Total HPP (30 Hari)</p>
+                                        <h2 className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase leading-tight">Rp {totalHPPBahan.toLocaleString('id-ID')}</h2>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-white/5">
+                                        <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Berdasarkan BOM & Penjualan</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* HPP Trend Chart - Visual Placeholder */}
-                            <section>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-base font-bold tracking-tight">Tren HPP <span className="text-slate-500 text-sm font-semibold">(30 Hari Terakhir)</span></h2>
-                                    <span className="text-xs text-slate-500  font-medium">Avg: Rp {(totalHPPBahan / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}/hari</span>
+                                <div className="card group p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 border-white/5">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Matriks Bahan</p>
+                                        <h2 className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase leading-tight">{ingredientsHPP.length} <span className="text-sm opacity-40 font-bold ml-1">SKU</span></h2>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-emerald-500 text-xs font-black">sync</span>
+                                        <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Inventory Sync</span>
+                                    </div>
                                 </div>
-                                <div className="bg-slate-50  rounded-xl p-4 border border-primary/5  relative z-0">
-                                    <div className="h-40 w-full relative">
+                            </section>
+
+                            {/* HPP Trend Chart */}
+                            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="flex items-center justify-between mb-6 px-2">
+                                    <div className="space-y-1">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Tren Pengeluaran</h3>
+                                        <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Historikal 30 Hari</p>
+                                    </div>
+                                    <span className="text-[9px] text-[var(--text-muted)] font-black tracking-widest uppercase bg-white/5 px-4 py-2 rounded-full border border-white/10 shadow-inner">
+                                        Avg: Rp {(totalHPPBahan / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}/hari
+                                    </span>
+                                </div>
+                                <div className="card p-8 group overflow-hidden border-white/5">
+                                    <div className="h-48 w-full relative">
                                         <svg className="w-full h-full overflow-visible" viewBox="0 0 400 100" preserveAspectRatio="none">
                                             <defs>
                                                 <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                                                    <stop offset="0%" stopColor="#d4823a" stopOpacity="0.3"></stop>
-                                                    <stop offset="100%" stopColor="#d4823a" stopOpacity="0"></stop>
+                                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4"></stop>
+                                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"></stop>
                                                 </linearGradient>
+                                                <filter id="glow">
+                                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                                    <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                                </filter>
                                             </defs>
-                                            <path d="M0,80 Q40,75 80,40 T160,50 T240,20 T320,60 T400,30 V100 H0 Z" fill="url(#chartGradient)"></path>
-                                            <path d="M0,80 Q40,75 80,40 T160,50 T240,20 T320,60 T400,30" fill="none" stroke="#d4823a" strokeLinecap="round" strokeWidth="3"></path>
+                                            <path d="M0,80 Q40,75 80,40 T160,50 T240,20 T320,60 T400,30 V100 H0 Z" fill="url(#chartGradient)" className="animate-pulse duration-[3s]"></path>
+                                            <path d="M0,80 Q40,75 80,40 T160,50 T240,20 T320,60 T400,30" fill="none" stroke="var(--primary)" strokeLinecap="round" strokeWidth="4" filter="url(#glow)"></path>
                                         </svg>
                                     </div>
-                                    <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                                    <div className="flex justify-between mt-8 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] opacity-40 px-2">
                                         <span>7 Hari</span><span>14 Hari</span><span>21 Hari</span><span>Sekarang</span>
                                     </div>
                                 </div>
                             </section>
 
-                            {/* High Usage Ingredients / HPP Contribution */}
-                            <section>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-base font-bold tracking-tight">Bahan Kontribusi HPP Tertinggi</h2>
+                            {/* High Usage Ingredients */}
+                            <section className="animate-in fade-in zoom-in duration-1000">
+                                <div className="space-y-1 mb-6 px-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Kontribusi Biaya</h3>
+                                    <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Bahan Termahal (Usage)</p>
                                 </div>
 
-                                <div className="bg-slate-50  rounded-xl border border-primary/5  overflow-hidden divide-y divide-slate-200 ">
+                                <div className="grid grid-cols-1 gap-4">
                                     {ingredientsHPP.length === 0 ? (
-                                        <p className="p-8 text-center text-slate-500 italic text-sm">Belum ada data penjualan tercatat.</p>
+                                        <div className="flex flex-col items-center justify-center py-20 glass rounded-[3rem] opacity-40 border-dashed border-2">
+                                            <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">inventory</span>
+                                            <p className="font-black text-xs uppercase tracking-widest text-[var(--text-main)]">Data Kosong</p>
+                                            <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60 italic">Belum ada data penjualan tercatat.</p>
+                                        </div>
                                     ) : (
                                         ingredientsHPP.map((ing: any) => (
-                                            <div key={ing.id} className="p-4 flex items-center justify-between hover:bg-slate-100  transition-colors cursor-pointer">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                                                        <span className="material-symbols-outlined text-primary text-xl">inventory_2</span>
+                                            <div key={ing.id} className="card group p-5 flex items-center justify-between gap-6 hover:scale-[1.01] active:scale-[0.99] transition-all border-white/5">
+                                                <div className="flex items-center gap-5 flex-1 min-w-0">
+                                                    <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group-hover:rotate-6 transition-transform">
+                                                        <span className="material-symbols-outlined text-primary text-2xl font-black">inventory_2</span>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="text-sm font-bold text-slate-900 ">{ing.name}</h3>
-                                                        <p className="text-xs text-slate-500  font-medium">{ing.totalQty.toFixed(2)} unit digunakan</p>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight truncate">{ing.name}</h3>
+                                                        <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60">{ing.totalQty.toFixed(2)} unit digunakan</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right flex flex-col items-end">
-                                                    <p className="text-sm font-bold text-slate-900 ">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
-                                                    <p className="text-[10px] text-slate-500  font-bold">{( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}% <span className="text-[9px] uppercase tracking-wider font-medium">Beban</span></p>
+                                                <div className="text-right shrink-0 space-y-1.5">
+                                                    <p className="text-xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase whitespace-nowrap">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">{( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}%</span>
+                                                        <div className="w-12 bg-white/5 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-primary h-full rounded-full" style={{ width: `${(ing.totalCost / totalHPPBahan * 100)}%` }}></div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))
@@ -130,18 +154,21 @@ function App() {
                             </section>
 
                             {/* Info Section */}
-                            <section className="pb-8">
-                                <div className="p-5 bg-primary/10  border border-primary/20 rounded-2xl">
-                                    <div className="flex gap-4 items-start">
-                                        <span className="material-symbols-outlined text-primary text-3xl">lightbulb</span>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900  text-sm">Apa itu Analisis HPP?</h3>
-                                            <p className="text-xs text-slate-500  mt-1 leading-relaxed">
-                                                Angka di atas dihitung secara otomatis berdasarkan Bill of Materials (BOM) setiap menu dikalikan dengan data penjualan nyata dari modul Kasir (POS). Ini memberikan gambaran biaya bahan baku langsung yang keluar.
+                            <section className="pb-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                                <div className="card p-8 bg-primary/5 hover:bg-primary/10 transition-all border-primary/10 group overflow-hidden relative">
+                                    <div className="absolute -right-8 -top-8 size-40 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                                    <div className="flex gap-6 items-start relative z-10">
+                                        <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined text-3xl font-black">lightbulb</span>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase">Metodologi Perhitungan</h3>
+                                            <p className="text-[11px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest opacity-60 italic">
+                                                Angka HPP dihitung secara otomatis berdasarkan Bill of Materials (BOM) setiap menu dikalikan dengan data penjualan nyata dari modul Kasir (POS).
                                             </p>
-                                            <a href={getTargetUrl(5184)} className="inline-flex items-center gap-1.5 text-xs text-primary font-bold mt-4 hover:underline">
-                                                <span className="material-symbols-outlined text-sm">restaurant_menu</span>
-                                                Sesuaikan BOM di Kelola Resep
+                                            <a href={getTargetUrl(5184)} className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl glass text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all border-primary/20 shadow-xl group/link">
+                                                <span className="material-symbols-outlined text-sm font-black group-hover/link:rotate-12 transition-transform">restaurant_menu</span>
+                                                Kelola BOM / Resep
                                             </a>
                                         </div>
                                     </div>

@@ -23,17 +23,30 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
     return (
         <div className="fixed inset-0 z-[100] flex">
             <div
-                className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-950/60 backdrop-blur-md transition-opacity duration-500"
                 onClick={onClose}
             />
-            <div className="relative w-72 max-w-[80vw] bg-surface h-full flex flex-col shadow-2xl animate-slideInLeft border-r border-border-dim pointer-events-auto">
-                <div className="flex items-center justify-between p-4 border-b border-border-dim bg-surface">
-                    <h2 className="text-xl font-bold text-main">Menu</h2>
-                    <button onClick={onClose} className="p-2 text-muted hover:text-main hover:bg-primary/10 rounded-lg transition-colors">
-                        <span className="material-symbols-outlined">close</span>
+            <div className={`
+                relative w-80 max-w-[85vw] h-full flex flex-col glass border-r-0 rounded-r-[3rem] 
+                shadow-2xl animate-in slide-in-from-left duration-500 ease-out pointer-events-auto
+            `}>
+                <div className="flex items-center justify-between p-8">
+                    <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg">
+                            <span className="material-symbols-outlined font-black">coffee</span>
+                        </div>
+                        <h2 className="text-xl font-black font-display tracking-tight">Main Menu</h2>
+                    </div>
+                    <button 
+                        onClick={onClose} 
+                        className="size-10 flex items-center justify-center text-[var(--text-muted)] hover:text-primary hover:bg-primary/10 rounded-2xl transition-all"
+                    >
+                        <span className="material-symbols-outlined font-bold">close</span>
                     </button>
                 </div>
-                <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+
+                <nav className="flex-1 overflow-y-auto px-6 py-2 space-y-2 hide-scrollbar">
+                    <p className="px-4 pb-2 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80">Navigasi Utama</p>
                     {filteredLinks.map((link) => {
                         const isActive = currentPort === link.port;
                         const targetUrl = getTargetUrl(link.port);
@@ -49,67 +62,70 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                     }
                                 }}
                                 className={`
-                                    flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                                    flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-300 group
                                     ${isActive
-                                        ? 'bg-primary/10 text-primary font-black'
-                                        : 'text-muted hover:bg-primary/5 hover:text-main'}
+                                        ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/30 accent-glow translate-x-1'
+                                        : 'text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-main)] hover:translate-x-1'}
                                 `}
                             >
-                                <span className="material-symbols-outlined">{link.icon}</span>
-                                <span className="font-medium">{link.label}</span>
+                                <span className={`material-symbols-outlined ${isActive ? 'font-black' : 'group-hover:text-primary transition-colors'}`}>
+                                    {link.icon}
+                                </span>
+                                <span className={`font-semibold tracking-wide ${isActive ? 'text-slate-950' : ''}`}>
+                                    {link.label}
+                                </span>
                             </a>
                         );
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-border-dim">
-                    <button 
-                        onClick={async () => {
-                            if (confirm('Apakah Anda yakin ingin keluar?')) {
-                                try {
-                                    const { signOut } = await import('./authClient');
-                                    // 1. Better Auth official sign out
-                                    await signOut();
-                                    
-                                    // 2. Clear our specific manual session cookie if it exists
-                                    const apiUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
-                                    await fetch(`${apiUrl}/auth/logout-manual`, {
-                                        method: 'POST',
-                                        credentials: 'include'
-                                    });
-                                    
-                                    // 3. Clear our specific manual session token
-                                    localStorage.removeItem('kerabat_auth_token');
-                                    
-                                    // 4. Final cleanup and redirect to base
-                                    window.location.href = '/aplikasi-stok-kerabat/';
-                                } catch (error) {
-                                    console.error("Logout failed:", error);
-                                    window.location.reload();
+                <div className="p-8 mt-auto">
+                    <div className="glass rounded-[2rem] p-4 flex flex-col gap-2">
+                        <div className="flex items-center gap-3 px-3 py-2">
+                            <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                <span className="material-symbols-outlined font-bold">account_circle</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-black truncate">{session?.user?.name || 'User'}</p>
+                                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{userRole}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="h-px bg-[var(--border-dim)] my-1"></div>
+
+                        <button 
+                            onClick={async () => {
+                                if (confirm('Apakah Anda yakin ingin keluar?')) {
+                                    try {
+                                        const { signOut } = await import('./authClient');
+                                        await signOut();
+                                        const apiUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
+                                        await fetch(`${apiUrl}/auth/logout-manual`, {
+                                            method: 'POST',
+                                            credentials: 'include'
+                                        });
+                                        localStorage.removeItem('kerabat_auth_token');
+                                        window.location.href = '/aplikasi-stok-kerabat/';
+                                    } catch (error) {
+                                        console.error("Logout failed:", error);
+                                        window.location.reload();
+                                    }
                                 }
-                            }
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors font-bold"
-                    >
-                        <span className="material-symbols-outlined">logout</span>
-                        <span>Logout</span>
-                    </button>
+                            }}
+                            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-black"
+                        >
+                            <span className="material-symbols-outlined font-black">logout</span>
+                            <span className="tracking-wide">Keluar Sistem</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <style>{`
-                @keyframes slideInLeft {
-                    from { transform: translateX(-100%); }
-                    to { transform: translateX(0); }
-                }
-                .animate-slideInLeft {
-                    animation: slideInLeft 0.3s ease-out;
-                }
-            `}</style>
         </div>
     );
 };
 
 export default NavDrawer;
+
 
 
 

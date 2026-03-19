@@ -38,6 +38,7 @@ const express_1 = require("express");
 const db_1 = require("../db");
 const schema = __importStar(require("../db/schema"));
 const drizzle_orm_1 = require("drizzle-orm");
+const auth_1 = require("../middleware/auth");
 exports.inventoryRouter = (0, express_1.Router)();
 // GET all inventory items
 exports.inventoryRouter.get('/', async (req, res) => {
@@ -143,16 +144,19 @@ exports.inventoryRouter.post('/', async (req, res) => {
     }
 });
 // PUT update inventory item master data
-exports.inventoryRouter.put('/:id', async (req, res) => {
+exports.inventoryRouter.put('/:id', auth_1.requireAuth, async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
-        const { name, category, unit, minStock, imageUrl } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
+        const user = req.user;
+        const oldItem = await db_1.db.select().from(schema.inventory).where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId)).limit(1);
         const [updatedItem] = await db_1.db.update(schema.inventory)
             .set({
             ...(name && { name }),
             ...(category && { category }),
             ...(unit && { unit }),
             ...(minStock !== undefined && { minStock: minStock.toString() }),
+            ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
             ...(imageUrl !== undefined && { imageUrl })
         })
             .where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId))
@@ -160,6 +164,15 @@ exports.inventoryRouter.put('/:id', async (req, res) => {
         if (!updatedItem) {
             return res.status(404).json({ error: 'Item not found' });
         }
+        // Log to Audit
+        await db_1.db.insert(schema.auditLogs).values({
+            userId: user.id,
+            action: `UPDATE_INVENTORY: ${updatedItem.name}`,
+            tableName: 'inventory',
+            oldData: JSON.stringify(oldItem[0]),
+            newData: JSON.stringify(updatedItem),
+            createdAt: new Date()
+        });
         res.json(updatedItem);
     }
     catch (error) {
@@ -217,28 +230,22 @@ exports.inventoryRouter.get('/movements/in', async (req, res) => {
     }
 });
 // POST Movement (In, Out, Waste, Adjust)
-exports.inventoryRouter.post('/:id/movement', async (req, res) => {
+exports.inventoryRouter.post('/:id/movement', auth_1.requireAuth, async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
         const { type, quantity, reason, supplierId, supplierName, expiryDate, createdAt } = req.body;
-        // type: 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
+        const user = req.user;
         if (!type || quantity === undefined || isNaN(Number(quantity))) {
             return res.status(400).json({ error: 'Missing or invalid type or quantity' });
         }
         const numericQty = parseFloat(quantity);
-        // Determine sign based on type
         let multiplier = 1;
         if (type === 'OUT' || type === 'WASTE') {
             multiplier = -1;
         }
-        else if (type === 'OPNAME_ADJUSTMENT') {
-            multiplier = 1;
-        }
         const adjustment = numericQty * multiplier;
-        console.log(`[Movement] ID: ${inventoryId}, Type: ${type}, Qty: ${quantity}, Adjustment: ${adjustment}`);
         await db_1.db.transaction(async (tx) => {
             let finalSupplierId = supplierId;
-            // Auto-create supplier if name provided
             if (supplierName && !finalSupplierId) {
                 const existingSupplier = await tx.select().from(schema.suppliers).where((0, drizzle_orm_1.eq)(schema.suppliers.name, supplierName)).limit(1);
                 if (existingSupplier.length > 0) {
@@ -249,7 +256,6 @@ exports.inventoryRouter.post('/:id/movement', async (req, res) => {
                     finalSupplierId = newSup.id;
                 }
             }
-            // 1. Insert Movement Record
             const expiry = expiryDate ? new Date(expiryDate) : null;
             const customDate = createdAt ? new Date(createdAt) : undefined;
             await tx.insert(schema.stockMovements).values({
@@ -261,13 +267,20 @@ exports.inventoryRouter.post('/:id/movement', async (req, res) => {
                 expiryDate: expiry,
                 ...(customDate && { createdAt: customDate })
             });
-            console.log(`[Movement] Updating stock for inventory ${inventoryId} by ${adjustment}`);
-            // 2. Adjust Current Stock
-            await tx.update(schema.inventory)
+            const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
                 currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} + ${adjustment}`
             })
-                .where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId));
+                .where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId))
+                .returning();
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `STOCK_MOVEMENT: ${type} ${quantity} for ${updatedInventory.name}`,
+                tableName: 'stock_movements',
+                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock }),
+                createdAt: new Date()
+            });
         });
         res.status(200).json({ success: true, message: 'Stock updated' });
     }

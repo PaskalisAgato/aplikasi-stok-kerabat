@@ -8,17 +8,32 @@ const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-// Use file logging since terminal output is unstable
+// In-memory log buffer for production debugging
+const memoryLog = [];
+const MAX_MEMORY_LOGS = 100;
 const logPath = path_1.default.join(process.cwd(), 'boot.log');
 const log = (msg) => {
     const timestamp = new Date().toISOString();
-    try {
-        fs_1.default.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
+    const formattedMsg = `[${timestamp}] ${msg}`;
+    // Always update memory log
+    memoryLog.push(formattedMsg);
+    if (memoryLog.length > MAX_MEMORY_LOGS) {
+        memoryLog.shift();
     }
-    catch (e) {
-        // Fallback if file system is locked
+    // Only log to file in development (Render's disk is slow/ephemeral)
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    if (!isProd) {
+        try {
+            if (fs_1.default.existsSync(logPath) && fs_1.default.statSync(logPath).size > 5 * 1024 * 1024) {
+                fs_1.default.writeFileSync(logPath, `[${timestamp}] --- LOG TRUNCATED ---\n`);
+            }
+            fs_1.default.appendFileSync(logPath, formattedMsg + '\n');
+        }
+        catch (e) {
+            // Fallback
+        }
     }
-    console.log(msg);
+    console.log(formattedMsg);
 };
 // Global Error Catching
 process.on('uncaughtException', (err) => {
@@ -61,37 +76,61 @@ const corsOptions = {
         'http://localhost:5179',
         'http://localhost:5180',
         'http://localhost:5181',
+        'http://localhost:5184',
         'http://localhost:5186',
         'https://paskalisagato.github.io'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'Cookie',
+        'Accept',
+        'Origin',
+        'X-Requested-With',
+        'X-Auth-Token'
+    ],
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
+    maxAge: 86400 // Cache preflight for 24 hours (helpful for Safari)
 };
 app.use((0, cors_1.default)(corsOptions));
-// Use RegExp to catch all routes safely in Express 5, circumventing path-to-regexp string limitations
-app.options(/^.*$/, (0, cors_1.default)(corsOptions));
+// Handle preflight for all routes
+app.options(/.*/, (0, cors_1.default)(corsOptions));
 app.use(express_1.default.json({ limit: '10mb' }));
 // Diagnostic: Log View Route (Remote Debugging)
 app.get('/api/logs', (req, res) => {
-    try {
-        if (fs_1.default.existsSync(logPath)) {
-            const logs = fs_1.default.readFileSync(logPath, 'utf8');
-            res.header('Content-Type', 'text/plain').send(logs);
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    // In production, prioritize memory logs for speed and reliability
+    let content = '--- MEMORY LOGS (Last 100 lines) ---\n' + memoryLog.join('\n');
+    // In dev, or if memory log is empty, try reading the file
+    if (!isProd && fs_1.default.existsSync(logPath)) {
+        try {
+            const stats = fs_1.default.statSync(logPath);
+            const bufferSize = Math.min(stats.size, 50000);
+            const startByte = Math.max(0, stats.size - bufferSize);
+            const buffer = Buffer.alloc(bufferSize);
+            const fd = fs_1.default.openSync(logPath, 'r');
+            fs_1.default.readSync(fd, buffer, 0, bufferSize, startByte);
+            fs_1.default.closeSync(fd);
+            const fileContent = buffer.toString('utf8').replace(/\u0000/g, '');
+            content += '\n\n--- FILE LOGS (boot.log) ---\n' + (startByte > 0 ? '... (truncated)\n' : '') + fileContent;
         }
-        else {
-            res.status(404).send('Log file not found');
+        catch (e) {
+            content += '\n\n(Error reading boot.log)';
         }
     }
-    catch (e) {
-        res.status(500).send('Error reading logs');
-    }
+    res.header('Content-Type', 'text/plain').send(content);
 });
 // Request Logger
 app.use((req, res, next) => {
-    log(`${req.method} ${req.url}`);
+    // Only log essential requests in production to save memory/IO
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    const isStatic = req.url.includes('.') || req.url.includes('health') || req.url.includes('session');
+    if (!isProd || !isStatic) {
+        log(`${req.method} ${req.url}`);
+    }
     next();
 });
 const db_1 = require("./db");
@@ -135,10 +174,11 @@ app.post('/api/auth/login-pin', async (req, res) => {
             ipAddress: req.ip,
             userAgent: req.headers['user-agent']
         });
+        const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
         res.cookie('better-auth.session_token', sessionId, {
             httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
+            secure: isProd, // Must be true for cross-origin (SameSite=None)
+            sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-origin
             expires: expiresAt,
             path: '/'
         });
@@ -150,12 +190,17 @@ app.post('/api/auth/login-pin', async (req, res) => {
         res.status(500).json({ error: "Gagal memproses login" });
     }
 });
-app.get('/api/auth/get-session', async (req, res) => {
+app.get('/api/auth/session', async (req, res) => {
+    log(`Incoming session check: ${req.headers.authorization ? 'Has Authorization' : 'No Authorization'}`);
     const session = await (0, session_1.getSessionManually)(req);
     return res.json(session);
 });
 app.post('/api/auth/logout-manual', (req, res) => {
-    res.clearCookie('better-auth.session_token', { path: '/' });
+    res.clearCookie('better-auth.session_token', {
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    });
     res.json({ success: true });
 });
 app.get('/api/auth', (req, res) => res.send("Auth API is active."));
@@ -165,6 +210,7 @@ const recipes_1 = require("./routes/recipes");
 const sales_1 = require("./routes/sales");
 const finance_1 = require("./routes/finance");
 const users_1 = require("./routes/users");
+const audit_1 = require("./routes/audit");
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Kerabat Backend API v1.0.1 is running' });
 });
@@ -191,7 +237,8 @@ app.use('/api/recipes', recipes_1.recipesRouter);
 app.use('/api/sales', sales_1.salesRouter);
 app.use('/api/finance', finance_1.financeRouter);
 app.use('/api/users', users_1.usersRouter);
-// Global Error Handler for Express
+app.use('/api/audit', audit_1.auditRouter);
+// --- 8. Error Handling (Express 5 style) ---
 app.use((err, req, res, next) => {
     log(`EXPRESS ERROR: ${err.message}\n${err.stack}`);
     // Explicitly set CORS headers for error responses

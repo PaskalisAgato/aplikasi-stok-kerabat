@@ -37,56 +37,48 @@ function App() {
     });
 
     return (
-        <div className="bg-background-app text-slate-900 min-h-screen flex flex-col font-display antialiased">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10 overflow-x-hidden pb-8">
+    return (
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-background-app/90 backdrop-blur-md border-b border-primary/10 px-4 py-4">
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setDrawerOpen(true)} className="size-10 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors active:scale-95 text-primary shrink-0">
-                            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>menu</span>
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
                         </button>
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => window.location.href = `http://${window.location.hostname}:5173`}
-                                className="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary"
-                            >
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>arrow_back</span>
-                            </button>
-                            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 ">Kelola Resep & HPP</h1>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Menu & Resep</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">Manajemen Harga Pokok Produksi</p>
                         </div>
                     </div>
                 </header>
 
                 {/* Search & Filters */}
-                <div className="px-4 pt-6 pb-2 space-y-4 sticky top-[73px] z-20 bg-background-app/95 backdrop-blur-sm">
-                    <label className="relative flex items-center group">
-                        <span className="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors text-[22px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>search</span>
+                <div className="px-8 pt-10 pb-4 space-y-8 sticky top-[80px] z-20 glass border-b border-white/5 shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div className="relative group max-w-2xl">
+                        <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">search</span>
                         <input
-                            className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200  bg-slate-100  focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-slate-900  placeholder:text-slate-500 font-medium transition-all shadow-sm"
-                            placeholder="Cari menu (Kopi O, Teh Tarik...)"
+                            className="block w-full pl-14 pr-6 py-5 glass border-none rounded-[2rem] focus:ring-4 focus:ring-primary/20 text-[var(--text-main)] placeholder:text-[var(--text-muted)] text-base font-bold shadow-inner"
+                            placeholder="Cari Menu atau Produk..."
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                    </label>
+                    </div>
 
-                    <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                        {/* Inline styles used for scrollbar-hide to ensure it works without custom css classes initially */}
-                        <style>{`
-              .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-none animate-in fade-in slide-in-from-left duration-1000 delay-200">
                         {['Semua', 'Minuman', 'Makanan', 'Snack'].map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => setFilterCategory(cat)}
-                                className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors active:scale-95 shadow-sm ${filterCategory === cat
-                                    ? 'bg-primary text-white shadow-primary/20'
-                                    : 'bg-white  text-slate-700  border border-slate-200  hover:bg-primary/10'
+                                className={`px-8 py-3 rounded-2xl text-[10px] uppercase font-black tracking-widest transition-all active:scale-90 border shadow-xl ${filterCategory === cat
+                                    ? 'btn-primary shadow-primary/20 scale-105'
+                                    : 'glass text-[var(--text-muted)] border-white/5 hover:bg-primary/10 opacity-60'
                                     }`}
                             >
                                 {cat}
@@ -96,71 +88,99 @@ function App() {
                 </div>
 
                 {/* Menu List */}
-                <main className="flex-1 px-4 py-2 space-y-4">
-                    {filteredRecipes.map(recipe => (
-                        <div key={recipe.id} className="bg-white [#1a140f] border border-slate-200  rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
-                            <div className="flex p-4 gap-4">
-                                <div
-                                    className="size-24 rounded-xl bg-slate-100  bg-cover bg-center shrink-0 border border-slate-100  shadow-inner group-hover:scale-105 transition-transform duration-500"
-                                    style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
-                                    title={recipe.name}
-                                ></div>
-                                <div className="flex-1 flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start gap-2">
-                                            <h3 className="font-extrabold text-lg text-slate-900  tracking-tight leading-tight">{recipe.name}</h3>
-                                            <span className="px-2 py-1 rounded-md text-[9px] font-extrabold bg-green-500/10 text-green-600  border border-green-500/20 uppercase tracking-widest shrink-0 shadow-sm">Margin {recipe.margin}%</span>
+                <main className="flex-1 px-8 py-10 space-y-6 custom-scrollbar animate-in fade-in zoom-in duration-1000">
+                    {filteredRecipes.map((recipe, idx) => (
+                        <div 
+                            key={recipe.id} 
+                            style={{ animationDelay: `${idx * 50}ms` }}
+                            className="card group p-6 flex flex-col sm:flex-row gap-6 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border-white/5 animate-in fade-in slide-in-from-bottom-4"
+                        >
+                            <div
+                                className="size-32 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3 group-hover:scale-110"
+                                style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                            ></div>
+                            
+                            <div className="flex-1 flex flex-col justify-between space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <h3 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight group-hover:text-primary transition-colors truncate">{recipe.name}</h3>
+                                        <div className="glass px-3 py-1.5 rounded-xl border-emerald-500/20 flex flex-col items-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                                             <span className="text-[7px] font-black text-emerald-500 uppercase tracking-widest opacity-60 italic">Margin</span>
+                                             <span className="text-xs font-black text-emerald-500">{recipe.margin}%</span>
                                         </div>
-                                        <p className="text-[13px] text-slate-500  mt-1.5 italic font-medium leading-snug">{recipe.description}</p>
                                     </div>
+                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60 leading-relaxed italic line-clamp-2">{recipe.description}</p>
+                                </div>
 
-                                    <div className="flex justify-between items-end pt-3 border-t border-slate-100  mt-2">
-                                        <div className="space-y-0.5">
-                                            <p className="text-[10px] text-slate-400  uppercase font-bold tracking-widest">HPP: Rp {recipe.hpp.toLocaleString('id-ID')}</p>
-                                            <p className="text-primary font-extrabold text-base tracking-tight">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                <div className="flex justify-between items-center pt-6 border-t border-white/5 relative">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em] opacity-60">HPP</span>
+                                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Rp {recipe.hpp.toLocaleString('id-ID')}</p>
                                         </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedRecipe(recipe);
-                                            }}
-                                            className="size-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-primary  text-slate-600 hover:text-white    transition-all active:scale-90 shadow-sm">
-                                            <span className="material-symbols-outlined text-[18px]">edit</span>
-                                        </button>
+                                        <p className="text-2xl font-black text-primary font-display tracking-tighter uppercase leading-none">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                     </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedRecipe(recipe);
+                                        }}
+                                        className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/20 active:scale-75 transition-all border-white/10 shadow-xl group/btn"
+                                    >
+                                        <span className="material-symbols-outlined text-2xl font-black group-hover/btn:rotate-45 transition-transform">edit_square</span>
+                                    </button>
                                 </div>
                             </div>
+                            
+                            {/* Decorative Background Blob */}
+                            <div className="absolute top-0 right-0 size-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
                         </div>
                     ))}
                     
                     {isLoading && (
-                        <div className="flex justify-center items-center py-10">
-                            <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                        <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
+                            <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan Database...</p>
                         </div>
                     )}
 
                     {!isLoading && filteredRecipes.length === 0 && (
-                        <div className="text-center py-10 text-slate-500">
-                            <p>Belum ada Menu/Resep Tersedia</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-32 glass rounded-[3rem] opacity-40 border-dashed border-2">
+                            <span className="material-symbols-outlined text-7xl text-primary font-black mb-6">restaurant_menu</span>
+                            <p className="font-black text-lg uppercase tracking-widest text-[var(--text-main)]">Daftar Menu Kosong</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 italic">Belum ada menu atau resep yang terdaftar.</p>
                         </div>
                     )}
                 </main>
 
-                {/* Floating Action Button */}
-                <button
-                    onClick={() => setSelectedRecipe({
-                        id: Date.now(),
-                        name: '',
-                        description: '',
-                        category: 'Minuman',
-                        hpp: 0,
-                        price: 0,
-                        margin: 0,
-                        ingredients: []
-                    })}
-                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] size-14 bg-gradient-to-br from-primary to-[#b36a2b] hover:from-[#b36a2b] hover:to-[#915421] text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-40 ring-4 ring-background-app transition-transform active:scale-95 group">
-                    <span className="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
-                </button>
+                {/* Floating Action Button (Premium) */}
+                <div className="fixed bottom-10 inset-x-0 flex justify-center z-[100] px-6 pointer-events-none">
+                    <button
+                        onClick={() => setSelectedRecipe({
+                            id: Date.now(),
+                            name: '',
+                            description: '',
+                            category: 'Minuman',
+                            hpp: 0,
+                            price: 0,
+                            margin: 0,
+                            ingredients: []
+                        })}
+                        className="pointer-events-auto flex items-center gap-4 accent-gradient text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/40 active:scale-75 transition-all border-none ring-8 ring-[var(--bg-app)] group"
+                    >
+                        <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tambah Menu Baru</span>
+                    </button>
+                </div>
+
+                {selectedRecipe && (
+                    <EditRecipeModal
+                        recipe={selectedRecipe}
+                        onClose={() => { setSelectedRecipe(null); fetchRecipes(); }}
+                    />
+                )}
+            </div>
+        </div>
                 {/* Edit Recipe Modal */}
                 {selectedRecipe && (
                     <EditRecipeModal

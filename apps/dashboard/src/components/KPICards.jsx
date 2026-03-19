@@ -3,40 +3,54 @@ export default function KPICards({ reports }) {
 
     const { revenueToday, expenses, netProfit } = reports;
 
+    const cards = [
+        { 
+            label: 'Penjualan Hari Ini', 
+            val: revenueToday, 
+            icon: 'payments', 
+            color: 'rgb(16, 185, 129)', 
+            tag: 'Real-time',
+            gradient: 'from-emerald-400 to-emerald-600'
+        },
+        { 
+            label: 'Pengeluaran', 
+            val: expenses, 
+            icon: 'shopping_cart', 
+            color: 'rgb(239, 68, 68)', 
+            tag: 'Operasional',
+            gradient: 'from-rose-400 to-rose-600'
+        },
+        { 
+            label: 'Profit Bersih', 
+            val: netProfit, 
+            icon: 'account_balance_wallet', 
+            color: 'var(--primary)', 
+            tag: 'Laba Bersih',
+            gradient: 'accent-gradient'
+        }
+    ];
+
     return (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card p-8 flex flex-col items-center text-center group hover:scale-[1.02] border-success/20 bg-success/5">
-                <div className="size-16 rounded-2xl bg-success/10 flex items-center justify-center mb-4">
-                    <span className="material-symbols-outlined text-success text-4xl">payments</span>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {cards.map((card, i) => (
+                <div key={i} className="card group relative overflow-hidden flex flex-col items-center text-center">
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                       <span className="material-symbols-outlined text-8xl transition-all group-hover:scale-110">{card.icon}</span>
+                    </div>
+                    <div className={`size-20 rounded-[1.5rem] bg-slate-900 flex items-center justify-center mb-6 shadow-xl ${card.gradient === 'accent-gradient' ? 'accent-gradient' : `bg-gradient-to-br ${card.gradient}`} text-slate-950`}>
+                        <span className="material-symbols-outlined text-4xl font-black">{card.icon}</span>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">{card.label}</p>
+                        <p className={`text-3xl font-black font-display tracking-tight ${card.label === 'Profit Bersih' ? 'text-primary' : 'text-[var(--text-main)]'}`}>
+                            Rp {(card.val || 0).toLocaleString('id-ID')}
+                        </p>
+                    </div>
+                    <div className="mt-8 px-5 py-2 glass rounded-2xl">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80" style={{ color: card.color }}>{card.tag}</p>
+                    </div>
                 </div>
-                <p className="text-xs font-black text-muted uppercase tracking-[0.2em]">Penjualan Hari Ini</p>
-                <p className="text-3xl font-black text-main mt-2">Rp {(revenueToday || 0).toLocaleString('id-ID')}</p>
-                <div className="mt-4 px-3 py-1 bg-success/10 rounded-full">
-                    <p className="text-[10px] text-success font-bold uppercase">Real-time Data</p>
-                </div>
-            </div>
-
-            <div className="card p-8 flex flex-col items-center text-center group hover:scale-[1.02] border-danger/20 bg-danger/5">
-                <div className="size-16 rounded-2xl bg-danger/10 flex items-center justify-center mb-4">
-                    <span className="material-symbols-outlined text-danger text-4xl">shopping_cart</span>
-                </div>
-                <p className="text-xs font-black text-muted uppercase tracking-[0.2em]">Pengeluaran</p>
-                <p className="text-3xl font-black text-main mt-2">Rp {(expenses || 0).toLocaleString('id-ID')}</p>
-                <div className="mt-4 px-3 py-1 bg-danger/10 rounded-full">
-                    <p className="text-[10px] text-danger font-bold uppercase">Operasional</p>
-                </div>
-            </div>
-
-            <div className="card p-8 flex flex-col items-center text-center group hover:scale-[1.02] border-primary/20 bg-primary/5">
-                <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                    <span className="material-symbols-outlined text-primary text-4xl">account_balance_wallet</span>
-                </div>
-                <p className="text-xs font-black text-muted uppercase tracking-[0.2em]">Profit Bersih</p>
-                <p className="text-3xl font-black text-primary mt-2">Rp {(netProfit || 0).toLocaleString('id-ID')}</p>
-                <div className="mt-4 px-3 py-1 bg-primary/10 rounded-full">
-                    <p className="text-[10px] text-primary font-bold uppercase">Laba Akumulasi</p>
-                </div>
-            </div>
+            ))}
         </section>
     );
 }

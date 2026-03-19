@@ -8,167 +8,171 @@ import NavDrawer from '@shared/NavDrawer';
 function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     return (
-        <div className="bg-background-app  font-display text-slate-900  min-h-screen pb-24 antialiased">
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
-            {/* Header */}
-            <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10 gap-2">
-                <button
-                    onClick={() => setDrawerOpen(true)}
-                    className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors active:scale-95 shrink-0"
-                >
-                    <span className="material-symbols-outlined">menu</span>
-                </button>
-                <div className="flex-1 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-lg font-bold tracking-tight">Store Profile</h1>
-                    </div>
-                    <button className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors">
-                        Save
-                    </button>
-                </div>
-            </header>
-
-            <main className="max-w-md mx-auto px-4 py-6 space-y-8">
-                {/* Logo Section */}
-                <section className="flex flex-col items-center gap-4">
-                    <div className="relative group">
-                        <div
-                            className="size-32 rounded-full border-4 border-primary/20 bg-cover bg-center overflow-hidden shadow-xl"
-                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9y1ZtNrs-R-ME1VxmCsiwQXfT_9WC5qRA_13BZhUHZMF0IFepSachNUKI6TDCMbE6FWj-co06LKFuN_Kjl4UmqBXFv6_fXIEsiDvaQUQopz7p7k5yCaHkWc63GP75fYyhHKqG1j71nVNBahFz-U_gCnm_5qHYdq3XK2mlEFC2hH3MVt8JvTJdL2Pjcf1FXMVrOPdKl2d6vwjyZVet-WUZQucx9djoOHvg-BWH3jWqVvb89ZG6zis-VJ7vNnBsEHbNcKKtXrOzMzE')" }}
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5179} />
+                
+                {/* Header */}
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
                         >
+                            <span className="material-symbols-outlined font-black">menu</span>
+                        </button>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none">Settings</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 leading-tight">Store Configuration</p>
                         </div>
-                        <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-background-dark active:scale-90 transition-transform">
-                            <span className="material-symbols-outlined text-sm">edit</span>
+                    </div>
+                    <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95">
+                        Simpan
+                    </button>
+                </header>
+
+                <main className="flex-1 p-8 space-y-12 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    {/* Logo Section */}
+                    <section className="flex flex-col items-center gap-8 py-6">
+                        <div className="relative group">
+                            <div
+                                className="size-40 rounded-[2.5rem] glass border-4 border-white/10 bg-cover bg-center overflow-hidden shadow-2xl group-hover:rotate-3 transition-transform duration-500"
+                                style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9y1ZtNrs-R-ME1VxmCsiwQXfT_9WC5qRA_13BZhUHZMF0IFepSachNUKI6TDCMbE6FWj-co06LKFuN_Kjl4UmqBXFv6_fXIEsiDvaQUQopz7p7k5yCaHkWc63GP75fYyhHKqG1j71nVNBahFz-U_gCnm_5qHYdq3XK2mlEFC2hH3MVt8JvTJdL2Pjcf1FXMVrOPdKl2d6vwjyZVet-WUZQucx9djoOHvg-BWH3jWqVvb89ZG6zis-VJ7vNnBsEHbNcKKtXrOzMzE')" }}
+                            >
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                    <span className="material-symbols-outlined text-white text-4xl font-black">photo_camera</span>
+                                </div>
+                            </div>
+                            <button className="absolute -bottom-2 -right-2 bg-primary text-white p-3 rounded-2xl shadow-2xl border-4 border-[var(--bg-app)] active:scale-90 transition-transform hover:rotate-12">
+                                <span className="material-symbols-outlined text-xl font-black">edit</span>
+                            </button>
+                        </div>
+                        <div className="text-center space-y-2">
+                            <h2 className="text-3xl font-black font-display tracking-tight text-primary uppercase leading-none">Kerabat Kopi Tiam</h2>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] opacity-60">Traditional Taste, Modern Connection</p>
+                        </div>
+                    </section>
+
+                    {/* General Information Form */}
+                    <section className="space-y-8">
+                        <div className="flex items-center gap-4 pb-4 border-b border-white/5">
+                            <span className="material-symbols-outlined text-primary text-2xl font-black">storefront</span>
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary">Informasi Gerai</h3>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Nama Toko</label>
+                                <input
+                                    className="w-full glass border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black uppercase tracking-widest text-[var(--text-main)] outline-none"
+                                    type="text"
+                                    defaultValue="Kerabat Kopi Tiam"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Slogan / Tagline</label>
+                                <input
+                                    className="w-full glass border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black uppercase tracking-widest text-[var(--text-main)] outline-none"
+                                    placeholder="e.g. Authentic Brews"
+                                    type="text"
+                                    defaultValue="Traditional Taste, Modern Connection"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Alamat Lengkap</label>
+                                <textarea
+                                    className="w-full glass border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-bold tracking-wide text-[var(--text-main)] resize-none outline-none"
+                                    rows={3}
+                                    defaultValue="Jl. Gajah Mada No. 123, Central Jakarta, Indonesia"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Contact & Localization */}
+                    <section className="space-y-8">
+                        <div className="flex items-center gap-4 pb-4 border-b border-white/5">
+                            <span className="material-symbols-outlined text-primary text-2xl font-black">alternate_email</span>
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary">Kontak & Lokalisasi</h3>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">WhatsApp Business</label>
+                                <div className="relative group">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary material-symbols-outlined font-black">call</span>
+                                    <input
+                                        className="w-full glass border-white/10 rounded-2xl pl-16 pr-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black tracking-widest text-[var(--text-main)] outline-none"
+                                        type="tel"
+                                        defaultValue="+62 812-3456-7890"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Email Korespondensi</label>
+                                <div className="relative group">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary material-symbols-outlined font-black">mail</span>
+                                    <input
+                                        className="w-full glass border-white/10 rounded-2xl pl-16 pr-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black tracking-widest text-[var(--text-main)] outline-none lowercase"
+                                        type="email"
+                                        defaultValue="hello@kerabatkopi.id"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Preferensi Mata Uang</label>
+                                <div className="relative">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary material-symbols-outlined font-black">payments</span>
+                                    <select className="w-full glass border-white/10 rounded-2xl pl-16 pr-12 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black uppercase tracking-widest text-[var(--text-main)] appearance-none outline-none cursor-pointer">
+                                        <option value="IDR" className="bg-[var(--bg-app)]">IDR - Indonesian Rupiah</option>
+                                        <option value="USD" className="bg-[var(--bg-app)]">USD - US Dollar</option>
+                                        <option value="SGD" className="bg-[var(--bg-app)]">SGD - Singapore Dollar</option>
+                                    </select>
+                                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-primary material-symbols-outlined font-black pointer-events-none">expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Operational Hours */}
+                    <section className="space-y-8 pb-10">
+                        <div className="flex items-center gap-4 pb-4 border-b border-white/5">
+                            <span className="material-symbols-outlined text-primary text-2xl font-black">schedule</span>
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary">Jam Operasional</h3>
+                        </div>
+                        <div className="grid grid-cols-2 gap-8">
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Waktu Buka</label>
+                                <div className="relative">
+                                    <input
+                                        className="w-full glass border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black tracking-widest text-[var(--text-main)] outline-none"
+                                        type="time"
+                                        defaultValue="07:00"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-2 opacity-60">Waktu Tutup</label>
+                                <div className="relative">
+                                    <input
+                                        className="w-full glass border-white/10 rounded-2xl px-6 py-4 focus:ring-4 focus:ring-primary/20 text-sm font-black tracking-widest text-[var(--text-main)] outline-none"
+                                        type="time"
+                                        defaultValue="22:00"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Save Button */}
+                    <div className="pt-6">
+                        <button
+                            className="w-full bg-primary text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 active:scale-[0.95] hover:scale-[1.02] transition-all"
+                        >
+                            <span className="material-symbols-outlined font-black">verified_user</span>
+                            Simpan Seluruh Perubahan
                         </button>
                     </div>
-                    <div className="text-center">
-                        <h2 className="text-xl font-bold italic text-primary">Kerabat Kopi Tiam</h2>
-                        <p className="text-slate-500  text-sm">Traditional Taste, Modern Connection</p>
-                    </div>
-                </section>
-
-                {/* General Information Form */}
-                <section className="space-y-6">
-                    <div className="flex items-center gap-2 pb-2 border-b border-primary/10">
-                        <span className="material-symbols-outlined text-primary text-xl">info</span>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-primary">General Information</h3>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Store Name</label>
-                            <input
-                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  placeholder:text-slate-400 "
-                                type="text"
-                                defaultValue="Kerabat Kopi Tiam"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Tagline / Slogan</label>
-                            <input
-                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  placeholder:text-slate-400 "
-                                placeholder="e.g. Authentic Brews"
-                                type="text"
-                                defaultValue="Traditional Taste, Modern Connection"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Address</label>
-                            <textarea
-                                className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  resize-none placeholder:text-slate-400 "
-                                rows={3}
-                                defaultValue="Jl. Gajah Mada No. 123, Central Jakarta, Indonesia"
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* Contact & Localization */}
-                <section className="space-y-6">
-                    <div className="flex items-center gap-2 pb-2 border-b border-primary/10">
-                        <span className="material-symbols-outlined text-primary text-xl">contact_support</span>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-primary">Contact & Settings</h3>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">WhatsApp Number</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">call</span>
-                                <input
-                                    className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
-                                    type="tel"
-                                    defaultValue="+62 812-3456-7890"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Email Address</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">mail</span>
-                                <input
-                                    className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
-                                    type="email"
-                                    defaultValue="hello@kerabatkopi.id"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Currency Preference</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg">payments</span>
-                                <select className="w-full bg-slate-100  border-none rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-primary text-slate-900  appearance-none">
-                                    <option value="IDR">Indonesian Rupiah (IDR)</option>
-                                    <option value="USD">US Dollar (USD)</option>
-                                    <option value="SGD">Singapore Dollar (SGD)</option>
-                                </select>
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined pointer-events-none">expand_more</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Operational Hours */}
-                <section className="space-y-6">
-                    <div className="flex items-center gap-2 pb-2 border-b border-primary/10">
-                        <span className="material-symbols-outlined text-primary text-xl">schedule</span>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-primary">Operational Hours</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Opening Time</label>
-                            <div className="relative">
-                                <input
-                                    className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
-                                    type="time"
-                                    defaultValue="07:00"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500  ml-1 uppercase">Closing Time</label>
-                            <div className="relative">
-                                <input
-                                    className="w-full bg-slate-100  border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 "
-                                    type="time"
-                                    defaultValue="22:00"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Save Button */}
-                <div className="pt-4">
-                    <button
-                        className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                        <span className="material-symbols-outlined">save</span>
-                        Save All Changes
-                    </button>
-                </div>
-            </main>
-
-            {/* Bottom Nav Placeholder */}
-
+                </main>
+            </div>
         </div>
     );
 }

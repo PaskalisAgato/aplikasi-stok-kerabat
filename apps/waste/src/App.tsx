@@ -27,110 +27,135 @@ function App() {
     const topOffenders = wasteSummary?.topOffenders || [];
 
     return (
-        <div className="bg-background-app  font-display text-slate-900  min-h-screen pb-24 antialiased">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl border-x border-slate-800/10  overflow-x-hidden">
+    return (
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
+            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
 
                 {/* Hamburger Drawer Overlay */}
                 <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-50 bg-background-app/80  backdrop-blur-md border-b border-primary/10 px-4 py-4 flex items-center gap-2">
-                    <button
-                        onClick={() => setDrawerOpen(true)}
-                        className="size-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors active:scale-95 text-primary shrink-0"
-                    >
-                        <span className="material-symbols-outlined">menu</span>
-                    </button>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-lg font-bold tracking-tight">Analisis Pemborosan</h1>
+                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
+                        </button>
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-black tracking-tight uppercase tracking-widest text-[var(--text-main)] font-display">Analisis Waste</h1>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold">Zero Waste Management</p>
+                        </div>
                     </div>
                 </header>
 
-                <main className="p-4 space-y-6 flex-1">
+                <main className="p-8 space-y-10 flex-1 custom-scrollbar">
                     {isLoading ? (
-                        <div className="flex justify-center items-center py-20">
-                            <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
+                        <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
+                            <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghitung Kerugian Produk...</p>
                         </div>
                     ) : (
                         <>
                             {/* Total Waste Metric Card */}
-                            <section>
-                                <div className="bg-primary/10  border border-primary/20 rounded-2xl p-5 relative overflow-hidden shadow-sm group">
-                                    <div className="absolute -right-4 -top-4 opacity-10  transition-transform duration-700 group-hover:scale-110 pointer-events-none">
-                                        <span className="material-symbols-outlined text-[140px] text-primary">delete_outline</span>
+                            <section className="animate-in fade-in slide-in-from-top-4 duration-700">
+                                <div className="card group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] p-8">
+                                    <div className="absolute -right-10 -top-10 opacity-5 transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-12 pointer-events-none text-primary">
+                                        <span className="material-symbols-outlined font-black" style={{ fontSize: '240px' }}>delete_outline</span>
                                     </div>
-                                    <p className="text-sm font-semibold tracking-tight text-slate-600 ">Total Pemborosan Bulan Ini</p>
-                                    <div className="mt-2.5 flex items-baseline gap-2.5">
-                                        <h2 className="text-3xl font-extrabold text-slate-900  tracking-tight">
-                                            Rp {totalWasteValue.toLocaleString('id-ID')}
-                                        </h2>
-                                        <span className="text-emerald-600  text-[13px] font-bold flex items-center gap-0.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                                            <span className="material-symbols-outlined text-[16px]">trending_down</span>
-                                            Healthy
-                                        </span>
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary text-sm font-black">warning</span>
+                                            <p className="text-[10px] font-black tracking-[0.4em] text-primary uppercase opacity-80">Total Pengeluaran Sia-Sia</p>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h2 className="text-5xl font-black text-[var(--text-main)] tracking-tighter uppercase font-display leading-tight">
+                                                Rp {totalWasteValue.toLocaleString('id-ID')}
+                                            </h2>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 shadow-inner">
+                                                    <span className="material-symbols-outlined text-[14px] font-black">trending_down</span>
+                                                    Optimal
+                                                </span>
+                                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Bulan Berjalan</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-[11px] font-medium text-slate-500  mt-2">Dihitung dari log stock movement 'WASTE'</p>
                                 </div>
                             </section>
 
                             {/* Waste Trend Chart */}
-                            <section>
-                                <div className="flex items-center justify-between mb-3 px-1">
-                                    <h3 className="text-base font-bold tracking-tight">Tren Pemborosan (30 Hari)</h3>
-                                    <span className="text-xs text-primary font-bold tracking-tight bg-primary/10 px-2 py-1 rounded-md">
+                            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                    <div className="space-y-1">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Tren Kerugian</h3>
+                                        <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Historikal 30 Hari</p>
+                                    </div>
+                                    <span className="text-[9px] text-primary font-black tracking-widest uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20 shadow-inner">
                                         {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}
                                     </span>
                                 </div>
-                                <div className="bg-white  border border-slate-200  rounded-2xl p-5 shadow-sm">
-                                    <div className="flex flex-col gap-1 mb-5">
-                                        <p className="text-xs font-semibold text-slate-500  uppercase tracking-wider">Rata-rata Harian Est.</p>
-                                        <p className="text-2xl font-extrabold tracking-tight">Rp {(totalWasteValue / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}</p>
+                                <div className="card p-8 group overflow-hidden">
+                                     <div className="flex flex-col gap-1 mb-10 relative z-10">
+                                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Estimasi Rata-rata Harian</p>
+                                        <p className="text-3xl font-black tracking-tighter text-primary font-display uppercase">Rp {(totalWasteValue / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}</p>
                                     </div>
-                                    <div className="h-40 w-full relative">
+                                    <div className="h-48 w-full relative">
                                         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
                                             <defs>
                                                 <linearGradient id="wasteChartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
-                                                    <stop offset="0%" stopColor="#d4823a" stopOpacity="0.4"></stop>
-                                                    <stop offset="100%" stopColor="#d4823a" stopOpacity="0"></stop>
+                                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4"></stop>
+                                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"></stop>
                                                 </linearGradient>
                                                 <filter id="glow">
-                                                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                                                     <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
                                                 </filter>
                                             </defs>
-                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10 L 400 100 L 0 100 Z" fill="url(#wasteChartGradient)"></path>
-                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="#d4823a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
+                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10 L 400 100 L 0 100 Z" fill="url(#wasteChartGradient)" className="animate-pulse duration-[3s]"></path>
+                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
                                         </svg>
                                     </div>
-                                    <div className="flex justify-between mt-3 text-[10px] text-slate-400  font-bold uppercase tracking-wider relative z-10">
-                                        <span>7 Hari</span><span>14 Hari</span><span>21 Hari</span><span>Sekarang</span>
+                                    <div className="flex justify-between mt-6 text-[8px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em] opacity-40 relative z-10">
+                                        <span>Awal Bulan</span><span>Mid Periode</span><span>Minggu Ke-3</span><span>Realtime</span>
                                     </div>
                                 </div>
                             </section>
 
                             {/* Top Waste Offenders */}
-                            <section>
-                                <h3 className="text-base font-bold tracking-tight mb-3 px-1">Top Waste Offenders</h3>
-                                <div className="space-y-2.5">
+                            <section className="animate-in fade-in zoom-in duration-1000">
+                                <div className="space-y-1 mb-6 px-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Produk Bermasalah</h3>
+                                    <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Top Waste Offenders</p>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
                                     {topOffenders.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-white  rounded-2xl border border-slate-100  border-dashed">
-                                            <p className="text-slate-500 font-medium text-sm italic">Belum ada data pemborosan recorded.</p>
+                                        <div className="flex flex-col items-center justify-center p-16 text-center glass rounded-[3rem] border-dashed border-2 opacity-40">
+                                            <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">inventory_2</span>
+                                            <p className="font-black text-xs uppercase tracking-widest">Optimasi Persediaan Tercapai</p>
+                                            <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60">Tidak ada produk dengan pemborosan signifikan</p>
                                         </div>
                                     ) : (
                                         topOffenders.map((item: any) => (
-                                            <div key={item.id} className="flex items-center justify-between p-4 bg-white  border border-slate-200  rounded-2xl shadow-sm hover:border-primary/30 transition-colors">
-                                                <div className="flex items-center gap-3.5">
-                                                    <div className={`w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20`}>
-                                                        <span className={`material-symbols-outlined text-red-500`}>inventory_2</span>
+                                            <div key={item.id} className="card group p-5 flex items-center justify-between gap-6 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] border-white/5">
+                                                <div className="flex items-center gap-5 flex-1 min-w-0">
+                                                    <div className="size-16 rounded-2xl bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 shadow-inner group-hover:rotate-6 transition-transform">
+                                                        <span className="material-symbols-outlined text-red-500 text-3xl font-black">inventory_2</span>
                                                     </div>
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <p className="font-bold text-sm tracking-tight">{item.name}</p>
-                                                        <p className="text-xs text-slate-500 font-medium">Stok: {parseFloat(item.currentStock)} {item.unit}</p>
+                                                    <div className="flex-1 min-w-0 space-y-1.5">
+                                                        <h4 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight uppercase truncate leading-tight group-hover:text-red-500 transition-colors">{item.name}</h4>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">AKTUAL</span>
+                                                            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">{parseFloat(item.currentStock)} {item.unit} Tersisa</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="text-right flex flex-col gap-1 items-end">
-                                                    <p className="font-bold text-sm tracking-tight text-red-500">Rp {parseFloat(item.totalWasteValue).toLocaleString('id-ID')}</p>
-                                                    <p className={`text-[9px] text-red-600  font-extrabold uppercase tracking-wider bg-red-500/10 px-1.5 py-0.5 rounded shadow-sm border border-red-500/20`}>MAJOR</p>
+                                                <div className="text-right flex flex-col gap-2 items-end shrink-0">
+                                                    <p className="text-2xl font-black text-red-500 font-display tracking-tighter uppercase whitespace-nowrap">
+                                                        Rp {parseFloat(item.totalWasteValue).toLocaleString('id-ID')}
+                                                    </p>
+                                                    <span className="text-[8px] text-red-600 font-black uppercase tracking-[0.3em] bg-red-500/10 px-3 py-1 rounded-lg shadow-inner border border-red-500/20">Critical Alert</span>
                                                 </div>
                                             </div>
                                         ))
@@ -139,18 +164,25 @@ function App() {
                             </section>
 
                             {/* Waste Reasons Breakdown */}
-                            <section>
-                                <h3 className="text-base font-bold tracking-tight mb-3 px-1">Penyebab Pemborosan (Estimasi)</h3>
-                                <div className="bg-white  border border-slate-200  rounded-2xl p-5 shadow-sm">
-                                    <div className="flex flex-col gap-5">
-                                        {[{ label: 'Expired / Kedaluwarsa', pct: 54, opacity: '' }, { label: 'Spillage / Kerusakan', pct: 28, opacity: '/70' }, { label: 'Kesalahan Pembuatan', pct: 18, opacity: '/40' }].map(r => (
-                                            <div key={r.label}>
-                                                <div className="flex justify-between items-end mb-1.5">
-                                                    <span className="text-sm font-bold tracking-tight">{r.label}</span>
-                                                    <span className="text-sm font-extrabold">{r.pct}%</span>
+                            <section className="animate-in fade-in duration-1000">
+                                <div className="space-y-1 mb-6 px-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Analisis Akar Masalah</h3>
+                                    <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Penyebab Kerugian</p>
+                                </div>
+                                <div className="card p-8 space-y-8 overflow-hidden">
+                                    <div className="space-y-6">
+                                        {[
+                                            { label: 'Expired / Kedaluwarsa', pct: 54, color: 'bg-primary shadow-primary/20' }, 
+                                            { label: 'Spillage / Kerusakan', pct: 28, color: 'bg-orange-500 shadow-orange-500/20' }, 
+                                            { label: 'Kesalahan Pembuatan', pct: 18, color: 'bg-slate-400 shadow-slate-400/20' }
+                                        ].map(r => (
+                                            <div key={r.label} className="space-y-3 group/item transition-all hover:translate-x-1">
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] opacity-80 group-hover/item:text-primary transition-colors">{r.label}</span>
+                                                    <span className="text-sm font-black text-[var(--text-main)] font-display tracking-wide">{r.pct}%</span>
                                                 </div>
-                                                <div className="w-full bg-slate-100  rounded-full h-2.5 overflow-hidden shadow-inner">
-                                                    <div className={`bg-primary${r.opacity} h-full rounded-full transition-all duration-1000 ease-out`} style={{ width: `${r.pct}%` }}></div>
+                                                <div className="w-full bg-[var(--bg-app)] h-3 rounded-full overflow-hidden shadow-inner border border-white/5">
+                                                    <div className={`${r.color} h-full rounded-full transition-all duration-1000 ease-out accent-glow`} style={{ width: `${r.pct}%` }}></div>
                                                 </div>
                                             </div>
                                         ))}
@@ -159,24 +191,30 @@ function App() {
                             </section>
 
                             {/* Actionable Recommendations */}
-                            <section className="pb-4">
-                                <h3 className="text-base font-bold tracking-tight mb-3 px-1 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-primary text-[20px]">lightbulb</span>
-                                    Rekomendasi Aksi
-                                </h3>
-                                <div className="space-y-3">
+                            <section className="pb-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                                <div className="flex items-center gap-3 mb-6 px-2">
+                                    <div className="size-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-inner group-hover:scale-110 transition-transform">
+                                        <span className="material-symbols-outlined text-2xl font-black">lightbulb</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Smart Recommendations</h3>
+                                        <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Saran Perbaikan Stok</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
                                     {[
                                         { icon: 'shopping_cart_checkout', title: 'Optimalkan Stok Susu', desc: 'Pesan dalam batch lebih kecil (2L vs 5L) untuk mengurangi risiko expired hingga 30%.' },
-                                        { icon: 'groups', title: 'Retraining Barista', desc: 'Lakukan tinjauan SOP pembuatan kopi susu untuk mengurangi spillage harian.' },
+                                        { icon: 'groups', title: 'Retraining Barista', desc: 'Lakukan tinjauan SOP pembuatan kopi susu secara berkala untuk mengurangi spillage harian.' },
                                     ].map(rec => (
-                                        <div key={rec.title} className="p-4 bg-white  border border-slate-200  border-l-4 border-l-primary rounded-xl flex gap-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                                            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                                <span className="material-symbols-outlined text-primary">{rec.icon}</span>
+                                        <div key={rec.title} className="card group p-6 flex gap-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 relative overflow-hidden border-white/5">
+                                            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-all border border-primary/20 shadow-inner">
+                                                <span className="material-symbols-outlined text-primary text-3xl font-black group-hover:rotate-12 transition-transform">{rec.icon}</span>
                                             </div>
-                                            <div className="flex flex-col justify-center">
-                                                <p className="text-sm font-bold tracking-tight mb-0.5">{rec.title}</p>
-                                                <p className="text-[11px] font-medium text-slate-500  leading-relaxed">{rec.desc}</p>
+                                            <div className="flex-1 space-y-2 relative z-10">
+                                                <p className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight group-hover:text-primary transition-colors">{rec.title}</p>
+                                                <p className="text-[10px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest opacity-60">{rec.desc}</p>
                                             </div>
+                                            <div className="absolute -right-4 -bottom-4 size-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
                                         </div>
                                     ))}
                                 </div>
@@ -185,14 +223,16 @@ function App() {
                     )}
                 </main>
 
-                {/* Floating Action Button */}
-                <button
-                    onClick={() => setIsLogModalOpen(true)}
-                    className="fixed bottom-6 right-4 sm:right-auto sm:left-[calc(50%+192px-72px)] flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-lg shadow-red-500/30 z-40 ring-4 ring-background-app  transition-transform active:scale-95 font-bold text-sm"
-                >
-                    <span className="material-symbols-outlined text-[22px]">delete_sweep</span>
-                    Catat Waste
-                </button>
+                {/* Floating Action Button (Premium) */}
+                <div className="fixed bottom-10 inset-x-0 flex justify-center z-[100] px-6 pointer-events-none">
+                    <button
+                        onClick={() => setIsLogModalOpen(true)}
+                        className="pointer-events-auto flex items-center gap-4 bg-red-500 hover:bg-red-600 text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-red-500/40 active:scale-75 transition-all border-none ring-8 ring-[var(--bg-app)] group"
+                    >
+                        <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">delete_sweep</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Input Data Waste</span>
+                    </button>
+                </div>
 
                 {/* Log Waste Modal */}
                 <LogWasteModal

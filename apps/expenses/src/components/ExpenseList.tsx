@@ -50,73 +50,96 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
         return dateStr;
     };
 
-
     return (
-        <div className="space-y-4 pb-10">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">Daftar Pengeluaran</h3>
-                <div className="flex gap-2">
-                    <select 
-                        value={selectedMonth} 
-                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                        className="text-xs font-bold bg-primary/10 text-primary px-2 py-1.5 rounded outline-none border border-primary/20 appearance-none text-center cursor-pointer"
-                    >
-                        {MONTHS.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
-                        ))}
-                    </select>
-                    <select 
-                        value={selectedYear} 
-                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        className="text-xs font-bold bg-primary/10 text-primary px-2 py-1.5 rounded outline-none border border-primary/20 appearance-none text-center cursor-pointer"
-                    >
-                        {generateYears().map((y) => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
+        <div className="space-y-8 pb-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <div className="space-y-1">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Riwayat Transaksi</h3>
+                    <p className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Daftar Pengeluaran</p>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+                    <div className="relative group min-w-[140px]">
+                        <select 
+                            value={selectedMonth} 
+                            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                            className="w-full text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary pl-4 pr-10 py-3 rounded-xl outline-none border border-primary/20 appearance-none cursor-pointer glass hover:bg-primary/10 transition-all"
+                        >
+                            {MONTHS.map((m, i) => (
+                                <option key={i} value={i} className="bg-slate-900 border-none">{m}</option>
+                            ))}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none font-black text-sm">expand_more</span>
+                    </div>
+                    <div className="relative group min-w-[100px]">
+                        <select 
+                            value={selectedYear} 
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                            className="w-full text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary pl-4 pr-10 py-3 rounded-xl outline-none border border-primary/20 appearance-none cursor-pointer glass hover:bg-primary/10 transition-all font-display"
+                        >
+                            {generateYears().map((y) => (
+                                <option key={y} value={y} className="bg-slate-900 border-none">{y}</option>
+                            ))}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none font-black text-sm">expand_more</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="space-y-3">
-                <AnimatePresence>
+            <div className="grid grid-cols-1 gap-4">
+                <AnimatePresence mode="popLayout">
                     {filteredExpenses.length === 0 ? (
-                        <p className="text-center text-sm text-slate-500 py-8">Tidak ada pengeluaran di periode ini.</p>
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center justify-center py-20 glass rounded-[2.5rem] border-dashed border-2 opacity-40"
+                        >
+                             <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">search_off</span>
+                             <p className="font-black text-xs uppercase tracking-[0.2em] text-[var(--text-main)]">Tidak ada pengeluaran</p>
+                             <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60">Coba pilih periode atau tahun lain</p>
+                        </motion.div>
                     ) : (
                         filteredExpenses.map((expense) => (
                             <motion.div
                                 key={expense.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
                                 layout
-                                className="flex items-center gap-4 p-3 rounded-lg bg-slate-50  border border-primary/10 transition-colors group"
+                                className="card group p-4 flex items-center justify-between gap-4 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99]"
                             >
-                                <div
-                                    className="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-primary/20 bg-slate-200 "
-                                    style={{ backgroundImage: `url('${expense.imageUrl}')` }}
-                                />
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-bold truncate">{expense.title}</p>
-                                    <p className="text-[10px] text-slate-500 font-medium bg-slate-200  rounded px-1.5 py-0.5 inline-block mt-1">{expense.category}</p>
-                                    <p className="text-xs text-slate-500  mt-1">{formatDisplayDate(expense.date)}</p>
+                                <div className="flex items-center gap-5 flex-1 min-w-0">
+                                    <div
+                                        className="size-16 rounded-2xl bg-cover bg-center shrink-0 border-2 border-white/5 bg-[var(--bg-app)] shadow-inner transition-transform group-hover:rotate-3"
+                                        style={{ backgroundImage: `url('${expense.imageUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?q=80&w=200&auto=format&fit=crop"}')` }}
+                                    />
+                                    <div className="flex-1 min-w-0 space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{expense.category}</span>
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
+                                        </div>
+                                        <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase truncate">{expense.title}</h4>
+                                    </div>
                                 </div>
-                                <div className="text-right flex flex-col items-end gap-2">
-                                    <p className="font-bold text-primary">Rp {Number(expense.amount).toLocaleString('id-ID')}</p>
+
+                                <div className="flex flex-col items-end gap-3 shrink-0">
+                                    <p className="text-xl font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
+                                        Rp {Number(expense.amount).toLocaleString('id-ID')}
+                                    </p>
                                     <div className="flex gap-2">
                                         {onEdit && (
                                             <button 
                                                 onClick={() => onEdit(expense)}
-                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                                className="size-9 glass flex items-center justify-center rounded-xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/5 shadow-inner"
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                                                <span className="material-symbols-outlined text-lg font-black">edit_square</span>
                                             </button>
                                         )}
                                         {onDelete && (
                                             <button 
                                                 onClick={() => onDelete(expense.id)}
-                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-red-100  text-red-600 hover:bg-red-200 transition-colors"
+                                                className="size-9 glass flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 active:scale-90 transition-all border-red-500/20 shadow-inner"
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                <span className="material-symbols-outlined text-lg font-black">delete_forever</span>
                                             </button>
                                         )}
                                     </div>
@@ -131,4 +154,3 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
 };
 
 export default ExpenseList;
-

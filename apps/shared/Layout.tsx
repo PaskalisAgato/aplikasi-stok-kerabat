@@ -48,19 +48,23 @@ const Layout: React.FC<LayoutProps> = ({
 
     if (isPending || isRetrying) {
         return (
-            <div className="min-h-screen bg-background-app flex items-center justify-center p-6 text-center">
-                <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
-                    <div className="relative">
-                        <span className="material-symbols-outlined animate-spin text-primary text-5xl">sync</span>
-                        <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-primary/30 text-2xl">shield_person</span>
+            <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-8 text-center overflow-hidden">
+                <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700">
+                    <div className="relative accent-glow">
+                        <div className="size-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-primary text-4xl">local_cafe</span>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <p className="text-xs font-black uppercase tracking-[0.3em] text-primary animate-pulse">
-                            {retryCount > 0 ? `Menghubungkan Ulang (${retryCount}/${maxRetries})` : 'Memeriksa Sesi'}
-                        </p>
-                        <p className="text-[10px] font-bold text-muted uppercase tracking-widest opacity-60">Mohon Tunggu Sebentar...</p>
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary animate-pulse">
+                            {retryCount > 0 ? `Sinkronisasi (${retryCount}/${maxRetries})` : 'Membuka Kerabat'}
+                        </h2>
+                        <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
                         {retryCount > 1 && (
-                            <p className="text-[10px] text-orange-500 font-bold bg-orange-500/10 px-3 py-1 rounded-full animate-bounce">Server sedang dibangunkan...</p>
+                            <div className="glass px-6 py-2 rounded-full animate-bounce">
+                                <p className="text-[10px] text-primary font-black uppercase">Server sedang bersiap...</p>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -75,38 +79,40 @@ const Layout: React.FC<LayoutProps> = ({
     // Network Diagnostic / Connection Issue Screen
     if (!session && retryCount >= maxRetries) {
         return (
-            <div className="min-h-screen bg-background-app flex items-center justify-center p-6 text-main">
-                <div className="w-full max-w-sm space-y-8 animate-in zoom-in duration-300">
-                    <div className="text-center space-y-4">
-                        <div className="size-20 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mx-auto border-2 border-orange-500/20">
-                            <span className="material-symbols-outlined text-4xl">cloud_off</span>
+            <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)]">
+                <div className="w-full max-w-md space-y-10 animate-in slide-in-from-bottom duration-500">
+                    <div className="text-center space-y-6">
+                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-slate-950 mx-auto shadow-2xl shadow-primary/30 rotate-3">
+                            <span className="material-symbols-outlined text-5xl">wifi_off</span>
                         </div>
-                        <h2 className="text-2xl font-black tracking-tight">Koneksi Terhambat</h2>
-                        <p className="text-sm text-muted font-medium">Sistem tidak dapat menjangkau server di iPhone Anda (Kemungkinan diblokir ISP).</p>
-                    </div>
-
-                    <div className="bg-surface border border-border-dim rounded-3xl p-6 space-y-4 shadow-xl">
-                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">Solusi Perbaikan:</p>
-                        <div className="space-y-3">
-                            <div className="flex gap-3 items-start">
-                                <span className="bg-primary text-white size-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</span>
-                                <p className="text-xs font-medium">Gunakan **VPN** atau matikan WiFi (coba Data Seluler).</p>
-                            </div>
-                            <div className="flex gap-3 items-start">
-                                <span className="bg-primary text-white size-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</span>
-                                <p className="text-xs font-medium">Aktifkan **DNS Aman** di Chrome (Setelan &gt; Privasi &gt; Gunakan DNS Aman).</p>
-                            </div>
-                            <div className="flex gap-3 items-start">
-                                <span className="bg-primary text-white size-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>
-                                <p className="text-xs font-medium">Cek kuota internet dan pastikan sinyal stabil.</p>
-                            </div>
+                        <div className="space-y-2">
+                            <h2 className="text-4xl font-black tracking-tight font-display">Koneksi Terhambat</h2>
+                            <p className="text-base text-[var(--text-muted)] font-medium">Server tidak dapat dijangkau dari jaringan Anda.</p>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="glass rounded-[2rem] p-8 space-y-6">
+                        <p className="text-xs font-black text-primary uppercase tracking-[0.2em]">Langkah Perbaikan:</p>
+                        <div className="space-y-5">
+                            {[
+                                { icon: 'vpn_lock', text: 'Gunakan **VPN** atau ganti ke **Data Seluler**.' },
+                                { icon: 'dns', text: 'Aktifkan **DNS Aman** di pengaturan Browser.' },
+                                { icon: 'refresh', text: 'Pastikan koneksi internet Anda stabil.' }
+                            ].map((step, i) => (
+                                <div key={i} className="flex gap-4 items-center">
+                                    <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined text-xl">{step.icon}</span>
+                                    </div>
+                                    <p className="text-sm font-semibold opacity-90">{step.text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
                         <button 
                             onClick={() => window.location.reload()}
-                            className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all text-sm"
+                            className="btn-primary w-full text-base"
                         >
                             COBA LAGI SEKARANG
                         </button>
@@ -115,9 +121,9 @@ const Layout: React.FC<LayoutProps> = ({
                                 localStorage.removeItem('kerabat_auth_token');
                                 window.location.reload();
                             }}
-                            className="w-full py-4 bg-surface text-muted font-bold rounded-2xl border border-border-dim text-xs active:scale-95 transition-all"
+                            className="w-full py-4 text-[var(--text-muted)] font-black uppercase tracking-widest text-[10px] hover:text-primary transition-colors"
                         >
-                            KEMBALI KE LOGIN
+                            Log Out & Kembali ke Login
                         </button>
                     </div>
                 </div>
@@ -126,26 +132,24 @@ const Layout: React.FC<LayoutProps> = ({
     }
 
     return (
-        <div className="bg-background-app text-main antialiased font-display min-h-screen w-full transition-colors duration-300">
-            {/* Hidden NavDrawer for mobile overlay */}
+        <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500">
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
             
-            <div className={`flex flex-col min-h-screen lg:flex-row mx-auto shadow-2xl border-x border-border-dim bg-background-app`} style={{ maxWidth }}>
+            <div className={`flex flex-col min-h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative`} style={{ maxWidth }}>
                 
-                {/* Desktop Sidebar (Optional) */}
+                {/* Desktop Sidebar (Floating Glass Effect) */}
                 {sidebar && (
-                    <aside className="hidden lg:flex w-72 h-screen sticky top-0 bg-surface border-r border-border-dim flex-col p-6 space-y-8 z-20">
-                        <div className="flex items-center gap-3">
-                            <button 
-                                onClick={() => setDrawerOpen(true)} 
-                                className="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95"
-                                title="Open Sidebar"
-                            >
-                                <span className="material-symbols-outlined">menu</span>
-                            </button>
-                            <h1 className="text-xl font-black tracking-tight truncate">{title}</h1>
+                    <aside className="hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 glass rounded-[3rem] flex-col p-8 space-y-10 z-20">
+                        <div className="flex items-center gap-4">
+                            <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
+                                <span className="material-symbols-outlined font-black">coffee</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Kerabat POS</p>
+                                <h1 className="text-xl font-black tracking-tight truncate font-display">{title}</h1>
+                            </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto hide-scrollbar">
+                        <div className="flex-1 overflow-y-auto hide-scrollbar pr-2 -mr-2">
                             {sidebar}
                         </div>
                     </aside>
@@ -153,31 +157,40 @@ const Layout: React.FC<LayoutProps> = ({
 
                 {/* Main Viewport */}
                 <div className="flex-1 flex flex-col min-w-0">
-                    {/* Shell Header */}
-                    <header className="sticky top-0 z-30 bg-background-app/80 backdrop-blur-md px-4 md:px-6 py-4 border-b border-border-dim shadow-sm">
-                        <div className="flex items-center gap-4">
-                            {/* Mobile Menu Trigger OR Desktop Trigger (if no sidebar) */}
+                    {/* Shell Header (Glass) */}
+                    <header className="sticky top-0 z-30 px-6 py-5">
+                        <div className="glass rounded-[2rem] px-6 py-4 flex items-center gap-6">
                             <button 
                                 onClick={() => setDrawerOpen(true)} 
-                                className={`${sidebar ? 'lg:hidden' : ''} size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95`}
+                                className={`${sidebar ? 'lg:hidden' : ''} size-12 flex items-center justify-center rounded-2xl bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95`}
                             >
-                                <span className="material-symbols-outlined">menu</span>
+                                <span className="material-symbols-outlined font-bold">menu</span>
                             </button>
                             
-                            {!sidebar && <h1 className="text-xl font-black tracking-tight truncate">{title}</h1>}
+                            {!sidebar && (
+                                <div className="flex items-center gap-4">
+                                     <div className="size-10 rounded-xl accent-gradient flex items-center justify-center text-slate-950">
+                                        <span className="material-symbols-outlined text-xl">coffee</span>
+                                    </div>
+                                    <h1 className="text-xl font-black tracking-tight truncate font-display">{title}</h1>
+                                </div>
+                            )}
                             
                             <div className="flex-1"></div>
                             
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4">
                                 {headerExtras}
+                                <div className="h-8 w-px bg-[var(--border-dim)] mx-2"></div>
                                 <ThemeToggle />
                             </div>
                         </div>
                     </header>
 
                     {/* Content Area */}
-                    <main className="flex-1 p-4 md:p-8">
-                        {children}
+                    <main className="flex-1 px-6 md:px-10 pb-10">
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {children}
+                        </div>
                     </main>
                 </div>
             </div>

@@ -74,105 +74,118 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
     };
 
     return (
-        <div className="min-h-screen bg-background-app flex items-center justify-center p-6 text-main">
-            <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-300">
-                <div className="text-center space-y-2">
-                    <div className="size-20 rounded-3xl bg-primary flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-4 transform hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-white text-4xl">store</span>
+        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-hidden relative">
+            {/* Background Decorative Accents */}
+            <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/10 blur-[120px] animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/10 blur-[120px] animate-pulse duration-700"></div>
+
+            <div className="w-full max-w-md space-y-12 animate-in fade-in zoom-in duration-700 relative z-10">
+                <div className="text-center space-y-4">
+                    <div className="size-24 rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-6 transform hover:scale-110 hover:rotate-3 transition-all cursor-default">
+                        <span className="material-symbols-outlined text-slate-950 text-5xl font-black">coffee</span>
                     </div>
-                    <h1 className="text-4xl font-black tracking-tighter">KERABAT POS</h1>
-                    <p className="text-muted font-medium">Sistem Inventori & Kasir Terpadu</p>
+                    <div className="space-y-1">
+                        <h1 className="text-5xl font-black tracking-tighter font-display">KERABAT<span className="text-primary italic">.</span></h1>
+                        <p className="text-[var(--text-muted)] font-bold uppercase tracking-[0.3em] text-[10px] opacity-80">Sistem Kasir Premium v1.0</p>
+                    </div>
                 </div>
 
                 {mode === 'select' ? (
-                    <div className="grid grid-cols-2 gap-6 p-2">
-                        <button 
-                            onClick={() => handleRoleSelect('Admin')}
-                            className="aspect-square bg-surface border border-border-dim rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-primary transition-all hover:shadow-xl group"
-                        >
-                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                <span className="material-symbols-outlined text-3xl">admin_panel_settings</span>
-                            </div>
-                            <span className="font-black tracking-widest text-sm uppercase">ADMIN</span>
-                        </button>
-                        <button 
-                            onClick={() => handleRoleSelect('Karyawan')}
-                            className="aspect-square bg-surface border border-border-dim rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-primary transition-all hover:shadow-xl group"
-                        >
-                            <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                <span className="material-symbols-outlined text-3xl">badge</span>
-                            </div>
-                            <span className="font-black tracking-widest text-sm uppercase">KARYAWAN</span>
-                        </button>
+                    <div className="grid grid-cols-2 gap-8 p-2">
+                        {[
+                            { id: 'Admin', label: 'ADMIN', icon: 'admin_panel_settings', desc: 'Kelola Sistem' },
+                            { id: 'Karyawan', label: 'STAF', icon: 'badge', desc: 'Operasional' }
+                        ].map((r) => (
+                            <button 
+                                key={r.id}
+                                onClick={() => handleRoleSelect(r.id as Role)}
+                                className="aspect-square glass rounded-[2.5rem] flex flex-col items-center justify-center gap-4 hover:scale-105 transition-all group relative overflow-hidden active:scale-95"
+                            >
+                                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors"></div>
+                                <div className="size-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-950 transition-all shadow-lg group-hover:shadow-primary/40">
+                                    <span className="material-symbols-outlined text-4xl">{r.icon}</span>
+                                </div>
+                                <div className="text-center">
+                                    <span className="font-black tracking-[0.2em] text-xs uppercase block">{r.label}</span>
+                                    <span className="text-[9px] font-bold opacity-50 uppercase tracking-widest">{r.desc}</span>
+                                </div>
+                            </button>
+                        ))}
                     </div>
                 ) : (
-                    <div className="bg-surface rounded-3xl border border-border-dim shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
-                        <div className="p-8 space-y-8">
+                    <div className="glass rounded-[3rem] overflow-hidden animate-in slide-in-from-bottom-10 duration-700 ease-out shadow-2xl shadow-black/20">
+                        <div className="p-10 space-y-10">
                             <div className="flex items-center gap-4">
-                                <button onClick={() => setMode('select')} className="size-10 rounded-full hover:bg-primary/10 flex items-center justify-center text-primary">
-                                    <span className="material-symbols-outlined">arrow_back</span>
+                                <button 
+                                    onClick={() => setMode('select')} 
+                                    className="size-12 rounded-2xl hover:bg-primary/10 flex items-center justify-center text-primary transition-colors"
+                                >
+                                    <span className="material-symbols-outlined font-black">arrow_back</span>
                                 </button>
-                                <div className="flex-1 text-center pr-10">
-                                    <h2 className="text-xl font-black">LOGIN {role}</h2>
-                                    <p className="text-xs text-muted font-bold tracking-widest uppercase">MASUKKAN PIN ANDA</p>
+                                <div className="flex-1 text-center pr-12">
+                                    <h2 className="text-2xl font-black font-display tracking-tight uppercase">{role} LOGIN</h2>
+                                    <p className="text-[10px] text-primary font-black tracking-[0.3em] uppercase opacity-70">Masukkan PIN Keamanan</p>
                                 </div>
                             </div>
 
-                            <div className="flex justify-center gap-3">
+                            <div className="flex justify-center gap-4">
                                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className={`size-4 rounded-full border-2 transition-all duration-300 ${pin.length >= i ? 'bg-primary border-primary scale-125' : 'border-border-dim'}`} />
+                                    <div key={i} className={`size-4 rounded-full border-2 transition-all duration-300 ${pin.length >= i ? 'bg-primary border-primary scale-125 accent-glow' : 'border-[var(--border-dim)]'}`} />
                                 ))}
                             </div>
 
                             {error && (
-                                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-xs font-bold flex items-center gap-3 animate-pulse">
-                                    <span className="material-symbols-outlined text-sm">error</span>
-                                    {error}
+                                <div className="glass bg-red-500/10 border-red-500/20 text-red-500 p-5 rounded-[1.5rem] text-xs font-bold flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                                    <span className="material-symbols-outlined text-base font-black">warning</span>
+                                    <span className="flex-1">{error}</span>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-3 gap-4 pb-4">
+                            <div className="grid grid-cols-3 gap-5 pb-4">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                                     <button 
                                         key={n} 
                                         onClick={() => handleNumberClick(n.toString())}
-                                        className="h-16 rounded-2xl bg-background-app hover:bg-primary hover:text-white text-xl font-black transition-all active:scale-95"
+                                        className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-all active:scale-90 hover:shadow-lg hover:shadow-primary/20"
                                     >
                                         {n}
                                     </button>
                                 ))}
-                                <button className="h-16" /> {/* Placeholder */}
+                                <button className="h-20" />
                                 <button 
                                     onClick={() => handleNumberClick('0')}
-                                    className="h-16 rounded-2xl bg-background-app hover:bg-primary hover:text-white text-xl font-black transition-all active:scale-95"
+                                    className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-all active:scale-90"
                                 >
                                     0
                                 </button>
                                 <button 
                                     onClick={handleDelete}
-                                    className="h-16 rounded-2xl bg-background-app hover:text-red-500 transition-colors flex items-center justify-center"
+                                    className="h-20 rounded-[1.5rem] glass hover:text-red-500 transition-all flex items-center justify-center active:scale-90"
                                 >
-                                    <span className="material-symbols-outlined text-2xl">backspace</span>
+                                    <span className="material-symbols-outlined text-3xl font-black">backspace</span>
                                 </button>
                             </div>
 
                             <button
                                 onClick={handleLogin}
                                 disabled={isLoading || pin.length < 4}
-                                className={`w-full h-16 rounded-2xl text-white font-black text-lg transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 ${isLoading || pin.length < 4 ? 'bg-slate-700 opacity-50 cursor-not-allowed' : 'bg-primary hover:shadow-primary/30'}`}
+                                className={`btn-primary w-full h-20 text-xl font-black tracking-widest ${isLoading || pin.length < 4 ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
                             >
-                                {isLoading ? <span className="material-symbols-outlined animate-spin">refresh</span> : 'LOGIN SEKARANG'}
+                                {isLoading ? <span className="material-symbols-outlined animate-spin font-black text-3xl">sync</span> : 'MASUK SEKARANG'}
                             </button>
                         </div>
                     </div>
                 )}
 
-                <p className="text-center text-[10px] text-muted font-bold tracking-[0.2em] uppercase opacity-50">
-                    &copy; 2026 Kerabat Coffee . All Rights Reserved
-                </p>
+                <div className="space-y-4 pt-4">
+                     <p className="text-center text-[9px] text-[var(--text-muted)] font-black tracking-[0.4em] uppercase opacity-40">
+                        &copy; 2026 Kerabat Coffee . Experience Excellence
+                    </p>
+                </div>
             </div>
         </div>
     );
 };
+
 
 export default AuthPage;

@@ -22,13 +22,27 @@ async function seed() {
 
         // 2. SEED EMPLOYEES
         console.log('👤 Seeding Employees (Users)...');
+        
+        // Add a default Admin for initial setup
+        await db.insert(schema.users).values({
+            id: 'admin_primary',
+            name: 'Administrator',
+            email: 'admin@stok-kerabat.com',
+            emailVerified: true,
+            role: 'Admin',
+            pin: '1234', // Default PIN for dev/initial setup
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
         for (const emp of EMPLOYEES) {
             await db.insert(schema.users).values({
                 id: `emp_${emp.id}`, // Mocking text ID
                 name: emp.name,
                 email: `${emp.name.toLowerCase().replace(' ', '')}@kerabat.com`,
                 emailVerified: true,
-                role: emp.role,
+                role: emp.role === 'Owner' || emp.role === 'Manager' ? 'Admin' : 'Karyawan',
+                pin: emp.role === 'Owner' || emp.role === 'Manager' ? '5678' : '0000', // Default PINs
                 image: emp.image,
                 createdAt: new Date(),
                 updatedAt: new Date(),

@@ -33,33 +33,34 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = exports.pool = void 0;
-const node_postgres_1 = require("drizzle-orm/node-postgres");
-const pg_1 = require("pg");
-const schema = __importStar(require("./schema"));
-require("dotenv/config");
-console.log('--- DB Module: Initializing PG Pool ---');
-if (!process.env.DATABASE_URL) {
-    console.error('!!! FATAL: DATABASE_URL is missing in db/index.ts');
-}
-// Create a Postgres connection pool
-exports.pool = new pg_1.Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 10, // Reduced from 20 to be safer on free tiers
-    ssl: {
-        rejectUnauthorized: false
-    },
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
-});
-exports.pool.on('connect', () => {
-    console.log('--- DB Module: Pool connected to Postgres ---');
-});
-// Initialize Drizzle ORM
-exports.db = (0, node_postgres_1.drizzle)(exports.pool, { schema });
-// Relaxed error handler: Don't crash the whole app on idle errors
-exports.pool.on('error', (err) => {
-    console.error('--- DB Pool Error (Non-Fatal) ---');
-    console.error(err.message);
-    // process.exit(-1); // REMOVED: Don't kill the server, let PG pool handle reconnections
+exports.auditRouter = void 0;
+const express_1 = require("express");
+const db_1 = require("../db");
+const schema = __importStar(require("../db/schema"));
+const drizzle_orm_1 = require("drizzle-orm");
+const auth_1 = require("../middleware/auth");
+exports.auditRouter = (0, express_1.Router)();
+// GET all audit logs (Admin only)
+exports.auditRouter.get('/', auth_1.requireAdmin, async (req, res) => {
+    try {
+        const logs = await db_1.db.select({
+            id: schema.auditLogs.id,
+            userId: schema.auditLogs.userId,
+            userName: schema.users.name,
+            action: schema.auditLogs.action,
+            tableName: schema.auditLogs.tableName,
+            oldData: schema.auditLogs.oldData,
+            newData: schema.auditLogs.newData,
+            createdAt: schema.auditLogs.createdAt,
+        })
+            .from(schema.auditLogs)
+            .leftJoin(schema.users, (0, drizzle_orm_1.eq)(schema.auditLogs.userId, schema.users.id))
+            .orderBy((0, drizzle_orm_1.desc)(schema.auditLogs.createdAt))
+            .limit(100);
+        res.json(logs);
+    }
+    catch (error) {
+        console.error('Error fetching audit logs:', error);
+        res.status(500).json({ error: 'Failed to fetch activity history' });
+    }
 });
