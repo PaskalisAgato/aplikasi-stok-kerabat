@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 
-import Layout from '@shared/Layout';
+import NavDrawer from '@shared/NavDrawer';
 
 function App() {
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -51,9 +52,12 @@ function App() {
             <div className="fixed inset-0 flex flex-col max-w-[1200px] mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
                 <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
-                        <div className="size-12 glass flex items-center justify-center rounded-2xl text-primary border-white/10">
-                             <span className="material-symbols-outlined font-black">coffee</span>
-                        </div>
+                        <button
+                            onClick={() => setDrawerOpen(true)}
+                            className="size-12 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/10"
+                        >
+                            <span className="material-symbols-outlined font-black">menu</span>
+                        </button>
                         <div className="space-y-1">
                             <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">Kasir (POS)</h1>
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">Transaksi Realtime</p>
@@ -175,8 +179,10 @@ function App() {
                         SELESAIKAN PESANAN
                     </button>
                 </footer>
+
+                {/* Hamburger Drawer Overlay */}
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5186} />
             </div>
-        </div>
 
             {/* Add Menu Modal (Premium Glass) */}
             {showAddMenu && (
@@ -270,9 +276,11 @@ function App() {
                     </div>
                 </div>
             )}
-            </Layout>
-        );
-    }
+        </div>
+    );
+}
+
+export default App;
 
 export default App;
 

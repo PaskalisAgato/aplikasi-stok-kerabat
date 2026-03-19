@@ -39,7 +39,6 @@ function App() {
     return (
         <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen antialiased animate-in fade-in duration-700 overflow-hidden">
             <div className="fixed inset-0 flex flex-col max-w-2xl mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
 
                 {/* Header */}
                 <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
@@ -161,12 +160,10 @@ function App() {
                     </button>
                 </footer>
 
-                {selectedRecipe && (
-                    <EditRecipeModal
-                        recipe={selectedRecipe}
-                        onClose={() => { setSelectedRecipe(null); fetchRecipes(); }}
-                    />
-                )}
+
+
+                {/* Hamburger Drawer Overlay */}
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
             </div>
         </div>
     );

@@ -31,7 +31,6 @@ function App() {
             <div className="fixed inset-0 flex flex-col max-w-2xl mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
 
                 {/* Hamburger Drawer Overlay */}
-                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
 
                 {/* Header */}
                 <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
@@ -241,6 +240,9 @@ function App() {
                         apiClient.getWasteSummary().then(setWasteSummary).catch(console.error);
                     }}
                 />
+
+                {/* Hamburger Drawer Overlay */}
+                <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
             </div>
         </div>
     );
