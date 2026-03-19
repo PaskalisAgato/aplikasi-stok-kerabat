@@ -469,17 +469,17 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
 
                 {/* Bottom Actions (Non-fixed, always at bottom of flex container) */}
                 <footer className="bg-white border-t border-primary/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.05)] w-full">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex gap-4">
                         <button
                             onClick={onClose}
-                            className="py-4.5 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest rounded-[1.5rem] transition-all active:scale-95 border border-slate-200">
+                            className="flex-[1] py-5 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] transition-all active:scale-95 border border-slate-200">
                             Batal
                         </button>
                         <button
                             onClick={handleSaveAPI}
-                            className="py-4.5 bg-gradient-to-r from-primary to-amber-600 text-white font-black text-xs uppercase tracking-widest rounded-[1.5rem] shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group">
+                            className="flex-[2.5] py-5 bg-gradient-to-r from-primary to-amber-600 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group">
                             <span className="material-symbols-outlined text-[20px] font-black group-hover:rotate-12 transition-transform">save</span>
-                            Simpan resep
+                            Simpan Resep
                         </button>
                     </div>
                 </footer>
