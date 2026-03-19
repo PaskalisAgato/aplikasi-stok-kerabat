@@ -2,13 +2,12 @@
  * apps/shared/apiClient.ts
  *
  * Base HTTP utility for the Kerabat POS monorepo.
- *
- * `apiFetch` — typed, credentials-aware base function used by service files.
- * `apiClient` — legacy compat object (still used by older components).
  */
 
-// Default to Render URL in production build if env var is missing
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
+// Deployment URL (Cyclic for backend)
+export const API_BASE_URL = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
+    || (import.meta as any).env?.VITE_API_URL 
+    || 'https://kerabat-pos-api.cyclic.app/api';
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {
@@ -27,24 +26,9 @@ export class ApiError extends Error {
     }
 }
 
-// ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
-// Ping server setiap 10 menit agar tidak sleep
-if (typeof window !== 'undefined') {
-    const pingServer = () => {
-        fetch(`${API_BASE_URL}/health`, { credentials: 'include' }).catch(() => {
-            // Silent – hanya untuk menjaga server tetap aktif
-        });
-    };
-    // Ping pertama setelah 5 menit, lalu setiap 10 menit
-    setTimeout(() => {
-        pingServer();
-        setInterval(pingServer, 10 * 60 * 1000);
-    }, 5 * 60 * 1000);
-}
-
 // ── Base fetch helper ──────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 15_000; // 15 detik timeout
-const MAX_RETRIES = 1;           // 1x retry otomatis untuk koneksi gagal
+const FETCH_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 1;
 
 /**
  * `apiFetch` wraps native fetch with:
@@ -93,32 +77,28 @@ export async function apiFetch<T = unknown>(
             throw new ApiError(response.status, response.statusText, message);
         }
 
-        // Handle 204 No Content
         if (response.status === 204) return undefined as T;
         return response.json() as Promise<T>;
 
     } catch (err: any) {
         clearTimeout(timeoutId);
 
-        // Retry sekali jika error jaringan (bukan ApiError / bukan 4xx)
         const isNetworkError = !(err instanceof ApiError);
         if (isNetworkError && retries > 0) {
             console.warn(`[apiFetch] Koneksi gagal ke ${path}, mencoba ulang...`);
-            await new Promise(r => setTimeout(r, 2000)); // tunggu 2 detik sebelum retry
+            await new Promise(r => setTimeout(r, 2000));
             return apiFetch<T>(path, init, retries - 1);
         }
 
         if (err.name === 'AbortError') {
-            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (${FETCH_TIMEOUT_MS / 1000}s). Server mungkin sedang menyala ulang, coba beberapa saat lagi.`);
+            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (${FETCH_TIMEOUT_MS / 1000}s).`);
         }
 
         throw err;
     }
 }
 
-// ── Legacy compat layer ────────────────────────────────────────────────────────
-// Kept so existing components that import `apiClient` continue to work
-// while being migrated to the new hooks.
+// ── Legacy compat layer (Updated for Modular Architecture) ────────────────────────
 export const apiClient = {
     // ---- INVENTORY ----
     getInventory: () => apiFetch<any[]>('/inventory'),
@@ -131,14 +111,15 @@ export const apiClient = {
     getStockInHistory: () => apiFetch<any[]>('/inventory/movements/in'),
     getItemWaste: (id: number) => apiFetch<any[]>(`/inventory/${id}/waste`),
 
-    // ---- RECIPES ----
-    getRecipes: () => apiFetch<any[]>('/recipes'),
-    createRecipe: (data: unknown) => apiFetch<any>('/recipes', { method: 'POST', body: JSON.stringify(data) }),
-    updateRecipe: (id: number, data: unknown) => apiFetch<any>(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteRecipe: (id: number) => apiFetch<any>(`/recipes/${id}`, { method: 'DELETE' }),
+    // ---- PRODUCTS (Mappings to old names for frontend compatibility) ----
+    getRecipes: () => apiFetch<any[]>('/products'),
+    getProducts: () => apiFetch<any[]>('/products'),
+    createRecipe: (data: unknown) => apiFetch<any>('/products', { method: 'POST', body: JSON.stringify(data) }),
+    updateRecipe: (id: number, data: unknown) => apiFetch<any>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteRecipe: (id: number) => apiFetch<any>(`/products/${id}`, { method: 'DELETE' }),
 
-    // ---- SALES ----
-    checkoutCart: (checkoutData: unknown) => apiFetch<any>('/sales', { method: 'POST', body: JSON.stringify(checkoutData) }),
+    // ---- TRANSACTIONS ----
+    checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
@@ -151,3 +132,4 @@ export const apiClient = {
     deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
     getHPPAnalysis: () => apiFetch<any>('/finance/hpp'),
 };
+
