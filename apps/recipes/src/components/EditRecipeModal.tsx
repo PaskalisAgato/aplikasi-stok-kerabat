@@ -465,6 +465,9 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                             </div>
                         </div>
                     </section>
+                    
+                    {/* Add extra spacer for bottom footer visibility */}
+                    <div className="h-48"></div>
                 </main>
 
                 {/* Bottom Actions */}
