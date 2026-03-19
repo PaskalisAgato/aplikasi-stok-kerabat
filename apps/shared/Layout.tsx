@@ -169,12 +169,14 @@ const Layout: React.FC<LayoutProps> = ({
                 <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                     {/* Shell Header (Glass) */}
                     <header className="px-6 py-5 shrink-0">
+                        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
                         <div className="glass rounded-[2rem] px-6 py-4 flex items-center gap-6">
                             <button 
                                 onClick={() => setDrawerOpen(true)} 
-                                className={`${sidebar ? 'lg:hidden' : ''} size-12 flex items-center justify-center rounded-2xl bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95`}
+                                className="size-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
+                                style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
                             >
-                                <span className="material-symbols-outlined font-bold">menu</span>
+                                <span className="material-symbols-outlined font-black">menu</span>
                             </button>
                             
                             {!sidebar && (

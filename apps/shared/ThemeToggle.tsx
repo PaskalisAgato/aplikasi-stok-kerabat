@@ -30,7 +30,8 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95 flex items-center justify-center size-10"
+      className="p-2 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95 flex items-center justify-center size-10"
+      style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
       aria-label="Toggle Theme"
     >
       <span className="material-symbols-outlined text-[20px]">
