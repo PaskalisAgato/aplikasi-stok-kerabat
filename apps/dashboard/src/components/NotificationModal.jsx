@@ -3,7 +3,7 @@ import React from 'react';
 const NotificationCard = ({
     image, title, status, time, stockInfo, showRestock, showUpdate
 }) => (
-    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+    <div className="bg-[var(--bg-app)] border-2 border-[var(--border-dim)] rounded-3xl overflow-hidden shadow-2xl transition-all">
         <div className="p-4 flex gap-4">
             <div
                 className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0"
@@ -19,7 +19,7 @@ const NotificationCard = ({
                     </span>
                     <span className="text-[10px] text-slate-500 font-medium">{time}</span>
                 </div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-[var(--text-main)]">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
                     {title}
                 </h3>
@@ -54,9 +54,9 @@ const NotificationModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background-dark text-slate-100 overflow-hidden font-display">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden font-display">
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-background-dark/80 backdrop-blur-md border-b border-white/10 px-4 py-4 flex items-center gap-4">
+            <header className="sticky top-0 z-10 bg-[var(--bg-app)] border-b border-[var(--border-dim)] px-4 py-4 flex items-center gap-4">
                 <button
                     onClick={onClose}
                     className="p-2 hover:bg-white/5 rounded-full transition-colors"
