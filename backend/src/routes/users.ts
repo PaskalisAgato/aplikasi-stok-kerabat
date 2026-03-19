@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db';
 import { users } from '../db/schema';
+import * as schema from '../db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { requireAdmin } from '../middleware/auth';
 

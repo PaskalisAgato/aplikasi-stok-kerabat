@@ -132,7 +132,7 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, imageUrl } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
         const user = (req as any).user;
 
         const oldItem = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);

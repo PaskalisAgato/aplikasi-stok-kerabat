@@ -7,6 +7,7 @@ import path from 'path';
 // In-memory log buffer for production debugging
 const memoryLog: string[] = [];
 const MAX_MEMORY_LOGS = 100;
+const logPath = path.join(process.cwd(), 'boot.log');
 
 const log = (msg: string) => {
     const timestamp = new Date().toISOString();
