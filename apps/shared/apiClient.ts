@@ -7,7 +7,22 @@
 // Deployment URL (Dynamic via environment variables)
 export const API_BASE_URL = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
-    || '/api'; // Fallback to relative path for proxying or local use
+    || 'https://aplikasi-stok-kerabat.onrender.com/api'; // Default fallback back to Render
+
+// ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
+// Ping server setiap 10 menit agar tidak sleep (membantu meskipun tidak 100%)
+if (typeof window !== 'undefined') {
+    const pingServer = () => {
+        fetch(`${API_BASE_URL.replace('/api', '')}/api/health`, { credentials: 'include' }).catch(() => {
+            // Silent – hanya untuk menjaga server tetap aktif
+        });
+    };
+    // Ping pertama setelah 5 menit, lalu setiap 10 menit
+    setTimeout(() => {
+        pingServer();
+        setInterval(pingServer, 10 * 60 * 1000);
+    }, 5 * 60 * 1000);
+}
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {
