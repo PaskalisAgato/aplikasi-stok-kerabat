@@ -27,7 +27,7 @@ jobs:
 
       - name: Build POS App
         working-directory: apps/pos
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/pos/
+        run: npx vite build --base=/aplikasi-stok-kerabat/pos/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Dashboard App
         working-directory: apps/dashboard
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/dashboard/
+        run: npx vite build --base=/aplikasi-stok-kerabat/dashboard/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -43,7 +43,7 @@ jobs:
 
       - name: Build Inventory App
         working-directory: apps/inventory
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/inventory/
+        run: npx vite build --base=/aplikasi-stok-kerabat/inventory/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -51,7 +51,7 @@ jobs:
 
       - name: Build Recipes App
         working-directory: apps/recipes
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/recipes/
+        run: npx vite build --base=/aplikasi-stok-kerabat/recipes/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -59,7 +59,7 @@ jobs:
 
       - name: Build Recipe Edit App
         working-directory: apps/recipe-edit
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/recipe-edit/
+        run: npx vite build --base=/aplikasi-stok-kerabat/recipe-edit/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build Reports App
         working-directory: apps/reports
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/reports/
+        run: npx vite build --base=/aplikasi-stok-kerabat/reports/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -75,7 +75,7 @@ jobs:
 
       - name: Build Employees App
         working-directory: apps/employees
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/employees/
+        run: npx vite build --base=/aplikasi-stok-kerabat/employees/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build Settings App
         working-directory: apps/settings
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/settings/
+        run: npx vite build --base=/aplikasi-stok-kerabat/settings/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build Waste App
         working-directory: apps/waste
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/waste/
+        run: npx vite build --base=/aplikasi-stok-kerabat/waste/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -99,7 +99,7 @@ jobs:
 
       - name: Build Waste Detail App
         working-directory: apps/waste-detail
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/waste-detail/
+        run: npx vite build --base=/aplikasi-stok-kerabat/waste-detail/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -107,7 +107,7 @@ jobs:
 
       - name: Build Opname App
         working-directory: apps/opname
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/opname/
+        run: npx vite build --base=/aplikasi-stok-kerabat/opname/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -115,7 +115,7 @@ jobs:
 
       - name: Build HPP App
         working-directory: apps/hpp
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/hpp/
+        run: npx vite build --base=/aplikasi-stok-kerabat/hpp/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -123,7 +123,7 @@ jobs:
 
       - name: Build Expenses App
         working-directory: apps/expenses
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/expenses/
+        run: npx vite build --base=/aplikasi-stok-kerabat/expenses/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -131,7 +131,7 @@ jobs:
 
       - name: Build COGS App
         working-directory: apps/cogs
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/cogs/
+        run: npx vite build --base=/aplikasi-stok-kerabat/cogs/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
@@ -139,7 +139,7 @@ jobs:
 
       - name: Build Activity History App
         working-directory: apps/activity-history
-        run: npm install && npx vite build --base=/aplikasi-stok-kerabat/activity-history/
+        run: npx vite build --base=/aplikasi-stok-kerabat/activity-history/
         env:
           VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
           VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
