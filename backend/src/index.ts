@@ -4,26 +4,33 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
-// Use file logging since terminal output is unstable
-const logPath = path.join(process.cwd(), 'boot.log');
+// In-memory log buffer for production debugging
+const memoryLog: string[] = [];
+const MAX_MEMORY_LOGS = 100;
+
 const log = (msg: string) => {
-    // Only log to file in development OR if specifically needed. 
-    // In production (Render), big files cause OOM.
-    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    const timestamp = new Date().toISOString();
+    const formattedMsg = `[${timestamp}] ${msg}`;
     
+    // Always update memory log
+    memoryLog.push(formattedMsg);
+    if (memoryLog.length > MAX_MEMORY_LOGS) {
+        memoryLog.shift();
+    }
+
+    // Only log to file in development (Render's disk is slow/ephemeral)
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
     if (!isProd) {
-        const timestamp = new Date().toISOString();
         try {
-            // Cap file size at ~5MB
             if (fs.existsSync(logPath) && fs.statSync(logPath).size > 5 * 1024 * 1024) {
                 fs.writeFileSync(logPath, `[${timestamp}] --- LOG TRUNCATED ---\n`);
             }
-            fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
+            fs.appendFileSync(logPath, formattedMsg + '\n');
         } catch (e) {
-            // Fallback if file system is locked
+            // Fallback
         }
     }
-    console.log(msg);
+    console.log(formattedMsg);
 };
 
 // Global Error Catching
@@ -96,14 +103,20 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 // Handle preflight for all routes
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 
 // Diagnostic: Log View Route (Remote Debugging)
 app.get('/api/logs', (req, res) => {
-    try {
-        if (fs.existsSync(logPath)) {
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+    
+    // In production, prioritize memory logs for speed and reliability
+    let content = '--- MEMORY LOGS (Last 100 lines) ---\n' + memoryLog.join('\n');
+    
+    // In dev, or if memory log is empty, try reading the file
+    if (!isProd && fs.existsSync(logPath)) {
+        try {
             const stats = fs.statSync(logPath);
             const bufferSize = Math.min(stats.size, 50000);
             const startByte = Math.max(0, stats.size - bufferSize);
@@ -111,14 +124,14 @@ app.get('/api/logs', (req, res) => {
             const fd = fs.openSync(logPath, 'r');
             fs.readSync(fd, buffer, 0, bufferSize, startByte);
             fs.closeSync(fd);
-            const content = buffer.toString('utf8').replace(/\u0000/g, '');
-            res.header('Content-Type', 'text/plain').send((startByte > 0 ? '... (older logs truncated)\n' : '') + content);
-        } else {
-            res.status(404).send('Log file not found');
+            const fileContent = buffer.toString('utf8').replace(/\u0000/g, '');
+            content += '\n\n--- FILE LOGS (boot.log) ---\n' + (startByte > 0 ? '... (truncated)\n' : '') + fileContent;
+        } catch (e) {
+            content += '\n\n(Error reading boot.log)';
         }
-    } catch (e) {
-        res.status(500).send('Error reading logs');
     }
+    
+    res.header('Content-Type', 'text/plain').send(content);
 });
 
 // Request Logger

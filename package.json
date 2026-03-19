@@ -1,52 +1,6 @@
 {
-  "name": "kerabat-pos-stok",
-  "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
-  "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
-    "dev:dashboard": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/dashboard",
-    "build:dashboard": "npm run build -w apps/dashboard",
-    "dev:inventory": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/inventory",
-    "build:inventory": "npm run build -w apps/inventory",
-    "dev:reports": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/reports",
-    "build:reports": "npm run build -w apps/reports",
-    "dev:hpp": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/hpp",
-    "build:hpp": "npm run build -w apps/hpp",
-    "dev:opname": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/opname",
-    "build:opname": "npm run build -w apps/opname",
-    "dev:employees": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/employees",
-    "build:employees": "npm run build -w apps/employees",
-    "dev:settings": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/settings",
-    "build:settings": "npm run build -w apps/settings",
-    "dev:cogs": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/cogs",
-    "build:cogs": "npm run build -w apps/cogs",
-    "dev:expenses": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/expenses",
-    "build:expenses": "npm run build -w apps/expenses",
-    "dev:waste": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/waste",
-    "build:waste": "npm run build -w apps/waste",
-    "dev:waste-detail": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/waste-detail",
-    "build:waste-detail": "npm run build -w apps/waste-detail",
-    "dev:recipes": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/recipes",
-    "build:recipes": "npm run build -w apps/recipes",
-    "dev:recipe-edit": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/recipe-edit",
-    "build:recipe-edit": "npm run build -w apps/recipe-edit",
-    "dev:pos": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/pos",
-    "build:pos": "npm run build -w apps/pos",
-    "dev:activity-history": "cross-env NODE_OPTIONS=--max-old-space-size=512 npm run dev -w apps/activity-history",
-    "build:activity-history": "npm run build -w apps/activity-history",
-    "dev:all": "concurrently \"npm run dev:dashboard\" \"npm run dev:inventory\" \"npm run dev:reports\" \"npm run dev:hpp\" \"npm run dev:opname\" \"npm run dev:employees\" \"npm run dev:settings\" \"npm run dev:cogs\" \"npm run dev:expenses\" \"npm run dev:waste\" \"npm run dev:waste-detail\" \"npm run dev:recipes\" \"npm run dev:recipe-edit\" \"npm run dev:pos\" \"npm run dev:activity-history\"",
-    "build:pages": "node build-github.js"
-  },
-  "devDependencies": {
-    "@types/node": "^25.4.0",
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0"
-  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.0",
-    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query": "^5.91.0",
     "@tanstack/react-query-devtools": "^5.91.3",
     "better-auth": "^1.5.5"
   }

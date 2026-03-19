@@ -11,10 +11,12 @@ if (!process.env.DATABASE_URL) {
 // Create a Postgres connection pool
 export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 20,
+    max: 10, // Reduced from 20 to be safer on free tiers
     ssl: {
         rejectUnauthorized: false
-    }
+    },
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
 });
 
 pool.on('connect', () => {
@@ -24,8 +26,9 @@ pool.on('connect', () => {
 // Initialize Drizzle ORM
 export const db = drizzle(pool, { schema });
 
-// Auto-check connection on App Start
+// Relaxed error handler: Don't crash the whole app on idle errors
 pool.on('error', (err: Error) => {
-    console.error('Unexpected error on idle client', err);
-    process.exit(-1);
+    console.error('--- DB Pool Error (Non-Fatal) ---');
+    console.error(err.message);
+    // process.exit(-1); // REMOVED: Don't kill the server, let PG pool handle reconnections
 });

@@ -1,4 +1,0 @@
-﻿--- Direct Bucket Check ---
-Project: https://naklryyhioikogvpcdxd.supabase.co
-Error code: 400
-Ô£à Successfully listed files! Count: 0
