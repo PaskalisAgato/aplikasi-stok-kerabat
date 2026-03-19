@@ -100,29 +100,29 @@ function App() {
   );
 
   const InventoryHeaderExtras = (
-    <div className="flex items-center gap-4 flex-1 justify-end">
-        <div className="relative flex-1 max-w-md group hidden md:block">
+    <div className="flex items-center gap-4 justify-end">
+        <div className="relative w-64 group hidden xl:block">
             <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">search</span>
             <input
                 type="text"
-                placeholder="Cari bahan baku..."
+                placeholder="Cari bahan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 pl-12 pr-6 rounded-xl glass focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all text-xs font-bold text-[var(--text-main)] shadow-inner border-none"
+                className="w-full h-11 pl-12 pr-6 rounded-xl glass focus:ring-4 focus:ring-primary/20 text-xs font-bold text-[var(--text-main)] shadow-inner border-none"
             />
         </div>
-        <button onClick={() => setIsNotificationModalOpen(true)} className="size-12 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
+        <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
             <div className="relative">
                 <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
                 <span className="absolute -top-1 -right-1 size-2.5 bg-red-500 rounded-full border-2 border-[var(--bg-surface)]"></span>
             </div>
         </button>
-        <button 
-                onClick={() => setIsStoreProfileModalOpen(true)}
-                className="size-12 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
+        <a 
+                href="/settings/"
+                className="size-11 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
           >
               <span className="material-symbols-outlined font-black">settings</span>
-        </button>
+        </a>
     </div>
   );
 

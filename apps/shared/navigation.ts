@@ -12,7 +12,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Laporan (Laba Rugi)', icon: 'bar_chart', port: 5175, requiredRole: 'Admin' },
     { label: 'Analisis HPP', icon: 'analytics', port: 5176, requiredRole: 'Admin' },
     { label: 'Stok Opname', icon: 'fact_check', port: 5177, requiredRole: 'Karyawan' },
-    { label: 'Analisis Keuangan', icon: 'payments', port: 5179, requiredRole: 'Admin' },
+    { label: 'Pengaturan', icon: 'settings', port: 5179, requiredRole: 'Admin' },
     { label: 'Riwayat Aktivitas', icon: 'history', port: 5180, requiredRole: 'Admin' },
     { label: 'Kelola Karyawan', icon: 'badge', port: 5178, requiredRole: 'Admin' },
     { label: 'Kelola Resep', icon: 'restaurant_menu', port: 5184, requiredRole: 'Admin' },

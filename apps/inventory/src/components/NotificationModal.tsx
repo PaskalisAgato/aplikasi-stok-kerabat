@@ -13,7 +13,7 @@ interface NotificationCardProps {
 const NotificationCard: React.FC<NotificationCardProps> = ({
     image, title, status, time, stockInfo, showRestock, showUpdate
 }) => (
-    <div className="bg-surface border border-border-dim rounded-xl overflow-hidden shadow-2xl">
+    <div className="bg-[var(--bg-app)] border-2 border-[var(--border-dim)] rounded-3xl overflow-hidden shadow-2xl transition-all">
         <div className="p-4 flex gap-4">
             <div
                 className="w-20 h-20 rounded-lg bg-cover bg-center shrink-0"
@@ -72,9 +72,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
     const criticalItems = inventory.filter(item => item.status === 'KRITIS' || item.status === 'HABIS');
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background-app text-main overflow-hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden">
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-background-app/80 backdrop-blur-md border-b border-border-dim px-4 py-4 flex items-center gap-4">
+            <header className="sticky top-0 z-10 bg-[var(--bg-app)] border-b border-[var(--border-dim)] px-4 py-4 flex items-center gap-4">
                 <button
                     onClick={onClose}
                     className="p-2 hover:bg-surface rounded-full transition-colors"

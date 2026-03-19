@@ -1,6 +1,7 @@
 import React from 'react';
 import { NAV_LINKS, getTargetUrl } from './navigation';
 import { useSession, signOut } from './authClient';
+import ThemeToggle from './ThemeToggle';
 
 interface NavDrawerProps {
     open: boolean;
@@ -105,8 +106,21 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                     })}
                 </nav>
 
-                <div className="p-8 mt-auto">
-                    <div className="glass rounded-[2rem] p-4 flex flex-col gap-2">
+                <div className="p-8 mt-auto space-y-6">
+                    <div className="space-y-4">
+                        <p className="px-4 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80">Pengaturan</p>
+                        <div className="glass rounded-[2rem] p-2 flex items-center justify-between border-white/5">
+                            <div className="flex items-center gap-3 px-3 py-1">
+                                <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                    <span className="material-symbols-outlined text-sm font-bold">contrast</span>
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Tampilan</span>
+                            </div>
+                            <ThemeToggle />
+                        </div>
+                    </div>
+
+                    <div className="glass rounded-[2rem] p-4 flex flex-col gap-2 shadow-2xl border-white/10">
                         <div className="flex items-center gap-3 px-3 py-2">
                             <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                                 <span className="material-symbols-outlined font-bold">account_circle</span>
@@ -121,10 +135,10 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
 
                         <button 
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-black"
+                            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-black text-xs uppercase tracking-widest"
                         >
                             <span className="material-symbols-outlined font-black">logout</span>
-                            <span className="tracking-wide">Keluar Sistem</span>
+                            <span>Keluar Sistem</span>
                         </button>
                     </div>
                 </div>
