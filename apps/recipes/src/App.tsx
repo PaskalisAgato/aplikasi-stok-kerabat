@@ -37,7 +37,6 @@ function App() {
     });
 
     return (
-    return (
         <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
             <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
                 <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5184} />
@@ -173,15 +172,6 @@ function App() {
                     </button>
                 </div>
 
-                {selectedRecipe && (
-                    <EditRecipeModal
-                        recipe={selectedRecipe}
-                        onClose={() => { setSelectedRecipe(null); fetchRecipes(); }}
-                    />
-                )}
-            </div>
-        </div>
-                {/* Edit Recipe Modal */}
                 {selectedRecipe && (
                     <EditRecipeModal
                         recipe={selectedRecipe}
