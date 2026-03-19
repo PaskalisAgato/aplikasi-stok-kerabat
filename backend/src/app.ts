@@ -19,12 +19,14 @@ const app = express();
 
 // 1. Global Middlewares
 app.use(cors({
-    origin: [
+    origin: (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).concat([
         'http://localhost:5173',
         'http://localhost:5174',
         'https://paskalisagato.github.io'
-    ],
-    credentials: true
+    ]),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
 }));
 
 app.use(express.json());
