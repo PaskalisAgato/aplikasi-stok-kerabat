@@ -27,17 +27,37 @@ export class ApiError extends Error {
     }
 }
 
+// ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
+// Ping server setiap 10 menit agar tidak sleep
+if (typeof window !== 'undefined') {
+    const pingServer = () => {
+        fetch(`${API_BASE_URL}/health`, { credentials: 'include' }).catch(() => {
+            // Silent – hanya untuk menjaga server tetap aktif
+        });
+    };
+    // Ping pertama setelah 5 menit, lalu setiap 10 menit
+    setTimeout(() => {
+        pingServer();
+        setInterval(pingServer, 10 * 60 * 1000);
+    }, 5 * 60 * 1000);
+}
+
 // ── Base fetch helper ──────────────────────────────────────────────────────────
+const FETCH_TIMEOUT_MS = 15_000; // 15 detik timeout
+const MAX_RETRIES = 1;           // 1x retry otomatis untuk koneksi gagal
+
 /**
  * `apiFetch` wraps native fetch with:
  *  - Automatic base URL prefixing
  *  - `credentials: 'include'` so Better Auth session cookies are forwarded
  *  - JSON body serialisation
  *  - Typed `ApiError` on non-2xx responses
+ *  - 15s timeout + 1 automatic retry on network errors
  */
 export async function apiFetch<T = unknown>(
     path: string,
-    init: RequestInit = {}
+    init: RequestInit = {},
+    retries = MAX_RETRIES
 ): Promise<T> {
     const url = `${API_BASE_URL}${path}`;
 
@@ -49,26 +69,51 @@ export async function apiFetch<T = unknown>(
         ...(init.headers ?? {}),
     };
 
-    const response = await fetch(url, {
-        credentials: 'include',
-        ...init,
-        headers,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    if (!response.ok) {
-        let message = response.statusText;
-        try {
-            const body = await response.json();
-            message = body.error ?? body.message ?? message;
-        } catch {
-            // ignore JSON parse failures
+    try {
+        const response = await fetch(url, {
+            credentials: 'include',
+            ...init,
+            headers,
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            let message = response.statusText;
+            try {
+                const body = await response.json();
+                message = body.error ?? body.message ?? message;
+            } catch {
+                // ignore JSON parse failures
+            }
+            throw new ApiError(response.status, response.statusText, message);
         }
-        throw new ApiError(response.status, response.statusText, message);
-    }
 
-    // Handle 204 No Content
-    if (response.status === 204) return undefined as T;
-    return response.json() as Promise<T>;
+        // Handle 204 No Content
+        if (response.status === 204) return undefined as T;
+        return response.json() as Promise<T>;
+
+    } catch (err: any) {
+        clearTimeout(timeoutId);
+
+        // Retry sekali jika error jaringan (bukan ApiError / bukan 4xx)
+        const isNetworkError = !(err instanceof ApiError);
+        if (isNetworkError && retries > 0) {
+            console.warn(`[apiFetch] Koneksi gagal ke ${path}, mencoba ulang...`);
+            await new Promise(r => setTimeout(r, 2000)); // tunggu 2 detik sebelum retry
+            return apiFetch<T>(path, init, retries - 1);
+        }
+
+        if (err.name === 'AbortError') {
+            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (${FETCH_TIMEOUT_MS / 1000}s). Server mungkin sedang menyala ulang, coba beberapa saat lagi.`);
+        }
+
+        throw err;
+    }
 }
 
 // ── Legacy compat layer ────────────────────────────────────────────────────────
