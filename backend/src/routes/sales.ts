@@ -7,11 +7,11 @@ import { requireAuth } from '../middleware/auth';
 export const salesRouter = Router();
 
 // POST Checkout Cart
-salesRouter.post('/', async (req: Request, res: Response) => {
+salesRouter.post('/', requireAuth, async (req: Request, res: Response) => {
     try {
         const { shiftId, items, subTotal, totalAmount, paymentMethod } = req.body;
         // Mock userId if auth not attached. Better Auth usually injects req.user
-        const userId = (req as any).user?.id || 'emp_1'; 
+        const userId = (req as any).user.id; 
         
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
