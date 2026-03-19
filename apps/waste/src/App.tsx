@@ -27,14 +27,14 @@ function App() {
     const topOffenders = wasteSummary?.topOffenders || [];
 
     return (
-        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen pb-32 antialiased animate-in fade-in duration-700">
-            <div className="relative flex h-auto min-h-screen w-full flex-col max-w-2xl mx-auto glass border-x border-white/5 overflow-x-hidden shadow-2xl">
+        <div className="bg-[var(--bg-app)] font-display text-[var(--text-main)] min-h-screen antialiased animate-in fade-in duration-700 overflow-hidden">
+            <div className="fixed inset-0 flex flex-col max-w-2xl mx-auto glass border-x border-white/5 shadow-2xl overflow-hidden">
 
                 {/* Hamburger Drawer Overlay */}
                 <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5182} />
 
                 {/* Header */}
-                <header className="sticky top-0 z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between">
+                <header className="z-50 glass border-b border-white/5 px-8 py-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setDrawerOpen(true)}
@@ -49,7 +49,7 @@ function App() {
                     </div>
                 </header>
 
-                <main className="p-8 space-y-10 flex-1 custom-scrollbar">
+                <main className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
                     {isLoading ? (
                         <div className="flex flex-col justify-center items-center py-32 gap-6 glass rounded-[3rem] opacity-60">
                             <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
@@ -222,16 +222,16 @@ function App() {
                     )}
                 </main>
 
-                {/* Floating Action Button (Premium) */}
-                <div className="fixed bottom-10 inset-x-0 flex justify-center z-[100] px-6 pointer-events-none">
+                {/* Fixed Footer Actions */}
+                <footer className="glass border-t border-white/5 px-8 py-10 shrink-0">
                     <button
                         onClick={() => setIsLogModalOpen(true)}
-                        className="pointer-events-auto flex items-center gap-4 bg-red-500 hover:bg-red-600 text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-red-500/40 active:scale-75 transition-all border-none ring-8 ring-[var(--bg-app)] group"
+                        className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-red-500 to-orange-600 text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-red-500/20 active:scale-95 transition-all border-none group"
                     >
                         <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">delete_sweep</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Input Data Waste</span>
                     </button>
-                </div>
+                </footer>
 
                 {/* Log Waste Modal */}
                 <LogWasteModal
