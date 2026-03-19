@@ -1,18 +1,5 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
-
-import StockDetailModal from './components/StockDetailModal';
-import AddStockModal from './components/AddStockModal';
-import CreateItemModal from './components/CreateItemModal';
-import NotificationModal from './components/NotificationModal';
-import EditItemModal from './components/EditItemModal';
-import StoreProfileModal from './components/StoreProfileModal';
-
-
-import NavDrawer from '@shared/NavDrawer';
-
-import { useState, useEffect } from 'react';
-import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
 import StockDetailModal from './components/StockDetailModal';
@@ -298,28 +285,3 @@ function App() {
 }
 
 export default App;
-
-        {/* Hamburger Drawer Overlay */}
-        <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={5174} />
-      </div>
-
-      <StockDetailModal
-        isOpen={isStockModalOpen}
-        onClose={() => { setIsStockModalOpen(false); fetchInventory() }}
-        selectedItem={selectedStock}
-        onEditClick={() => {
-            setIsStockModalOpen(false);
-            setIsEditItemModalOpen(true);
-        }}
-      />
-      <AddStockModal isOpen={isAddStockModalOpen} onClose={() => { setIsAddStockModalOpen(false); fetchInventory() }} />
-      <CreateItemModal isOpen={isCreateItemModalOpen} onClose={() => { setIsCreateItemModalOpen(false); fetchInventory() }} />
-      <EditItemModal isOpen={isEditItemModalOpen} onClose={() => setIsEditItemModalOpen(false)} onUpdated={() => fetchInventory()} item={selectedStock} />
-      <NotificationModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} inventory={inventoryList} />
-      <StoreProfileModal isOpen={isStoreProfileModalOpen} onClose={() => setIsStoreProfileModalOpen(false)} />
-    </div>
-  );
-}
-
-export default App;
-
