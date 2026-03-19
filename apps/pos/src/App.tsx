@@ -71,9 +71,9 @@ function App() {
                         await apiClient.checkoutCart(checkoutData);
                         alert('Berhasil! Pembelian telah divalidasi sistem.');
                         setSales({});
-                    } catch (e) {
+                    } catch (e: any) {
                         console.error('Checkout error:', e);
-                        alert('Gagal: Transaksi tidak dapat diproses.');
+                        alert(`Gagal: ${e.message || 'Transaksi tidak dapat diproses.'}`);
                     }
                 }}
                 className={`w-full py-6 rounded-[2rem] font-black text-xl tracking-[0.1em] shadow-2xl transition-all active:scale-[0.97] flex items-center justify-center gap-4 uppercase font-display
