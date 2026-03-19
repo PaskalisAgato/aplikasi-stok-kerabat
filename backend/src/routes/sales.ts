@@ -9,35 +9,43 @@ export const salesRouter = Router();
 // POST Checkout Cart
 salesRouter.post('/', async (req: Request, res: Response) => {
     try {
-        const { shiftId, items, subTotal, taxAmount, serviceChargeAmount, totalAmount, paymentMethod } = req.body;
+        const { shiftId, items, subTotal, totalAmount, paymentMethod } = req.body;
         // Mock userId if auth not attached. Better Auth usually injects req.user
         const userId = (req as any).user?.id || 'emp_1'; 
         
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
         }
-        
-        const parsedShiftId = shiftId ? parseInt(shiftId) : 1; // Assuming a dummy shift_1 if none provided for now
 
+        // Calculate totals if missing to avoid .toString() crashes
+        let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
+        if (calculatedSubTotal === 0) {
+            calculatedSubTotal = items.reduce((acc, item) => acc + (parseFloat(item.price?.toString() || '0') * (item.quantity || 0)), 0);
+        }
+
+        const finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
+        
         await db.transaction(async (tx) => {
             // 1. Record Sale
             const [newSale] = await tx.insert(schema.sales).values({
-                shiftId: parsedShiftId,
+                shiftId: shiftId ? parseInt(shiftId.toString()) : null,
                 userId,
-                subTotal: subTotal.toString(),
-                taxAmount: (taxAmount || 0).toString(),
-                serviceChargeAmount: (serviceChargeAmount || 0).toString(),
-                totalAmount: totalAmount.toString(),
+                subTotal: calculatedSubTotal.toString(),
+                taxAmount: '0',
+                serviceChargeAmount: '0',
+                totalAmount: finalTotalAmount.toString(),
                 paymentMethod: paymentMethod || 'CASH'
             }).returning();
 
             // 2. Record Sale Items
             for (const item of items) {
+                const itemSubtotal = item.subtotal ? parseFloat(item.subtotal.toString()) : (parseFloat(item.price?.toString() || '0') * (item.quantity || 0));
+                
                 await tx.insert(schema.saleItems).values({
                     saleId: newSale.id,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: item.subtotal.toString()
+                    subtotal: itemSubtotal.toString()
                 });
 
                 // 3. BOM Automation: Deduct Stock

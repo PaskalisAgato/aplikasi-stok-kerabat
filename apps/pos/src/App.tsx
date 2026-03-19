@@ -57,12 +57,15 @@ function App() {
                         const checkoutData = {
                             items: Object.entries(sales).map(([id, qty]) => {
                                 const recipe = recipesList.find(r => r.id === parseInt(id));
+                                const itemPrice = recipe ? recipe.price : 0;
                                 return {
                                     recipeId: parseInt(id),
                                     quantity: qty,
-                                    price: recipe ? recipe.price : 0
+                                    price: itemPrice,
+                                    subtotal: itemPrice * qty
                                 };
                             }).filter(i => i.quantity > 0),
+                            subTotal: totalSalesValue,
                             totalAmount: totalSalesValue,
                             paymentMethod: 'CASH',
                             shiftId: null

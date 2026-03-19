@@ -115,7 +115,7 @@ export const shifts = pgTable('shifts', {
 
 export const sales = pgTable('sales', {
     id: serial('id').primaryKey(),
-    shiftId: integer('shift_id').notNull().references(() => shifts.id),
+    shiftId: integer('shift_id').references(() => shifts.id),
     userId: text('user_id').notNull().references(() => users.id), // Cashier
     subTotal: decimal('sub_total', { precision: 12, scale: 2 }).notNull(),
     taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'), // e.g. PB1 10%
