@@ -182,3 +182,67 @@ TypeError: Missing parameter name at index 3: (.*); visit https://git.new/pathTo
 [2026-03-19T02:21:30.528Z] Loaded DB & Middleware
 [2026-03-19T02:21:30.562Z] 🚀 Kerabat Backend is running on port 5000
 [2026-03-19T02:21:30.563Z] Environment: undefined
+[2026-03-19T15:34:41.805Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-19T15:34:41.805Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-19T15:34:41.811Z] --- Phase 1: Environment & Base Config ---
+[2026-03-19T15:34:41.811Z] --- Phase 1: Environment & Base Config ---
+[2026-03-19T15:34:41.811Z] Loaded dotenv
+[2026-03-19T15:34:41.811Z] Loaded dotenv
+[2026-03-19T15:34:41.811Z] NODE_ENV: development
+[2026-03-19T15:34:41.811Z] NODE_ENV: development
+[2026-03-19T15:34:41.811Z] PORT: 5000
+[2026-03-19T15:34:41.811Z] PORT: 5000
+[2026-03-19T15:34:41.811Z] DATABASE_URL: FOUND
+[2026-03-19T15:34:41.811Z] DATABASE_URL: FOUND
+[2026-03-19T15:34:41.812Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-19T15:34:41.812Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-19T15:34:41.812Z] BETTER_AUTH_URL: https://aplikasi-stok-kerabat.onrender.com
+[2026-03-19T15:34:41.812Z] BETTER_AUTH_URL: https://aplikasi-stok-kerabat.onrender.com
+[2026-03-19T15:34:41.812Z] FRONTEND_URL: https://paskalisagato.github.io
+[2026-03-19T15:34:41.812Z] FRONTEND_URL: https://paskalisagato.github.io
+[2026-03-19T15:34:41.812Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-19T15:34:41.812Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-19T15:34:41.812Z] Loaded Auth & Sessions Modules
+[2026-03-19T15:34:41.812Z] Loaded Auth & Sessions Modules
+[2026-03-19T15:34:41.813Z] --- Phase 3: Initializing Express ---
+[2026-03-19T15:34:41.813Z] --- Phase 3: Initializing Express ---
+[2026-03-19T15:34:41.814Z] --- Phase 4: Setting up Middleware ---
+[2026-03-19T15:34:41.814Z] --- Phase 4: Setting up Middleware ---
+[2026-03-19T15:34:41.816Z] Loaded DB & Middleware
+[2026-03-19T15:34:41.816Z] Loaded DB & Middleware
+[2026-03-19T15:34:41.830Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-19T15:34:41.830Z] Environment: undefined
+[2026-03-19T15:34:41.831Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-19T15:34:41.832Z] Environment: undefined
+[2026-03-19T15:53:59.972Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-19T15:53:59.974Z] --- Phase 1: Environment & Base Config ---
+[2026-03-19T15:53:59.974Z] Loaded dotenv
+[2026-03-19T15:53:59.974Z] NODE_ENV: development
+[2026-03-19T15:53:59.975Z] PORT: 5000
+[2026-03-19T15:53:59.975Z] DATABASE_URL: FOUND
+[2026-03-19T15:53:59.975Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-19T15:53:59.975Z] BETTER_AUTH_URL: https://aplikasi-stok-kerabat.onrender.com
+[2026-03-19T15:53:59.976Z] FRONTEND_URL: https://paskalisagato.github.io
+[2026-03-19T15:53:59.976Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-19T15:53:59.976Z] Loaded Auth & Sessions Modules
+[2026-03-19T15:53:59.977Z] --- Phase 3: Initializing Express ---
+[2026-03-19T15:53:59.979Z] --- Phase 4: Setting up Middleware ---
+[2026-03-19T15:53:59.981Z] Loaded DB & Middleware
+[2026-03-19T15:53:59.994Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-19T15:53:59.995Z] Environment: undefined
+[2026-03-19T15:54:00.042Z] --- STARTING BACKEND BOOTSTRAP ---
+[2026-03-19T15:54:00.043Z] --- Phase 1: Environment & Base Config ---
+[2026-03-19T15:54:00.043Z] Loaded dotenv
+[2026-03-19T15:54:00.044Z] NODE_ENV: development
+[2026-03-19T15:54:00.044Z] PORT: 5000
+[2026-03-19T15:54:00.044Z] DATABASE_URL: FOUND
+[2026-03-19T15:54:00.044Z] BETTER_AUTH_SECRET: FOUND
+[2026-03-19T15:54:00.044Z] BETTER_AUTH_URL: https://aplikasi-stok-kerabat.onrender.com
+[2026-03-19T15:54:00.044Z] FRONTEND_URL: https://paskalisagato.github.io
+[2026-03-19T15:54:00.045Z] --- Phase 2: Loading Auth Configuration ---
+[2026-03-19T15:54:00.045Z] Loaded Auth & Sessions Modules
+[2026-03-19T15:54:00.045Z] --- Phase 3: Initializing Express ---
+[2026-03-19T15:54:00.047Z] --- Phase 4: Setting up Middleware ---
+[2026-03-19T15:54:00.050Z] Loaded DB & Middleware
+[2026-03-19T15:54:00.062Z] 🚀 Kerabat Backend is running on port 5000
+[2026-03-19T15:54:00.063Z] Environment: undefined

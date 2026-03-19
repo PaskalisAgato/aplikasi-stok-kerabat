@@ -96,8 +96,7 @@ const corsOptions = {
     maxAge: 86400 // Cache preflight for 24 hours (helpful for Safari)
 };
 app.use((0, cors_1.default)(corsOptions));
-// Handle preflight for all routes
-app.options(/.*/, (0, cors_1.default)(corsOptions));
+// CORS preflight is already handled by the middleware above
 app.use(express_1.default.json({ limit: '10mb' }));
 // Diagnostic: Log View Route (Remote Debugging)
 app.get('/api/logs', (req, res) => {

@@ -1,15 +1,10 @@
-import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import * as schema from '../db/schema';
 import { eq, inArray } from 'drizzle-orm';
+import { db } from '../config/db';
+import * as schema from '../db/schema';
 
-export const recipesRouter = Router();
-
-// GET all recipes with ingredients
-recipesRouter.get('/', async (req: Request, res: Response) => {
-    try {
+export class ProductService {
+    static async getAllProducts() {
         const allRecipes = await db.select().from(schema.recipes).where(eq(schema.recipes.isActive, true));
-        
         const recipeIds = allRecipes.map(r => r.id);
         
         let allIngredients: any[] = [];
@@ -30,7 +25,7 @@ recipesRouter.get('/', async (req: Request, res: Response) => {
             }
         }
 
-        const recipesWithBOM = allRecipes.map(recipe => {
+        return allRecipes.map(recipe => {
             const ingredients = allIngredients
                 .filter(ing => ing.recipeId === recipe.id)
                 .map(ing => {
@@ -43,7 +38,6 @@ recipesRouter.get('/', async (req: Request, res: Response) => {
                     };
                 });
             
-            // Re-calculate mock HPP based on current price/unit if needed
             let currentHpp = 0;
             ingredients.forEach(ing => {
                 const inv = inventoryItems[ing.ingredientId];
@@ -60,24 +54,12 @@ recipesRouter.get('/', async (req: Request, res: Response) => {
                 ingredients
             };
         });
-
-        res.json(recipesWithBOM);
-    } catch (error) {
-        console.error('Error fetching recipes:', error);
-        res.status(500).json({ error: 'Failed to fetch recipes' });
     }
-});
 
-// POST create new Recipe
-recipesRouter.post('/', async (req: Request, res: Response) => {
-    try {
-        const { name, category, price, margin, imageUrl, ingredients } = req.body;
+    static async createProduct(data: any) {
+        const { name, category, price, margin, imageUrl, ingredients } = data;
         
-        if (!name || !category || price === undefined || price === null) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        const result = await db.transaction(async (tx) => {
+        return await db.transaction(async (tx) => {
             const [newRecipe] = await tx.insert(schema.recipes).values({
                 name,
                 category,
@@ -97,26 +79,12 @@ recipesRouter.post('/', async (req: Request, res: Response) => {
             
             return newRecipe;
         });
-
-        res.status(201).json(result);
-    } catch (error) {
-        console.error('Error creating recipe:', error);
-        res.status(500).json({ error: 'Failed to create recipe', detail: (error as Error).message });
     }
-});
 
-// PUT update existing Recipe and its BOM
-recipesRouter.put('/:id', async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string);
-        const { name, category, price, margin, imageUrl, ingredients } = req.body;
+    static async updateProduct(id: number, data: any) {
+        const { name, category, price, margin, imageUrl, ingredients } = data;
 
-        if (!name || !category || price === undefined || price === null) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        await db.transaction(async (tx) => {
-            // 1. Update recipe
+        return await db.transaction(async (tx) => {
             await tx.update(schema.recipes)
                 .set({
                     name,
@@ -127,11 +95,9 @@ recipesRouter.put('/:id', async (req: Request, res: Response) => {
                 })
                 .where(eq(schema.recipes.id, id));
 
-            // 2. Delete existing BOM entries
             await tx.delete(schema.recipeIngredients)
                 .where(eq(schema.recipeIngredients.recipeId, id));
 
-            // 3. Re-insert updated BOM
             if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
                 const bomInserts = ingredients.map((ing: any) => ({
                     recipeId: id,
@@ -140,26 +106,13 @@ recipesRouter.put('/:id', async (req: Request, res: Response) => {
                 }));
                 await tx.insert(schema.recipeIngredients).values(bomInserts);
             }
+            return { success: true };
         });
-
-        res.json({ success: true, message: 'Recipe updated' });
-    } catch (error) {
-        console.error('Error updating recipe:', error);
-        res.status(500).json({ error: 'Failed to update recipe', detail: (error as Error).message });
     }
-});
 
-// DELETE recipe (soft delete - set inactive)
-recipesRouter.delete('/:id', async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string);
-        await db.update(schema.recipes)
+    static async deleteProduct(id: number) {
+        return await db.update(schema.recipes)
             .set({ isActive: false })
             .where(eq(schema.recipes.id, id));
-        res.json({ success: true, message: 'Recipe deleted' });
-    } catch (error) {
-        console.error('Error deleting recipe:', error);
-        res.status(500).json({ error: 'Failed to delete recipe' });
     }
-});
-
+}

@@ -33,25 +33,22 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.salesRouter = void 0;
+exports.transactionsRouter = void 0;
 const express_1 = require("express");
 const db_1 = require("../db");
 const schema = __importStar(require("../db/schema"));
 const drizzle_orm_1 = require("drizzle-orm");
 const auth_1 = require("../middleware/auth");
-exports.salesRouter = (0, express_1.Router)();
-// POST Checkout Cart
-exports.salesRouter.post('/', auth_1.requireAuth, async (req, res) => {
+exports.transactionsRouter = (0, express_1.Router)();
+// POST Checkout Cart (Process Transaction)
+exports.transactionsRouter.post('/', auth_1.requireAuth, async (req, res) => {
     try {
         const { shiftId, items, subTotal, totalAmount, paymentMethod } = req.body;
-        // Mock userId if auth not attached. Better Auth usually injects req.user
         const userId = req.user?.id || 'anonymous';
-        console.log(`[CHECKOUT] User ID: ${userId}, items count: ${items?.length}, shiftId: ${shiftId}`);
-        console.log(`[CHECKOUT] Payload SubTotal: ${subTotal}, TotalAmount: ${totalAmount}`);
+        console.log(`[TRANSACTION] User ID: ${userId}, items count: ${items?.length}, shiftId: ${shiftId}`);
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' });
         }
-        // Calculate totals if missing to avoid .toString() crashes
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
         if (isNaN(calculatedSubTotal))
             calculatedSubTotal = 0;
@@ -64,10 +61,9 @@ exports.salesRouter.post('/', auth_1.requireAuth, async (req, res) => {
         let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
         if (isNaN(finalTotalAmount))
             finalTotalAmount = calculatedSubTotal;
-        console.log(`[CHECKOUT] Calculated SubTotal: ${calculatedSubTotal}, Final Total: ${finalTotalAmount}`);
         await db_1.db.transaction(async (tx) => {
-            // 1. Record Sale
-            const [newSale] = await tx.insert(schema.sales).values({
+            // 1. Record Transaction
+            const [newTransaction] = await tx.insert(schema.transactions).values({
                 shiftId: shiftId ? parseInt(shiftId.toString()) : null,
                 userId,
                 subTotal: calculatedSubTotal.toString(),
@@ -76,39 +72,36 @@ exports.salesRouter.post('/', auth_1.requireAuth, async (req, res) => {
                 totalAmount: finalTotalAmount.toString(),
                 paymentMethod: paymentMethod || 'CASH'
             }).returning();
-            // 2. Record Sale Items
+            // 2. Record Transaction Items
             for (const item of items) {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
                 const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
                 const itemSubtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
-                await tx.insert(schema.saleItems).values({
-                    saleId: newSale.id,
-                    recipeId: item.recipeId,
+                await tx.insert(schema.transactionItems).values({
+                    transactionId: newTransaction.id,
+                    productId: item.productId || item.recipeId, // Handle both names for migration
                     quantity: item.quantity,
                     subtotal: itemSubtotal.toString()
                 });
                 // 3. BOM Automation: Deduct Stock
-                const recipeIngs = await tx.select().from(schema.recipeIngredients).where((0, drizzle_orm_1.eq)(schema.recipeIngredients.recipeId, item.recipeId));
-                for (const bom of recipeIngs) {
+                const productIngs = await tx.select().from(schema.productIngredients).where((0, drizzle_orm_1.eq)(schema.productIngredients.productId, item.productId || item.recipeId));
+                for (const bom of productIngs) {
                     const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where((0, drizzle_orm_1.eq)(schema.inventory.id, bom.inventoryId));
                     const invItem = invItemArr[0];
                     if (!invItem)
                         continue;
                     let baseDeductQty = parseFloat(bom.quantity) * item.quantity;
-                    // Auto-convert grams to Kg or mL to L for master stock
                     const unitLower = invItem.unit.toLowerCase();
                     if (unitLower === 'kg' || unitLower === 'l' || unitLower === 'liter' || unitLower === 'kilogram') {
                         baseDeductQty = baseDeductQty / 1000;
                     }
-                    // Insert Movement Log
                     await tx.insert(schema.stockMovements).values({
                         inventoryId: bom.inventoryId,
                         type: 'OUT',
-                        quantity: baseDeductQty.toString(), // Log the master unit amount deducted
-                        reason: `POS Sale #${newSale.id}`
+                        quantity: baseDeductQty.toString(),
+                        reason: `Transaction #${newTransaction.id}`
                     });
-                    // Update Master Stock
                     await tx.update(schema.inventory)
                         .set({
                         currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} - ${baseDeductQty}`
@@ -117,17 +110,12 @@ exports.salesRouter.post('/', auth_1.requireAuth, async (req, res) => {
                 }
             }
         });
-        res.status(201).json({ success: true, message: 'Checkout completed successfully' });
+        res.status(201).json({ success: true, message: 'Transaction completed successfully' });
     }
     catch (error) {
-        console.error('--- POS CHECKOUT FATAL ERROR ---');
+        console.error('--- TRANSACTION FATAL ERROR ---');
         console.error('Message:', error.message);
         console.error('Stack:', error.stack);
-        if (error.code)
-            console.error('DB Error Code:', error.code);
-        if (error.detail)
-            console.error('DB Error Detail:', error.detail);
-        console.error('--------------------------------');
-        res.status(500).json({ error: 'POS Transaction Failed', detail: error.message });
+        res.status(500).json({ error: 'Transaction Failed', detail: error.message });
     }
 });

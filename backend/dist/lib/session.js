@@ -10,25 +10,32 @@ const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 async function getSessionManually(req) {
     try {
-        // 1. Get cookie from headers
-        const cookieHeader = req.headers.cookie;
-        const cookies = {};
-        if (cookieHeader) {
-            cookieHeader.split(';').forEach(c => {
-                const parts = c.trim().split('=');
-                if (parts.length === 2) {
-                    cookies[parts[0]] = parts[1];
-                }
-            });
-        }
-        let sessionId = cookies['better-auth.session_token'];
-        // 2. Fallback to Authorization header (for iOS Safari compat)
-        if (!sessionId && req.headers.authorization?.startsWith('Bearer ')) {
+        let sessionId;
+        // 1. Priority: Authorization header (Manual Bearer token)
+        // This is most reliable for cross-domain / mobile
+        if (req.headers.authorization?.startsWith('Bearer ')) {
             sessionId = req.headers.authorization.split(' ')[1];
-            console.log(`[AUTH] Session from Bearer: ${sessionId?.substring(0, 8)}...`);
+            console.log(`[AUTH] Priority: Session from Bearer: ${sessionId?.substring(0, 8)}...`);
+        }
+        // 2. Fallback: Cookie-based session
+        if (!sessionId) {
+            const cookieHeader = req.headers.cookie;
+            if (cookieHeader) {
+                const cookies = {};
+                cookieHeader.split(';').forEach(c => {
+                    const parts = c.trim().split('=');
+                    if (parts.length === 2) {
+                        cookies[parts[0]] = parts[1];
+                    }
+                });
+                sessionId = cookies['better-auth.session_token'];
+                if (sessionId) {
+                    console.log(`[AUTH] Fallback: Session from Cookie: ${sessionId?.substring(0, 8)}...`);
+                }
+            }
         }
         if (!sessionId) {
-            console.log(`[AUTH] No session ID found in Cookie or Authorization header`);
+            console.log(`[AUTH] No session ID found in Authorization header or Cookie`);
             return null;
         }
         // 3. Hash it (following our new SHA-256 standard)

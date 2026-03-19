@@ -33,43 +33,25 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.auth = void 0;
-const better_auth_1 = require("better-auth");
-const drizzle_1 = require("better-auth/adapters/drizzle");
-const db_1 = require("./db");
+exports.db = void 0;
+const node_postgres_1 = require("drizzle-orm/node-postgres");
+const pg_1 = require("pg");
 const schema = __importStar(require("../db/schema"));
 require("dotenv/config");
-console.log('--- Auth Module: Initializing betterAuth ---');
-let auth;
-try {
-    exports.auth = auth = (0, better_auth_1.betterAuth)({
-        database: (0, drizzle_1.drizzleAdapter)(db_1.db, {
-            provider: "pg", // PostgreSQL
-            schema: {
-                user: schema.users,
-                session: schema.sessions,
-                account: schema.accounts,
-                verification: schema.verifications
-            }
-        }),
-        emailAndPassword: {
-            enabled: true,
-        },
-        secret: process.env.BETTER_AUTH_SECRET,
-        baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
-        trustedOrigins: [
-            process.env.FRONTEND_URL || "http://localhost:5173",
-            "https://paskalisagato.github.io"
-        ],
-        advanced: {
-            crossSubDomainCookies: {
-                enabled: true
-            }
-        }
-    });
-    console.log('--- Auth Module: Successfully initialized ---');
-}
-catch (error) {
-    console.error('!!! FATAL AUTH INIT ERROR:', error.message);
-    throw error;
-}
+const pool = new pg_1.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    ssl: {
+        rejectUnauthorized: false
+    },
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+});
+pool.on('connect', () => {
+    console.log('--- DB Config: Connected to PostgreSQL ---');
+});
+pool.on('error', (err) => {
+    console.error('--- DB Config: Pool Error ---', err.message);
+});
+exports.db = (0, node_postgres_1.drizzle)(pool, { schema });
+exports.default = exports.db;

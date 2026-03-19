@@ -106,7 +106,7 @@ exports.shifts = (0, pg_core_1.pgTable)('shifts', {
 });
 exports.sales = (0, pg_core_1.pgTable)('sales', {
     id: (0, pg_core_1.serial)('id').primaryKey(),
-    shiftId: (0, pg_core_1.integer)('shift_id').notNull().references(() => exports.shifts.id),
+    shiftId: (0, pg_core_1.integer)('shift_id').references(() => exports.shifts.id),
     userId: (0, pg_core_1.text)('user_id').notNull().references(() => exports.users.id), // Cashier
     subTotal: (0, pg_core_1.decimal)('sub_total', { precision: 12, scale: 2 }).notNull(),
     taxAmount: (0, pg_core_1.decimal)('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'), // e.g. PB1 10%
