@@ -49,9 +49,6 @@ app.use(cors({
     optionsSuccessStatus: 200 // Beberapa browser lama butuh 200 alih-alih 204
 }));
 
-// Tambahkan middleware pre-flight eksplisit untuk semua route
-app.options('*', cors());
-
 app.use(express.json());
 app.use(cookieParser());
 
