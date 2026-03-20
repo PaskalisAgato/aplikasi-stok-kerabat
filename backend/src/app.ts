@@ -98,6 +98,16 @@ app.use((req, res, next) => {
     next();
 });
 
+// Final Catch-all for API 404s
+app.all('/api/*', (req, res) => {
+    console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ 
+        error: "Route Not Found",
+        path: req.originalUrl,
+        method: req.method
+    });
+});
+
 // 5. Error Handler
 app.use(errorHandler);
 
