@@ -37,6 +37,14 @@ const Layout: React.FC<LayoutProps> = ({
 
     // Resilient retry logic with exponential backoff
     React.useEffect(() => {
+        // If we get an explicit auth error (401/403), stop retrying and clear token
+        if (sessionError && (sessionError as any).status >= 401 && (sessionError as any).status <= 403) {
+            console.warn("Auth token invalid, clearing storage...");
+            localStorage.removeItem('kerabat_auth_token');
+            window.location.reload();
+            return;
+        }
+
         if (!isPending && !session && hasManualToken && retryCount < maxRetries) {
             const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
             setIsRetrying(true);
@@ -49,7 +57,7 @@ const Layout: React.FC<LayoutProps> = ({
 
             return () => clearTimeout(timer);
         }
-    }, [session, isPending, hasManualToken, refetch, retryCount]);
+    }, [session, isPending, hasManualToken, refetch, retryCount, sessionError]);
 
     if (isPending || isRetrying) {
         return (
@@ -96,7 +104,9 @@ const Layout: React.FC<LayoutProps> = ({
                         </div>
                         <div className="space-y-2">
                             <h2 className="text-4xl font-black tracking-tight font-display">Koneksi Terhambat</h2>
-                            <p className="text-base text-[var(--text-muted)] font-medium">Server tidak dapat dijangkau dari jaringan Anda.</p>
+                            <p className="text-base text-[var(--text-muted)] font-medium">
+                                {sessionError instanceof Error ? sessionError.message : 'Server tidak dapat dijangkau dari jaringan Anda.'}
+                            </p>
                         </div>
                     </div>
 
