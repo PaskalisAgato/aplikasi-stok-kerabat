@@ -99,7 +99,7 @@ app.use((req, res, next) => {
 });
 
 // Final Catch-all for API 404s
-app.all('/api/:path*', (req, res) => {
+app.all(/^\/api\/.*/, (req, res) => {
     console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
         error: "Route Not Found",
