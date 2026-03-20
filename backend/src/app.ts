@@ -14,6 +14,7 @@ import { auditRouter } from './routes/audit';
 
 // Middleware Imports
 import { errorHandler } from './middleware/error.middleware';
+import { UserService } from './services/user.service';
 import { UserController } from './controllers/user.controller';
 
 const app = express();
