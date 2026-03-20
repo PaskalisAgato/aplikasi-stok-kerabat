@@ -13,8 +13,8 @@ import { createAuthClient } from 'better-auth/react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch, API_BASE_URL } from './apiClient';
 
-// Strip trailing /api if present so Better Auth can construct /api/auth paths
-const AUTH_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
+// Better Auth React client should use the /api base so it can naturally hit /api/auth
+const AUTH_BASE_URL = API_BASE_URL;
 
 export const authClient = createAuthClient({
     baseURL: AUTH_BASE_URL,

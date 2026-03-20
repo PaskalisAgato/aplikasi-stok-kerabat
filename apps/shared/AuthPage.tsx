@@ -1,10 +1,3 @@
-import React, { useState } from 'react';
-
-type AuthMode = 'select' | 'pin';
-type Role = 'Admin' | 'Karyawan';
-
-export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
-    const [mode, setMode] = useState<AuthMode>('select');
     const [role, setRole] = useState<Role | null>(null);
     const [pin, setPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -30,21 +23,6 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) =>
     const handleDelete = () => {
         setPin(prev => prev.slice(0, -1));
     };
-
-    const handleLogin = async () => {
-        if (!role || pin.length < 4) return;
-        
-        setError(null);
-        setIsLoading(true);
-
-        try {
-            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
-            const response = await fetch(`${apiBaseUrl}/auth/login-pin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Important for cross-origin cookies
-                body: JSON.stringify({ role, pin })
-            });
 
             const data = await response.json();
 

@@ -53,7 +53,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
-app.use("/api/auth", toNodeHandler(auth));
+// Use .all with "*" to ensure Better Auth receives the full path for its internal routing
+app.all("/api/auth/*", toNodeHandler(auth));
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {
