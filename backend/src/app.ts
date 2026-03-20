@@ -65,9 +65,11 @@ app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
 
-// 5. Better Auth Managed Endpoints (Global Mount)
-// Better Auth will internally filter for requests matching its baseURL (/api/auth)
-app.use(toNodeHandler(auth));
+// 5. Better Auth Managed Endpoints (Explicit Regex Match)
+// Using a Regex to avoid Express 5 PathError with wildcards
+app.all(/^\/api\/auth\/.*/, (req, res) => {
+    return toNodeHandler(auth)(req, res);
+});
 
 // 5. Final Catch-all for API 404s (Only if no previous route matched)
 app.use('/api', (req, res) => {
