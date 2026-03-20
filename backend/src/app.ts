@@ -60,7 +60,9 @@ app.post('/api/auth/login-pin', UserController.loginByPin);
 
 // Better Auth Handler - use manual prefix check to avoid PathError and route interception
 app.use((req, res, next) => {
-    if (req.path.startsWith('/api/auth')) {
+    const isAuthPath = req.path.startsWith('/api/auth');
+    if (isAuthPath) {
+        console.log(`[AuthRouteMatch] Path: ${req.path}, Method: ${req.method}`);
         return toNodeHandler(auth)(req, res);
     }
     next();
