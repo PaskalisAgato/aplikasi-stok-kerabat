@@ -66,8 +66,20 @@ app.use((req, res, next) => {
 });
 
 // 3. Health & Diag
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'Kerabat Modular Backend v1.0.0 is running' });
+app.get('/api/health', async (req, res) => {
+    let dbStatus = 'waiting';
+    try {
+        await UserService.getAllUsers();
+        dbStatus = 'connected';
+    } catch (e: any) {
+        dbStatus = `error: ${e.message}`;
+    }
+    res.status(200).json({ 
+        status: 'ok', 
+        message: 'Kerabat Modular Backend v1.0.0 is running',
+        database: dbStatus,
+        time: new Date().toISOString()
+    });
 });
 
 // 4. API Routes

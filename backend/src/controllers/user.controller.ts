@@ -6,27 +6,42 @@ export class UserController {
     static async loginByPin(req: Request, res: Response) {
         try {
             const { role, pin } = req.body;
+            console.log(`[LoginRequest] Role: ${role}, PIN: ${pin ? '****' : 'EMPTY'}`);
+            
             if (!role || !pin) {
                 return res.status(400).json({ error: 'Role and PIN are required' });
             }
 
             const user = await UserService.loginByPin(role, pin);
             if (!user) {
+                console.warn(`[LoginFailed] No user found for Role: ${role} and PIN: ${pin}`);
                 return res.status(401).json({ error: 'PIN atau Role salah' });
             }
+
+            console.log(`[LoginSuccess] User found: ${user.name} (${user.id}). Creating session...`);
 
             // Create session using Better Auth API
             const session = await auth.api.createSession({
                 userId: user.id,
             });
 
+            console.log(`[SessionCreated] Session ID: ${session.session.id}`);
+
             // Audit log for login
-            await UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+            try {
+                await UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+            } catch (auditError) {
+                console.error('[AuditError] Failed to log login action:', auditError);
+                // Don't fail the whole login if audit log fails
+            }
 
             res.json({ session });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error in UserController.loginByPin:', error);
-            res.status(500).json({ error: 'Gagal melakukan login' });
+            res.status(500).json({ 
+                error: 'Gagal melakukan login', 
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+            });
         }
     }
 
