@@ -105,7 +105,7 @@ const Layout: React.FC<LayoutProps> = ({
                         <div className="space-y-2">
                             <h2 className="text-4xl font-black tracking-tight font-display">Koneksi Terhambat</h2>
                             <p className="text-base text-[var(--text-muted)] font-medium">
-                                {sessionError instanceof Error ? sessionError.message : 'Server tidak dapat dijangkau dari jaringan Anda.'}
+                                [DEBUG-V2] {sessionError instanceof Error ? sessionError.message : 'Server tidak dapat dijangkau dari jaringan Anda.'}
                             </p>
                         </div>
                     </div>
