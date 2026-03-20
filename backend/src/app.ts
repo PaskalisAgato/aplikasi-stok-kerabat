@@ -26,10 +26,6 @@ app.use((req, res, next) => {
 });
 
 // 1. Global Middlewares
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://paskalisagato.github.io'
 app.use(cors({
     origin: true, // Allow all origins during debugging to rule out CORS as the cause of "Koneksi Terhambat"
     credentials: true,
