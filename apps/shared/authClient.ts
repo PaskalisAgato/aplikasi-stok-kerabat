@@ -47,6 +47,10 @@ export function useSession() {
         queryKey: ['auth_session'],
         queryFn: async () => {
             const res = await getSession();
+            if (res.error) {
+                // Throw so React Query sets 'error' and Layout.tsx can see it
+                throw res.error instanceof Error ? res.error : new Error(res.error);
+            }
             return res.data;
         },
         retry: 0,
