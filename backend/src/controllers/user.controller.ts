@@ -18,14 +18,18 @@ export class UserController {
                 return res.status(401).json({ error: 'PIN atau Role salah' });
             }
 
-            console.log(`[LoginSuccess] User found: ${user.name} (${user.id}). Creating session...`);
+            // Create session manually using Drizzle fallback
+            const session = await UserService.createSessionManual(user.id);
+            console.log(`[SessionCreatedManual] Session ID: ${session.id}, Token: ${session.token.substring(0, 5)}...`);
 
-            // Create session using Better Auth API
-            const session = await auth.api.createSession({
-                userId: user.id,
+            // Set Better Auth compatible cookie
+            res.cookie('better-auth.session_token', session.token, {
+                httpOnly: true,
+                secure: true, // Render is always HTTPS
+                expires: session.expiresAt,
+                sameSite: 'none', // Needed for cross-domain Vercel -> Render
+                path: '/'
             });
-
-            console.log(`[SessionCreated] Session ID: ${session.session.id}`);
 
             // Audit log for login
             try {

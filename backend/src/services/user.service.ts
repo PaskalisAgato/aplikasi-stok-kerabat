@@ -94,6 +94,22 @@ export class UserService {
         return deletedUser;
     }
 
+    static async createSessionManual(userId: string) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        
+        const [session] = await db.insert(schema.sessions).values({
+            id: crypto.randomUUID(),
+            userId,
+            token,
+            expiresAt,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }).returning();
+        
+        return session;
+    }
+
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
         await db.insert(schema.auditLogs).values({
             userId,
