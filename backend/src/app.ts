@@ -53,8 +53,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
-// Using RegExp is the safest way to avoid PathError in Express 5 / path-to-regexp v8
-app.all(/^\/api\/auth\/.*/, toNodeHandler(auth));
+// In Express 5, app.use correctly handles sub-paths if the handler (Better Auth) is configured with the correct baseURL
+app.use("/api/auth", toNodeHandler(auth));
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {

@@ -21,7 +21,9 @@ try {
             enabled: true,
         },
         secret: process.env.BETTER_AUTH_SECRET,
-        baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",
+        baseURL: process.env.BETTER_AUTH_URL ? 
+                 (process.env.BETTER_AUTH_URL.endsWith('/api/auth') ? process.env.BETTER_AUTH_URL : `${process.env.BETTER_AUTH_URL.replace(/\/$/, '')}/api/auth`) : 
+                 "http://localhost:5000/api/auth",
         trustedOrigins: (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).concat([
             "http://localhost:5173",
             "https://paskalisagato.github.io"
