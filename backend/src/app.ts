@@ -30,31 +30,12 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
     'https://paskalisagato.github.io'
-];
-
-if (process.env.FRONTEND_URL) {
-    // Normalisasi: split by comma, trim, hapus trailing slash, dan hilangkan duplikat
-    const envOrigins = process.env.FRONTEND_URL.split(',')
-        .map(o => o.trim().replace(/\/$/, ''))
-        .filter(Boolean);
-    allowedOrigins.push(...envOrigins);
-}
-
-// Tambahkan "*" secara otomatis jika di development (opsional, tapi bagus untuk debug)
 app.use(cors({
-    origin: (origin, callback) => {
-        // Jika origin kosong (misal server-to-server) atau ada di whitelist
-        if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
-            callback(null, true);
-        } else {
-            console.warn(`CORS blocked for origin: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true, // Allow all origins during debugging to rule out CORS as the cause of "Koneksi Terhambat"
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'x-requested-with'],
-    optionsSuccessStatus: 200 // Beberapa browser lama butuh 200 alih-alih 204
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie']
 }));
 
 app.use(express.json());

@@ -45,7 +45,7 @@ export class ApiError extends Error {
 }
 
 // ── Base fetch helper ──────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 1;
 
 /**
