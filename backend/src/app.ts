@@ -25,17 +25,31 @@ const allowedOrigins = [
 ];
 
 if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(o => o.trim()).filter(Boolean));
+    // Normalisasi: split by comma, trim, hapus trailing slash, dan hilangkan duplikat
+    const envOrigins = process.env.FRONTEND_URL.split(',')
+        .map(o => o.trim().replace(/\/$/, ''))
+        .filter(Boolean);
+    allowedOrigins.push(...envOrigins);
 }
 
+// Tambahkan "*" secara otomatis jika di development (opsional, tapi bagus untuk debug)
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        // Jika origin kosong (misal server-to-server) atau ada di whitelist
+        if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+            callback(null, true);
+        } else {
+            console.warn(`CORS blocked for origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'x-requested-with'],
+    optionsSuccessStatus: 200 // Beberapa browser lama butuh 200 alih-alih 204
 }));
 
-// Explicitly handle preflight requests
+// Tambahkan middleware pre-flight eksplisit untuk semua route
 app.options('*', cors());
 
 app.use(express.json());
