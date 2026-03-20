@@ -65,13 +65,9 @@ app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
 
-// 5. Better Auth Managed Endpoints
-// Standard app.use mounting is safer for sub-paths in Express. 
-// It automatically strips the "/api/auth" prefix for the handler.
-app.use('/api/auth', (req, res, next) => {
-    console.log(`[BetterAuthHandover] Method: ${req.method}, RelativeURL: ${req.url}, FullURL: ${req.originalUrl}`);
-    return toNodeHandler(auth)(req, res);
-});
+// 5. Better Auth Managed Endpoints (Global Mount)
+// Better Auth will internally filter for requests matching its baseURL (/api/auth)
+app.use(toNodeHandler(auth));
 
 // 5. Final Catch-all for API 404s (Only if no previous route matched)
 app.use('/api', (req, res) => {
