@@ -53,8 +53,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
-// In Express 5, app.use correctly handles sub-paths if the handler (Better Auth) is configured with the correct baseURL
-app.use("/api/auth", toNodeHandler(auth));
+// Mount globally without a path prefix to allow Better Auth to handle matching via its baseURL internally.
+// This avoids PathError issues with Express 5 wildcards and prefix-stripping issues.
+app.use(toNodeHandler(auth));
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {
