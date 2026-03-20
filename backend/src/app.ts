@@ -53,8 +53,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
-// Express 5 / path-to-regexp v8+ requires named parameters for wildcards
-app.all("/api/auth/:path*", toNodeHandler(auth));
+// Using RegExp is the safest way to avoid PathError in Express 5 / path-to-regexp v8
+app.all(/^\/api\/auth\/.*/, toNodeHandler(auth));
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {
