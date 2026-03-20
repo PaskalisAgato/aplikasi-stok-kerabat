@@ -1,3 +1,11 @@
+import React, { useState } from 'react';
+import { API_BASE_URL } from './apiClient';
+
+type AuthMode = 'select' | 'pin';
+type Role = 'Admin' | 'Karyawan';
+
+export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
+    const [mode, setMode] = useState<AuthMode>('select');
     const [role, setRole] = useState<Role | null>(null);
     const [pin, setPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -14,15 +22,27 @@
         if (pin.length < 6) {
             const newPin = pin + num;
             setPin(newPin);
-            if (newPin.length >= 4) {
-               // Optional: trigger login automatically or wait for submit
-            }
         }
     };
 
     const handleDelete = () => {
         setPin(prev => prev.slice(0, -1));
     };
+
+    const handleLogin = async () => {
+        if (!role || pin.length < 4) return;
+        
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            // Ensure we use the correct modular path /api/auth/login-pin
+            const response = await fetch(`${API_BASE_URL}/auth/login-pin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ role, pin })
+            });
 
             const data = await response.json();
 
@@ -32,10 +52,8 @@
                 // Success - save the token to localStorage as a fallback for iOS
                 if (data.session?.id) {
                     localStorage.setItem('kerabat_auth_token', data.session.id);
-                    console.log('Session token saved:', data.session.id);
                 }
                 
-                // Wait slightly for localStorage to settle and for some mobile browsers
                 setTimeout(() => {
                     window.location.reload();
                 }, 500);
@@ -44,7 +62,7 @@
             console.error('Login error:', err);
             const isNetworkError = err.name === 'TypeError' || err.message?.includes('fetch') || err.message?.includes('Network');
             setError(isNetworkError 
-                ? 'Koneksi Terblokir: Sistem tidak dapat menjangkau server. Coba aktifkan VPN atau gunakan Data Seluler.'
+                ? 'Koneksi Terblokir: Sistem tidak dapat menjangkau server.'
                 : `Kesalahan: ${err.message || 'Coba lagi nanti'}`);
         } finally {
             setIsLoading(false);
@@ -53,7 +71,6 @@
 
     return (
         <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-hidden relative">
-            {/* Background Decorative Accents */}
             <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/10 blur-[120px] animate-pulse"></div>
             <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/10 blur-[120px] animate-pulse duration-700"></div>
 
@@ -164,6 +181,5 @@
         </div>
     );
 };
-
 
 export default AuthPage;
