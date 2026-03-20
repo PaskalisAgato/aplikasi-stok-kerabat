@@ -19,6 +19,12 @@ import { UserController } from './controllers/user.controller';
 
 const app = express();
 
+// Global Logger (Temporary for Debugging)
+app.use((req, res, next) => {
+    console.log(`[IncomingRequest] ${req.method} ${req.originalUrl} - Path: ${req.path}`);
+    next();
+});
+
 // 1. Global Middlewares
 const allowedOrigins = [
     'http://localhost:5173',
