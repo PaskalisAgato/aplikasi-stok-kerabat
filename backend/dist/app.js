@@ -19,14 +19,37 @@ const audit_1 = require("./routes/audit");
 const error_middleware_1 = require("./middleware/error.middleware");
 const app = (0, express_1.default)();
 // 1. Global Middlewares
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://paskalisagato.github.io'
+];
+if (process.env.FRONTEND_URL) {
+    // Normalisasi: split by comma, trim, hapus trailing slash, dan hilangkan duplikat
+    const envOrigins = process.env.FRONTEND_URL.split(',')
+        .map(o => o.trim().replace(/\/$/, ''))
+        .filter(Boolean);
+    allowedOrigins.push(...envOrigins);
+}
+// Tambahkan "*" secara otomatis jika di development (opsional, tapi bagus untuk debug)
 app.use((0, cors_1.default)({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://paskalisagato.github.io'
-    ],
-    credentials: true
+    origin: (origin, callback) => {
+        // Jika origin kosong (misal server-to-server) atau ada di whitelist
+        if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+            callback(null, true);
+        }
+        else {
+            console.warn(`CORS blocked for origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'x-requested-with'],
+    optionsSuccessStatus: 200 // Beberapa browser lama butuh 200 alih-alih 204
 }));
+// Tambahkan middleware pre-flight eksplisit untuk semua route
+app.options('*', (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 // 2. Auth Endpoint
