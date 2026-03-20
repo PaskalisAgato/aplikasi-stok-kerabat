@@ -54,11 +54,16 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
+// Custom Login PIN (defined before Better Auth to take precedence)
 app.post('/api/auth/login-pin', UserController.loginByPin);
 
-// Mount globally without a path prefix to allow Better Auth to handle matching via its baseURL internally.
-// This avoids PathError issues with Express 5 wildcards and prefix-stripping issues.
-app.use(toNodeHandler(auth));
+// Better Auth Handler - use manual prefix check to avoid PathError and route interception
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/auth')) {
+        return toNodeHandler(auth)(req, res);
+    }
+    next();
+});
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {
