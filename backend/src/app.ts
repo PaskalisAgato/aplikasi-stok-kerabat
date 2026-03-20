@@ -89,15 +89,10 @@ app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
 
 // 5. Better Auth Managed Endpoints
-// Using manual prefix check but STRIPPING the prefix so Better Auth receives relative paths
+// Using manual prefix check to avoid PathError while keeping routing reliable
 app.use((req, res, next) => {
     if (req.path.startsWith('/api/auth')) {
-        // Strip /api/auth prefix so Better Auth sees /session, /sign-in, etc.
-        const originalUrl = req.url;
-        req.url = req.url.replace('/api/auth', '');
-        if (req.url === '') req.url = '/';
-        
-        console.log(`[BetterAuthMatched] Handing off to Better Auth: ${req.url} (was ${originalUrl})`);
+        console.log(`[BetterAuthHandover] Path: ${req.path}, Method: ${req.method}`);
         return toNodeHandler(auth)(req, res);
     }
     next();
