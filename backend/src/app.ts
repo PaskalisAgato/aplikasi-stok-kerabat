@@ -60,21 +60,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// 2. Auth Endpoint
-// Custom Login PIN (defined before Better Auth to take precedence)
-app.post('/api/auth/login-pin', UserController.loginByPin);
-
-// Better Auth Handler - use manual prefix check to avoid PathError and route interception
-app.use((req, res, next) => {
-    const isAuthPath = req.path.startsWith('/api/auth');
-    if (isAuthPath) {
-        console.log(`[AuthRouteMatch] Path: ${req.path}, Method: ${req.method}`);
-        return toNodeHandler(auth)(req, res);
-    }
-    next();
-});
-
-// 3. Health & Diag
+// 2. Health & Diag
 app.get('/api/health', async (req, res) => {
     let dbStatus = 'waiting';
     try {
@@ -91,13 +77,31 @@ app.get('/api/health', async (req, res) => {
     });
 });
 
-// 4. API Routes
+// 3. Custom Auth Endpoints (High Priority)
+app.post('/api/auth/login-pin', UserController.loginByPin);
+
+// 4. API Routes (Products, Transactions, etc.)
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
+
+// 5. Better Auth Managed Endpoints
+// Using manual prefix check but STRIPPING the prefix so Better Auth receives relative paths
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/auth')) {
+        // Strip /api/auth prefix so Better Auth sees /session, /sign-in, etc.
+        const originalUrl = req.url;
+        req.url = req.url.replace('/api/auth', '');
+        if (req.url === '') req.url = '/';
+        
+        console.log(`[BetterAuthMatched] Handing off to Better Auth: ${req.url} (was ${originalUrl})`);
+        return toNodeHandler(auth)(req, res);
+    }
+    next();
+});
 
 // 5. Error Handler
 app.use(errorHandler);
