@@ -109,7 +109,12 @@ export async function apiFetch<T = unknown>(
         }
 
         if (err.name === 'AbortError') {
-            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (${FETCH_TIMEOUT_MS / 1000}s).`);
+            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (60s). Server Render mungkin sedang 'Cold Start'. Harap tunggu.`);
+        }
+
+        // Add more detail to generic network errors
+        if (isNetworkError) {
+             throw new ApiError(0, 'NetworkError', `Gagal terhubung ke Backend: ${err.message || 'Koneksi Ditolak/ISP Memblokir'}. Pastikan rute https://aplikasi-stok-kerabat.onrender.com/api/health bisa dibuka.`);
         }
 
         throw err;
