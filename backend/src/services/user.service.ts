@@ -92,6 +92,8 @@ export class UserService {
         }
 
         return deletedUser;
+    }
+
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
         await db.insert(schema.auditLogs).values({
             userId,
