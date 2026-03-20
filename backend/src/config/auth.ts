@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db";
 import * as schema from "../db/schema";
@@ -32,7 +33,10 @@ try {
             crossSubDomainCookies: {
                 enabled: true
             }
-        }
+        },
+        plugins: [
+            admin()
+        ]
     });
     console.log('--- Auth Module: Successfully initialized ---');
 } catch (error: any) {
