@@ -53,8 +53,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
-// Use .all with "*" to ensure Better Auth receives the full path for its internal routing
-app.all("/api/auth/*", toNodeHandler(auth));
+// Express 5 requires (.*) for catch-all instead of *
+app.all("/api/auth/(.*)", toNodeHandler(auth));
 
 // 3. Health & Diag
 app.get('/api/health', (req, res) => {
