@@ -2,9 +2,22 @@ import crypto from 'crypto';
 import { db } from '../config/db';
 import { users } from '../db/schema';
 import * as schema from '../db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
 
 export class UserService {
+    static async loginByPin(role: string, pin: string) {
+        const [user] = await db.select()
+            .from(users)
+            .where(
+                and(
+                    eq(users.role, role),
+                    eq(users.pin, pin)
+                )
+            )
+            .limit(1);
+        return user;
+    }
+
     static async getAllUsers() {
         return await db.select().from(users).orderBy(desc(users.createdAt));
     }
@@ -79,5 +92,14 @@ export class UserService {
         }
 
         return deletedUser;
+    static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
+        await db.insert(schema.auditLogs).values({
+            userId,
+            action,
+            tableName,
+            oldData: oldData ? JSON.stringify(oldData) : null,
+            newData: newData ? JSON.stringify(newData) : null,
+            createdAt: new Date()
+        });
     }
 }

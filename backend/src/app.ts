@@ -14,6 +14,7 @@ import { auditRouter } from './routes/audit';
 
 // Middleware Imports
 import { errorHandler } from './middleware/error.middleware';
+import { UserController } from './controllers/user.controller';
 
 const app = express();
 
@@ -53,6 +54,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Auth Endpoint
+app.post('/api/auth/login-pin', UserController.loginByPin);
+
 // Mount globally without a path prefix to allow Better Auth to handle matching via its baseURL internally.
 // This avoids PathError issues with Express 5 wildcards and prefix-stripping issues.
 app.use(toNodeHandler(auth));

@@ -1,7 +1,35 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { auth } from '../config/auth';
 
 export class UserController {
+    static async loginByPin(req: Request, res: Response) {
+        try {
+            const { role, pin } = req.body;
+            if (!role || !pin) {
+                return res.status(400).json({ error: 'Role and PIN are required' });
+            }
+
+            const user = await UserService.loginByPin(role, pin);
+            if (!user) {
+                return res.status(401).json({ error: 'PIN atau Role salah' });
+            }
+
+            // Create session using Better Auth API
+            const session = await auth.api.createSession({
+                userId: user.id,
+            });
+
+            // Audit log for login
+            await UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+
+            res.json({ session });
+        } catch (error) {
+            console.error('Error in UserController.loginByPin:', error);
+            res.status(500).json({ error: 'Gagal melakukan login' });
+        }
+    }
+
     static async getAll(req: Request, res: Response) {
         try {
             const users = await UserService.getAllUsers();
