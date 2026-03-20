@@ -66,13 +66,11 @@ app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
 
 // 5. Better Auth Managed Endpoints
-// Using manual prefix check to avoid PathError while keeping routing reliable
-app.use((req, res, next) => {
-    if (req.path.startsWith('/api/auth')) {
-        console.log(`[BetterAuthHandover] Path: ${req.path}, Method: ${req.method}`);
-        return toNodeHandler(auth)(req, res);
-    }
-    next();
+// Standard app.use mounting is safer for sub-paths in Express. 
+// It automatically strips the "/api/auth" prefix for the handler.
+app.use('/api/auth', (req, res, next) => {
+    console.log(`[BetterAuthHandover] Method: ${req.method}, RelativeURL: ${req.url}, FullURL: ${req.originalUrl}`);
+    return toNodeHandler(auth)(req, res);
 });
 
 // 5. Final Catch-all for API 404s (Only if no previous route matched)
