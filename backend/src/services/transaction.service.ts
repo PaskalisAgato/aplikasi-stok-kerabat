@@ -24,8 +24,13 @@ export class TransactionService {
         let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
         if (isNaN(finalTotalAmount)) finalTotalAmount = calculatedSubTotal;
 
-        // Build the sale record — only include shiftId if it's a valid number
+        // Build the sale record
+        const parsedShiftId = (shiftId !== null && shiftId !== undefined && shiftId !== '')
+            ? parseInt(shiftId.toString())
+            : NaN;
+
         const saleValues: any = {
+            shiftId: !isNaN(parsedShiftId) ? parsedShiftId : sql`NULL`,
             userId,
             subTotal: calculatedSubTotal.toString(),
             taxAmount: '0',
@@ -33,14 +38,6 @@ export class TransactionService {
             totalAmount: finalTotalAmount.toString(),
             paymentMethod: paymentMethod || 'CASH'
         };
-
-        // Only add shiftId if it's a valid, truthy value
-        if (shiftId !== null && shiftId !== undefined && shiftId !== '') {
-            const parsedShiftId = parseInt(shiftId.toString());
-            if (!isNaN(parsedShiftId)) {
-                saleValues.shiftId = parsedShiftId;
-            }
-        }
 
         return await db.transaction(async (tx) => {
             const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
