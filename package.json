@@ -4,7 +4,7 @@
     "backend"
   ],
   "scripts": {
-    "build": "bash build-all.sh",
+    "build": "echo '🚀 [VERCEL BUILD] START' && bash build-all.sh && echo '🏁 [VERCEL BUILD] FINISHED'",
     "install-all": "npm install --include=dev"
   },
   "dependencies": {
