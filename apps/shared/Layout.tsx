@@ -181,36 +181,48 @@ const Layout: React.FC<LayoutProps> = ({
                 {/* Main Viewport */}
                 <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                     {/* Shell Header (Glass) */}
-                    <header className="px-6 py-5 shrink-0">
+                    <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
                         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-                        <div className="glass rounded-[2rem] px-6 py-4 flex items-center gap-6">
-                            <button 
-                                onClick={() => setDrawerOpen(true)} 
-                                className="size-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
-                                style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
-                            >
-                                <span className="material-symbols-outlined font-black">menu</span>
-                            </button>
+                        <div className="glass rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm">
                             
+                            {/* Kiri: Hamburger + Logo */}
+                            <div className="flex items-center gap-3 shrink-0 flex-1 justify-start">
+                                <button 
+                                    onClick={() => setDrawerOpen(true)} 
+                                    className="size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
+                                    style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
+                                >
+                                    <span className="material-symbols-outlined text-[20px] font-black">menu</span>
+                                </button>
+                                
+                                {!sidebar && (
+                                     <div className="size-10 hidden sm:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
+                                        <span className="material-symbols-outlined text-[20px]">coffee</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Tengah: Judul Halaman */}
                             {!sidebar && (
-                                <div className="flex items-center gap-4">
-                                     <div className="size-10 rounded-xl accent-gradient flex items-center justify-center text-slate-950">
-                                        <span className="material-symbols-outlined text-xl">coffee</span>
-                                    </div>
-                                    <div className="space-y-0.5">
-                                        <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
-                                        {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
-                                    </div>
+                                <div className="flex-1 min-w-0 flex flex-col items-center justify-center text-center px-1">
+                                    <h1 className="text-base md:text-lg font-black tracking-tight truncate font-display leading-tight w-full text-[var(--text-main)]">{title}</h1>
+                                    {subtitle && (
+                                        <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest truncate opacity-80 w-full mt-0.5">{subtitle}</p>
+                                    )}
                                 </div>
                             )}
-                            
-                            <div className="flex-1"></div>
-                            
-                            <div className="flex items-center gap-4">
-                                {headerExtras}
-                                <div className="h-8 w-px bg-[var(--border-dim)] mx-2"></div>
+
+                            {/* Kanan: Header Extras & Theme Toggle */}
+                            <div className="flex items-center gap-2 md:gap-4 shrink-0 flex-1 justify-end">
+                                {headerExtras && (
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {headerExtras}
+                                    </div>
+                                )}
+                                <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
                                 <ThemeToggle />
                             </div>
+
                         </div>
                     </header>
 
