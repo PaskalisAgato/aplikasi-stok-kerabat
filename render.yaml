@@ -2,10 +2,10 @@ services:
   - type: web
     name: aplikasi-stok-kerabat
     runtime: node
-    rootDir: backend
+    rootDir: ./
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install && npm run build --workspace=backend
+    startCommand: npm run start --workspace=backend
     envVars:
       - key: NODE_ENV
         value: production
