@@ -35,15 +35,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             localStorage.clear();
             sessionStorage.clear();
 
-            // 3. Reload current sub-app path (not "/" which would go to POS)
-            const currentPath = window.location.pathname;
-            window.location.href = `${window.location.origin}${currentPath}`;
+            // 3. Force reload without cache to /login
+            window.location.href = "/login?v=" + Date.now();
         } catch (error) {
             console.error("Logout error:", error);
             localStorage.clear();
             sessionStorage.clear();
-            const currentPath = window.location.pathname;
-            window.location.href = `${window.location.origin}${currentPath}`;
+            window.location.href = "/login?v=" + Date.now();
         }
     };
 
