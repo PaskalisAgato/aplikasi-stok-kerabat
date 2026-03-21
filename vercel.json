@@ -22,6 +22,9 @@
     { "source": "/waste-detail/:path*", "destination": "/waste-detail/index.html" },
     { "source": "/cogs/:path*", "destination": "/cogs/index.html" },
     { "source": "/recipe-edit/:path*", "destination": "/recipe-edit/index.html" },
+    { "source": "/shifts/:path*", "destination": "/shifts/index.html" },
+    { "source": "/attendance/:path*", "destination": "/attendance/index.html" },
+    { "source": "/attendance-history/:path*", "destination": "/attendance-history/index.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

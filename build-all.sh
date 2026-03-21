@@ -61,7 +61,7 @@ build_app() {
 build_app "pos" "pos"
 
 # 2. Build Sub-apps
-APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit")
+APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
 
 for APP in "${APPS[@]}"; do
     if [ -d "apps/$APP" ]; then
