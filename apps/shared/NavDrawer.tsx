@@ -86,6 +86,10 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                     if (isActive) {
                                         e.preventDefault();
                                         onClose();
+                                    } else {
+                                        // Hard reload for cross-app navigation to ensure Vercel serves the correct app
+                                        e.preventDefault();
+                                        window.location.href = targetUrl;
                                     }
                                 }}
                                 className={`
