@@ -60,7 +60,7 @@ function ShiftPage() {
         }
     };
 
-    const columns = [
+    const columns: any[] = [
         { header: 'Tanggal', render: (s: any) => new Date(s.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
         { header: 'Jam Mulai', key: 'startTime' as const },
         { header: 'Jam Selesai', key: 'endTime' as const },

@@ -1,49 +1,40 @@
 #!/bin/bash
-# build-all.sh - Barebones Shell Script
+# build-all.sh - Debug Version
 set -e
+set -x
 
-echo "Starting Consolidated Monorepo Build..."
+echo "DEBUG: Starting build-all.sh"
+echo "DEBUG: Current Dir: $(pwd)"
+ls -la
 
-# 1. Clean and Create Output
+# Clean
 rm -rf dist-global
 mkdir -p dist-global
 
-# 2. Build POS
-echo "Building POS..."
+# Build POS
+echo "DEBUG: Building POS"
 cd apps/pos
+ls -la
 npm run build
 cd ../..
-[ -d "apps/pos/dist" ] && cp -r apps/pos/dist/* dist-global/
-echo "POS built."
+cp -r apps/pos/dist/* dist-global/
 
-# 3. Build Function for Others
-build_app() {
-    local name=$1
-    if [ -d "apps/$name" ]; then
-        echo "Building $name..."
-        cd "apps/$name"
-        npm run build
-        cd ../..
-        mkdir -p "dist-global/$name"
-        [ -d "apps/$name/dist" ] && cp -r apps/name/dist/* "dist-global/$name/"
-        echo "$name built."
-    fi
-}
+# Apps List
+OTHER_APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
 
-# Run Builds
-APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
-
-for APP in "${APPS[@]}"; do
+for APP in "${OTHER_APPS[@]}"; do
     if [ -d "apps/$APP" ]; then
-        echo "Building $APP..."
+        echo "DEBUG: Building $APP"
         cd "apps/$APP"
+        ls -la
         npm run build
         cd ../..
         mkdir -p "dist-global/$APP"
-        # Use a safe copy that handles the dist contents correctly
         cp -r "apps/$APP/dist/." "dist-global/$APP/"
-        echo "$APP finished."
+    else
+        echo "DEBUG: Skipping $APP (not found)"
     fi
 done
 
-echo "CONSOLIDATED BUILD FINISHED"
+echo "DEBUG: Build All Finished"
+ls -la dist-global
