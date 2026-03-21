@@ -1,4 +1,203 @@
-Build Report - Sat Mar 21 09:47:16 AM WIB 2026
+Build Report - Sat Mar 21 01:08:18 PM WIB 2026
 --------------------------
 ✅ Copied pos to root
    [VERIFIED] index.html exists for pos
+✅ Copied inventory to /inventory/
+   [VERIFIED] index.html exists for inventory
+✅ Copied reports to /reports/
+   [VERIFIED] index.html exists for reports
+✅ Copied dashboard to /dashboard/
+   [VERIFIED] index.html exists for dashboard
+✅ Copied activity-history to /activity-history/
+   [VERIFIED] index.html exists for activity-history
+✅ Copied employees to /employees/
+   [VERIFIED] index.html exists for employees
+✅ Copied expenses to /expenses/
+   [VERIFIED] index.html exists for expenses
+✅ Copied hpp to /hpp/
+   [VERIFIED] index.html exists for hpp
+✅ Copied opname to /opname/
+   [VERIFIED] index.html exists for opname
+✅ Copied recipes to /recipes/
+   [VERIFIED] index.html exists for recipes
+✅ Copied settings to /settings/
+   [VERIFIED] index.html exists for settings
+✅ Copied waste to /waste/
+   [VERIFIED] index.html exists for waste
+✅ Copied waste-detail to /waste-detail/
+   [VERIFIED] index.html exists for waste-detail
+✅ Copied cogs to /cogs/
+   [VERIFIED] index.html exists for cogs
+✅ Copied recipe-edit to /recipe-edit/
+   [VERIFIED] index.html exists for recipe-edit
+--------------------------
+✅ ALL BUILDS COMPLETED SUCCESSFULLY!
+dist-global:
+activity-history
+assets
+build-report.txt
+cogs
+dashboard
+employees
+expenses
+hpp
+index.html
+inventory
+opname
+recipe-edit
+recipes
+reports
+settings
+waste
+waste-detail
+
+dist-global/activity-history:
+assets
+index.html
+
+dist-global/activity-history/assets:
+index-BxjqGGx3.js
+index-C7bM81mJ.css
+index-I2pe2UoM.js
+index-rfjnQwK5.css
+
+dist-global/assets:
+index-09bIOXtB.js
+index-BqRY5oIs.js
+index-DdB7J3v8.js
+index-DJUjvsce.css
+index-hsPDFfwK.css
+
+dist-global/cogs:
+assets
+index.html
+
+dist-global/cogs/assets:
+index-CAYB5LLG.js
+index-D_-qpY1_.css
+index-DVO_kpx3.js
+index-u6sOdVlT.css
+
+dist-global/dashboard:
+assets
+index.html
+vite.svg
+
+dist-global/dashboard/assets:
+index-BDI0o2eL.js
+index-CxwNmfNm.css
+index-CY5z3W_B.css
+index-opw2-fSa.js
+
+dist-global/employees:
+assets
+index.html
+
+dist-global/employees/assets:
+index-B5DIIr1p.css
+index-BRNAyJSe.js
+index-Csl3GChs.css
+index-Dmq_I1Fk.js
+
+dist-global/expenses:
+assets
+index.html
+vite.svg
+
+dist-global/expenses/assets:
+index-B5k9TxNs.js
+index-CKwa0-4W.css
+index-CTbOs-XA.js
+index-D7G3WIa4.css
+
+dist-global/hpp:
+assets
+index.html
+
+dist-global/hpp/assets:
+index-BKO0CMfj.css
+index-BKWR4OdF.js
+index-BPCosFDV.css
+index-y1h3pcbA.js
+
+dist-global/inventory:
+assets
+index.html
+vite.svg
+
+dist-global/inventory/assets:
+index-BEPtpElV.js
+index-CtiZrE13.css
+index-Cz_803xp.css
+index-DH2myW4C.js
+
+dist-global/opname:
+assets
+index.html
+
+dist-global/opname/assets:
+index-7M1-Lcwh.js
+index-BxyEQM4J.css
+index-Cyv4gVe_.css
+index-ZwrpHt0t.js
+
+dist-global/recipe-edit:
+assets
+index.html
+
+dist-global/recipe-edit/assets:
+index-BLlLlCIL.js
+index-CaseHJ9Y.css
+index-DkM3KrZW.css
+index-DoTHnkHn.js
+
+dist-global/recipes:
+assets
+index.html
+
+dist-global/recipes/assets:
+index-BcsLV0Zs.js
+index-BwdKbADR.js
+index-DdU4Efl3.css
+index-qJQp9mtf.css
+
+dist-global/reports:
+assets
+index.html
+vite.svg
+
+dist-global/reports/assets:
+index-B48BrmjJ.js
+index-BuoCJD9R.css
+index-CvoEeZJd.css
+index-o30R0eo2.js
+
+dist-global/settings:
+assets
+index.html
+
+dist-global/settings/assets:
+index-3Qc9pXjV.css
+index-AUoUqDsc.css
+index-C9fGFh2i.js
+index-DUq23NuI.js
+
+dist-global/waste:
+assets
+index.html
+
+dist-global/waste/assets:
+index-B0-5NzmJ.js
+index-BzRC-DQt.css
+index-CCQ7_WMd.js
+index-GqwLTuw-.css
+
+dist-global/waste-detail:
+assets
+index.html
+
+dist-global/waste-detail/assets:
+index-BiZJqBHL.css
+index-BVbPAhRA.js
+index-CvNpoWr8.css
+index-IcFT68l5.js
