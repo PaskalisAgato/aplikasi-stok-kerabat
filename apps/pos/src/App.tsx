@@ -132,16 +132,16 @@ function App() {
                 </section>
 
                 {/* Cart Action & Header */}
-                <div className="flex items-center justify-between px-2">
+                <div className="flex items-center justify-between px-2 mb-4">
                     <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                             <span className="material-symbols-outlined text-sm font-black">shopping_basket</span>
+                        <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                             <span className="material-symbols-outlined text-base font-black">shopping_basket</span>
                         </div>
-                        <h2 className="font-black text-[11px] uppercase tracking-[0.25em] text-[var(--text-muted)]">Daftar Belanja</h2>
+                        <h2 className="font-black text-xs uppercase tracking-[0.25em] text-[var(--text-muted)]">Daftar Belanja</h2>
                     </div>
                     <button 
                         onClick={() => setShowAddMenu(true)}
-                        className="btn-primary py-2.5 px-6 rounded-2xl text-[11px] uppercase tracking-widest shadow-primary/20"
+                        className="btn-primary py-3 px-5 md:px-6 rounded-2xl text-[11px] md:text-sm uppercase tracking-widest shadow-primary/20 flex items-center gap-2"
                     >
                         <span className="material-symbols-outlined text-lg">add_circle</span>
                         Tambah Menu
@@ -149,35 +149,37 @@ function App() {
                 </div>
 
                 {/* Menu Grid / Cart Items */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     {activeCartItems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-24 text-center glass rounded-[3rem] border-dashed border-2 border-[var(--border-dim)] opacity-40">
+                        <div className="flex flex-col items-center justify-center py-20 md:py-24 text-center glass rounded-[2rem] md:rounded-[3rem] border-dashed border-2 border-[var(--border-dim)] opacity-40">
                             <div className="size-16 md:size-24 rounded-full bg-[var(--bg-app)] flex items-center justify-center mb-6">
                                 <span className="material-symbols-outlined text-4xl md:text-6xl text-[var(--text-muted)]/30">shopping_cart</span>
                             </div>
-                            <p className="text-lg font-black tracking-tight text-[var(--text-main)] uppercase">Keranjang Kosong</p>
-                            <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mt-2">Pilih menu untuk memulai transaksi</p>
+                            <p className="text-base md:text-lg font-black tracking-tight text-[var(--text-main)] uppercase">Keranjang Kosong</p>
+                            <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-2">Pilih menu untuk memulai transaksi</p>
                         </div>
                     ) : (
                         activeCartItems.map(recipe => (
-                            <div key={recipe.id} className="card flex items-center gap-6 group hover:scale-[1.01] active:scale-[0.99] p-5">
-                                <div
-                                    className="size-16 md:size-20 rounded-[1.5rem] bg-cover bg-center shrink-0 shadow-lg border-2 border-white/10 group-hover:rotate-2 transition-transform"
-                                    style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
-                                />
-                                <div className="flex-1 min-w-0 space-y-1">
-                                    <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight truncate uppercase">{recipe.name}</h3>
-                                    <p className="text-primary font-black text-sm tracking-wide">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                            <div key={recipe.id} className="card flex items-center justify-between gap-4 md:gap-6 group hover:scale-[1.01] active:scale-[0.99] p-4 md:p-5">
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <div
+                                        className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/10 group-hover:rotate-2 transition-transform"
+                                        style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                    />
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                        <h3 className="font-black text-[var(--text-main)] text-lg md:text-xl font-display tracking-tight leading-tight truncate uppercase w-full max-w-[150px] md:max-w-none">{recipe.name}</h3>
+                                        <p className="text-primary font-black text-sm tracking-wide">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 md:gap-3 glass p-1.5 md:p-2 rounded-xl md:rounded-2xl shrink-0 shadow-inner">
+                                <div className="flex items-center gap-3 md:gap-4 glass p-2 md:p-3 rounded-full shrink-0 shadow-inner">
                                     <button
                                         onClick={() => updateQty(recipe.id, -1)}
-                                        className="size-8 md:size-10 flex items-center justify-center rounded-lg md:rounded-xl bg-[var(--bg-app)] text-primary hover:bg-primary hover:text-slate-950 transition-all shadow-sm font-black text-base md:text-xl"
+                                        className="size-10 md:size-12 flex items-center justify-center rounded-full bg-[var(--bg-app)] text-primary hover:bg-primary hover:text-slate-950 transition-all shadow-sm font-black text-xl active:scale-95"
                                     >-</button>
-                                    <span className="w-6 md:w-10 text-center font-black text-base md:text-xl font-display block text-[var(--text-main)]">{sales[recipe.id] || 0}</span>
+                                    <span className="w-8 md:w-10 text-center font-black text-xl font-display block text-[var(--text-main)]">{sales[recipe.id] || 0}</span>
                                     <button
                                         onClick={() => updateQty(recipe.id, 1)}
-                                        className="size-8 md:size-10 flex items-center justify-center rounded-lg md:rounded-xl bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-lg shadow-primary/30 font-black text-base md:text-xl"
+                                        className="size-10 md:size-12 flex items-center justify-center rounded-full bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-lg shadow-primary/30 font-black text-xl active:scale-95"
                                     >+</button>
                                 </div>
                             </div>
@@ -190,7 +192,7 @@ function App() {
             {showAddMenu && (
                 <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-xl flex flex-col h-full animate-in fade-in duration-500">
                     <div className="max-w-4xl w-full mx-auto h-full flex flex-col bg-[var(--bg-app)] relative lg:h-[90vh] lg:my-[5vh] lg:rounded-[3rem] lg:overflow-hidden lg:shadow-2xl lg:border lg:border-[var(--border-dim)]">
-                        <header className="sticky top-0 z-10 glass px-8 py-6 flex items-center justify-between border-x-0 border-t-0 rounded-none">
+                        <header className="sticky top-0 z-10 glass px-4 md:px-8 py-5 md:py-6 mb-2 md:mb-4 flex items-center justify-between border-x-0 border-t-0 rounded-none shadow-sm">
                             <div className="flex items-center gap-3 md:gap-4">
                                 <div className="size-10 md:size-12 rounded-xl md:rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shrink-0">
                                     <span className="material-symbols-outlined font-black text-[20px] md:text-[24px]">restaurant_menu</span>
@@ -202,13 +204,13 @@ function App() {
                             </div>
                             <button 
                                 onClick={() => setShowAddMenu(false)} 
-                                className="size-10 md:size-12 flex shrink-0 items-center justify-center rounded-xl md:rounded-2xl glass hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90"
+                                className="size-10 md:size-12 flex shrink-0 items-center justify-center rounded-full glass hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90"
                             >
-                                <span className="material-symbols-outlined font-black text-[20px] md:text-[24px]">close</span>
+                                <span className="material-symbols-outlined font-black text-[22px] md:text-[26px]">close</span>
                             </button>
                         </header>
                         
-                        <div className="px-8 py-6 sticky top-[88px] z-10 bg-[var(--bg-app)]/80 backdrop-blur-md">
+                        <div className="px-4 md:px-8 py-4 sticky top-[80px] md:top-[96px] z-10 bg-[var(--bg-app)]/80 backdrop-blur-md mb-4 md:mb-6">
                             <div className="relative flex items-center group">
                                 <span className="material-symbols-outlined absolute left-5 text-primary font-black">search</span>
                                 <input
@@ -222,11 +224,11 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto px-8 py-2 space-y-4 pb-32 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-2 space-y-4 md:space-y-6 pb-32 custom-scrollbar">
                             {isLoading && (
-                                 <div className="flex flex-col justify-center items-center py-20 gap-4">
-                                     <div className="size-10 md:size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">Menghubungkan ke Dapur...</p>
+                                 <div className="flex flex-col justify-center items-center py-20 gap-6">
+                                     <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                                    <p className="text-[12px] font-black text-primary uppercase tracking-widest animate-pulse">Menghubungkan ke Dapur...</p>
                                  </div>
                             )}
                             {!isLoading && filteredRecipes.length === 0 ? (
@@ -237,24 +239,26 @@ function App() {
                             ) : filteredRecipes.map(recipe => {
                                 const qty = sales[recipe.id] || 0;
                                 return (
-                                    <div key={`add-${recipe.id}`} className="card flex items-center gap-5 hover:scale-[1.01] transition-all">
-                                        <div
-                                            className="size-16 md:size-20 rounded-xl md:rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/5"
-                                            style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
-                                        />
-                                        <div className="flex-1 min-w-0 space-y-1">
-                                            <h3 className="font-black text-[var(--text-main)] text-base truncate font-display tracking-tight uppercase">{recipe.name}</h3>
-                                            <p className="text-primary font-black text-xs">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                    <div key={`add-${recipe.id}`} className="card flex items-center justify-between gap-4 group hover:scale-[1.01] transition-all p-4 md:p-5">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <div
+                                                className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/5"
+                                                style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                            />
+                                            <div className="flex-1 min-w-0 space-y-2">
+                                                <h3 className="font-black text-[var(--text-main)] text-base md:text-lg truncate font-display tracking-tight uppercase max-w-[130px] md:max-w-none">{recipe.name}</h3>
+                                                <p className="text-primary font-black text-sm">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 glass p-1.5 rounded-xl shrink-0">
+                                        <div className="flex items-center gap-3 md:gap-4 glass p-2 md:p-3 rounded-full shrink-0">
                                             <button
                                                 onClick={() => updateQty(recipe.id, -1)}
-                                                className="size-8 md:size-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-primary hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-base md:text-lg"
+                                                className="size-10 flex items-center justify-center rounded-full bg-[var(--bg-app)] text-primary hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-xl active:scale-95"
                                             >-</button>
-                                            <span className="w-6 md:w-8 text-center font-black text-base md:text-lg font-display text-[var(--text-main)]">{qty}</span>
+                                            <span className="w-8 text-center font-black text-lg md:text-xl font-display text-[var(--text-main)]">{qty}</span>
                                             <button
                                                 onClick={() => updateQty(recipe.id, 1)}
-                                                className="size-8 md:size-9 flex items-center justify-center rounded-lg bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-md font-black text-base md:text-lg"
+                                                className="size-10 flex items-center justify-center rounded-full bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-md font-black text-xl active:scale-95"
                                             >+</button>
                                         </div>
                                     </div>
