@@ -35,11 +35,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                 credentials: 'include'
             }).catch(err => console.error("Manual logout fetch failed:", err));
 
-            // 3. Hard reload the current page. Layout will see no session and show AuthPage within the current sub-app.
-            window.location.reload();
+            // 3. Hard reload the current page using an explicit URL injection to prevent root redirects
+            const currentPath = window.location.pathname;
+            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
         } catch (error) {
             console.error("Logout process error:", error);
-            window.location.reload();
+            const currentPath = window.location.pathname;
+            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
         }
     };
 
