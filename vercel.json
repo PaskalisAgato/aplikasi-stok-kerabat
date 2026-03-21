@@ -4,6 +4,9 @@
   "framework": null,
   "cleanUrls": true,
   "trailingSlash": true,
+  "redirects": [
+    { "source": "/login", "destination": "/dashboard/" }
+  ],
   "rewrites": [
     { "source": "/inventory/:path*", "destination": "/inventory/index.html" },
     { "source": "/reports/:path*", "destination": "/reports/index.html" },

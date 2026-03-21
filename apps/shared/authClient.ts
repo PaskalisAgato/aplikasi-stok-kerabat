@@ -33,7 +33,7 @@ export const authClient = createAuthClient({
 // Custom getSession that uses our manual backend endpoint (which checks Bearer token)
 export const getSession = async () => {
     try {
-        const data = await apiFetch<any>('/auth/session');
+        const data = await apiFetch<any>('/auth/session', { cache: 'no-store' });
         if (!data) return { data: null, error: 'No session' };
         return { data, error: null };
     } catch (e: any) {
