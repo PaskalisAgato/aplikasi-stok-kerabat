@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import TransactionHistory from './TransactionHistory';
 
 function App() {
+    const [view, setView] = useState<'pos' | 'history'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -88,12 +90,25 @@ function App() {
         </footer>
     );
 
+    if (view === 'history') {
+        return <TransactionHistory onBack={() => setView('pos')} />;
+    }
+
     return (
         <Layout
             currentPort={5186}
             title="Kasir (POS)"
             subtitle="Premium Sales Entry"
             footer={PosFooter}
+            headerExtras={
+                <button 
+                    onClick={() => setView('history')} 
+                    className="size-10 flex items-center justify-center rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md"
+                    title="Riwayat Transaksi"
+                >
+                    <span className="material-symbols-outlined text-[18px]">history</span>
+                </button>
+            }
         >
             <div className="space-y-10">
                 {/* Sales Summary Bar (Premium Glass) */}

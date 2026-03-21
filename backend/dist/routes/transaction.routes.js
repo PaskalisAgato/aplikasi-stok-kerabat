@@ -6,5 +6,9 @@ const transaction_controller_1 = require("../controllers/transaction.controller"
 const auth_1 = require("../middleware/auth");
 const router = (0, express_1.Router)();
 exports.transactionRoutes = router;
+router.get('/', auth_1.requireAuth, transaction_controller_1.TransactionController.getAll);
+router.get('/:id', auth_1.requireAuth, transaction_controller_1.TransactionController.getById);
 router.post('/', auth_1.requireAuth, transaction_controller_1.TransactionController.checkout);
+router.put('/:id', auth_1.requireAdmin, transaction_controller_1.TransactionController.update);
+router.delete('/:id', auth_1.requireAdmin, transaction_controller_1.TransactionController.delete);
 exports.default = router;

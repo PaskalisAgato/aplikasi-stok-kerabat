@@ -142,7 +142,11 @@ export const apiClient = {
     deleteRecipe: (id: number) => apiFetch<any>(`/products/${id}`, { method: 'DELETE' }),
 
     // ---- TRANSACTIONS ----
+    getTransactions: () => apiFetch<any[]>('/transactions'),
+    getTransactionById: (id: number) => apiFetch<any>(`/transactions/${id}`),
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
+    updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteTransaction: (id: number) => apiFetch<any>(`/transactions/${id}`, { method: 'DELETE' }),
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
