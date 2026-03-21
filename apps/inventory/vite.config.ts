@@ -5,7 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/inventory/',
+  base: '/app-inventory/',
   plugins: [react()],
   resolve: {
     alias: {
