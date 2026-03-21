@@ -5,6 +5,7 @@
   "cleanUrls": true,
   "trailingSlash": true,
   "rewrites": [
+    { "handle": "filesystem" },
     { "source": "/inventory/:path*", "destination": "/inventory/index.html" },
     { "source": "/reports/:path*", "destination": "/reports/index.html" },
     { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
