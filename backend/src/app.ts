@@ -84,17 +84,23 @@ app.post('/api/auth/logout-manual', async (req, res) => {
         const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
         
         if (sessionToken) {
-            await UserService.deleteSessionByToken(sessionToken);
+            // The cookie stores the hashed token directly, so we delete by hashed value
+            await UserService.deleteSessionByHashedToken(sessionToken);
         }
 
-        // Clear all auth cookies
-        res.clearCookie('better-auth.session_token');
-        res.clearCookie('better-auth.session_token.sig');
+        // Clear cookies with EXACT same options as they were set during login
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none' as const,
+            path: '/'
+        };
+        res.clearCookie('better-auth.session_token', cookieOptions);
+        res.clearCookie('better-auth.session_token.sig', cookieOptions);
         
         res.status(200).json({ success: true, message: 'Logged out successfully' });
     } catch (error: any) {
         console.error('Logout error:', error);
-        // Still return 200 — client should clear its state regardless
         res.status(200).json({ success: true, message: 'Logged out (with server warning)' });
     }
 });

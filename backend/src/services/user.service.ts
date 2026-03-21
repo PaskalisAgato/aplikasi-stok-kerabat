@@ -150,6 +150,14 @@ export class UserService {
         return deleted.length > 0;
     }
 
+    // Used by logout endpoint — cookie already contains the hashed token
+    static async deleteSessionByHashedToken(hashedToken: string) {
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.token, hashedToken))
+            .returning();
+        return deleted.length > 0;
+    }
+
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
         await db.insert(schema.auditLogs).values({
             userId,
