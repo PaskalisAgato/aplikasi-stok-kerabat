@@ -1,6 +1,25 @@
 {
   "buildCommand": "bash build-all.sh",
   "outputDirectory": "dist-global",
-  "framework": null
+  "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "rewrites": [
+    { "source": "/inventory/(.*)", "destination": "/inventory/index.html" },
+    { "source": "/reports/(.*)", "destination": "/reports/index.html" },
+    { "source": "/dashboard/(.*)", "destination": "/dashboard/index.html" },
+    { "source": "/activity-history/(.*)", "destination": "/activity-history/index.html" },
+    { "source": "/employees/(.*)", "destination": "/employees/index.html" },
+    { "source": "/expenses/(.*)", "destination": "/expenses/index.html" },
+    { "source": "/hpp/(.*)", "destination": "/hpp/index.html" },
+    { "source": "/opname/(.*)", "destination": "/opname/index.html" },
+    { "source": "/recipes/(.*)", "destination": "/recipes/index.html" },
+    { "source": "/settings/(.*)", "destination": "/settings/index.html" },
+    { "source": "/waste/(.*)", "destination": "/waste/index.html" },
+    { "source": "/waste-detail/(.*)", "destination": "/waste-detail/index.html" },
+    { "source": "/cogs/(.*)", "destination": "/cogs/index.html" },
+    { "source": "/recipe-edit/(.*)", "destination": "/recipe-edit/index.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
  
