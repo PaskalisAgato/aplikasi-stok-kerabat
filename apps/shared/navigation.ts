@@ -19,6 +19,9 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Analisis COGS', icon: 'donut_small', port: 5183, requiredRole: 'Admin' },
     { label: 'Pengeluaran', icon: 'payments', port: 5181, requiredRole: 'Karyawan' },
     { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182, requiredRole: 'Admin' },
+    { label: 'Manajemen Shift', icon: 'date_range', port: 5188, requiredRole: 'Karyawan' },
+    { label: 'Absen Karyawan', icon: 'person_check', port: 5189, requiredRole: 'Karyawan' },
+    { label: 'Riwayat Absen', icon: 'assignment_turned_in', port: 5190, requiredRole: 'Admin' },
 ];
 
 
@@ -38,6 +41,9 @@ export const PORT_TO_APP: Record<number, string> = {
     5185: 'waste-detail',
     5186: 'pos',
     5187: 'recipe-edit',
+    5188: 'shifts',
+    5189: 'attendance',
+    5190: 'attendance-history',
 };
 
 export const getBaseUrl = () => {

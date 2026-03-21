@@ -11,6 +11,8 @@ import { userRoutes } from './routes/user.routes';
 import { inventoryRouter } from './routes/inventory';
 import { financeRouter } from './routes/finance';
 import { auditRouter } from './routes/audit';
+import { shiftRoutes } from './routes/shift.routes';
+import { attendanceRoutes } from './routes/attendance.routes';
 
 // Middleware Imports
 import { errorHandler } from './middleware/error.middleware';
@@ -134,6 +136,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards

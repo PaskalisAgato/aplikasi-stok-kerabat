@@ -5,7 +5,7 @@
  */
 
 // Deployment URL (Dynamic via environment variables)
-const rawUrl = (typeof process !== 'undefined' && process.env?.VITE_API_URL) 
+const rawUrl = (typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
     || 'https://aplikasi-stok-kerabat.onrender.com/api';
 
@@ -158,5 +158,21 @@ export const apiClient = {
     addExpenseCategory: (data: unknown) => apiFetch<any>('/finance/expenses/categories', { method: 'POST', body: JSON.stringify(data) }),
     deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
     getHPPAnalysis: () => apiFetch<any>('/finance/hpp'),
+
+    // ---- SHIFTS ----
+    getAllShifts: () => apiFetch<any[]>('/shifts'),
+    getMyShifts: () => apiFetch<any[]>('/shifts/my'),
+    createShift: (data: unknown) => apiFetch<any>('/shifts', { method: 'POST', body: JSON.stringify(data) }),
+    updateShift: (id: number, data: unknown) => apiFetch<any>(`/shifts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteShift: (id: number) => apiFetch<any>(`/shifts/${id}`, { method: 'DELETE' }),
+
+    // ---- ATTENDANCE ----
+    getTodayAttendance: () => apiFetch<any>('/attendance/today'),
+    checkIn: () => apiFetch<any>('/attendance/check-in', { method: 'POST' }),
+    checkOut: () => apiFetch<any>('/attendance/check-out', { method: 'POST' }),
+    getAttendanceHistory: (params: Record<string, string>) => {
+        const query = new URLSearchParams(params).toString();
+        return apiFetch<any[]>(`/attendance/history?${query}`);
+    },
 };
 

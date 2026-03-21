@@ -182,3 +182,32 @@ export const auditLogs = pgTable('audit_logs', {
 }, (t) => ({
     userIdx: index('audit_logs_user_idx').on(t.userId)
 }));
+
+// -----------------------------------------------------------------------------
+// 6. WORK SHIFTS & ATTENDANCE
+// -----------------------------------------------------------------------------
+export const workShifts = pgTable('work_shifts', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    startTime: text('start_time').notNull(), // e.g. "08:00"
+    endTime: text('end_time').notNull(), // e.g. "17:00"
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+}, (t) => ({
+    userIdx: index('work_shifts_user_idx').on(t.userId),
+    dateIdx: index('work_shifts_date_idx').on(t.date)
+}));
+
+export const attendance = pgTable('attendance', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    checkIn: timestamp('check_in'),
+    checkOut: timestamp('check_out'),
+    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t) => ({
+    userIdx: index('attendance_user_idx').on(t.userId),
+    dateIdx: index('attendance_date_idx').on(t.date)
+}));
