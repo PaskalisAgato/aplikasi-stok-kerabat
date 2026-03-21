@@ -9,6 +9,7 @@ export interface AuditLog {
     oldData: string | null;
     newData: string | null;
     createdAt: string;
+    role: string | null;
 }
 
 export const auditService = {

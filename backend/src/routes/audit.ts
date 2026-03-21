@@ -18,6 +18,7 @@ auditRouter.get('/', requireAdmin, async (req: Request, res: Response) => {
             oldData: schema.auditLogs.oldData,
             newData: schema.auditLogs.newData,
             createdAt: schema.auditLogs.createdAt,
+            role: schema.users.role,
         })
         .from(schema.auditLogs)
         .leftJoin(schema.users, eq(schema.auditLogs.userId, schema.users.id))
