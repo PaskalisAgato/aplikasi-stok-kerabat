@@ -61,11 +61,10 @@ export const getTargetUrl = (port: number) => {
         if (!isLocalhost) {
             // Production environment (Consolidated Vercel Project)
             const appName = PORT_TO_APP[port];
-            
-            // Apps are served at https://domain.com/[appName]/
-            // POS is the root app
-            if (appName === 'pos') return '/';
-            return appName ? `/${appName}/` : '/';
+            const targetPath = appName && appName !== 'pos' ? `/${appName}/` : '/';
+            const absoluteUrl = `${window.location.origin}${targetPath}`;
+            console.log(`[Navigation] Port ${port} -> Target ${targetPath} -> Absolute ${absoluteUrl}`);
+            return targetPath;
         }
 
         // Development mode: switch ports
