@@ -128,12 +128,55 @@ export class UserService {
         })
         .from(schema.sessions)
         .innerJoin(users, eq(schema.sessions.userId, users.id))
-        .where(
-            and(
-                eq(schema.sessions.token, hashedToken),
-                // Check if session is not expired
-            )
-        )
+        .where(eq(schema.sessions.token, hashedToken))
+        .limit(1);
+
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
+    }
+
+    // New: Retrieve session by its exact UUID (useful for the Bearer token check from localStorage)
+    static async getSessionById(sessionId: string) {
+        const [session] = await db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
+            }
+        })
+        .from(schema.sessions)
+        .innerJoin(users, eq(schema.sessions.userId, users.id))
+        .where(eq(schema.sessions.id, sessionId))
+        .limit(1);
+
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
+    }
+
+    // New: Retrieve session by already hashed token (useful for cookie check since cookie stores the hash)
+    static async getSessionByHashedToken(hashedToken: string) {
+        const [session] = await db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
+            }
+        })
+        .from(schema.sessions)
+        .innerJoin(users, eq(schema.sessions.userId, users.id))
+        .where(eq(schema.sessions.token, hashedToken))
         .limit(1);
 
         if (session && new Date(session.expiresAt) > new Date()) {

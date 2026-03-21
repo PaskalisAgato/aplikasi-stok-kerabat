@@ -60,13 +60,26 @@ app.post('/api/auth/login-pin', UserController.loginByPin);
 // Manual session endpoint for frontend
 app.get('/api/auth/session', async (req, res) => {
     try {
-        const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
-        if (!sessionToken) {
+        const cookieToken = req.cookies['better-auth.session_token'];
+        const bearerToken = req.headers.authorization?.replace('Bearer ', '');
+        
+        if (!cookieToken && !bearerToken) {
             // Return 200 with null to avoid triggering frontend error loops for guests
             return res.status(200).json({ session: null });
         }
 
-        const session = await UserService.getSessionByToken(sessionToken);
+        let session = null;
+        
+        // 1. Try resolving via Bearer UUID first (most reliable for cross-domain since it is strictly from localStorage)
+        if (bearerToken) {
+            session = await UserService.getSessionById(bearerToken);
+        }
+        
+        // 2. Try resolving via Cookie (Hashed Token) if Bearer fails or is absent
+        if (!session && cookieToken) {
+            session = await UserService.getSessionByHashedToken(cookieToken);
+        }
+
         if (!session) {
             return res.status(200).json({ session: null });
         }
