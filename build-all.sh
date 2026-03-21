@@ -1,40 +1,35 @@
 #!/bin/bash
-# build-all.sh - Debug Version
 set -e
-set -x
 
-echo "DEBUG: Starting build-all.sh"
-echo "DEBUG: Current Dir: $(pwd)"
-ls -la
+echo "--- VERCEL CONSOLIDATED BUILD START ---"
 
-# Clean
+# 1. Clean
 rm -rf dist-global
 mkdir -p dist-global
 
-# Build POS
-echo "DEBUG: Building POS"
-cd apps/pos
-ls -la
-npm run build
-cd ../..
+# 2. Build POS (Main)
+echo "Building POS..."
+cd apps/pos && npm run build && cd ../..
 cp -r apps/pos/dist/* dist-global/
+echo "POS DONE"
 
-# Apps List
-OTHER_APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
+# 3. Build Sub-apps
+build_app() {
+  local name=$1
+  if [ -d "apps/$name" ]; then
+    echo "Building $name..."
+    cd "apps/$name" && npm run build && cd ../..
+    mkdir -p "dist-global/$name"
+    cp -r "apps/$name/dist/." "dist-global/$name/"
+    echo "$name DONE"
+  fi
+}
 
-for APP in "${OTHER_APPS[@]}"; do
-    if [ -d "apps/$APP" ]; then
-        echo "DEBUG: Building $APP"
-        cd "apps/$APP"
-        ls -la
-        npm run build
-        cd ../..
-        mkdir -p "dist-global/$APP"
-        cp -r "apps/$APP/dist/." "dist-global/$APP/"
-    else
-        echo "DEBUG: Skipping $APP (not found)"
-    fi
+# List all apps
+APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
+
+for APP in "${APPS[@]}"; do
+  build_app "$APP"
 done
 
-echo "DEBUG: Build All Finished"
-ls -la dist-global
+echo "--- VERCEL CONSOLIDATED BUILD FINISHED ---"
