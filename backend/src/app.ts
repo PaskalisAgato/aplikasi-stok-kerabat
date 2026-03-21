@@ -1,4 +1,4 @@
-// backend/src/app.ts - v1.0.1 (deployment trigger)
+// backend/src/app.ts - v1.0.2 (final sync)
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';

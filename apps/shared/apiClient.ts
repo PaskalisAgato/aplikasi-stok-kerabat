@@ -1,7 +1,7 @@
 /**
  * apps/shared/apiClient.ts
  *
- * Base HTTP utility for the Kerabat POS monorepo.
+ * Base HTTP utility for the Kerabat POS monorepo. (v1.0.2 - final sync)
  */
 
 // Deployment URL (Dynamic via environment variables)
