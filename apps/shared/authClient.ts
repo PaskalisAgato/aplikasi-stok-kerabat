@@ -34,8 +34,9 @@ export const authClient = createAuthClient({
 export const getSession = async () => {
     try {
         const data = await apiFetch<any>('/auth/session', { cache: 'no-store' });
-        if (!data) return { data: null, error: 'No session' };
-        return { data, error: null };
+        // The backend returns { session: null } if no session is found.
+        if (!data || !data.session) return { data: null, error: null };
+        return { data: data.session, error: null };
     } catch (e: any) {
         return { data: null, error: e };
     }

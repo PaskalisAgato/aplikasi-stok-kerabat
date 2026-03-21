@@ -81,11 +81,18 @@ app.get('/api/auth/session', async (req, res) => {
 // Manual logout endpoint - destroys session in DB and clears cookies
 app.post('/api/auth/logout-manual', async (req, res) => {
     try {
-        const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
+        const cookieToken = req.cookies['better-auth.session_token'];
+        const bearerToken = req.headers.authorization?.replace('Bearer ', '');
         
-        if (sessionToken) {
-            // The cookie stores the hashed token directly, so we delete by hashed value
-            await UserService.deleteSessionByHashedToken(sessionToken);
+        // If they have a bearer token (UUID), we must hash it first to find it in the DB!
+        if (bearerToken) {
+            await UserService.deleteSessionByToken(bearerToken);
+        } else if (cookieToken) {
+            // better-auth cookie typically stores the plaintext token, OR the hashed token.
+            // UserService.deleteSessionByHashedToken was originally written assuming cookie was hashed.
+            // Let's just try to delete using both methods to be completely safe against stale sessions.
+            await UserService.deleteSessionByHashedToken(cookieToken);
+            await UserService.deleteSessionByToken(cookieToken);
         }
 
         // Clear cookies with EXACT same options as they were set during login
@@ -95,8 +102,10 @@ app.post('/api/auth/logout-manual', async (req, res) => {
             sameSite: 'none' as const,
             path: '/'
         };
+        // Also clear the Secure- prefixed versions just in case!
         res.clearCookie('better-auth.session_token', cookieOptions);
         res.clearCookie('better-auth.session_token.sig', cookieOptions);
+        res.clearCookie('__Secure-better-auth.session_token', cookieOptions);
         
         res.status(200).json({ success: true, message: 'Logged out successfully' });
     } catch (error: any) {
