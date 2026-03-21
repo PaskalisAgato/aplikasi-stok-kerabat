@@ -12,10 +12,10 @@ services:
       - key: PORT
         value: 5000
       - key: BETTER_AUTH_URL
-        value: https://aplikasi-stok-kerabat.onrender.com
+        value: https://aplikasi-stok-kerabat.onrender.com/api/auth
       - key: FRONTEND_URL
-        value: https://paskalisagato.github.io
+        value: https://aplikasi-stok-kerabat-pos.vercel.app
       - key: DATABASE_URL
-        sync: false   # Isi manual di dashboard Render (sensitif)
+        sync: false
       - key: BETTER_AUTH_SECRET
-        sync: false   # Isi manual di dashboard Render (sensitif)
+        sync: false
