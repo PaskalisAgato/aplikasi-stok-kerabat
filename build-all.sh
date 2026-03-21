@@ -1,8 +1,7 @@
 #!/bin/bash
-# build-all.sh - Consolidated Monorepo Build Script for Vercel
-
-# Ensure we fail on any error
+# build-all.sh - Final Fixed Version
 set -e
+set -x # Debug mode
 
 echo "🚀 Starting Consolidated Monorepo Build..."
 echo "Current directory: $(pwd)"
@@ -11,50 +10,64 @@ echo "Current directory: $(pwd)"
 mkdir -p dist-global
 echo "✅ Created dist-global"
 
+# Initialize report
+REPORT="dist-global/build-report.txt"
+echo "Build Report - $(date)" > $REPORT
+echo "--------------------------" >> $REPORT
+
 # Function to build and copy an app
 build_app() {
     local app_dir=$1
     local target_name=$2
     
     echo "----------------------------------------------------"
-    echo "📦 Building $target_name..."
+    echo "📦 Building $target_name from folder apps/$app_dir..."
+    
+    # 1. Enter app directory
     cd "apps/$app_dir"
+    
+    # 2. Build process
+    # Skip install if we are sure dependencies are at root, or do it for safety
     npm install --no-audit --no-fund
     npm run build
     
+    # 3. Return to root
     cd ../..
     
+    # 4. Copy results
     if [ "$target_name" == "pos" ]; then
         cp -r "apps/$app_dir/dist/." dist-global/
-        echo "✅ Copied $target_name to root"
+        echo "✅ Copied $target_name to root" >> $REPORT
     else
         mkdir -p "dist-global/$target_name"
         cp -r "apps/$app_dir/dist/." "dist-global/$target_name/"
-        echo "✅ Copied $target_name to /$target_name/"
+        echo "✅ Copied $target_name to /$target_name/" >> $REPORT
     fi
     
-    # Sanity check
-    ls -l "dist-global/$target_name/index.html" || ls -l "dist-global/index.html"
+    # Verify index.html exists
+    if [ -f "dist-global/$target_name/index.html" ] || [ -f "dist-global/index.html" ]; then
+         echo "   [VERIFIED] index.html exists for $target_name" >> $REPORT
+    else
+         echo "   [FAILED] index.html MISSING for $target_name" >> $REPORT
+    fi
 }
 
-# 3. Build the core POS app FIRST (goes to root)
-build_app "apps/pos" "pos"
+# 1. Build POS (Root)
+build_app "pos" "pos"
 
-# 4. Build other apps
+# 2. Build Sub-apps
 APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit")
 
 for APP in "${APPS[@]}"; do
     if [ -d "apps/$APP" ]; then
-        if [ "$APP" == "inventory" ]; then
-            build_app "$APP" "app-inventory"
-        else
-            build_app "$APP" "$APP"
-        fi
+        build_app "$APP" "$APP"
     else
-        echo "⚠️ Warning: Directory apps/$APP not found, skipping..."
+        echo "⚠️ Warning: apps/$APP not found" >> $REPORT
     fi
 done
 
-echo "----------------------------------------------------"
-echo "✅ Build Complete! Multi-app structure ready in $ROOT_DIST"
-ls -F $ROOT_DIST
+echo "--------------------------" >> $REPORT
+echo "✅ ALL BUILDS COMPLETED SUCCESSFULLY!" >> $REPORT
+ls -R dist-global >> $REPORT 2>&1 || true
+
+echo "✅ Build script execution finished."

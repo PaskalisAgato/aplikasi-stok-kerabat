@@ -6,7 +6,7 @@
   "trailingSlash": true,
   "rewrites": [
     { "handle": "filesystem" },
-    { "source": "/app-inventory/:path*", "destination": "/app-inventory/index.html" },
+    { "source": "/inventory/:path*", "destination": "/inventory/index.html" },
     { "source": "/reports/:path*", "destination": "/reports/index.html" },
     { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
     { "source": "/activity-history/:path*", "destination": "/activity-history/index.html" },
@@ -20,6 +20,6 @@
     { "source": "/waste-detail/:path*", "destination": "/waste-detail/index.html" },
     { "source": "/cogs/:path*", "destination": "/cogs/index.html" },
     { "source": "/recipe-edit/:path*", "destination": "/recipe-edit/index.html" },
-    { "source": "/((?!api/|app-inventory/|reports/|dashboard/|activity-history/|employees/|expenses/|hpp/|opname/|recipes/|settings/|waste/|waste-detail/|cogs/|recipe-edit/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
