@@ -28,21 +28,17 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             // 1. Clear local fallback token immediately
             localStorage.removeItem('kerabat_auth_token');
 
-            // 2. Call Better Auth sign out (clears cookies/session)
-            await signOut();
-
-            // 3. Optional: Call manual logout endpoint for extra safety
+            // 2. Call manual logout endpoint (Server-side cookie clearing)
             const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
             await fetch(`${apiBaseUrl}/auth/logout-manual`, {
                 method: 'POST',
                 credentials: 'include'
             }).catch(err => console.error("Manual logout fetch failed:", err));
 
-            // 4. Reload the current page. Layout will see no session and show AuthPage.
+            // 3. Hard reload the current page. Layout will see no session and show AuthPage within the current sub-app.
             window.location.reload();
         } catch (error) {
             console.error("Logout process error:", error);
-            // Even if something fails, hard refresh to trigger session check
             window.location.reload();
         }
     };
