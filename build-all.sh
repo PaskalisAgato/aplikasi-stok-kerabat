@@ -6,6 +6,11 @@ set -x # Debug mode
 echo "🚀 Starting Consolidated Monorepo Build..."
 echo "Current directory: $(pwd)"
 
+# Vercel typically sets NODE_ENV=production, which prunes devDependencies (vite, tsc, etc.)
+# We must force install them at the root level before building sub-apps
+echo "📦 Forcing installation of all dependencies (including dev)..."
+npm install --include=dev --no-audit --no-fund
+
 # Create global dist directory
 mkdir -p dist-global
 echo "✅ Created dist-global"
