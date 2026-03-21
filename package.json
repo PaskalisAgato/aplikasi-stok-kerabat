@@ -1,10 +1,23 @@
 {
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "backend"
   ],
+  "scripts": {
+    "build": "bash build-all.sh",
+    "install-all": "npm install --include=dev"
+  },
   "dependencies": {
     "@tanstack/react-query": "^5.91.0",
     "@tanstack/react-query-devtools": "^5.91.3",
     "better-auth": "^1.5.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19"
   }
 }
