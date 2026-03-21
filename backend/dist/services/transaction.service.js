@@ -40,10 +40,14 @@ const schema = __importStar(require("../db/schema"));
 class TransactionService {
     static async processCheckout(data, userId) {
         const { shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error('No items in cart');
+        }
+        // Calculate subtotal from items if not provided
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
         if (isNaN(calculatedSubTotal))
             calculatedSubTotal = 0;
-        if (calculatedSubTotal === 0 && items) {
+        if (calculatedSubTotal === 0) {
             calculatedSubTotal = items.reduce((acc, item) => {
                 const p = parseFloat(item.price?.toString() || '0');
                 return acc + (isNaN(p) ? 0 : p * (item.quantity || 0));
@@ -52,16 +56,24 @@ class TransactionService {
         let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
         if (isNaN(finalTotalAmount))
             finalTotalAmount = calculatedSubTotal;
+        // Build the sale record — only include shiftId if it's a valid number
+        const saleValues = {
+            userId,
+            subTotal: calculatedSubTotal.toString(),
+            taxAmount: '0',
+            serviceChargeAmount: '0',
+            totalAmount: finalTotalAmount.toString(),
+            paymentMethod: paymentMethod || 'CASH'
+        };
+        // Only add shiftId if it's a valid, truthy value
+        if (shiftId !== null && shiftId !== undefined && shiftId !== '') {
+            const parsedShiftId = parseInt(shiftId.toString());
+            if (!isNaN(parsedShiftId)) {
+                saleValues.shiftId = parsedShiftId;
+            }
+        }
         return await db_1.db.transaction(async (tx) => {
-            const [newSale] = await tx.insert(schema.sales).values({
-                shiftId: shiftId ? parseInt(shiftId.toString()) : null,
-                userId,
-                subTotal: calculatedSubTotal.toString(),
-                taxAmount: '0',
-                serviceChargeAmount: '0',
-                totalAmount: finalTotalAmount.toString(),
-                paymentMethod: paymentMethod || 'CASH'
-            }).returning();
+            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
             for (const item of items) {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
@@ -73,6 +85,7 @@ class TransactionService {
                     quantity: item.quantity,
                     subtotal: itemSubtotal.toString()
                 });
+                // Auto-deduct inventory based on recipe BOM
                 const recipeIngs = await tx.select().from(schema.recipeIngredients).where((0, drizzle_orm_1.eq)(schema.recipeIngredients.recipeId, item.recipeId));
                 for (const bom of recipeIngs) {
                     const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where((0, drizzle_orm_1.eq)(schema.inventory.id, bom.inventoryId));

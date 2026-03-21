@@ -6,10 +6,15 @@ export class TransactionService {
     static async processCheckout(data: any, userId: string) {
         const { shiftId, items, subTotal, totalAmount, paymentMethod } = data;
         
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error('No items in cart');
+        }
+
+        // Calculate subtotal from items if not provided
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
         if (isNaN(calculatedSubTotal)) calculatedSubTotal = 0;
 
-        if (calculatedSubTotal === 0 && items) {
+        if (calculatedSubTotal === 0) {
             calculatedSubTotal = items.reduce((acc: number, item: any) => {
                 const p = parseFloat(item.price?.toString() || '0');
                 return acc + (isNaN(p) ? 0 : p * (item.quantity || 0));
@@ -19,16 +24,26 @@ export class TransactionService {
         let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
         if (isNaN(finalTotalAmount)) finalTotalAmount = calculatedSubTotal;
 
+        // Build the sale record — only include shiftId if it's a valid number
+        const saleValues: any = {
+            userId,
+            subTotal: calculatedSubTotal.toString(),
+            taxAmount: '0',
+            serviceChargeAmount: '0',
+            totalAmount: finalTotalAmount.toString(),
+            paymentMethod: paymentMethod || 'CASH'
+        };
+
+        // Only add shiftId if it's a valid, truthy value
+        if (shiftId !== null && shiftId !== undefined && shiftId !== '') {
+            const parsedShiftId = parseInt(shiftId.toString());
+            if (!isNaN(parsedShiftId)) {
+                saleValues.shiftId = parsedShiftId;
+            }
+        }
+
         return await db.transaction(async (tx) => {
-            const [newSale] = await tx.insert(schema.sales).values({
-                shiftId: shiftId ? parseInt(shiftId.toString()) : null,
-                userId,
-                subTotal: calculatedSubTotal.toString(),
-                taxAmount: '0',
-                serviceChargeAmount: '0',
-                totalAmount: finalTotalAmount.toString(),
-                paymentMethod: paymentMethod || 'CASH'
-            }).returning();
+            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
 
             for (const item of items) {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
@@ -43,6 +58,7 @@ export class TransactionService {
                     subtotal: itemSubtotal.toString()
                 });
 
+                // Auto-deduct inventory based on recipe BOM
                 const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
                 
                 for (const bom of recipeIngs) {
@@ -74,3 +90,4 @@ export class TransactionService {
         });
     }
 }
+
