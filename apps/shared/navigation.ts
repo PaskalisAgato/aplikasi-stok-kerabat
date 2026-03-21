@@ -21,7 +21,6 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Analisis Pemborosan', icon: 'delete_outline', port: 5182, requiredRole: 'Admin' },
 ];
 
-const REPO_NAME = 'aplikasi-stok-kerabat';
 
 export const PORT_TO_APP: Record<number, string> = {
     5173: 'dashboard',

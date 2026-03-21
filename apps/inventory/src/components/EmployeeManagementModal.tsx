@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AddEmployeeModal from './AddEmployeeModal';
 import EditEmployeeModal from './EditEmployeeModal';
-import { useEmployees, type User } from '../../../shared/hooks/useEmployees';
+import { useEmployees, type User } from '@shared/hooks/useEmployees';
 
 interface EmployeeManagementModalProps {
     isOpen: boolean;

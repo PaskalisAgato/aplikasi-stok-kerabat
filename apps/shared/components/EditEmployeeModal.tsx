@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUpdateEmployee, useDeleteEmployee, useEmployees } from '../hooks/useEmployees';
+import { useUpdateEmployee, useDeleteEmployee } from '../hooks/useEmployees';
 import type { User } from '../services/userService';
 
 interface EditEmployeeModalProps {

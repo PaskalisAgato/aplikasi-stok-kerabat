@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCreateEmployee } from '../../../shared/hooks/useEmployees';
+import { useCreateEmployee } from '@shared/hooks/useEmployees';
 
 interface AddEmployeeModalProps {
     isOpen: boolean;

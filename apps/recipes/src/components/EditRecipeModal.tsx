@@ -15,7 +15,9 @@ interface Ingredient {
 
 interface EditRecipeModalProps {
     recipe: Recipe;
+    isOpen: boolean;
     onClose: () => void;
+    onSave: () => void;
 }
 
 function formatRp(n: number) {

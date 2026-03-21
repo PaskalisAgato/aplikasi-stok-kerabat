@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUpdateEmployee, useDeleteEmployee, type User } from '../../../shared/hooks/useEmployees';
+import { useUpdateEmployee, useDeleteEmployee, type User } from '@shared/hooks/useEmployees';
 
 interface EditEmployeeModalProps {
     isOpen: boolean;
@@ -12,7 +12,6 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
     const [role, setRole] = useState('Karyawan');
     const [email, setEmail] = useState('');
     const [pin, setPin] = useState('');
-    const [status, setStatus] = useState('Aktif');
 
     const updateMutation = useUpdateEmployee();
     const deleteMutation = useDeleteEmployee();
@@ -23,7 +22,6 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
             setRole(employee.role);
             setEmail(employee.email);
             setPin(employee.pin || '');
-            setStatus(employee.status || 'Aktif');
         }
     }, [employee]);
 
