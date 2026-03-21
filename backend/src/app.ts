@@ -78,6 +78,27 @@ app.get('/api/auth/session', async (req, res) => {
     }
 });
 
+// Manual logout endpoint - destroys session in DB and clears cookies
+app.post('/api/auth/logout-manual', async (req, res) => {
+    try {
+        const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
+        
+        if (sessionToken) {
+            await UserService.deleteSessionByToken(sessionToken);
+        }
+
+        // Clear all auth cookies
+        res.clearCookie('better-auth.session_token');
+        res.clearCookie('better-auth.session_token.sig');
+        
+        res.status(200).json({ success: true, message: 'Logged out successfully' });
+    } catch (error: any) {
+        console.error('Logout error:', error);
+        // Still return 200 — client should clear its state regardless
+        res.status(200).json({ success: true, message: 'Logged out (with server warning)' });
+    }
+});
+
 // 4. API Routes (Products, Transactions, etc.)
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);

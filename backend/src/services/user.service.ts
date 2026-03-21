@@ -142,6 +142,14 @@ export class UserService {
         return null;
     }
 
+    static async deleteSessionByToken(token: string) {
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.token, hashedToken))
+            .returning();
+        return deleted.length > 0;
+    }
+
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
         await db.insert(schema.auditLogs).values({
             userId,
