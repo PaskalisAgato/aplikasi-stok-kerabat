@@ -35,13 +35,15 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             localStorage.clear();
             sessionStorage.clear();
 
-            // 3. Force reload without cache to /login
-            window.location.href = "/login?v=" + Date.now();
+            // 3. Force reload without cache to current path (Login UI is inline)
+            const currentPath = window.location.pathname;
+            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
         } catch (error) {
             console.error("Logout error:", error);
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = "/login?v=" + Date.now();
+            const currentPath = window.location.pathname;
+            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
         }
     };
 
