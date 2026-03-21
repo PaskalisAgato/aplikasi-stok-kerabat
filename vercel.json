@@ -20,7 +20,6 @@
     { "source": "/waste-detail/:path*", "destination": "/waste-detail/index.html" },
     { "source": "/cogs/:path*", "destination": "/cogs/index.html" },
     { "source": "/recipe-edit/:path*", "destination": "/recipe-edit/index.html" },
-    { "source": "/((?!api/|inventory/|reports/|dashboard/|activity-history/|employees/|expenses/|hpp/|opname/|recipes/|settings/|waste/|waste-detail/|cogs/|recipe-edit/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|app-inventory/|reports/|dashboard/|activity-history/|employees/|expenses/|hpp/|opname/|recipes/|settings/|waste/|waste-detail/|cogs/|recipe-edit/).*)", "destination": "/index.html" }
   ]
 }
- 

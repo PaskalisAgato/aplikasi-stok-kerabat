@@ -45,7 +45,11 @@ APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses
 
 for APP in "${APPS[@]}"; do
     if [ -d "apps/$APP" ]; then
-        build_app "apps/$APP" "$APP"
+        if [ "$APP" == "inventory" ]; then
+            build_app "$APP" "app-inventory"
+        else
+            build_app "$APP" "$APP"
+        fi
     else
         echo "⚠️ Warning: Directory apps/$APP not found, skipping..."
     fi
