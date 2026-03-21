@@ -1,66 +1,49 @@
 #!/bin/bash
-# build-all.sh - Simplified & Verbose Build Script
+# build-all.sh - Barebones Shell Script
 set -e
 
-echo "🚀 [CONSOLIDATED BUILD] STARTING..."
+echo "Starting Consolidated Monorepo Build..."
 
-# 1. Root Information
-echo "📍 Current Directory: $(pwd)"
-echo "🟢 Node Version: $(node -v)"
-echo "🟢 NPM Version: $(npm -v)"
-
-# 2. Preparation
-echo "🧹 Cleaning previous build..."
+# 1. Clean and Create Output
 rm -rf dist-global
 mkdir -p dist-global
-echo "✅ Prepared dist-global folder."
 
-# 3. Build Function
-build_and_copy() {
-    local app_dir=$1
-    local target_path=$2
-    
-    echo "----------------------------------------------------"
-    echo "📦 Building module: $app_dir..."
-    
-    if [ ! -d "apps/$app_dir" ]; then
-        echo "⚠️ Warning: apps/$app_dir not found skipping."
-        return
+# 2. Build POS
+echo "Building POS..."
+cd apps/pos
+npm run build
+cd ../..
+[ -d "apps/pos/dist" ] && cp -r apps/pos/dist/* dist-global/
+echo "POS built."
+
+# 3. Build Function for Others
+build_app() {
+    local name=$1
+    if [ -d "apps/$name" ]; then
+        echo "Building $name..."
+        cd "apps/$name"
+        npm run build
+        cd ../..
+        mkdir -p "dist-global/$name"
+        [ -d "apps/$name/dist" ] && cp -r apps/name/dist/* "dist-global/$name/"
+        echo "$name built."
     fi
-    
-    cd "apps/$app_dir"
-    
-    # Run Build
-    echo "🛠️ Running 'npm run build' in apps/$app_dir..."
-    npm run build
-    
-    # Copy Output
-    cd ../..
-    
-    if [ "$target_path" == "root" ]; then
-        echo "📂 Copying $app_dir to root of dist-global..."
-        cp -r "apps/$app_dir/dist/." dist-global/
-    else
-        echo "📂 Copying $app_dir to /$target_path/ in dist-global..."
-        mkdir -p "dist-global/$target_path"
-        cp -r "apps/$app_dir/dist/." "dist-global/$target_path/"
-    fi
-    
-    echo "✅ Module $app_dir built successfully."
 }
 
-# 4. Sequential Builds
-# We build POS first because it goes to the root
-build_and_copy "pos" "root"
+# Run Builds
+APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
 
-# Then build all others
-OTHER_APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "settings" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history")
-
-for APP in "${OTHER_APPS[@]}"; do
-    build_and_copy "$APP" "$APP"
+for APP in "${APPS[@]}"; do
+    if [ -d "apps/$APP" ]; then
+        echo "Building $APP..."
+        cd "apps/$APP"
+        npm run build
+        cd ../..
+        mkdir -p "dist-global/$APP"
+        # Use a safe copy that handles the dist contents correctly
+        cp -r "apps/$APP/dist/." "dist-global/$APP/"
+        echo "$APP finished."
+    fi
 done
 
-echo "----------------------------------------------------"
-echo "🏁 [CONSOLIDATED BUILD] FINISHED SUCCESSFULLY!"
-echo "📍 Output located in: $(pwd)/dist-global"
-ls -F dist-global
+echo "CONSOLIDATED BUILD FINISHED"
