@@ -57,6 +57,26 @@ app.get('/api/health', async (req, res) => {
 // 3. Custom Auth Endpoints (High Priority)
 app.post('/api/auth/login-pin', UserController.loginByPin);
 
+// Manual session endpoint for frontend
+app.get('/api/auth/session', async (req, res) => {
+    try {
+        const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
+        if (!sessionToken) {
+            return res.status(401).json({ error: 'No session token' });
+        }
+
+        const session = await UserService.getSessionByToken(sessionToken);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid session' });
+        }
+
+        res.json({ session });
+    } catch (error: any) {
+        console.error('Session check error:', error);
+        res.status(500).json({ error: 'Session check failed' });
+    }
+});
+
 // 4. API Routes (Products, Transactions, etc.)
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);

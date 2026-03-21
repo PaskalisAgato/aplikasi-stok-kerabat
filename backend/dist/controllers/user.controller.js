@@ -3,6 +3,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
 class UserController {
+    static async loginByPin(req, res) {
+        try {
+            const { role, pin } = req.body;
+            console.log(`[LoginRequest] Role: ${role}, PIN: ${pin ? '****' : 'EMPTY'}`);
+            if (!role || !pin) {
+                return res.status(400).json({ error: 'Role and PIN are required' });
+            }
+            const user = await user_service_1.UserService.loginByPin(role, pin);
+            if (!user) {
+                console.warn(`[LoginFailed] No user found for Role: ${role} and PIN: ${pin}`);
+                return res.status(401).json({ error: 'PIN atau Role salah' });
+            }
+            // Create session manually using Drizzle fallback
+            const session = await user_service_1.UserService.createSessionManual(user.id);
+            console.log(`[SessionCreatedManual] Session ID: ${session.id}, Token: ${session.token.substring(0, 5)}...`);
+            // Set Better Auth compatible cookie
+            res.cookie('better-auth.session_token', session.token, {
+                httpOnly: true,
+                secure: true, // Render is always HTTPS
+                expires: session.expiresAt,
+                sameSite: 'none', // Needed for cross-domain Vercel -> Render
+                path: '/'
+            });
+            // Audit log for login
+            try {
+                await user_service_1.UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+            }
+            catch (auditError) {
+                console.error('[AuditError] Failed to log login action:', auditError);
+                // Don't fail the whole login if audit log fails
+            }
+            res.json({ session });
+        }
+        catch (error) {
+            console.error('Error in UserController.loginByPin:', error);
+            res.status(500).json({
+                error: 'Gagal melakukan login',
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
     static async getAll(req, res) {
         try {
             const users = await user_service_1.UserService.getAllUsers();

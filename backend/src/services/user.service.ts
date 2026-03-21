@@ -98,16 +98,47 @@ export class UserService {
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
         
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        
         const [session] = await db.insert(schema.sessions).values({
             id: crypto.randomUUID(),
             userId,
-            token,
-            expiresAt,
+            token: hashedToken,
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            expiresAt
         }).returning();
         
         return session;
+    }
+
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        const [session] = await db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
+            }
+        })
+        .from(schema.sessions)
+        .innerJoin(users, eq(schema.sessions.userId, users.id))
+        .where(
+            and(
+                eq(schema.sessions.token, hashedToken),
+                // Check if session is not expired
+            )
+        )
+        .limit(1);
+
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
     }
 
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {

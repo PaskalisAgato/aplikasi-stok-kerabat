@@ -43,6 +43,13 @@ const schema_1 = require("../db/schema");
 const schema = __importStar(require("../db/schema"));
 const drizzle_orm_1 = require("drizzle-orm");
 class UserService {
+    static async loginByPin(role, pin) {
+        const [user] = await db_1.db.select()
+            .from(schema_1.users)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.users.role, role), (0, drizzle_orm_1.eq)(schema_1.users.pin, pin)))
+            .limit(1);
+        return user;
+    }
     static async getAllUsers() {
         return await db_1.db.select().from(schema_1.users).orderBy((0, drizzle_orm_1.desc)(schema_1.users.createdAt));
     }
@@ -106,6 +113,50 @@ class UserService {
             });
         }
         return deletedUser;
+    }
+    static async createSessionManual(userId) {
+        const token = crypto_1.default.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        const [session] = await db_1.db.insert(schema.sessions).values({
+            id: crypto_1.default.randomUUID(),
+            userId,
+            token,
+            expiresAt,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }).returning();
+        return session;
+    }
+    static async getSessionByToken(token) {
+        const [session] = await db_1.db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: schema_1.users.id,
+                name: schema_1.users.name,
+                email: schema_1.users.email,
+                role: schema_1.users.role
+            }
+        })
+            .from(schema.sessions)
+            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.sessions.token, token)))
+            .limit(1);
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
+    }
+    static async logAction(userId, action, tableName, oldData, newData) {
+        await db_1.db.insert(schema.auditLogs).values({
+            userId,
+            action,
+            tableName,
+            oldData: oldData ? JSON.stringify(oldData) : null,
+            newData: newData ? JSON.stringify(newData) : null,
+            createdAt: new Date()
+        });
     }
 }
 exports.UserService = UserService;
