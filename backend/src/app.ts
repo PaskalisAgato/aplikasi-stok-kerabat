@@ -1,3 +1,4 @@
+// backend/src/app.ts - v1.0.1 (deployment trigger)
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
