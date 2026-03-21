@@ -10,75 +10,83 @@ export interface SessionData {
 }
 export async function getSessionManually(req: express.Request): Promise<SessionData | null> {
     try {
-        let sessionId: string | undefined;
+        const bearerToken = req.headers.authorization?.startsWith('Bearer ')
+            ? req.headers.authorization.split(' ')[1]
+            : undefined;
 
-        // 1. Priority: Authorization header (Manual Bearer token)
-        // This is most reliable for cross-domain / mobile
-        if (req.headers.authorization?.startsWith('Bearer ')) {
-            sessionId = req.headers.authorization.split(' ')[1];
-            console.log(`[AUTH] Priority: Session from Bearer: ${sessionId?.substring(0, 8)}...`);
-        }
-        
-        // 2. Fallback: Cookie-based session
-        if (!sessionId) {
-            const cookieHeader = req.headers.cookie;
-            if (cookieHeader) {
-                const cookies: Record<string, string> = {};
-                cookieHeader.split(';').forEach(c => {
-                    const parts = c.trim().split('=');
-                    if (parts.length === 2) {
-                        cookies[parts[0]] = parts[1];
-                    }
-                });
-                sessionId = cookies['better-auth.session_token'];
-                if (sessionId) {
-                    console.log(`[AUTH] Fallback: Session from Cookie: ${sessionId?.substring(0, 8)}...`);
-                }
-            }
-        }
+        const cookieToken = req.cookies?.['better-auth.session_token']
+            || extractCookieFromHeader(req.headers.cookie, 'better-auth.session_token');
 
-        if (!sessionId) {
+        if (!bearerToken && !cookieToken) {
             console.log(`[AUTH] No session ID found in Authorization header or Cookie`);
             return null;
         }
 
-        // 3. Hash it (following our new SHA-256 standard)
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(sessionId)
-            .digest('hex');
+        let result: any[] = [];
 
-        // 4. Lookup session and user in one go using a join
-        const result = await db
-            .select({
-                session: sessions,
-                user: users
-            })
-            .from(sessions)
-            .innerJoin(users, eq(sessions.userId, users.id))
-            .where(eq(sessions.token, hashedToken))
-            .limit(1);
+        // 1. Bearer token = session UUID (primary key in 'id' column)
+        if (bearerToken) {
+            result = await db
+                .select({ session: sessions, user: users })
+                .from(sessions)
+                .innerJoin(users, eq(sessions.userId, users.id))
+                .where(eq(sessions.id, bearerToken))
+                .limit(1);
+            
+            if (result.length > 0) {
+                console.log(`[AUTH] Session found via Bearer UUID: ${bearerToken.substring(0, 8)}...`);
+            }
+        }
+
+        // 2. Cookie token = hashed token (stored in 'token' column)
+        if (result.length === 0 && cookieToken) {
+            // Try as-is first (cookie may already contain the hash)
+            result = await db
+                .select({ session: sessions, user: users })
+                .from(sessions)
+                .innerJoin(users, eq(sessions.userId, users.id))
+                .where(eq(sessions.token, cookieToken))
+                .limit(1);
+
+            // If that didn't work, try hashing it (cookie may contain plaintext token)
+            if (result.length === 0) {
+                const hashedCookie = crypto.createHash('sha256').update(cookieToken).digest('hex');
+                result = await db
+                    .select({ session: sessions, user: users })
+                    .from(sessions)
+                    .innerJoin(users, eq(sessions.userId, users.id))
+                    .where(eq(sessions.token, hashedCookie))
+                    .limit(1);
+            }
+
+            if (result.length > 0) {
+                console.log(`[AUTH] Session found via Cookie`);
+            }
+        }
 
         if (result.length === 0) {
-            console.log(`[AUTH] Session not found in DB for token: ${hashedToken.substring(0, 8)}...`);
+            console.log(`[AUTH] Session not found in DB`);
             return null;
         }
 
         const { session, user } = result[0];
 
-        // 5. Check expiration
+        // Check expiration
         if (new Date() > session.expiresAt) {
             console.log(`[AUTH] Session expired for user ${user.id}`);
             return null;
         }
 
-        // 6. Return in Better Auth format
-        return {
-            user,
-            session
-        };
+        return { user, session };
     } catch (error) {
         console.error("getSessionManually Error:", error);
         return null;
     }
+}
+
+// Helper to parse cookie from raw header string
+function extractCookieFromHeader(cookieHeader: string | undefined, name: string): string | undefined {
+    if (!cookieHeader) return undefined;
+    const match = cookieHeader.split(';').find(c => c.trim().startsWith(`${name}=`));
+    return match ? match.trim().split('=')[1] : undefined;
 }
