@@ -111,7 +111,8 @@ export class UserService {
         
         return session;
     }
-
+    
+    static async getSessionByToken(token: string) {
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
         const [session] = await db.select({
