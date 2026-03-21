@@ -60,15 +60,13 @@ export const getTargetUrl = (port: number) => {
                            hostname.startsWith('10.');
 
         if (!isLocalhost) {
-            // Production environment (Vercel)
+            // Production environment (Consolidated Vercel Project)
             const appName = PORT_TO_APP[port];
             
-            // On Vercel monorepo, apps are usually deployed as subdomains or separate projects
-            // Pattern: aplikasi-stok-kerabat-[app-name].vercel.app
-            if (appName) {
-                return `https://${REPO_NAME}-${appName}.vercel.app/`;
-            }
-            return '/';
+            // Apps are served at https://domain.com/[appName]/
+            // POS is the root app
+            if (appName === 'pos') return '/';
+            return appName ? `/${appName}/` : '/';
         }
 
         // Development mode: switch ports
