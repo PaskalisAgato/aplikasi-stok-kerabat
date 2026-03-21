@@ -30,7 +30,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5176: 'hpp',
     5177: 'opname',
     5178: 'employees',
-    5179: 'analisis-keuangan',
+    5179: 'settings',
     5180: 'activity-history',
     5181: 'expenses',
     5182: 'waste',
@@ -52,7 +52,6 @@ export const getBaseUrl = () => {
 export const getTargetUrl = (port: number) => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        const pathname = window.location.pathname;
 
         // Is this a local development environment (localhost, 127.0.0.1, or local IP)?
         const isLocalhost = hostname === 'localhost' || 
@@ -61,20 +60,15 @@ export const getTargetUrl = (port: number) => {
                            hostname.startsWith('10.');
 
         if (!isLocalhost) {
-            // Production environment (GitHub Pages, Render, etc.)
+            // Production environment (Vercel)
             const appName = PORT_TO_APP[port];
             
-            // On GitHub Pages, the base is often /REPO_NAME/
-            // We want to ensure we stay within that base if it exists
-            const segments = pathname.split('/').filter(Boolean);
-            const isGitHubPages = segments[0] === REPO_NAME;
-
-            if (isGitHubPages) {
-                return appName ? `/${REPO_NAME}/${appName}/` : `/${REPO_NAME}/`;
-            } else {
-                // Root-level deployment or other environment
-                return appName ? `/${appName}/` : '/';
+            // On Vercel monorepo, apps are usually deployed as subdomains or separate projects
+            // Pattern: aplikasi-stok-kerabat-[app-name].vercel.app
+            if (appName) {
+                return `https://${REPO_NAME}-${appName}.vercel.app/`;
             }
+            return '/';
         }
 
         // Development mode: switch ports
