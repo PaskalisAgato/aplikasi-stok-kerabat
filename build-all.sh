@@ -27,8 +27,8 @@ build_app() {
     cd "apps/$app_dir"
     
     # 2. Build process
-    # Skip install if we are sure dependencies are at root, or do it for safety
-    npm install --no-audit --no-fund
+    # Do NOT run npm install here. Vercel automatically installs root workspace devDependencies.
+    # Running npm install here in production mode would prune devDependencies like 'vite' and 'tsc' (Error 127).
     npm run build
     
     # 3. Return to root
