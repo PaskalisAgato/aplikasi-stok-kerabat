@@ -1,42 +1,40 @@
 #!/bin/bash
 # build-all.sh - Consolidated Monorepo Build Script for Vercel
 
-# Exit on error
+# Ensure we fail on any error
 set -e
 
 echo "🚀 Starting Consolidated Monorepo Build..."
+echo "Current directory: $(pwd)"
 
-# 1. Setup Global Dist folder
-ROOT_DIST="dist-global"
-rm -rf $ROOT_DIST
-mkdir -p $ROOT_DIST
+# Create global dist directory
+mkdir -p dist-global
+echo "✅ Created dist-global"
 
-# 2. Function to build an app
+# Function to build and copy an app
 build_app() {
-    local APP_PATH=$1
-    local APP_NAME=$2
+    local app_dir=$1
+    local target_name=$2
+    
     echo "----------------------------------------------------"
-    echo "📦 Building $APP_NAME..."
-    cd "$APP_PATH"
-    
-    # Install dependencies only if not present (Vercel usually handles this at root)
-    # But for safety in monorepos:
-    npm install
-    
-    # Build
+    echo "📦 Building $target_name..."
+    cd "apps/$app_dir"
+    npm install --no-audit --no-fund
     npm run build
     
-    # Move to global dist
-    if [ "$APP_NAME" == "pos" ]; then
-        # POS goes to root
-        cp -r dist/* "../../$ROOT_DIST/"
+    cd ../..
+    
+    if [ "$target_name" == "pos" ]; then
+        cp -r "apps/$app_dir/dist/." dist-global/
+        echo "✅ Copied $target_name to root"
     else
-        # Others go to sub-folders
-        mkdir -p "../../$ROOT_DIST/$APP_NAME"
-        cp -r dist/* "../../$ROOT_DIST/$APP_NAME/"
+        mkdir -p "dist-global/$target_name"
+        cp -r "apps/$app_dir/dist/." "dist-global/$target_name/"
+        echo "✅ Copied $target_name to /$target_name/"
     fi
     
-    cd ../..
+    # Sanity check
+    ls -l "dist-global/$target_name/index.html" || ls -l "dist-global/index.html"
 }
 
 # 3. Build the core POS app FIRST (goes to root)
