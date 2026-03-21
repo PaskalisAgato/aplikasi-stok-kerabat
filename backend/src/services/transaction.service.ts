@@ -1,4 +1,4 @@
-import { eq, sql, desc, and } from 'drizzle-orm';
+import { eq, sql, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../config/db';
 import * as schema from '../db/schema';
 
@@ -110,44 +110,62 @@ export class TransactionService {
         return await db.transaction(async (tx) => {
             const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
 
-            for (const item of items) {
+            // 1. Bulk insert saleItems
+            const saleItemsInsertData = items.map((item: any) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
                 const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
-                const itemSubtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
-                
-                await tx.insert(schema.saleItems).values({
+                return {
                     saleId: newSale.id,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: itemSubtotal.toString()
-                });
+                    subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString()
+                };
+            });
+            await tx.insert(schema.saleItems).values(saleItemsInsertData);
 
-                // Auto-deduct inventory
-                const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
-                
-                for (const bom of recipeIngs) {
-                    const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where(eq(schema.inventory.id, bom.inventoryId));
-                    const invItem = invItemArr[0];
-                    if (!invItem) continue;
+            // 2. Bulk fetch BOMs
+            const recipeIds = items.map((i: any) => i.recipeId);
+            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            
+            // 3. Bulk fetch Inventory 
+            const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
+            let invMap = new Map<number, string>();
+            if (invIds.length > 0) {
+                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
+                invMap = new Map(invItems.map((i: any) => [i.id, i.unit]));
+            }
 
-                    let baseDeductQty = parseFloat(bom.quantity) * item.quantity;
-                    const unitLower = invItem.unit.toLowerCase();
-                    if (['kg', 'l', 'liter', 'kilogram'].includes(unitLower)) {
-                        baseDeductQty = baseDeductQty / 1000;
-                    }
+            // 4. Aggregate stock deductions
+            const inventoryDeductions = new Map<number, number>();
+            for (const item of items) {
+                const bomDeps = allBomDeps.filter((b: any) => b.recipeId === item.recipeId);
+                for (const bom of bomDeps) {
+                    const unit = invMap.get(bom.inventoryId) as string;
+                    if (!unit) continue;
+                    let deductQty = parseFloat(bom.quantity) * item.quantity;
+                    if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) deductQty /= 1000;
                     
-                    await tx.insert(schema.stockMovements).values({
-                        inventoryId: bom.inventoryId,
-                        type: 'OUT',
-                        quantity: baseDeductQty.toString(),
-                        reason: `POS Transaction #${newSale.id}`
-                    });
-
-                    await tx.update(schema.inventory)
-                        .set({ currentStock: sql`${schema.inventory.currentStock} - ${baseDeductQty}` })
-                        .where(eq(schema.inventory.id, bom.inventoryId));
+                    inventoryDeductions.set(bom.inventoryId, (inventoryDeductions.get(bom.inventoryId) || 0) + deductQty);
                 }
+            }
+
+            // 5. Bulk update & Stock movements
+            if (inventoryDeductions.size > 0) {
+                const movementsData = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => ({
+                    inventoryId: invId,
+                    type: 'OUT',
+                    quantity: qty.toString(),
+                    reason: `POS Transaction #${newSale.id}`
+                }));
+                await tx.insert(schema.stockMovements).values(movementsData);
+
+                const updatePromises = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => 
+                    tx.update(schema.inventory)
+                        .set({ currentStock: sql`${schema.inventory.currentStock} - ${qty}` })
+                        .where(eq(schema.inventory.id, invId))
+                );
+                await Promise.all(updatePromises);
             }
             
             // Log to Audit
@@ -166,32 +184,47 @@ export class TransactionService {
 
     // Helper: Revert stock for items
     private static async revertStockForSaleItems(tx: any, items: any[], saleId: number) {
-        for (const item of items) {
-            const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
-            for (const bom of recipeIngs) {
-                const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where(eq(schema.inventory.id, bom.inventoryId));
-                const invItem = invItemArr[0];
-                if (!invItem) continue;
+        if (!items || items.length === 0) return;
 
-                let baseRevertQty = parseFloat(bom.quantity) * item.quantity;
-                const unitLower = invItem.unit.toLowerCase();
-                if (['kg', 'l', 'liter', 'kilogram'].includes(unitLower)) {
-                    baseRevertQty = baseRevertQty / 1000;
-                }
+        const recipeIds = items.map((i: any) => i.recipeId);
+        const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        
+        const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
+        if (invIds.length === 0) return;
+
+        const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
+        const invMap = new Map(invItems.map((i: any) => [i.id, i.unit]));
+
+        const inventoryReversions = new Map<number, number>();
+        for (const item of items) {
+            const bomDeps = allBomDeps.filter((b: any) => b.recipeId === item.recipeId);
+            for (const bom of bomDeps) {
+                const unit = invMap.get(bom.inventoryId) as string;
+                if (!unit) continue;
+                let revertQty = parseFloat(bom.quantity) * item.quantity;
+                if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) revertQty /= 1000;
                 
-                // Remove old stock movements related to this sale
-                await tx.delete(schema.stockMovements).where(
+                inventoryReversions.set(bom.inventoryId, (inventoryReversions.get(bom.inventoryId) || 0) + revertQty);
+            }
+        }
+
+        if (inventoryReversions.size > 0) {
+            const delPromises = Array.from(inventoryReversions.keys()).map(invId => 
+                tx.delete(schema.stockMovements).where(
                     and(
-                        eq(schema.stockMovements.inventoryId, bom.inventoryId),
+                        eq(schema.stockMovements.inventoryId, invId),
                         eq(schema.stockMovements.reason, `POS Transaction #${saleId}`)
                     )
-                );
+                )
+            );
+            await Promise.all(delPromises);
 
-                // Add stock back
-                await tx.update(schema.inventory)
-                    .set({ currentStock: sql`${schema.inventory.currentStock} + ${baseRevertQty}` })
-                    .where(eq(schema.inventory.id, bom.inventoryId));
-            }
+            const updatePromises = Array.from(inventoryReversions.entries()).map(([invId, qty]) => 
+                tx.update(schema.inventory)
+                    .set({ currentStock: sql`${schema.inventory.currentStock} + ${qty}` })
+                    .where(eq(schema.inventory.id, invId))
+            );
+            await Promise.all(updatePromises);
         }
     }
 
@@ -225,42 +258,57 @@ export class TransactionService {
                 paymentMethod: paymentMethod || oldSale.paymentMethod
             }).where(eq(schema.sales.id, saleId)).returning();
 
-            for (const item of items) {
+            const saleItemsInsertData = items.map((item: any) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
                 const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
-                
-                await tx.insert(schema.saleItems).values({
+                return {
                     saleId: saleId,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: itemSubtotalRaw.toString()
-                });
+                    subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString()
+                };
+            });
+            await tx.insert(schema.saleItems).values(saleItemsInsertData);
 
-                // Deduct new inventory
-                const recipeIngs = await tx.select().from(schema.recipeIngredients).where(eq(schema.recipeIngredients.recipeId, item.recipeId));
-                
-                for (const bom of recipeIngs) {
-                    const invItemArr = await tx.select({ unit: schema.inventory.unit }).from(schema.inventory).where(eq(schema.inventory.id, bom.inventoryId));
-                    const invItem = invItemArr[0];
-                    if (!invItem) continue;
+            // Deduct new inventory (batched)
+            const recipeIds = items.map((i: any) => i.recipeId);
+            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            
+            const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
+            let invMap = new Map<number, string>();
+            if (invIds.length > 0) {
+                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
+                invMap = new Map(invItems.map((i: any) => [i.id, i.unit]));
+            }
 
-                    let baseDeductQty = parseFloat(bom.quantity) * item.quantity;
-                    if (['kg', 'l', 'liter', 'kilogram'].includes(invItem.unit.toLowerCase())) {
-                        baseDeductQty = baseDeductQty / 1000;
-                    }
-                    
-                    await tx.insert(schema.stockMovements).values({
-                        inventoryId: bom.inventoryId,
-                        type: 'OUT',
-                        quantity: baseDeductQty.toString(),
-                        reason: `POS Transaction #${saleId}`
-                    });
-
-                    await tx.update(schema.inventory)
-                        .set({ currentStock: sql`${schema.inventory.currentStock} - ${baseDeductQty}` })
-                        .where(eq(schema.inventory.id, bom.inventoryId));
+            const inventoryDeductions = new Map<number, number>();
+            for (const item of items) {
+                const bomDeps = allBomDeps.filter((b: any) => b.recipeId === item.recipeId);
+                for (const bom of bomDeps) {
+                    const unit = invMap.get(bom.inventoryId) as string;
+                    if (!unit) continue;
+                    let deductQty = parseFloat(bom.quantity) * item.quantity;
+                    if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) deductQty /= 1000;
+                    inventoryDeductions.set(bom.inventoryId, (inventoryDeductions.get(bom.inventoryId) || 0) + deductQty);
                 }
+            }
+
+            if (inventoryDeductions.size > 0) {
+                const movementsData = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => ({
+                    inventoryId: invId,
+                    type: 'OUT',
+                    quantity: qty.toString(),
+                    reason: `POS Transaction #${saleId}`
+                }));
+                await tx.insert(schema.stockMovements).values(movementsData);
+
+                const updatePromises = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => 
+                    tx.update(schema.inventory)
+                        .set({ currentStock: sql`${schema.inventory.currentStock} - ${qty}` })
+                        .where(eq(schema.inventory.id, invId))
+                );
+                await Promise.all(updatePromises);
             }
 
             // Log Audit

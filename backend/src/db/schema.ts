@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, decimal, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, decimal, timestamp, boolean, uuid, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // -----------------------------------------------------------------------------
@@ -25,7 +25,9 @@ export const sessions = pgTable('session', {
     ipAddress: text('ipAddress'),
     userAgent: text('userAgent'),
     userId: text('userId').notNull().references(() => users.id)
-});
+}, (t) => ({
+    userIdx: index('session_user_idx').on(t.userId)
+}));
 
 export const accounts = pgTable('account', {
     id: text('id').primaryKey(),
@@ -37,7 +39,9 @@ export const accounts = pgTable('account', {
     idToken: text('idToken'),
     expiresAt: timestamp('expiresAt'),
     password: text('password')
-});
+}, (t) => ({
+    userIdx: index('account_user_idx').on(t.userId)
+}));
 
 export const verifications = pgTable('verification', {
     id: text('id').primaryKey(),
@@ -78,7 +82,10 @@ export const stockMovements = pgTable('stock_movements', {
     reason: text('reason'), // e.g. 'Expired', 'Spillage', 'Roasting Shrinkage'
     expiryDate: timestamp('expiry_date'),
     createdAt: timestamp('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
+    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId)
+}));
 
 // -----------------------------------------------------------------------------
 // 3. RECIPES & BOM (Bill of Materials)
@@ -97,7 +104,10 @@ export const recipeIngredients = pgTable('recipe_ingredients', {
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
     quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull() // Usage per serving
-});
+}, (t) => ({
+    recipeIdx: index('recipe_ingredients_recipe_idx').on(t.recipeId),
+    inventoryIdx: index('recipe_ingredients_inventory_idx').on(t.inventoryId)
+}));
 
 // -----------------------------------------------------------------------------
 // 4. POS SALES & FINANCE TRACKER
@@ -111,7 +121,9 @@ export const shifts = pgTable('shifts', {
     totalCashExpected: decimal('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
     totalCashActual: decimal('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
     discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }).default('0')
-});
+}, (t) => ({
+    userIdx: index('shifts_user_idx').on(t.userId)
+}));
 
 export const sales = pgTable('sales', {
     id: serial('id').primaryKey(),
@@ -123,7 +135,10 @@ export const sales = pgTable('sales', {
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     createdAt: timestamp('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    shiftIdx: index('sales_shift_idx').on(t.shiftId),
+    userIdx: index('sales_user_idx').on(t.userId)
+}));
 
 export const saleItems = pgTable('sale_items', {
     id: serial('id').primaryKey(),
@@ -131,7 +146,10 @@ export const saleItems = pgTable('sale_items', {
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     quantity: integer('quantity').notNull(),
     subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull()
-});
+}, (t) => ({
+    saleIdx: index('sale_items_sale_idx').on(t.saleId),
+    recipeIdx: index('sale_items_recipe_idx').on(t.recipeId)
+}));
 
 export const expenses = pgTable('expenses', {
     id: serial('id').primaryKey(),
@@ -161,4 +179,6 @@ export const auditLogs = pgTable('audit_logs', {
     oldData: text('old_data'), // Stored as JSON string representation
     newData: text('new_data'), // Stored as JSON string representation
     createdAt: timestamp('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    userIdx: index('audit_logs_user_idx').on(t.userId)
+}));

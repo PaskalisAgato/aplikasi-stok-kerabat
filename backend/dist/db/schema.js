@@ -25,7 +25,9 @@ exports.sessions = (0, pg_core_1.pgTable)('session', {
     ipAddress: (0, pg_core_1.text)('ipAddress'),
     userAgent: (0, pg_core_1.text)('userAgent'),
     userId: (0, pg_core_1.text)('userId').notNull().references(() => exports.users.id)
-});
+}, (t) => ({
+    userIdx: (0, pg_core_1.index)('session_user_idx').on(t.userId)
+}));
 exports.accounts = (0, pg_core_1.pgTable)('account', {
     id: (0, pg_core_1.text)('id').primaryKey(),
     accountId: (0, pg_core_1.text)('accountId').notNull(),
@@ -36,7 +38,9 @@ exports.accounts = (0, pg_core_1.pgTable)('account', {
     idToken: (0, pg_core_1.text)('idToken'),
     expiresAt: (0, pg_core_1.timestamp)('expiresAt'),
     password: (0, pg_core_1.text)('password')
-});
+}, (t) => ({
+    userIdx: (0, pg_core_1.index)('account_user_idx').on(t.userId)
+}));
 exports.verifications = (0, pg_core_1.pgTable)('verification', {
     id: (0, pg_core_1.text)('id').primaryKey(),
     identifier: (0, pg_core_1.text)('identifier').notNull(),
@@ -73,7 +77,10 @@ exports.stockMovements = (0, pg_core_1.pgTable)('stock_movements', {
     reason: (0, pg_core_1.text)('reason'), // e.g. 'Expired', 'Spillage', 'Roasting Shrinkage'
     expiryDate: (0, pg_core_1.timestamp)('expiry_date'),
     createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    inventoryIdx: (0, pg_core_1.index)('stock_movements_inventory_idx').on(t.inventoryId),
+    supplierIdx: (0, pg_core_1.index)('stock_movements_supplier_idx').on(t.supplierId)
+}));
 // -----------------------------------------------------------------------------
 // 3. RECIPES & BOM (Bill of Materials)
 // -----------------------------------------------------------------------------
@@ -90,7 +97,10 @@ exports.recipeIngredients = (0, pg_core_1.pgTable)('recipe_ingredients', {
     recipeId: (0, pg_core_1.integer)('recipe_id').notNull().references(() => exports.recipes.id),
     inventoryId: (0, pg_core_1.integer)('inventory_id').notNull().references(() => exports.inventory.id),
     quantity: (0, pg_core_1.decimal)('quantity', { precision: 12, scale: 2 }).notNull() // Usage per serving
-});
+}, (t) => ({
+    recipeIdx: (0, pg_core_1.index)('recipe_ingredients_recipe_idx').on(t.recipeId),
+    inventoryIdx: (0, pg_core_1.index)('recipe_ingredients_inventory_idx').on(t.inventoryId)
+}));
 // -----------------------------------------------------------------------------
 // 4. POS SALES & FINANCE TRACKER
 // -----------------------------------------------------------------------------
@@ -103,7 +113,9 @@ exports.shifts = (0, pg_core_1.pgTable)('shifts', {
     totalCashExpected: (0, pg_core_1.decimal)('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
     totalCashActual: (0, pg_core_1.decimal)('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
     discrepancy: (0, pg_core_1.decimal)('discrepancy', { precision: 12, scale: 2 }).default('0')
-});
+}, (t) => ({
+    userIdx: (0, pg_core_1.index)('shifts_user_idx').on(t.userId)
+}));
 exports.sales = (0, pg_core_1.pgTable)('sales', {
     id: (0, pg_core_1.serial)('id').primaryKey(),
     shiftId: (0, pg_core_1.integer)('shift_id').references(() => exports.shifts.id),
@@ -114,14 +126,20 @@ exports.sales = (0, pg_core_1.pgTable)('sales', {
     totalAmount: (0, pg_core_1.decimal)('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: (0, pg_core_1.text)('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    shiftIdx: (0, pg_core_1.index)('sales_shift_idx').on(t.shiftId),
+    userIdx: (0, pg_core_1.index)('sales_user_idx').on(t.userId)
+}));
 exports.saleItems = (0, pg_core_1.pgTable)('sale_items', {
     id: (0, pg_core_1.serial)('id').primaryKey(),
     saleId: (0, pg_core_1.integer)('sale_id').notNull().references(() => exports.sales.id),
     recipeId: (0, pg_core_1.integer)('recipe_id').notNull().references(() => exports.recipes.id),
     quantity: (0, pg_core_1.integer)('quantity').notNull(),
     subtotal: (0, pg_core_1.decimal)('subtotal', { precision: 12, scale: 2 }).notNull()
-});
+}, (t) => ({
+    saleIdx: (0, pg_core_1.index)('sale_items_sale_idx').on(t.saleId),
+    recipeIdx: (0, pg_core_1.index)('sale_items_recipe_idx').on(t.recipeId)
+}));
 exports.expenses = (0, pg_core_1.pgTable)('expenses', {
     id: (0, pg_core_1.serial)('id').primaryKey(),
     title: (0, pg_core_1.text)('title').notNull(),
@@ -148,4 +166,6 @@ exports.auditLogs = (0, pg_core_1.pgTable)('audit_logs', {
     oldData: (0, pg_core_1.text)('old_data'), // Stored as JSON string representation
     newData: (0, pg_core_1.text)('new_data'), // Stored as JSON string representation
     createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    userIdx: (0, pg_core_1.index)('audit_logs_user_idx').on(t.userId)
+}));
