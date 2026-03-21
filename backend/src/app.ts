@@ -3,22 +3,22 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { toNodeHandler } from 'better-auth/node';
-import { auth } from './config/auth';
+import { auth } from './config/auth.js';
 
 // Route Imports
-import { productRoutes } from './routes/product.routes';
-import { transactionRoutes } from './routes/transaction.routes';
-import { userRoutes } from './routes/user.routes';
-import { inventoryRouter } from './routes/inventory';
-import { financeRouter } from './routes/finance';
-import { auditRouter } from './routes/audit';
-import { shiftRoutes } from './routes/shift.routes';
-import { attendanceRoutes } from './routes/attendance.routes';
+import { productRoutes } from './routes/product.routes.js';
+import { transactionRoutes } from './routes/transaction.routes.js';
+import { userRoutes } from './routes/user.routes.js';
+import { inventoryRouter } from './routes/inventory.js';
+import { financeRouter } from './routes/finance.js';
+import { auditRouter } from './routes/audit.js';
+import { shiftRoutes } from './routes/shift.routes.js';
+import { attendanceRoutes } from './routes/attendance.routes.js';
 
 // Middleware Imports
-import { errorHandler } from './middleware/error.middleware';
-import { UserService } from './services/user.service';
-import { UserController } from './controllers/user.controller';
+import { errorHandler } from './middleware/error.middleware.js';
+import { UserService } from './services/user.service.js';
+import { UserController } from './controllers/user.controller.js';
 
 const app = express();
 
