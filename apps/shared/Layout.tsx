@@ -40,8 +40,11 @@ const Layout: React.FC<LayoutProps> = ({
         // If we get an explicit auth error (401/403), stop retrying and clear token
         if (sessionError && (sessionError as any).status >= 401 && (sessionError as any).status <= 403) {
             console.warn("Auth token invalid, clearing storage...");
+            const hadToken = !!localStorage.getItem('kerabat_auth_token');
             localStorage.removeItem('kerabat_auth_token');
-            window.location.reload();
+            if (hadToken) {
+                window.location.reload();
+            }
             return;
         }
 

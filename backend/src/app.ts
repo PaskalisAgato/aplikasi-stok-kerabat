@@ -62,12 +62,13 @@ app.get('/api/auth/session', async (req, res) => {
     try {
         const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
         if (!sessionToken) {
-            return res.status(401).json({ error: 'No session token' });
+            // Return 200 with null to avoid triggering frontend error loops for guests
+            return res.status(200).json({ session: null });
         }
 
         const session = await UserService.getSessionByToken(sessionToken);
         if (!session) {
-            return res.status(401).json({ error: 'Invalid session' });
+            return res.status(200).json({ session: null });
         }
 
         res.json({ session });
