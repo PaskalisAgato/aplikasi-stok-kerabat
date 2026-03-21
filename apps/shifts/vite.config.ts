@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/employees/',
+  base: '/shifts/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -13,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5178,
+    port: 5188,
     strictPort: true,
   },
   define: {

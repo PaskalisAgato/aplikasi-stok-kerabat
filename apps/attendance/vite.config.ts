@@ -5,7 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/employees/',
+  base: '/attendance/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5178,
+    port: 5189,
     strictPort: true,
   },
   define: {
