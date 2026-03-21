@@ -1,5 +1,5 @@
 import express from 'express';
-import { getSessionManually } from '../lib/session';
+import { getSessionManually } from '../lib/session.js';
 
 // Custom Auth Middleware that can be attached to protected Routes
 export const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {

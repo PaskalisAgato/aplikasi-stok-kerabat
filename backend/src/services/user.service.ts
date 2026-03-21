@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import { db } from '../config/db';
-import { users } from '../db/schema';
-import * as schema from '../db/schema';
+import { db } from '../config/db.js';
+import { users } from '../db/schema.js';
+import * as schema from '../db/schema.js';
 import { desc, eq, and } from 'drizzle-orm';
 
 export class UserService {

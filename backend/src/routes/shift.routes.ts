@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { ShiftController } from '../controllers/shift.controller';
-import { requireAdmin, requireAuth } from '../middleware/auth.middleware';
+import { ShiftController } from '../controllers/shift.controller.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.middleware.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { AttendanceController } from '../controllers/attendance.controller';
-import { requireAdmin, requireAuth } from '../middleware/auth.middleware';
+import { AttendanceController } from '../controllers/attendance.controller.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.middleware.js';
 
 const router = Router();
 

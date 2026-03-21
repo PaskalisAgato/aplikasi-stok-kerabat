@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
-import { db } from '../db';
-import { sessions, users } from '../db/schema';
+import { db } from '../db.js';
+import { sessions, users } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 export interface SessionData {

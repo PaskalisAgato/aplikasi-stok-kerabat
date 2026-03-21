@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import * as schema from '../db/schema';
+import { db } from '../db.js';
+import * as schema from '../db/schema.js';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
-import { requireAdmin } from '../middleware/auth';
+import { requireAdmin } from '../middleware/auth.js';
 
 export const financeRouter = Router();
 

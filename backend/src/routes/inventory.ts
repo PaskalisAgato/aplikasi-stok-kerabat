@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import * as schema from '../db/schema';
+import { db } from '../db.js';
+import * as schema from '../db/schema.js';
 import { eq, sql, and, gte } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth.js';
 
 export const inventoryRouter = Router();
 
