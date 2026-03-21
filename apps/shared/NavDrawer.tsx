@@ -11,7 +11,9 @@ interface NavDrawerProps {
 
 const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => {
     const { data: session } = useSession();
-    const userRole = (session?.user as any)?.role || 'Karyawan';
+    // session shape: { id, userId, expiresAt, user: { id, name, email, role } }
+    // NEVER fallback to 'Karyawan' if we have a session — that hides bugs
+    const userRole = session?.user?.role || (session ? 'Unknown' : 'Karyawan');
 
     if (!open) return null;
 
@@ -25,17 +27,24 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
         if (!confirm('Apakah Anda yakin ingin keluar?')) return;
 
         try {
+            // Get token BEFORE clearing storage
+            const token = localStorage.getItem('kerabat_auth_token');
+            
             // 1. Call backend logout to destroy server-side session & cookies
             await fetch('https://aplikasi-stok-kerabat.onrender.com/api/auth/logout-manual', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
             }).catch(err => console.error("Logout fetch failed:", err));
 
             // 2. Nuke ALL client-side auth state
             localStorage.clear();
             sessionStorage.clear();
 
-            // 3. Force reload without cache to current path (Login UI is inline)
+            // 3. Force reload current path (Login UI is inline, no /login route)
             const currentPath = window.location.pathname;
             window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
         } catch (error) {

@@ -1,4 +1,4 @@
-Build Report - Sat Mar 21 01:49:38 PM WIB 2026
+Build Report - Sat Mar 21 02:29:26 PM WIB 2026
 --------------------------
 ✅ Copied pos to root
    [VERIFIED] index.html exists for pos
@@ -62,6 +62,7 @@ index-C7bM81mJ.css
 index-I2pe2UoM.js
 index-rfjnQwK5.css
 index-VXINq4Ec.js
+index-VyzIQw3N.js
 
 dist-global/assets:
 index-09bIOXtB.js
@@ -70,6 +71,7 @@ index-Cojii7fY.js
 index-D3t6awt1.js
 index-DdB7J3v8.js
 index-DJUjvsce.css
+index-FprgctzT.js
 index-hsPDFfwK.css
 
 dist-global/cogs:
@@ -80,6 +82,7 @@ dist-global/cogs/assets:
 index-CAYB5LLG.js
 index-D_-qpY1_.css
 index-DVO_kpx3.js
+index-DWFT3g9s.js
 index-DWIiyb12.js
 index-NAxFoSX3.js
 index-u6sOdVlT.css
@@ -92,6 +95,7 @@ vite.svg
 dist-global/dashboard/assets:
 index-B7Igof7j.js
 index-BDI0o2eL.js
+index-BdL-vde3.js
 index-CxwNmfNm.css
 index-CY5z3W_B.css
 index-DcAfabR1.js
@@ -105,6 +109,7 @@ dist-global/employees/assets:
 index-B3DR_MEb.js
 index-B5DIIr1p.css
 index-BRNAyJSe.js
+index-C6SU3AXx.js
 index-Csl3GChs.css
 index-Cyt_a55a.js
 index-Dmq_I1Fk.js
@@ -121,6 +126,7 @@ index-CB6orX2d.js
 index-CKwa0-4W.css
 index-CTbOs-XA.js
 index-D7G3WIa4.css
+index--wBK2LuV.js
 
 dist-global/hpp:
 assets
@@ -131,6 +137,7 @@ index-B2eRoH8p.js
 index-BKO0CMfj.css
 index-BKWR4OdF.js
 index-BPCosFDV.css
+index-C25d2bEV.js
 index-ClJ6qb4x.js
 index-y1h3pcbA.js
 
@@ -142,6 +149,7 @@ vite.svg
 dist-global/inventory/assets:
 index-BEPtpElV.js
 index-BF8PIHmW.js
+index-Ciqwvebj.js
 index-CtiZrE13.css
 index-CW31ZoMl.js
 index-Cz_803xp.css
@@ -155,6 +163,7 @@ dist-global/opname/assets:
 index-7M1-Lcwh.js
 index-af6z9Bvx.js
 index-BxyEQM4J.css
+index-CYDpzdIZ.js
 index-Cyv4gVe_.css
 index-Dgwk6_vH.js
 index-ZwrpHt0t.js
@@ -164,6 +173,7 @@ assets
 index.html
 
 dist-global/recipe-edit/assets:
+index-BaU4ST26.js
 index-BLlLlCIL.js
 index-CaseHJ9Y.css
 index-DCIFq2wD.js
@@ -182,6 +192,7 @@ index-BwdKbADR.js
 index-DdU4Efl3.css
 index-pBBQDcgj.js
 index-qJQp9mtf.css
+index-R4wN5eu6.js
 
 dist-global/reports:
 assets
@@ -192,6 +203,7 @@ dist-global/reports/assets:
 index-B48BrmjJ.js
 index-BuoCJD9R.css
 index-CvoEeZJd.css
+index-D-ifKyQ1.js
 index-dt-nzPyq.js
 index-mEId8kV-.js
 index-o30R0eo2.js
@@ -205,6 +217,7 @@ index-3Qc9pXjV.css
 index-4qBZYpcJ.js
 index-AUoUqDsc.css
 index-C9fGFh2i.js
+index-D6naJn4m.js
 index-DJQL6E5H.js
 index-DUq23NuI.js
 
@@ -214,6 +227,7 @@ index.html
 
 dist-global/waste/assets:
 index-B0-5NzmJ.js
+index-BMYw3mzg.js
 index-BzRC-DQt.css
 index-CCQ7_WMd.js
 index-Df8700SN.js
@@ -225,6 +239,7 @@ assets
 index.html
 
 dist-global/waste-detail/assets:
+index-BeaIlM2R.js
 index-BiZJqBHL.css
 index-BrtzfHsc.js
 index-BVbPAhRA.js

@@ -57,19 +57,61 @@ app.post('/api/auth/login-pin', user_controller_1.UserController.loginByPin);
 // Manual session endpoint for frontend
 app.get('/api/auth/session', async (req, res) => {
     try {
-        const sessionToken = req.cookies['better-auth.session_token'] || req.headers.authorization?.replace('Bearer ', '');
-        if (!sessionToken) {
-            return res.status(401).json({ error: 'No session token' });
+        const cookieToken = req.cookies['better-auth.session_token'];
+        const bearerToken = req.headers.authorization?.replace('Bearer ', '');
+        if (!cookieToken && !bearerToken) {
+            // Return 200 with null to avoid triggering frontend error loops for guests
+            return res.status(200).json({ session: null });
         }
-        const session = await user_service_1.UserService.getSessionByToken(sessionToken);
+        let session = null;
+        // 1. Try resolving via Bearer UUID first (most reliable for cross-domain since it is strictly from localStorage)
+        if (bearerToken) {
+            session = await user_service_1.UserService.getSessionById(bearerToken);
+        }
+        // 2. Try resolving via Cookie (Hashed Token) if Bearer fails or is absent
+        if (!session && cookieToken) {
+            session = await user_service_1.UserService.getSessionByHashedToken(cookieToken);
+        }
         if (!session) {
-            return res.status(401).json({ error: 'Invalid session' });
+            return res.status(200).json({ session: null });
         }
         res.json({ session });
     }
     catch (error) {
         console.error('Session check error:', error);
         res.status(500).json({ error: 'Session check failed' });
+    }
+});
+// Manual logout endpoint - destroys session in DB and clears cookies
+app.post('/api/auth/logout-manual', async (req, res) => {
+    try {
+        const cookieToken = req.cookies['better-auth.session_token'];
+        const bearerToken = req.headers.authorization?.replace('Bearer ', '');
+        // Bearer token from localStorage = session UUID (primary key)
+        if (bearerToken) {
+            await user_service_1.UserService.deleteSessionById(bearerToken);
+        }
+        // Cookie token = hashed token stored in 'token' column
+        if (cookieToken) {
+            await user_service_1.UserService.deleteSessionByHashedToken(cookieToken);
+            // Also try as plaintext in case cookie format changed
+            await user_service_1.UserService.deleteSessionByToken(cookieToken);
+        }
+        // Clear cookies with EXACT same options as they were set during login
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        };
+        res.clearCookie('better-auth.session_token', cookieOptions);
+        res.clearCookie('better-auth.session_token.sig', cookieOptions);
+        res.clearCookie('__Secure-better-auth.session_token', cookieOptions);
+        res.status(200).json({ success: true, message: 'Logged out successfully' });
+    }
+    catch (error) {
+        console.error('Logout error:', error);
+        res.status(200).json({ success: true, message: 'Logged out (with server warning)' });
     }
 });
 // 4. API Routes (Products, Transactions, etc.)

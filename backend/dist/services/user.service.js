@@ -117,17 +117,19 @@ class UserService {
     static async createSessionManual(userId) {
         const token = crypto_1.default.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
         const [session] = await db_1.db.insert(schema.sessions).values({
             id: crypto_1.default.randomUUID(),
             userId,
-            token,
-            expiresAt,
+            token: hashedToken,
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            expiresAt
         }).returning();
         return session;
     }
     static async getSessionByToken(token) {
+        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
         const [session] = await db_1.db.select({
             id: schema.sessions.id,
             userId: schema.sessions.userId,
@@ -141,12 +143,78 @@ class UserService {
         })
             .from(schema.sessions)
             .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.sessions.token, token)))
+            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
             .limit(1);
         if (session && new Date(session.expiresAt) > new Date()) {
             return session;
         }
         return null;
+    }
+    // New: Retrieve session by its exact UUID (useful for the Bearer token check from localStorage)
+    static async getSessionById(sessionId) {
+        const [session] = await db_1.db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: schema_1.users.id,
+                name: schema_1.users.name,
+                email: schema_1.users.email,
+                role: schema_1.users.role
+            }
+        })
+            .from(schema.sessions)
+            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
+            .where((0, drizzle_orm_1.eq)(schema.sessions.id, sessionId))
+            .limit(1);
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
+    }
+    // New: Retrieve session by already hashed token (useful for cookie check since cookie stores the hash)
+    static async getSessionByHashedToken(hashedToken) {
+        const [session] = await db_1.db.select({
+            id: schema.sessions.id,
+            userId: schema.sessions.userId,
+            expiresAt: schema.sessions.expiresAt,
+            user: {
+                id: schema_1.users.id,
+                name: schema_1.users.name,
+                email: schema_1.users.email,
+                role: schema_1.users.role
+            }
+        })
+            .from(schema.sessions)
+            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
+            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+            .limit(1);
+        if (session && new Date(session.expiresAt) > new Date()) {
+            return session;
+        }
+        return null;
+    }
+    // Delete session by hashing a plaintext token first
+    static async deleteSessionByToken(token) {
+        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
+        const deleted = await db_1.db.delete(schema.sessions)
+            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+            .returning();
+        return deleted.length > 0;
+    }
+    // Delete session by its UUID primary key (used when Bearer token = session.id)
+    static async deleteSessionById(sessionId) {
+        const deleted = await db_1.db.delete(schema.sessions)
+            .where((0, drizzle_orm_1.eq)(schema.sessions.id, sessionId))
+            .returning();
+        return deleted.length > 0;
+    }
+    // Delete session by already-hashed token (used when cookie stores the hash)
+    static async deleteSessionByHashedToken(hashedToken) {
+        const deleted = await db_1.db.delete(schema.sessions)
+            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+            .returning();
+        return deleted.length > 0;
     }
     static async logAction(userId, action, tableName, oldData, newData) {
         await db_1.db.insert(schema.auditLogs).values({

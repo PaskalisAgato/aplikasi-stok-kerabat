@@ -185,6 +185,7 @@ export class UserService {
         return null;
     }
 
+    // Delete session by hashing a plaintext token first
     static async deleteSessionByToken(token: string) {
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
         const deleted = await db.delete(schema.sessions)
@@ -193,7 +194,15 @@ export class UserService {
         return deleted.length > 0;
     }
 
-    // Used by logout endpoint — cookie already contains the hashed token
+    // Delete session by its UUID primary key (used when Bearer token = session.id)
+    static async deleteSessionById(sessionId: string) {
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.id, sessionId))
+            .returning();
+        return deleted.length > 0;
+    }
+
+    // Delete session by already-hashed token (used when cookie stores the hash)
     static async deleteSessionByHashedToken(hashedToken: string) {
         const deleted = await db.delete(schema.sessions)
             .where(eq(schema.sessions.token, hashedToken))
