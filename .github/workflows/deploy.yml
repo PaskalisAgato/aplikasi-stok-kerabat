@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Sync Main to Vercel (gh-pages)
 
 on:
   push:
@@ -10,165 +10,17 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  sync-branch:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          fetch-depth: 0 # Fetch all history for force pushing
 
-      - name: Install Root Dependencies
-        run: npm install
-
-      - name: Build POS App
-        working-directory: apps/pos
-        run: npx vite build --base=/aplikasi-stok-kerabat/pos/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Dashboard App
-        working-directory: apps/dashboard
-        run: npx vite build --base=/aplikasi-stok-kerabat/dashboard/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Inventory App
-        working-directory: apps/inventory
-        run: npx vite build --base=/aplikasi-stok-kerabat/inventory/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Recipes App
-        working-directory: apps/recipes
-        run: npx vite build --base=/aplikasi-stok-kerabat/recipes/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Recipe Edit App
-        working-directory: apps/recipe-edit
-        run: npx vite build --base=/aplikasi-stok-kerabat/recipe-edit/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Reports App
-        working-directory: apps/reports
-        run: npx vite build --base=/aplikasi-stok-kerabat/reports/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Employees App
-        working-directory: apps/employees
-        run: npx vite build --base=/aplikasi-stok-kerabat/employees/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Settings App
-        working-directory: apps/settings
-        run: npx vite build --base=/aplikasi-stok-kerabat/settings/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Waste App
-        working-directory: apps/waste
-        run: npx vite build --base=/aplikasi-stok-kerabat/waste/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Waste Detail App
-        working-directory: apps/waste-detail
-        run: npx vite build --base=/aplikasi-stok-kerabat/waste-detail/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Opname App
-        working-directory: apps/opname
-        run: npx vite build --base=/aplikasi-stok-kerabat/opname/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build HPP App
-        working-directory: apps/hpp
-        run: npx vite build --base=/aplikasi-stok-kerabat/hpp/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Expenses App
-        working-directory: apps/expenses
-        run: npx vite build --base=/aplikasi-stok-kerabat/expenses/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build COGS App
-        working-directory: apps/cogs
-        run: npx vite build --base=/aplikasi-stok-kerabat/cogs/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-      - name: Build Activity History App
-        working-directory: apps/activity-history
-        run: npx vite build --base=/aplikasi-stok-kerabat/activity-history/
-        env:
-          VITE_API_URL: https://aplikasi-stok-kerabat.onrender.com/api
-          VITE_SUPABASE_URL: https://naklryyhioikogvpcdxd.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha2xyeXloaW9pa29ndnBjZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NzM5MzMsImV4cCI6MjA4ODA0OTkzM30.LY0g7HUX1irdlgTaxNc77Xjv64U-XjsoaC5UuJjSZ8w
-
-
-      - name: Assemble dist-pages
+      - name: Sync main to gh-pages for Vercel
         run: |
-          mkdir -p dist-pages
-          # Copy root redirector
-          cp index.html dist-pages/index.html || true
-          # Copy each app's build output into dist-pages
-          for app in pos dashboard inventory recipes recipe-edit reports employees settings waste waste-detail opname hpp expenses cogs activity-history; do
-            dir="apps/$app/dist"
-            if [ -d "$dir" ]; then
-              echo "Copying $dir -> dist-pages/$app"
-              cp -r "$dir" "dist-pages/$app"
-            else
-              echo "Skipping $app (no dist folder)"
-            fi
-          done
-          # Copy root redirect pages (fallback)
-          cp dist-pages/index.html dist-pages/404.html 2>/dev/null || true
-          ls -la dist-pages/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist-pages
-          publish_branch: gh-pages
-          force_orphan: true
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git checkout main
+          git push origin main:gh-pages --force
