@@ -1,6 +1,6 @@
 import React from 'react';
 import { NAV_LINKS, getTargetUrl } from './navigation';
-import { useSession, signOut } from './authClient';
+import { useSession } from './authClient';
 import ThemeToggle from './ThemeToggle';
 
 interface NavDrawerProps {
@@ -25,23 +25,25 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
         if (!confirm('Apakah Anda yakin ingin keluar?')) return;
 
         try {
-            // 1. Clear local fallback token immediately
-            localStorage.removeItem('kerabat_auth_token');
-
-            // 2. Call manual logout endpoint (Server-side cookie clearing)
-            const apiBaseUrl = (import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
-            await fetch(`${apiBaseUrl}/auth/logout-manual`, {
+            // 1. Call backend logout to destroy server-side session & cookies
+            await fetch('https://aplikasi-stok-kerabat.onrender.com/api/auth/logout-manual', {
                 method: 'POST',
                 credentials: 'include'
-            }).catch(err => console.error("Manual logout fetch failed:", err));
+            }).catch(err => console.error("Logout fetch failed:", err));
 
-            // 3. Hard reload the current page using an explicit URL injection to prevent root redirects
+            // 2. Nuke ALL client-side auth state
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 3. Reload current sub-app path (not "/" which would go to POS)
             const currentPath = window.location.pathname;
-            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
+            window.location.href = `${window.location.origin}${currentPath}`;
         } catch (error) {
-            console.error("Logout process error:", error);
+            console.error("Logout error:", error);
+            localStorage.clear();
+            sessionStorage.clear();
             const currentPath = window.location.pathname;
-            window.location.href = `${window.location.origin}${currentPath}?v=${Date.now()}`;
+            window.location.href = `${window.location.origin}${currentPath}`;
         }
     };
 
