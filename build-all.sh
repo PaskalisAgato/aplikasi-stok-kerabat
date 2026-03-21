@@ -1,4 +1,4 @@
-#!/bin/bash
+# build-all.sh - v2.0 (deployment fix)
 set -e
 
 echo "--- VERCEL CONSOLIDATED BUILD START ---"
