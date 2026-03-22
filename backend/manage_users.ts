@@ -1,5 +1,5 @@
 import { db } from './src/db';
-import { users } from './src/db/schema';
+import { users } from './src/db/schema.js';
 import { sql } from 'drizzle-orm';
 
 async function manageUsers() {

@@ -1,6 +1,6 @@
 import { auth } from './src/config/auth';
 import { db } from './src/db';
-import { users, sessions } from './src/db/schema';
+import { users, sessions } from './src/db/schema.js';
 import { eq } from 'drizzle-orm';
 
 async function diagnoseRealSession() {

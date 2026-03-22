@@ -1,6 +1,6 @@
 import { auth } from './src/config/auth';
 import { db } from './src/db';
-import { sessions } from './src/db/schema';
+import { sessions } from './src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 

@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db.js";
-import * as schema from "../db/schema";
+import * as schema from "../db/schema.js";
 import 'dotenv/config';
 console.log('--- Auth Module: Initializing betterAuth ---');
 let auth;

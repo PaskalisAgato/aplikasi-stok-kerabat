@@ -1,5 +1,5 @@
 import { db } from './src/db';
-import { sessions, users } from './src/db/schema';
+import { sessions, users } from './src/db/schema.js';
 import { eq } from 'drizzle-orm';
 import * as fs from 'fs';
 
