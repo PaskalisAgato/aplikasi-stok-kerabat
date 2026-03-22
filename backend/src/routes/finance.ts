@@ -188,17 +188,21 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             .where(inArray(schema.saleItems.saleId, saleIds));
 
         // 2. Fetch BOM for all affected recipes
-        const recipeIds = [...new Set(items.map((i: any) => i.recipeId as number))];
-        const boms = await db.select({
-            recipeId: schema.recipeIngredients.recipeId,
-            inventoryId: schema.recipeIngredients.inventoryId,
-            usageQty: schema.recipeIngredients.quantity,
-            ingredientName: schema.inventory.name,
-            pricePerUnit: schema.inventory.pricePerUnit
-        })
-        .from(schema.recipeIngredients)
-        .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
-        .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        const recipeIds: number[] = [...new Set(items.map((i: any) => i.recipeId as number))] as number[];
+        
+        let boms: any[] = [];
+        if (recipeIds.length > 0) {
+            boms = await db.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                usageQty: schema.recipeIngredients.quantity,
+                ingredientName: schema.inventory.name,
+                pricePerUnit: schema.inventory.pricePerUnit
+            })
+            .from(schema.recipeIngredients)
+            .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+            .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        }
 
         // 3. Calculate HPP
         let totalHPP = 0;
