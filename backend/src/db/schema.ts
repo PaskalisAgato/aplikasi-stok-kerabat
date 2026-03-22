@@ -25,7 +25,7 @@ export const sessions = pgTable('session', {
     ipAddress: text('ipAddress'),
     userAgent: text('userAgent'),
     userId: text('userId').notNull().references(() => users.id)
-}, (t) => ({
+}, (t: any) => ({
     userIdx: index('session_user_idx').on(t.userId)
 }));
 
@@ -39,7 +39,7 @@ export const accounts = pgTable('account', {
     idToken: text('idToken'),
     expiresAt: timestamp('expiresAt'),
     password: text('password')
-}, (t) => ({
+}, (t: any) => ({
     userIdx: index('account_user_idx').on(t.userId)
 }));
 
@@ -82,7 +82,7 @@ export const stockMovements = pgTable('stock_movements', {
     reason: text('reason'), // e.g. 'Expired', 'Spillage', 'Roasting Shrinkage'
     expiryDate: timestamp('expiry_date'),
     createdAt: timestamp('created_at').defaultNow().notNull()
-}, (t) => ({
+}, (t: any) => ({
     inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
     supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId)
 }));
@@ -104,7 +104,7 @@ export const recipeIngredients = pgTable('recipe_ingredients', {
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
     quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull() // Usage per serving
-}, (t) => ({
+}, (t: any) => ({
     recipeIdx: index('recipe_ingredients_recipe_idx').on(t.recipeId),
     inventoryIdx: index('recipe_ingredients_inventory_idx').on(t.inventoryId)
 }));
@@ -121,7 +121,7 @@ export const shifts = pgTable('shifts', {
     totalCashExpected: decimal('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
     totalCashActual: decimal('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
     discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }).default('0')
-}, (t) => ({
+}, (t: any) => ({
     userIdx: index('shifts_user_idx').on(t.userId)
 }));
 
@@ -135,7 +135,7 @@ export const sales = pgTable('sales', {
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     createdAt: timestamp('created_at').defaultNow().notNull()
-}, (t) => ({
+}, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
     userIdx: index('sales_user_idx').on(t.userId)
 }));
@@ -146,7 +146,7 @@ export const saleItems = pgTable('sale_items', {
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     quantity: integer('quantity').notNull(),
     subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull()
-}, (t) => ({
+}, (t: any) => ({
     saleIdx: index('sale_items_sale_idx').on(t.saleId),
     recipeIdx: index('sale_items_recipe_idx').on(t.recipeId)
 }));
@@ -179,7 +179,7 @@ export const auditLogs = pgTable('audit_logs', {
     oldData: text('old_data'), // Stored as JSON string representation
     newData: text('new_data'), // Stored as JSON string representation
     createdAt: timestamp('created_at').defaultNow().notNull()
-}, (t) => ({
+}, (t: any) => ({
     userIdx: index('audit_logs_user_idx').on(t.userId)
 }));
 
@@ -193,8 +193,8 @@ export const workShifts = pgTable('work_shifts', {
     startTime: text('start_time').notNull(), // e.g. "08:00"
     endTime: text('end_time').notNull(), // e.g. "17:00"
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull()
-}, (t) => ({
+    updatedAt: timestamp('updatedAt').notNull()
+}, (t: any) => ({
     userIdx: index('work_shifts_user_idx').on(t.userId),
     dateIdx: index('work_shifts_date_idx').on(t.date)
 }));
@@ -207,7 +207,7 @@ export const attendance = pgTable('attendance', {
     checkOut: timestamp('check_out'),
     status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
     createdAt: timestamp('created_at').defaultNow().notNull()
-}, (t) => ({
+}, (t: any) => ({
     userIdx: index('attendance_user_idx').on(t.userId),
     dateIdx: index('attendance_date_idx').on(t.date)
 }));

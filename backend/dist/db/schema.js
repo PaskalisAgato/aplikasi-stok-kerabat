@@ -176,7 +176,7 @@ export const workShifts = pgTable('work_shifts', {
     startTime: text('start_time').notNull(), // e.g. "08:00"
     endTime: text('end_time').notNull(), // e.g. "17:00"
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull()
+    updatedAt: timestamp('updatedAt').notNull()
 }, (t) => ({
     userIdx: index('work_shifts_user_idx').on(t.userId),
     dateIdx: index('work_shifts_date_idx').on(t.date)

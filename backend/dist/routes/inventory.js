@@ -9,7 +9,7 @@ inventoryRouter.get('/', async (req, res) => {
     try {
         const items = await db.select().from(schema.inventory);
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
-        const itemsWithStatus = items.map(item => {
+        const itemsWithStatus = items.map((item) => {
             const current = parseFloat(item.currentStock);
             const min = parseFloat(item.minStock);
             let status = 'NORMAL';

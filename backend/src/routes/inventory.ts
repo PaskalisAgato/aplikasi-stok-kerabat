@@ -12,7 +12,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         const items = await db.select().from(schema.inventory);
         
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
-        const itemsWithStatus = items.map(item => {
+        const itemsWithStatus = items.map((item: typeof schema.inventory.$inferSelect) => {
             const current = parseFloat(item.currentStock);
             const min = parseFloat(item.minStock);
             let status = 'NORMAL';
@@ -51,7 +51,7 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
             )
         );
 
-        const totalWasteValue = wasteMovements.reduce((sum, m) => {
+        const totalWasteValue = wasteMovements.reduce((sum: number, m: any) => {
             return sum + (parseFloat(m.quantity) * parseFloat(m.pricePerUnit));
         }, 0);
 
@@ -240,7 +240,7 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
 
         const adjustment = numericQty * multiplier;
 
-        await db.transaction(async (tx) => {
+        await db.transaction(async (tx: any) => {
             let finalSupplierId = supplierId;
             
             if (supplierName && !finalSupplierId) {

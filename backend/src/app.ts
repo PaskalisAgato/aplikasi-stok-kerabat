@@ -1,5 +1,5 @@
 // backend/src/app.ts - v1.0.2 (final sync)
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { toNodeHandler } from 'better-auth/node';
@@ -23,7 +23,7 @@ import { UserController } from './controllers/user.controller.js';
 const app = express();
 
 // Global Logger (Temporary for Debugging)
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`[IncomingRequest] ${req.method} ${req.originalUrl} - Path: ${req.path}`);
     next();
 });
@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // 2. Health & Diag
-app.get('/api/health', async (req, res) => {
+app.get('/api/health', async (req: Request, res: Response) => {
     let dbStatus = 'waiting';
     try {
         await UserService.getAllUsers();
@@ -61,7 +61,7 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/auth/login-pin', UserController.loginByPin);
 
 // Manual session endpoint for frontend
-app.get('/api/auth/session', async (req, res) => {
+app.get('/api/auth/session', async (req: Request, res: Response) => {
     try {
         const cookieToken = req.cookies['better-auth.session_token'];
         const bearerToken = req.headers.authorization?.replace('Bearer ', '');
@@ -95,7 +95,7 @@ app.get('/api/auth/session', async (req, res) => {
 });
 
 // Manual logout endpoint - destroys session in DB and clears cookies
-app.post('/api/auth/logout-manual', async (req, res) => {
+app.post('/api/auth/logout-manual', async (req: Request, res: Response) => {
     try {
         const cookieToken = req.cookies['better-auth.session_token'];
         const bearerToken = req.headers.authorization?.replace('Bearer ', '');
@@ -142,12 +142,12 @@ app.use('/api/attendance', attendanceRoutes);
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards
-app.all(/^\/api\/auth\/.*/, (req, res) => {
+app.all(/^\/api\/auth\/.*/, (req: Request, res: Response) => {
     return toNodeHandler(auth)(req, res);
 });
 
 // 5. Final Catch-all for API 404s (Only if no previous route matched)
-app.use('/api', (req, res) => {
+app.use('/api', (req: Request, res: Response) => {
     console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
         error: "Route Not Found",

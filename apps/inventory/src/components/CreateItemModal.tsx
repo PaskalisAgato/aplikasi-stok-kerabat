@@ -100,6 +100,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
         setIsSaving(true);
         let successCount = 0;
         let failCount = 0;
+        let lastError = '';
 
         try {
             for (const item of validDrafts) {
@@ -114,9 +115,10 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         imageUrl: item.imageBase64
                     });
                     successCount++;
-                } catch (err) {
+                } catch (err: any) {
                     console.error(`Failed to save ${item.name}`, err);
                     failCount++;
+                    lastError = err.message || 'Koneksi terputus';
                 }
             }
 
@@ -125,7 +127,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                 setDrafts([createEmptyDraft()]);
                 onClose();
             } else {
-                alert(`Selesai! ${successCount} Berhasil, ${failCount} Gagal. Silakan cek koneksi Anda.`);
+                alert(`Selesai! ${successCount} Berhasil, ${failCount} Gagal.\n\nKeterangan: ${lastError}\n\nSilakan cek data atau koneksi Anda.`);
                 // Keep only failed ones? For now just reset if at least some succeeded to avoid double creation on retry
                 if (successCount > 0) {
                     setDrafts([createEmptyDraft()]);

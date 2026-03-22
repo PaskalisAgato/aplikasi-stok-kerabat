@@ -59,7 +59,7 @@ export class ProductService {
     static async createProduct(data: any) {
         const { name, category, price, margin, imageUrl, ingredients } = data;
         
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: any) => {
             const [newRecipe] = await tx.insert(schema.recipes).values({
                 name,
                 category,
@@ -69,7 +69,7 @@ export class ProductService {
             }).returning();
 
             if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients.map(ing => ({
+                const bomInserts = ingredients.map((ing: any) => ({
                     recipeId: newRecipe.id,
                     inventoryId: ing.ingredientId,
                     quantity: ing.qty.toString()
@@ -84,7 +84,7 @@ export class ProductService {
     static async updateProduct(id: number, data: any) {
         const { name, category, price, margin, imageUrl, ingredients } = data;
 
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: any) => {
             await tx.update(schema.recipes)
                 .set({
                     name,

@@ -1,5 +1,5 @@
 import { db } from './src/db';
-import { users } from './src/db/schema.js';
+import * as schema from './src/db/schema.js';
 import { sql } from 'drizzle-orm';
 
 async function test() {
@@ -8,12 +8,12 @@ async function test() {
         const result = await db.execute(sql`SELECT current_database(), current_user;`);
         console.log('✅ Connection successful:', result.rows);
         
-        const userCount = await db.select().from(users);
-        console.log('👥 User count:', userCount.length);
+        const inventoryCount = await db.execute(sql`SELECT count(*) FROM inventory`);
+        console.log('📦 Inventory count:', inventoryCount.rows[0].count);
         
         process.exit(0);
     } catch (e: any) {
-        console.error('❌ Connection failed:', e.message);
+        console.error('❌ Error checking inventory:', e.message);
         process.exit(1);
     }
 }

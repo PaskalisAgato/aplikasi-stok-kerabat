@@ -58,7 +58,7 @@ export class ProductService {
                 imageUrl,
             }).returning();
             if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients.map(ing => ({
+                const bomInserts = ingredients.map((ing) => ({
                     recipeId: newRecipe.id,
                     inventoryId: ing.ingredientId,
                     quantity: ing.qty.toString()

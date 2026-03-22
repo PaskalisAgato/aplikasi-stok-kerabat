@@ -46,7 +46,7 @@ export class AttendanceService {
             ).limit(1);
 
         if (shift) {
-            const [shiftH, shiftM] = shift.startTime.split(':').map(Number);
+            const [shiftH, shiftM] = (shift.startTime as string).split(':').map(Number);
             const shiftTime = new Date(today);
             shiftTime.setHours(shiftH, shiftM, 0, 0);
             
