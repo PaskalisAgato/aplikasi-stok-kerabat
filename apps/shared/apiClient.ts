@@ -59,6 +59,7 @@ const MAX_RETRIES = 1;
 export async function apiFetch<T = unknown>(
     path: string,
     init: RequestInit = {},
+    asBlob = false,
     retries = MAX_RETRIES
 ): Promise<T> {
     const url = `${API_BASE_URL}${path}`;
@@ -97,23 +98,28 @@ export async function apiFetch<T = unknown>(
         }
 
         if (response.status === 204) return undefined as T;
+        
+        if (asBlob) {
+            return (await response.blob()) as unknown as T;
+        }
+        
         return response.json() as Promise<T>;
 
     } catch (err: any) {
         clearTimeout(timeoutId);
 
+
         const isNetworkError = !(err instanceof ApiError);
         if (isNetworkError && retries > 0) {
             console.warn(`[apiFetch] Koneksi gagal ke ${path}, mencoba ulang...`);
             await new Promise(r => setTimeout(r, 2000));
-            return apiFetch<T>(path, init, retries - 1);
+            return apiFetch<T>(path, init, asBlob, retries - 1);
         }
 
         if (err.name === 'AbortError') {
             throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (60s). Server Render mungkin sedang 'Cold Start'. Harap tunggu.`);
         }
 
-        // Add more detail to generic network errors
         if (isNetworkError) {
              throw new ApiError(0, 'NetworkError', `Gagal terhubung ke Backend: ${err.message || 'Koneksi Ditolak/ISP Memblokir'}. Pastikan rute https://aplikasi-stok-kerabat.onrender.com/api/health bisa dibuka.`);
         }
@@ -126,6 +132,7 @@ export async function apiFetch<T = unknown>(
 export const apiClient = {
     // ---- INVENTORY ----
     getInventory: () => apiFetch<any[]>('/inventory'),
+    exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
     getItemMovements: (id: number) => apiFetch<any[]>(`/inventory/${id}/movements`),
     addInventoryItem: (data: unknown) => apiFetch<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
     updateInventoryItem: (id: number, data: unknown) => apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -176,4 +183,5 @@ export const apiClient = {
         return apiFetch<any[]>(`/attendance/history?${query}`);
     },
 };
+
 

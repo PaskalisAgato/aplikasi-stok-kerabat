@@ -46,26 +46,23 @@ function App() {
     return true;
   });
 
-  const handleExportCSV = () => {
-    if (inventoryList.length === 0) {
-      alert('Tidak ada data yang bisa diekspor');
-      return;
+  const handleExportExcel = async () => {
+    try {
+      const blob = await apiClient.exportInventoryExcel();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Inventory_Kerabat_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed', error);
+      alert('Gagal mengekspor data.');
     }
-    const headers = ['Nama Bahan', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Min Stok', 'Status', 'Harga Beli per Unit (Rp)'];
-    const rows = inventoryList.map(item => [
-      item.name, item.category, item.currentStock, item.unit, item.minStock, item.status, item.pricePerUnit
-    ]);
-    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const fileName = `data_stok_${new Date().toISOString().split('T')[0]}.csv`;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
+
 
   const InventorySidebar = (
     <div className="space-y-10 animate-in fade-in slide-in-from-left duration-700">
@@ -95,10 +92,11 @@ function App() {
                 <span className="material-symbols-outlined font-black">add_circle</span>
                 Bahan Baru
             </button>
-            <button onClick={handleExportCSV} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-[var(--border-dim)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all active:scale-[0.97]">
-                <span className="material-symbols-outlined text-lg font-black">download</span>
-                Ekspor CSV
+            <button onClick={handleExportExcel} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-[var(--border-dim)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all active:scale-[0.97]">
+                <span className="material-symbols-outlined text-lg font-black">table_chart</span>
+                Ekspor Excel
             </button>
+
         </div>
     </div>
   );

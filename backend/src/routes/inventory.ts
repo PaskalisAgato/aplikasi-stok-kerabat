@@ -1,10 +1,172 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { eq, sql, and, gte } from 'drizzle-orm';
+import { eq, sql, and, gte, desc } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth.js';
+import ExcelJS from 'exceljs';
 
 export const inventoryRouter = Router();
+
+// ... existing routes ...
+
+// GET Export Excel
+inventoryRouter.get('/export', async (req: Request, res: Response) => {
+    try {
+        const items = await db.select().from(schema.inventory);
+        const movements = await db.select({
+            id: schema.stockMovements.id,
+            inventoryId: schema.stockMovements.inventoryId,
+            inventoryName: schema.inventory.name,
+            type: schema.stockMovements.type,
+            quantity: schema.stockMovements.quantity,
+            reason: schema.stockMovements.reason,
+            createdAt: schema.stockMovements.createdAt
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .orderBy(desc(schema.stockMovements.createdAt));
+
+        const allSuppliers = await db.select().from(schema.suppliers);
+
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Kerabat POS';
+        workbook.lastModifiedBy = 'Kerabat POS';
+        workbook.created = new Date();
+
+        // 1. Sheet Data Inventory
+        const inventorySheet = workbook.addWorksheet('Data Inventory');
+        inventorySheet.columns = [
+            { header: 'ID', key: 'id', width: 5 },
+            { header: 'Nama Barang', key: 'name', width: 25 },
+            { header: 'Kategori', key: 'category', width: 15 },
+            { header: 'Satuan', key: 'unit', width: 10 },
+            { header: 'Stok Awal', key: 'initial', width: 12 },
+            { header: 'Stok Masuk', key: 'in', width: 12 },
+            { header: 'Stok Keluar', key: 'out', width: 12 },
+            { header: 'Stok Akhir', key: 'final', width: 12 },
+            { header: 'Harga Beli', key: 'price', width: 15 },
+            { header: 'Nilai Stok', key: 'value', width: 15 },
+            { header: 'Min Stok', key: 'min', width: 12 },
+        ];
+
+        // Style header
+        inventorySheet.getRow(1).font = { bold: true };
+        inventorySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+        items.forEach((item, index) => {
+            const rowIdx = index + 2;
+            inventorySheet.addRow({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                unit: item.unit,
+                initial: 0,
+                price: parseFloat(item.pricePerUnit),
+                min: parseFloat(item.minStock)
+            });
+
+            // Formulas targeting 'Log Transaksi'
+            inventorySheet.getCell(`F${rowIdx}`).value = {
+                formula: `SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "IN")`,
+                result: 0
+            };
+            inventorySheet.getCell(`G${rowIdx}`).value = {
+                formula: `SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "OUT") + SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "WASTE")`,
+                result: 0
+            };
+            inventorySheet.getCell(`H${rowIdx}`).value = {
+                formula: `E${rowIdx} + F${rowIdx} - G${rowIdx}`,
+                result: parseFloat(item.currentStock)
+            };
+            inventorySheet.getCell(`J${rowIdx}`).value = {
+                formula: `H${rowIdx} * I${rowIdx}`,
+                result: parseFloat(item.currentStock) * parseFloat(item.pricePerUnit)
+            };
+
+            // Conditional Formatting for Low Stock (RED)
+            inventorySheet.addConditionalFormatting({
+                ref: `H${rowIdx}`,
+                rules: [
+                    {
+                        type: 'expression',
+                        formulae: [`H${rowIdx}<=K${rowIdx}`],
+                        priority: 1,
+                        style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFFC7CE' } }, font: { color: { argb: 'FF9C0006' } } }
+                    }
+                ]
+            });
+
+        });
+
+        // 2. Sheet Log Transaksi
+        const logSheet = workbook.addWorksheet('Log Transaksi');
+        logSheet.columns = [
+            { header: 'Tanggal', key: 'date', width: 20 },
+            { header: 'ID Barang', key: 'id', width: 10 },
+            { header: 'Nama Barang', key: 'name', width: 25 },
+            { header: 'Jenis', key: 'type', width: 10 },
+            { header: 'Jumlah', key: 'qty', width: 12 },
+            { header: 'Keterangan', key: 'note', width: 30 },
+        ];
+        logSheet.getRow(1).font = { bold: true };
+        logSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+        movements.forEach(m => {
+            logSheet.addRow({
+                date: m.createdAt.toLocaleString('id-ID'),
+                id: m.inventoryId,
+                name: m.inventoryName,
+                type: m.type,
+                qty: parseFloat(m.quantity),
+                note: m.reason || '-'
+            });
+        });
+
+        // 3. Sheet Supplier
+        const supplierSheet = workbook.addWorksheet('Supplier');
+        supplierSheet.columns = [
+            { header: 'Nama Supplier', key: 'name', width: 25 },
+            { header: 'Kontak', key: 'contact', width: 20 },
+            { header: 'Alamat', key: 'address', width: 40 },
+        ];
+        supplierSheet.getRow(1).font = { bold: true };
+        supplierSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        allSuppliers.forEach(s => {
+            supplierSheet.addRow({
+                name: s.name,
+                contact: s.contact || '-',
+                address: s.address || '-'
+            });
+        });
+
+        // 4. Sheet Dashboard
+        const dashSheet = workbook.addWorksheet('Dashboard');
+        dashSheet.getCell('A1').value = 'RINGKASAN INVENTORY';
+        dashSheet.getCell('A1').font = { size: 16, bold: true };
+        
+        dashSheet.getCell('A3').value = 'Total Nilai Stok';
+        dashSheet.getCell('B3').value = { formula: "SUM('Data Inventory'!J:J)" };
+        dashSheet.getCell('B3').numFmt = '#,##0';
+        dashSheet.getCell('B3').font = { bold: true };
+
+        dashSheet.getCell('A4').value = 'Total Item';
+        dashSheet.getCell('B4').value = { formula: "COUNTA('Data Inventory'!B:B) - 1" };
+        dashSheet.getCell('B4').font = { bold: true };
+
+        dashSheet.getCell('A6').value = 'NOTIFIKASI STOK MINIMUM';
+        dashSheet.getCell('A6').font = { bold: true, color: { argb: 'FFFF0000' } };
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Inventory_Kerabat_POS.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.status(200).end();
+
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Failed to generate export' });
+    }
+});
 
 // GET all inventory items
 inventoryRouter.get('/', async (req: Request, res: Response) => {
@@ -289,3 +451,4 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
         res.status(500).json({ error: (error as Error).message || 'Failed to record stock movement' });
     }
 });
+
