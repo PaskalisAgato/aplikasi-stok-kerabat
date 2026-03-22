@@ -1,12 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
-const app_1 = __importDefault(require("./app"));
-const PORT = process.env.PORT || 5000;
-app_1.default.listen(PORT, () => {
+import 'dotenv/config';
+import app from './app.js';
+const PORT = Number(process.env.PORT) || 5000;
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Kerabat Modular Backend is running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

@@ -1,0 +1,56 @@
+
+> backend@1.0.1 build
+> tsc
+
+src/check_locks.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/check_table.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/clear_images.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/config/auth.ts(5,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/controllers/attendance.controller.ts(2,35): error TS2307: Cannot find module '../services/attendance.service' or its corresponding type declarations.
+src/controllers/product.controller.ts(2,32): error TS2307: Cannot find module '../services/product.service' or its corresponding type declarations.
+src/controllers/shift.controller.ts(2,30): error TS2307: Cannot find module '../services/shift.service' or its corresponding type declarations.
+src/controllers/transaction.controller.ts(2,36): error TS2307: Cannot find module '../services/transaction.service' or its corresponding type declarations.
+src/controllers/user.controller.ts(2,29): error TS2307: Cannot find module '../services/user.service' or its corresponding type declarations.
+src/controllers/user.controller.ts(3,22): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../config/auth.js'?
+src/debug_inventory.ts(1,20): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_inventory.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './db/schema.js'?
+src/debug_inventory_count.ts(1,20): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_inventory_count.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './db/schema.js'?
+src/debug_inventory_ids.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_inventory_ids.ts(8,60): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/debug_inventory_no_images.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_inventory_row.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_inventory_row1.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_minimal_inventory.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_raw_inventory.ts(1,22): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_users_count.ts(1,20): error TS2834: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Consider adding an extension to the import path.
+src/debug_users_count.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './db/schema.js'?
+src/middleware/auth.middleware.ts(2,36): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../lib/session.js'?
+src/server.ts(2,17): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './app.js'?
+src/services/attendance.service.ts(1,20): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../config/db.js'?
+src/services/attendance.service.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/services/product.service.ts(2,20): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../config/db.js'?
+src/services/product.service.ts(3,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/services/product.service.ts(8,42): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/product.service.ts(22,33): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/services/product.service.ts(28,31): error TS7006: Parameter 'recipe' implicitly has an 'any' type.
+src/services/product.service.ts(62,44): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/product.service.ts(87,44): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/shift.service.ts(1,20): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../config/db.js'?
+src/services/shift.service.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/services/transaction.service.ts(2,20): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../config/db.js'?
+src/services/transaction.service.ts(3,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/services/transaction.service.ts(33,27): error TS7006: Parameter 'sale' implicitly has an 'any' type.
+src/services/transaction.service.ts(35,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/services/transaction.service.ts(110,44): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/transaction.service.ts(233,44): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/services/transaction.service.ts(330,44): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/test-insert.ts(1,20): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './config/db.js'?
+src/test-insert.ts(2,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './db/schema.js'?
+npm error Lifecycle script `build` failed with error:
+npm error code 2
+npm error path /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/backend
+npm error workspace backend@1.0.1
+npm error location /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/backend
+npm error command failed
+npm error command sh -c tsc

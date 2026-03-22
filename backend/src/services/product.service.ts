@@ -1,34 +1,34 @@
 import { eq, inArray } from 'drizzle-orm';
-import { db } from '../config/db';
-import * as schema from '../db/schema';
+import { db } from '../config/db.js';
+import * as schema from '../db/schema.js';
 
 export class ProductService {
     static async getAllProducts() {
         const allRecipes = await db.select().from(schema.recipes).where(eq(schema.recipes.isActive, true));
-        const recipeIds = allRecipes.map(r => r.id);
+        const recipeIds = allRecipes.map((r: typeof schema.recipes.$inferSelect) => r.id);
         
-        let allIngredients: any[] = [];
-        let inventoryItems: Record<number, any> = {};
+        let allIngredients: (typeof schema.recipeIngredients.$inferSelect)[] = [];
+        let inventoryItems: Record<number, typeof schema.inventory.$inferSelect> = {};
 
         if (recipeIds.length > 0) {
             allIngredients = await db.select()
                 .from(schema.recipeIngredients)
                 .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
                 
-            const invIds = Array.from(new Set(allIngredients.map(i => i.inventoryId)));
+            const invIds = Array.from(new Set(allIngredients.map((i: typeof schema.recipeIngredients.$inferSelect) => i.inventoryId)));
             
             if (invIds.length > 0) {
                 const invRows = await db.select().from(schema.inventory).where(inArray(schema.inventory.id, invIds));
-                invRows.forEach(row => {
+                invRows.forEach((row: typeof schema.inventory.$inferSelect) => {
                     inventoryItems[row.id] = row;
                 });
             }
         }
 
-        return allRecipes.map(recipe => {
+        return allRecipes.map((recipe: typeof schema.recipes.$inferSelect) => {
             const ingredients = allIngredients
-                .filter(ing => ing.recipeId === recipe.id)
-                .map(ing => {
+                .filter((ing: typeof schema.recipeIngredients.$inferSelect) => ing.recipeId === recipe.id)
+                .map((ing: typeof schema.recipeIngredients.$inferSelect) => {
                     const inv = inventoryItems[ing.inventoryId];
                     return {
                         ingredientId: ing.inventoryId,

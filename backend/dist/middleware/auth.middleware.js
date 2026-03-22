@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireAdmin = exports.requireAuth = void 0;
-const session_1 = require("../lib/session");
-const requireAuth = async (req, res, next) => {
+import { getSessionManually } from '../lib/session.js';
+export const requireAuth = async (req, res, next) => {
     try {
-        const session = await (0, session_1.getSessionManually)(req);
+        const session = await getSessionManually(req);
         if (!session) {
             return res.status(401).json({ error: "Unauthorized / Session Expired" });
         }
@@ -16,9 +13,8 @@ const requireAuth = async (req, res, next) => {
         res.status(500).json({ error: "Auth Validation Error" });
     }
 };
-exports.requireAuth = requireAuth;
-const requireAdmin = async (req, res, next) => {
-    await (0, exports.requireAuth)(req, res, () => {
+export const requireAdmin = async (req, res, next) => {
+    await requireAuth(req, res, () => {
         const user = req.user;
         if (user && user.role === 'Admin') {
             next();
@@ -28,4 +24,3 @@ const requireAdmin = async (req, res, next) => {
         }
     });
 };
-exports.requireAdmin = requireAdmin;

@@ -1,11 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const db_1 = require("./db");
-require("dotenv/config");
+import { pool } from './db/index.js';
+import 'dotenv/config';
 async function checkLocks() {
     console.log('Checking database locks and active sessions...');
     try {
-        const client = await db_1.pool.connect();
+        const client = await pool.connect();
         try {
             // Query for active locks and what they are waiting for
             const query = `

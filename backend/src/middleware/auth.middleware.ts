@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getSessionManually } from '../lib/session';
+import { getSessionManually } from '../lib/session.js';
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {

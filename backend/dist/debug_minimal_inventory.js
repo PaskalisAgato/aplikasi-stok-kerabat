@@ -1,11 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const db_1 = require("./db");
-require("dotenv/config");
+import { pool } from './db/index.js';
+import 'dotenv/config';
 async function testMinimalInventory() {
     console.log('Testing MINIMAL Inventory Fetch (ID ONLY)...');
     try {
-        const result = await db_1.pool.query('SELECT id FROM inventory LIMIT 1');
+        const result = await pool.query('SELECT id FROM inventory LIMIT 1');
         console.log(`Success! Fetched ID: ${result.rows[0]?.id}`);
         process.exit(0);
     }

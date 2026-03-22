@@ -1,49 +1,13 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = exports.pool = void 0;
-const node_postgres_1 = require("drizzle-orm/node-postgres");
-const pg_1 = require("pg");
-const schema = __importStar(require("./schema"));
-require("dotenv/config");
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema.js';
+import 'dotenv/config';
 console.log('--- DB Module: Initializing PG Pool ---');
 if (!process.env.DATABASE_URL) {
     console.error('!!! FATAL: DATABASE_URL is missing in db/index.ts');
 }
 // Create a Postgres connection pool
-exports.pool = new pg_1.Pool({
+export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 10, // Reduced from 20 to be safer on free tiers
     ssl: {
@@ -52,13 +16,13 @@ exports.pool = new pg_1.Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
 });
-exports.pool.on('connect', () => {
+pool.on('connect', () => {
     console.log('--- DB Module: Pool connected to Postgres ---');
 });
 // Initialize Drizzle ORM
-exports.db = (0, node_postgres_1.drizzle)(exports.pool, { schema });
+export const db = drizzle(pool, { schema });
 // Relaxed error handler: Don't crash the whole app on idle errors
-exports.pool.on('error', (err) => {
+pool.on('error', (err) => {
     console.error('--- DB Pool Error (Non-Fatal) ---');
     console.error(err.message);
     // process.exit(-1); // REMOVED: Don't kill the server, let PG pool handle reconnections

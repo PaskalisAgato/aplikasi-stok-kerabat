@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TransactionService } from '../services/transaction.service';
+import { TransactionService } from '../services/transaction.service.js';
 
 export class TransactionController {
     static async getAll(req: Request, res: Response) {

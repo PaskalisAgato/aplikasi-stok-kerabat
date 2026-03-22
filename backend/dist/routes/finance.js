@@ -1,49 +1,13 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.financeRouter = void 0;
-const express_1 = require("express");
-const db_1 = require("../db");
-const schema = __importStar(require("../db/schema"));
-const drizzle_orm_1 = require("drizzle-orm");
-const auth_1 = require("../middleware/auth");
-exports.financeRouter = (0, express_1.Router)();
+import { Router } from 'express';
+import { db } from '../db/index.js';
+import * as schema from '../db/schema.js';
+import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { requireAdmin } from '../middleware/auth.js';
+export const financeRouter = Router();
 // GET all expenses
-exports.financeRouter.get('/expenses', async (req, res) => {
+financeRouter.get('/expenses', async (req, res) => {
     try {
-        const _expenses = await db_1.db.select().from(schema.expenses).orderBy((0, drizzle_orm_1.desc)(schema.expenses.expenseDate));
+        const _expenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
         res.json(_expenses);
     }
     catch (error) {
@@ -52,7 +16,7 @@ exports.financeRouter.get('/expenses', async (req, res) => {
     }
 });
 // POST new expense
-exports.financeRouter.post('/expenses', async (req, res) => {
+financeRouter.post('/expenses', async (req, res) => {
     try {
         const { title, category, amount, date, receiptUrl } = req.body;
         // Better validation: amount can be 0, but must be defined and a number
@@ -67,7 +31,7 @@ exports.financeRouter.post('/expenses', async (req, res) => {
                 return res.status(400).json({ error: 'Invalid date format' });
             }
         }
-        const [newExpense] = await db_1.db.insert(schema.expenses).values({
+        const [newExpense] = await db.insert(schema.expenses).values({
             title,
             category,
             amount: amount.toString(),
@@ -82,14 +46,14 @@ exports.financeRouter.post('/expenses', async (req, res) => {
     }
 });
 // DELETE expense
-exports.financeRouter.delete('/expenses/:id', async (req, res) => {
+financeRouter.delete('/expenses/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid expense ID' });
         }
-        const [deletedExpense] = await db_1.db.delete(schema.expenses)
-            .where((0, drizzle_orm_1.eq)(schema.expenses.id, id))
+        const [deletedExpense] = await db.delete(schema.expenses)
+            .where(eq(schema.expenses.id, id))
             .returning();
         if (!deletedExpense) {
             return res.status(404).json({ error: 'Expense not found' });
@@ -102,7 +66,7 @@ exports.financeRouter.delete('/expenses/:id', async (req, res) => {
     }
 });
 // UPDATE expense
-exports.financeRouter.put('/expenses/:id', async (req, res) => {
+financeRouter.put('/expenses/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
@@ -119,7 +83,7 @@ exports.financeRouter.put('/expenses/:id', async (req, res) => {
                 return res.status(400).json({ error: 'Invalid date format' });
             }
         }
-        const [updatedExpense] = await db_1.db.update(schema.expenses)
+        const [updatedExpense] = await db.update(schema.expenses)
             .set({
             title,
             category,
@@ -127,7 +91,7 @@ exports.financeRouter.put('/expenses/:id', async (req, res) => {
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate
         })
-            .where((0, drizzle_orm_1.eq)(schema.expenses.id, id))
+            .where(eq(schema.expenses.id, id))
             .returning();
         if (!updatedExpense) {
             return res.status(404).json({ error: 'Expense not found' });
@@ -140,31 +104,31 @@ exports.financeRouter.put('/expenses/:id', async (req, res) => {
     }
 });
 // GET Dashboard & P&L Report Summary
-exports.financeRouter.get('/reports', auth_1.requireAdmin, async (req, res) => {
+financeRouter.get('/reports', requireAdmin, async (req, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         // 1. Query Total Sales (All Time)
-        const allSales = await db_1.db.select({ total: schema.sales.totalAmount }).from(schema.sales);
+        const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
         const revenue = allSales.reduce((sum, current) => sum + parseFloat(current.total), 0);
         // 2. Query Today's Sales
-        const todaySales = await db_1.db.select({ total: schema.sales.totalAmount })
+        const todaySales = await db.select({ total: schema.sales.totalAmount })
             .from(schema.sales)
-            .where((0, drizzle_orm_1.gte)(schema.sales.createdAt, today));
+            .where(gte(schema.sales.createdAt, today));
         const revenueToday = todaySales.reduce((sum, current) => sum + parseFloat(current.total), 0);
         // 3. Query Total Expenses
-        const allExpenses = await db_1.db.select({ total: schema.expenses.amount }).from(schema.expenses);
+        const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
         const totalExpenses = allExpenses.reduce((sum, current) => sum + parseFloat(current.total), 0);
         // 4. Get Top 5 Menus (Recipe Sales Volume)
-        const topMenusRaw = await db_1.db.select({
+        const topMenusRaw = await db.select({
             recipeId: schema.saleItems.recipeId,
             name: schema.recipes.name,
-            totalQty: (0, drizzle_orm_1.sql) `sum(${schema.saleItems.quantity})`
+            totalQty: sql `sum(${schema.saleItems.quantity})`
         })
             .from(schema.saleItems)
-            .innerJoin(schema.recipes, (0, drizzle_orm_1.eq)(schema.saleItems.recipeId, schema.recipes.id))
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
             .groupBy(schema.saleItems.recipeId, schema.recipes.name)
-            .orderBy((0, drizzle_orm_1.sql) `sum(${schema.saleItems.quantity}) DESC`)
+            .orderBy(sql `sum(${schema.saleItems.quantity}) DESC`)
             .limit(5);
         res.json({
             revenue,
@@ -180,42 +144,45 @@ exports.financeRouter.get('/reports', auth_1.requireAdmin, async (req, res) => {
     }
 });
 // GET HPP (COGS) Analysis
-exports.financeRouter.get('/hpp', auth_1.requireAdmin, async (req, res) => {
+financeRouter.get('/hpp', requireAdmin, async (req, res) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         // 1. Get all sale items in last 30 days
-        const salesInPeriod = await db_1.db.select({
+        const salesInPeriod = await db.select({
             id: schema.sales.id,
             createdAt: schema.sales.createdAt
         })
             .from(schema.sales)
-            .where((0, drizzle_orm_1.gte)(schema.sales.createdAt, thirtyDaysAgo));
-        const saleIds = salesInPeriod.map(s => s.id);
+            .where(gte(schema.sales.createdAt, thirtyDaysAgo));
+        const saleIds = salesInPeriod.map((s) => s.id);
         if (saleIds.length === 0) {
             return res.json({ totalHPP: 0, ingredientsHPP: [], recipeHPP: [] });
         }
-        const items = await db_1.db.select()
+        const items = await db.select()
             .from(schema.saleItems)
-            .where((0, drizzle_orm_1.inArray)(schema.saleItems.saleId, saleIds));
+            .where(inArray(schema.saleItems.saleId, saleIds));
         // 2. Fetch BOM for all affected recipes
-        const recipeIds = [...new Set(items.map(i => i.recipeId))];
-        const boms = await db_1.db.select({
-            recipeId: schema.recipeIngredients.recipeId,
-            inventoryId: schema.recipeIngredients.inventoryId,
-            usageQty: schema.recipeIngredients.quantity,
-            ingredientName: schema.inventory.name,
-            pricePerUnit: schema.inventory.pricePerUnit
-        })
-            .from(schema.recipeIngredients)
-            .innerJoin(schema.inventory, (0, drizzle_orm_1.eq)(schema.recipeIngredients.inventoryId, schema.inventory.id))
-            .where((0, drizzle_orm_1.inArray)(schema.recipeIngredients.recipeId, recipeIds));
+        const recipeIds = [...new Set(items.map((i) => i.recipeId))];
+        let boms = [];
+        if (recipeIds.length > 0) {
+            boms = await db.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                usageQty: schema.recipeIngredients.quantity,
+                ingredientName: schema.inventory.name,
+                pricePerUnit: schema.inventory.pricePerUnit
+            })
+                .from(schema.recipeIngredients)
+                .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+                .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        }
         // 3. Calculate HPP
         let totalHPP = 0;
         const ingredientUsage = {};
         const recipeCosts = {};
         for (const item of items) {
-            const itemBoms = boms.filter(b => b.recipeId === item.recipeId);
+            const itemBoms = boms.filter((b) => b.recipeId === item.recipeId);
             let itemTotalCost = 0;
             for (const bom of itemBoms) {
                 const cost = parseFloat(bom.usageQty) * item.quantity * parseFloat(bom.pricePerUnit);
@@ -243,9 +210,9 @@ exports.financeRouter.get('/hpp', auth_1.requireAdmin, async (req, res) => {
     }
 });
 // GET all expense categories
-exports.financeRouter.get('/expenses/categories', async (req, res) => {
+financeRouter.get('/expenses/categories', async (req, res) => {
     try {
-        const cats = await db_1.db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        const cats = await db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
         res.json(cats);
     }
     catch (error) {
@@ -254,12 +221,12 @@ exports.financeRouter.get('/expenses/categories', async (req, res) => {
     }
 });
 // POST new expense category
-exports.financeRouter.post('/expenses/categories', auth_1.requireAdmin, async (req, res) => {
+financeRouter.post('/expenses/categories', requireAdmin, async (req, res) => {
     try {
         const { name, icon } = req.body;
         if (!name)
             return res.status(400).json({ error: 'Category name is required' });
-        const [newCat] = await db_1.db.insert(schema.expenseCategories).values({
+        const [newCat] = await db.insert(schema.expenseCategories).values({
             name,
             icon: icon || 'category'
         }).returning();
@@ -271,13 +238,13 @@ exports.financeRouter.post('/expenses/categories', auth_1.requireAdmin, async (r
     }
 });
 // DELETE expense category
-exports.financeRouter.delete('/expenses/categories/:id', auth_1.requireAdmin, async (req, res) => {
+financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id))
             return res.status(400).json({ error: 'Invalid ID' });
-        const [deleted] = await db_1.db.delete(schema.expenseCategories)
-            .where((0, drizzle_orm_1.eq)(schema.expenseCategories.id, id))
+        const [deleted] = await db.delete(schema.expenseCategories)
+            .where(eq(schema.expenseCategories.id, id))
             .returning();
         if (!deleted)
             return res.status(404).json({ error: 'Category not found' });

@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandler = void 0;
-const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, next) => {
     console.error(`[ERROR] ${err.message}`);
     if (err.stack)
         console.error(err.stack);
@@ -10,4 +7,3 @@ const errorHandler = (err, req, res, next) => {
         detail: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
 };
-exports.errorHandler = errorHandler;

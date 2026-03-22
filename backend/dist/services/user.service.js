@@ -1,62 +1,23 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserService = void 0;
-const crypto_1 = __importDefault(require("crypto"));
-const db_1 = require("../config/db");
-const schema_1 = require("../db/schema");
-const schema = __importStar(require("../db/schema"));
-const drizzle_orm_1 = require("drizzle-orm");
-class UserService {
+import crypto from 'crypto';
+import { db } from '../config/db.js';
+import { users } from '../db/schema.js';
+import * as schema from '../db/schema.js';
+import { desc, eq, and } from 'drizzle-orm';
+export class UserService {
     static async loginByPin(role, pin) {
-        const [user] = await db_1.db.select()
-            .from(schema_1.users)
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.users.role, role), (0, drizzle_orm_1.eq)(schema_1.users.pin, pin)))
+        const [user] = await db.select()
+            .from(users)
+            .where(and(eq(users.role, role), eq(users.pin, pin)))
             .limit(1);
         return user;
     }
     static async getAllUsers() {
-        return await db_1.db.select().from(schema_1.users).orderBy((0, drizzle_orm_1.desc)(schema_1.users.createdAt));
+        return await db.select().from(users).orderBy(desc(users.createdAt));
     }
     static async createUser(data, currentUserId) {
         const { name, email, role, pin } = data;
-        const [newUser] = await db_1.db.insert(schema_1.users).values({
-            id: crypto_1.default.randomUUID(),
+        const [newUser] = await db.insert(users).values({
+            id: crypto.randomUUID(),
             name,
             email,
             emailVerified: true,
@@ -65,7 +26,7 @@ class UserService {
             createdAt: new Date(),
             updatedAt: new Date()
         }).returning();
-        await db_1.db.insert(schema.auditLogs).values({
+        await db.insert(schema.auditLogs).values({
             userId: currentUserId,
             action: `CREATE_USER: ${newUser.name} (${newUser.role})`,
             tableName: 'user',
@@ -76,8 +37,8 @@ class UserService {
     }
     static async updateUser(id, data, currentUserId) {
         const { name, email, role, pin } = data;
-        const oldUser = await db_1.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, id)).limit(1);
-        const [updatedUser] = await db_1.db.update(schema_1.users)
+        const oldUser = await db.select().from(users).where(eq(users.id, id)).limit(1);
+        const [updatedUser] = await db.update(users)
             .set({
             name,
             email,
@@ -85,10 +46,10 @@ class UserService {
             pin,
             updatedAt: new Date()
         })
-            .where((0, drizzle_orm_1.eq)(schema_1.users.id, id))
+            .where(eq(users.id, id))
             .returning();
         if (updatedUser) {
-            await db_1.db.insert(schema.auditLogs).values({
+            await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
                 action: `UPDATE_USER: ${updatedUser.name}`,
                 tableName: 'user',
@@ -100,11 +61,11 @@ class UserService {
         return updatedUser;
     }
     static async deleteUser(id, currentUserId) {
-        const [deletedUser] = await db_1.db.delete(schema_1.users)
-            .where((0, drizzle_orm_1.eq)(schema_1.users.id, id))
+        const [deletedUser] = await db.delete(users)
+            .where(eq(users.id, id))
             .returning();
         if (deletedUser) {
-            await db_1.db.insert(schema.auditLogs).values({
+            await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
                 action: `DELETE_USER: ${deletedUser.name}`,
                 tableName: 'user',
@@ -115,11 +76,11 @@ class UserService {
         return deletedUser;
     }
     static async createSessionManual(userId) {
-        const token = crypto_1.default.randomBytes(32).toString('hex');
+        const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
-        const [session] = await db_1.db.insert(schema.sessions).values({
-            id: crypto_1.default.randomUUID(),
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const [session] = await db.insert(schema.sessions).values({
+            id: crypto.randomUUID(),
             userId,
             token: hashedToken,
             createdAt: new Date(),
@@ -129,21 +90,21 @@ class UserService {
         return session;
     }
     static async getSessionByToken(token) {
-        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
-        const [session] = await db_1.db.select({
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const [session] = await db.select({
             id: schema.sessions.id,
             userId: schema.sessions.userId,
             expiresAt: schema.sessions.expiresAt,
             user: {
-                id: schema_1.users.id,
-                name: schema_1.users.name,
-                email: schema_1.users.email,
-                role: schema_1.users.role
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
             }
         })
             .from(schema.sessions)
-            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
-            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+            .innerJoin(users, eq(schema.sessions.userId, users.id))
+            .where(eq(schema.sessions.token, hashedToken))
             .limit(1);
         if (session && new Date(session.expiresAt) > new Date()) {
             return session;
@@ -152,20 +113,20 @@ class UserService {
     }
     // New: Retrieve session by its exact UUID (useful for the Bearer token check from localStorage)
     static async getSessionById(sessionId) {
-        const [session] = await db_1.db.select({
+        const [session] = await db.select({
             id: schema.sessions.id,
             userId: schema.sessions.userId,
             expiresAt: schema.sessions.expiresAt,
             user: {
-                id: schema_1.users.id,
-                name: schema_1.users.name,
-                email: schema_1.users.email,
-                role: schema_1.users.role
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
             }
         })
             .from(schema.sessions)
-            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
-            .where((0, drizzle_orm_1.eq)(schema.sessions.id, sessionId))
+            .innerJoin(users, eq(schema.sessions.userId, users.id))
+            .where(eq(schema.sessions.id, sessionId))
             .limit(1);
         if (session && new Date(session.expiresAt) > new Date()) {
             return session;
@@ -174,20 +135,20 @@ class UserService {
     }
     // New: Retrieve session by already hashed token (useful for cookie check since cookie stores the hash)
     static async getSessionByHashedToken(hashedToken) {
-        const [session] = await db_1.db.select({
+        const [session] = await db.select({
             id: schema.sessions.id,
             userId: schema.sessions.userId,
             expiresAt: schema.sessions.expiresAt,
             user: {
-                id: schema_1.users.id,
-                name: schema_1.users.name,
-                email: schema_1.users.email,
-                role: schema_1.users.role
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role
             }
         })
             .from(schema.sessions)
-            .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema.sessions.userId, schema_1.users.id))
-            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+            .innerJoin(users, eq(schema.sessions.userId, users.id))
+            .where(eq(schema.sessions.token, hashedToken))
             .limit(1);
         if (session && new Date(session.expiresAt) > new Date()) {
             return session;
@@ -196,28 +157,28 @@ class UserService {
     }
     // Delete session by hashing a plaintext token first
     static async deleteSessionByToken(token) {
-        const hashedToken = crypto_1.default.createHash('sha256').update(token).digest('hex');
-        const deleted = await db_1.db.delete(schema.sessions)
-            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.token, hashedToken))
             .returning();
         return deleted.length > 0;
     }
     // Delete session by its UUID primary key (used when Bearer token = session.id)
     static async deleteSessionById(sessionId) {
-        const deleted = await db_1.db.delete(schema.sessions)
-            .where((0, drizzle_orm_1.eq)(schema.sessions.id, sessionId))
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.id, sessionId))
             .returning();
         return deleted.length > 0;
     }
     // Delete session by already-hashed token (used when cookie stores the hash)
     static async deleteSessionByHashedToken(hashedToken) {
-        const deleted = await db_1.db.delete(schema.sessions)
-            .where((0, drizzle_orm_1.eq)(schema.sessions.token, hashedToken))
+        const deleted = await db.delete(schema.sessions)
+            .where(eq(schema.sessions.token, hashedToken))
             .returning();
         return deleted.length > 0;
     }
     static async logAction(userId, action, tableName, oldData, newData) {
-        await db_1.db.insert(schema.auditLogs).values({
+        await db.insert(schema.auditLogs).values({
             userId,
             action,
             tableName,
@@ -227,4 +188,3 @@ class UserService {
         });
     }
 }
-exports.UserService = UserService;

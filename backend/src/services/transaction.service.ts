@@ -1,6 +1,6 @@
 import { eq, sql, desc, and, inArray } from 'drizzle-orm';
-import { db } from '../config/db';
-import * as schema from '../db/schema';
+import { db } from '../config/db.js';
+import * as schema from '../db/schema.js';
 
 export class TransactionService {
 
@@ -30,9 +30,9 @@ export class TransactionService {
         .from(schema.saleItems)
         .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id));
 
-        return _sales.map(sale => ({
+        return _sales.map((sale: any) => ({
             ...sale,
-            items: _items.filter(i => i.saleId === sale.id)
+            items: _items.filter((i: any) => i.saleId === sale.id)
         }));
     }
 
@@ -107,7 +107,7 @@ export class TransactionService {
             paymentMethod: paymentMethod || 'CASH'
         };
 
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: any) => {
             const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
 
             // 1. Bulk insert saleItems
@@ -230,7 +230,7 @@ export class TransactionService {
 
     // 4. UPDATE TRANSACTION
     static async updateTransaction(saleId: number, data: any, adminId: string) {
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: any) => {
             const oldSaleArr = await tx.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
             if (oldSaleArr.length === 0) throw new Error('Transaction not found');
             const oldSale = oldSaleArr[0];
@@ -327,7 +327,7 @@ export class TransactionService {
 
     // 5. DELETE TRANSACTION
     static async deleteTransaction(saleId: number, adminId: string) {
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: any) => {
             const oldSaleArr = await tx.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
             if (oldSaleArr.length === 0) throw new Error('Transaction not found');
             const oldSale = oldSaleArr[0];

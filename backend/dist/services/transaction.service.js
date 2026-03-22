@@ -1,46 +1,10 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionService = void 0;
-const drizzle_orm_1 = require("drizzle-orm");
-const db_1 = require("../config/db");
-const schema = __importStar(require("../db/schema"));
-class TransactionService {
+import { eq, sql, desc, and, inArray } from 'drizzle-orm';
+import { db } from '../config/db.js';
+import * as schema from '../db/schema.js';
+export class TransactionService {
     // 1. GET ALL TRANSACTIONS
     static async getAllTransactions() {
-        const _sales = await db_1.db.select({
+        const _sales = await db.select({
             id: schema.sales.id,
             totalAmount: schema.sales.totalAmount,
             paymentMethod: schema.sales.paymentMethod,
@@ -48,10 +12,10 @@ class TransactionService {
             cashierName: schema.users.name,
         })
             .from(schema.sales)
-            .innerJoin(schema.users, (0, drizzle_orm_1.eq)(schema.sales.userId, schema.users.id))
-            .orderBy((0, drizzle_orm_1.desc)(schema.sales.createdAt));
+            .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+            .orderBy(desc(schema.sales.createdAt));
         // Fetch all items to attach to sales
-        const _items = await db_1.db.select({
+        const _items = await db.select({
             id: schema.saleItems.id,
             saleId: schema.saleItems.saleId,
             recipeId: schema.saleItems.recipeId,
@@ -61,15 +25,15 @@ class TransactionService {
             recipeImage: schema.recipes.imageUrl
         })
             .from(schema.saleItems)
-            .innerJoin(schema.recipes, (0, drizzle_orm_1.eq)(schema.saleItems.recipeId, schema.recipes.id));
-        return _sales.map(sale => ({
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id));
+        return _sales.map((sale) => ({
             ...sale,
-            items: _items.filter(i => i.saleId === sale.id)
+            items: _items.filter((i) => i.saleId === sale.id)
         }));
     }
     // 2. GET TRANSACTION BY ID
     static async getTransactionById(id) {
-        const saleArr = await db_1.db.select({
+        const saleArr = await db.select({
             id: schema.sales.id,
             totalAmount: schema.sales.totalAmount,
             paymentMethod: schema.sales.paymentMethod,
@@ -81,13 +45,13 @@ class TransactionService {
             cashierName: schema.users.name,
         })
             .from(schema.sales)
-            .innerJoin(schema.users, (0, drizzle_orm_1.eq)(schema.sales.userId, schema.users.id))
-            .where((0, drizzle_orm_1.eq)(schema.sales.id, id))
+            .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+            .where(eq(schema.sales.id, id))
             .limit(1);
         if (saleArr.length === 0)
             return null;
         const sale = saleArr[0];
-        const items = await db_1.db.select({
+        const items = await db.select({
             id: schema.saleItems.id,
             recipeId: schema.saleItems.recipeId,
             quantity: schema.saleItems.quantity,
@@ -96,8 +60,8 @@ class TransactionService {
             recipePrice: schema.recipes.price
         })
             .from(schema.saleItems)
-            .innerJoin(schema.recipes, (0, drizzle_orm_1.eq)(schema.saleItems.recipeId, schema.recipes.id))
-            .where((0, drizzle_orm_1.eq)(schema.saleItems.saleId, id));
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+            .where(eq(schema.saleItems.saleId, id));
         return { ...sale, items };
     }
     // 3. PROCESS CHECKOUT (CREATE)
@@ -122,7 +86,7 @@ class TransactionService {
             ? parseInt(shiftId.toString())
             : NaN;
         const saleValues = {
-            shiftId: !isNaN(parsedShiftId) ? parsedShiftId : (0, drizzle_orm_1.sql) `NULL`,
+            shiftId: !isNaN(parsedShiftId) ? parsedShiftId : sql `NULL`,
             userId,
             subTotal: calculatedSubTotal.toString(),
             taxAmount: '0',
@@ -130,7 +94,7 @@ class TransactionService {
             totalAmount: finalTotalAmount.toString(),
             paymentMethod: paymentMethod || 'CASH'
         };
-        return await db_1.db.transaction(async (tx) => {
+        return await db.transaction(async (tx) => {
             const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
             // 1. Bulk insert saleItems
             const saleItemsInsertData = items.map((item) => {
@@ -147,12 +111,12 @@ class TransactionService {
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
             // 2. Bulk fetch BOMs
             const recipeIds = items.map((i) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where((0, drizzle_orm_1.inArray)(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             // 3. Bulk fetch Inventory 
             const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
             let invMap = new Map();
             if (invIds.length > 0) {
-                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where((0, drizzle_orm_1.inArray)(schema.inventory.id, invIds));
+                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
                 invMap = new Map(invItems.map((i) => [i.id, i.unit]));
             }
             // 4. Aggregate stock deductions
@@ -179,8 +143,8 @@ class TransactionService {
                 }));
                 await tx.insert(schema.stockMovements).values(movementsData);
                 const updatePromises = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => tx.update(schema.inventory)
-                    .set({ currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} - ${qty}` })
-                    .where((0, drizzle_orm_1.eq)(schema.inventory.id, invId)));
+                    .set({ currentStock: sql `${schema.inventory.currentStock} - ${qty}` })
+                    .where(eq(schema.inventory.id, invId)));
                 await Promise.all(updatePromises);
             }
             // Log to Audit
@@ -200,11 +164,11 @@ class TransactionService {
         if (!items || items.length === 0)
             return;
         const recipeIds = items.map((i) => i.recipeId);
-        const allBomDeps = await tx.select().from(schema.recipeIngredients).where((0, drizzle_orm_1.inArray)(schema.recipeIngredients.recipeId, recipeIds));
+        const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
         const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
         if (invIds.length === 0)
             return;
-        const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where((0, drizzle_orm_1.inArray)(schema.inventory.id, invIds));
+        const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
         const invMap = new Map(invItems.map((i) => [i.id, i.unit]));
         const inventoryReversions = new Map();
         for (const item of items) {
@@ -220,26 +184,26 @@ class TransactionService {
             }
         }
         if (inventoryReversions.size > 0) {
-            const delPromises = Array.from(inventoryReversions.keys()).map(invId => tx.delete(schema.stockMovements).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, invId), (0, drizzle_orm_1.eq)(schema.stockMovements.reason, `POS Transaction #${saleId}`))));
+            const delPromises = Array.from(inventoryReversions.keys()).map(invId => tx.delete(schema.stockMovements).where(and(eq(schema.stockMovements.inventoryId, invId), eq(schema.stockMovements.reason, `POS Transaction #${saleId}`))));
             await Promise.all(delPromises);
             const updatePromises = Array.from(inventoryReversions.entries()).map(([invId, qty]) => tx.update(schema.inventory)
-                .set({ currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} + ${qty}` })
-                .where((0, drizzle_orm_1.eq)(schema.inventory.id, invId)));
+                .set({ currentStock: sql `${schema.inventory.currentStock} + ${qty}` })
+                .where(eq(schema.inventory.id, invId)));
             await Promise.all(updatePromises);
         }
     }
     // 4. UPDATE TRANSACTION
     static async updateTransaction(saleId, data, adminId) {
-        return await db_1.db.transaction(async (tx) => {
-            const oldSaleArr = await tx.select().from(schema.sales).where((0, drizzle_orm_1.eq)(schema.sales.id, saleId)).limit(1);
+        return await db.transaction(async (tx) => {
+            const oldSaleArr = await tx.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
             if (oldSaleArr.length === 0)
                 throw new Error('Transaction not found');
             const oldSale = oldSaleArr[0];
-            const oldItems = await tx.select().from(schema.saleItems).where((0, drizzle_orm_1.eq)(schema.saleItems.saleId, saleId));
+            const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
             // Revert old stock based on old items
             await TransactionService.revertStockForSaleItems(tx, oldItems, saleId);
             // Delete old items
-            await tx.delete(schema.saleItems).where((0, drizzle_orm_1.eq)(schema.saleItems.saleId, saleId));
+            await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
             // Process new data
             const { items, subTotal, totalAmount, paymentMethod } = data;
             let calculatedSubTotal = parseFloat(subTotal?.toString() || '0');
@@ -251,7 +215,7 @@ class TransactionService {
                 subTotal: calculatedSubTotal.toString(),
                 totalAmount: finalTotalAmount.toString(),
                 paymentMethod: paymentMethod || oldSale.paymentMethod
-            }).where((0, drizzle_orm_1.eq)(schema.sales.id, saleId)).returning();
+            }).where(eq(schema.sales.id, saleId)).returning();
             const saleItemsInsertData = items.map((item) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
@@ -266,11 +230,11 @@ class TransactionService {
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
             // Deduct new inventory (batched)
             const recipeIds = items.map((i) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where((0, drizzle_orm_1.inArray)(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
             let invMap = new Map();
             if (invIds.length > 0) {
-                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where((0, drizzle_orm_1.inArray)(schema.inventory.id, invIds));
+                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
                 invMap = new Map(invItems.map((i) => [i.id, i.unit]));
             }
             const inventoryDeductions = new Map();
@@ -295,8 +259,8 @@ class TransactionService {
                 }));
                 await tx.insert(schema.stockMovements).values(movementsData);
                 const updatePromises = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => tx.update(schema.inventory)
-                    .set({ currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} - ${qty}` })
-                    .where((0, drizzle_orm_1.eq)(schema.inventory.id, invId)));
+                    .set({ currentStock: sql `${schema.inventory.currentStock} - ${qty}` })
+                    .where(eq(schema.inventory.id, invId)));
                 await Promise.all(updatePromises);
             }
             // Log Audit
@@ -313,18 +277,18 @@ class TransactionService {
     }
     // 5. DELETE TRANSACTION
     static async deleteTransaction(saleId, adminId) {
-        return await db_1.db.transaction(async (tx) => {
-            const oldSaleArr = await tx.select().from(schema.sales).where((0, drizzle_orm_1.eq)(schema.sales.id, saleId)).limit(1);
+        return await db.transaction(async (tx) => {
+            const oldSaleArr = await tx.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
             if (oldSaleArr.length === 0)
                 throw new Error('Transaction not found');
             const oldSale = oldSaleArr[0];
-            const oldItems = await tx.select().from(schema.saleItems).where((0, drizzle_orm_1.eq)(schema.saleItems.saleId, saleId));
+            const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
             // Revert stock
             await TransactionService.revertStockForSaleItems(tx, oldItems, saleId);
             // Delete items
-            await tx.delete(schema.saleItems).where((0, drizzle_orm_1.eq)(schema.saleItems.saleId, saleId));
+            await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
             // Delete sale
-            await tx.delete(schema.sales).where((0, drizzle_orm_1.eq)(schema.sales.id, saleId));
+            await tx.delete(schema.sales).where(eq(schema.sales.id, saleId));
             // Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
@@ -338,4 +302,3 @@ class TransactionService {
         });
     }
 }
-exports.TransactionService = TransactionService;

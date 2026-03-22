@@ -1,49 +1,13 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.inventoryRouter = void 0;
-const express_1 = require("express");
-const db_1 = require("../db");
-const schema = __importStar(require("../db/schema"));
-const drizzle_orm_1 = require("drizzle-orm");
-const auth_1 = require("../middleware/auth");
-exports.inventoryRouter = (0, express_1.Router)();
+import { Router } from 'express';
+import { db } from '../db/index.js';
+import * as schema from '../db/schema.js';
+import { eq, sql, and, gte } from 'drizzle-orm';
+import { requireAuth } from '../middleware/auth.js';
+export const inventoryRouter = Router();
 // GET all inventory items
-exports.inventoryRouter.get('/', async (req, res) => {
+inventoryRouter.get('/', async (req, res) => {
     try {
-        const items = await db_1.db.select().from(schema.inventory);
+        const items = await db.select().from(schema.inventory);
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
         const itemsWithStatus = items.map(item => {
             const current = parseFloat(item.currentStock);
@@ -63,36 +27,36 @@ exports.inventoryRouter.get('/', async (req, res) => {
     }
 });
 // GET Waste Summary
-exports.inventoryRouter.get('/waste/summary', async (req, res) => {
+inventoryRouter.get('/waste/summary', async (req, res) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         // 1. Total Waste Value (Joining with Inventory for price)
-        const wasteMovements = await db_1.db.select({
+        const wasteMovements = await db.select({
             id: schema.stockMovements.id,
             quantity: schema.stockMovements.quantity,
             pricePerUnit: schema.inventory.pricePerUnit,
             createdAt: schema.stockMovements.createdAt
         })
             .from(schema.stockMovements)
-            .innerJoin(schema.inventory, (0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, schema.inventory.id))
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.stockMovements.type, 'WASTE'), (0, drizzle_orm_1.gte)(schema.stockMovements.createdAt, thirtyDaysAgo)));
+            .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+            .where(and(eq(schema.stockMovements.type, 'WASTE'), gte(schema.stockMovements.createdAt, thirtyDaysAgo)));
         const totalWasteValue = wasteMovements.reduce((sum, m) => {
             return sum + (parseFloat(m.quantity) * parseFloat(m.pricePerUnit));
         }, 0);
         // 2. Top Waste Offenders
-        const topOffenders = await db_1.db.select({
+        const topOffenders = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
             unit: schema.inventory.unit,
             currentStock: schema.inventory.currentStock,
-            totalWasteValue: (0, drizzle_orm_1.sql) `SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit})`
+            totalWasteValue: sql `SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit})`
         })
             .from(schema.stockMovements)
-            .innerJoin(schema.inventory, (0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, schema.inventory.id))
-            .where((0, drizzle_orm_1.eq)(schema.stockMovements.type, 'WASTE'))
+            .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+            .where(eq(schema.stockMovements.type, 'WASTE'))
             .groupBy(schema.inventory.id)
-            .orderBy((0, drizzle_orm_1.sql) `total_waste_value DESC`)
+            .orderBy(sql `total_waste_value DESC`)
             .limit(5);
         res.json({
             totalValueMonth: totalWasteValue,
@@ -105,12 +69,12 @@ exports.inventoryRouter.get('/waste/summary', async (req, res) => {
     }
 });
 // GET Item Specific Waste
-exports.inventoryRouter.get('/:id/waste', async (req, res) => {
+inventoryRouter.get('/:id/waste', async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
-        const wasteLogs = await db_1.db.select()
+        const wasteLogs = await db.select()
             .from(schema.stockMovements)
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, inventoryId), (0, drizzle_orm_1.eq)(schema.stockMovements.type, 'WASTE')))
+            .where(and(eq(schema.stockMovements.inventoryId, inventoryId), eq(schema.stockMovements.type, 'WASTE')))
             .orderBy(schema.stockMovements.createdAt);
         res.json(wasteLogs);
     }
@@ -120,13 +84,13 @@ exports.inventoryRouter.get('/:id/waste', async (req, res) => {
     }
 });
 // POST new inventory item
-exports.inventoryRouter.post('/', async (req, res) => {
+inventoryRouter.post('/', async (req, res) => {
     try {
         const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl } = req.body;
         if (!name || !category || !unit) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
-        const [newItem] = await db_1.db.insert(schema.inventory).values({
+        const [newItem] = await db.insert(schema.inventory).values({
             name,
             category,
             unit,
@@ -144,13 +108,13 @@ exports.inventoryRouter.post('/', async (req, res) => {
     }
 });
 // PUT update inventory item master data
-exports.inventoryRouter.put('/:id', auth_1.requireAuth, async (req, res) => {
+inventoryRouter.put('/:id', requireAuth, async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
         const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
         const user = req.user;
-        const oldItem = await db_1.db.select().from(schema.inventory).where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId)).limit(1);
-        const [updatedItem] = await db_1.db.update(schema.inventory)
+        const oldItem = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+        const [updatedItem] = await db.update(schema.inventory)
             .set({
             ...(name && { name }),
             ...(category && { category }),
@@ -159,13 +123,13 @@ exports.inventoryRouter.put('/:id', auth_1.requireAuth, async (req, res) => {
             ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
             ...(imageUrl !== undefined && { imageUrl })
         })
-            .where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId))
+            .where(eq(schema.inventory.id, inventoryId))
             .returning();
         if (!updatedItem) {
             return res.status(404).json({ error: 'Item not found' });
         }
         // Log to Audit
-        await db_1.db.insert(schema.auditLogs).values({
+        await db.insert(schema.auditLogs).values({
             userId: user.id,
             action: `UPDATE_INVENTORY: ${updatedItem.name}`,
             tableName: 'inventory',
@@ -181,10 +145,10 @@ exports.inventoryRouter.put('/:id', auth_1.requireAuth, async (req, res) => {
     }
 });
 // GET Item Specific Movements
-exports.inventoryRouter.get('/:id/movements', async (req, res) => {
+inventoryRouter.get('/:id/movements', async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
-        const movements = await db_1.db.select({
+        const movements = await db.select({
             id: schema.stockMovements.id,
             type: schema.stockMovements.type,
             quantity: schema.stockMovements.quantity,
@@ -193,9 +157,9 @@ exports.inventoryRouter.get('/:id/movements', async (req, res) => {
             createdAt: schema.stockMovements.createdAt
         })
             .from(schema.stockMovements)
-            .leftJoin(schema.suppliers, (0, drizzle_orm_1.eq)(schema.stockMovements.supplierId, schema.suppliers.id))
-            .where((0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, inventoryId))
-            .orderBy((0, drizzle_orm_1.sql) `${schema.stockMovements.createdAt} DESC`)
+            .leftJoin(schema.suppliers, eq(schema.stockMovements.supplierId, schema.suppliers.id))
+            .where(eq(schema.stockMovements.inventoryId, inventoryId))
+            .orderBy(sql `${schema.stockMovements.createdAt} DESC`)
             .limit(20);
         res.json(movements);
     }
@@ -205,9 +169,9 @@ exports.inventoryRouter.get('/:id/movements', async (req, res) => {
     }
 });
 // GET Recent Stock In (Restock History) - General
-exports.inventoryRouter.get('/movements/in', async (req, res) => {
+inventoryRouter.get('/movements/in', async (req, res) => {
     try {
-        const history = await db_1.db.select({
+        const history = await db.select({
             id: schema.stockMovements.id,
             inventoryName: schema.inventory.name,
             quantity: schema.stockMovements.quantity,
@@ -217,10 +181,10 @@ exports.inventoryRouter.get('/movements/in', async (req, res) => {
             createdAt: schema.stockMovements.createdAt
         })
             .from(schema.stockMovements)
-            .innerJoin(schema.inventory, (0, drizzle_orm_1.eq)(schema.stockMovements.inventoryId, schema.inventory.id))
-            .leftJoin(schema.suppliers, (0, drizzle_orm_1.eq)(schema.stockMovements.supplierId, schema.suppliers.id))
-            .where((0, drizzle_orm_1.eq)(schema.stockMovements.type, 'IN'))
-            .orderBy((0, drizzle_orm_1.sql) `${schema.stockMovements.createdAt} DESC`)
+            .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+            .leftJoin(schema.suppliers, eq(schema.stockMovements.supplierId, schema.suppliers.id))
+            .where(eq(schema.stockMovements.type, 'IN'))
+            .orderBy(sql `${schema.stockMovements.createdAt} DESC`)
             .limit(50);
         res.json(history);
     }
@@ -230,7 +194,7 @@ exports.inventoryRouter.get('/movements/in', async (req, res) => {
     }
 });
 // POST Movement (In, Out, Waste, Adjust)
-exports.inventoryRouter.post('/:id/movement', auth_1.requireAuth, async (req, res) => {
+inventoryRouter.post('/:id/movement', requireAuth, async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
         const { type, quantity, reason, supplierId, supplierName, expiryDate, createdAt } = req.body;
@@ -244,10 +208,10 @@ exports.inventoryRouter.post('/:id/movement', auth_1.requireAuth, async (req, re
             multiplier = -1;
         }
         const adjustment = numericQty * multiplier;
-        await db_1.db.transaction(async (tx) => {
+        await db.transaction(async (tx) => {
             let finalSupplierId = supplierId;
             if (supplierName && !finalSupplierId) {
-                const existingSupplier = await tx.select().from(schema.suppliers).where((0, drizzle_orm_1.eq)(schema.suppliers.name, supplierName)).limit(1);
+                const existingSupplier = await tx.select().from(schema.suppliers).where(eq(schema.suppliers.name, supplierName)).limit(1);
                 if (existingSupplier.length > 0) {
                     finalSupplierId = existingSupplier[0].id;
                 }
@@ -269,9 +233,9 @@ exports.inventoryRouter.post('/:id/movement', auth_1.requireAuth, async (req, re
             });
             const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
-                currentStock: (0, drizzle_orm_1.sql) `${schema.inventory.currentStock} + ${adjustment}`
+                currentStock: sql `${schema.inventory.currentStock} + ${adjustment}`
             })
-                .where((0, drizzle_orm_1.eq)(schema.inventory.id, inventoryId))
+                .where(eq(schema.inventory.id, inventoryId))
                 .returning();
             // Log to Audit
             await tx.insert(schema.auditLogs).values({

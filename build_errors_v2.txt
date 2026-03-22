@@ -1,0 +1,15 @@
+
+> backend@1.0.1 build
+> tsc
+
+src/app.ts(6,22): error TS2307: Cannot find module './config/auth.js.js' or its corresponding type declarations.
+src/config/auth.ts(5,25): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../db/schema.js'?
+src/middleware/auth.ts(2,36): error TS2307: Cannot find module '../lib/session.js.js' or its corresponding type declarations.
+src/services/user.service.ts(2,20): error TS2307: Cannot find module '../config/db.js.js' or its corresponding type declarations.
+npm error Lifecycle script `build` failed with error:
+npm error code 2
+npm error path /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/backend
+npm error workspace backend@1.0.1
+npm error location /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/backend
+npm error command failed
+npm error command sh -c tsc

@@ -1,5 +1,5 @@
-import { db } from './config/db';
-import * as schema from './db/schema';
+import { db } from './config/db.js';
+import * as schema from './db/schema.js';
 import { sql } from 'drizzle-orm';
 
 async function test() {

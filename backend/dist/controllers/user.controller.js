@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserController = void 0;
-const user_service_1 = require("../services/user.service");
-class UserController {
+import { UserService } from '../services/user.service.js';
+export class UserController {
     static async loginByPin(req, res) {
         try {
             const { role, pin } = req.body;
@@ -10,13 +7,13 @@ class UserController {
             if (!role || !pin) {
                 return res.status(400).json({ error: 'Role and PIN are required' });
             }
-            const user = await user_service_1.UserService.loginByPin(role, pin);
+            const user = await UserService.loginByPin(role, pin);
             if (!user) {
                 console.warn(`[LoginFailed] No user found for Role: ${role} and PIN: ${pin}`);
                 return res.status(401).json({ error: 'PIN atau Role salah' });
             }
             // Create session manually using Drizzle fallback
-            const session = await user_service_1.UserService.createSessionManual(user.id);
+            const session = await UserService.createSessionManual(user.id);
             console.log(`[SessionCreatedManual] Session ID: ${session.id}, Token: ${session.token.substring(0, 5)}...`);
             // Set Better Auth compatible cookie
             res.cookie('better-auth.session_token', session.token, {
@@ -28,7 +25,7 @@ class UserController {
             });
             // Audit log for login
             try {
-                await user_service_1.UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+                await UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
             }
             catch (auditError) {
                 console.error('[AuditError] Failed to log login action:', auditError);
@@ -46,7 +43,7 @@ class UserController {
     }
     static async getAll(req, res) {
         try {
-            const users = await user_service_1.UserService.getAllUsers();
+            const users = await UserService.getAllUsers();
             res.json(users);
         }
         catch (error) {
@@ -63,7 +60,7 @@ class UserController {
             if (!name || !email || !role || !pin) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
-            const newUser = await user_service_1.UserService.createUser(req.body, currentUserId);
+            const newUser = await UserService.createUser(req.body, currentUserId);
             res.status(201).json(newUser);
         }
         catch (error) {
@@ -77,7 +74,7 @@ class UserController {
             const currentUserId = req.user?.id;
             if (!currentUserId)
                 return res.status(401).json({ error: 'Unauthorized' });
-            const updatedUser = await user_service_1.UserService.updateUser(id, req.body, currentUserId);
+            const updatedUser = await UserService.updateUser(id, req.body, currentUserId);
             if (!updatedUser)
                 return res.status(404).json({ error: 'User not found' });
             res.json(updatedUser);
@@ -93,7 +90,7 @@ class UserController {
             const currentUserId = req.user?.id;
             if (!currentUserId)
                 return res.status(401).json({ error: 'Unauthorized' });
-            const deletedUser = await user_service_1.UserService.deleteUser(id, currentUserId);
+            const deletedUser = await UserService.deleteUser(id, currentUserId);
             if (!deletedUser)
                 return res.status(404).json({ error: 'User not found' });
             res.json({ message: 'User deleted successfully', user: deletedUser });
@@ -104,4 +101,3 @@ class UserController {
         }
     }
 }
-exports.UserController = UserController;

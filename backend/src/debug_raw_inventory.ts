@@ -1,4 +1,4 @@
-import { pool } from './db';
+import { pool } from './db/index.js';
 import 'dotenv/config';
 
 async function testRawInventory() {

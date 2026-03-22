@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AttendanceService } from '../services/attendance.service';
+import { AttendanceService } from '../services/attendance.service.js';
 
 export class AttendanceController {
     static async getTodayStatus(req: Request, res: Response) {

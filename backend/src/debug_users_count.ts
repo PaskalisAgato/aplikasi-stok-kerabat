@@ -1,5 +1,5 @@
-import { db } from './db';
-import * as schema from './db/schema';
+import { db } from './db/index.js';
+import * as schema from './db/schema.js';
 import { sql } from 'drizzle-orm';
 import 'dotenv/config';
 

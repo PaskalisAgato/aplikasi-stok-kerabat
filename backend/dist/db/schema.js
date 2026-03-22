@@ -1,171 +1,195 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.auditLogs = exports.expenseCategories = exports.expenses = exports.saleItems = exports.sales = exports.shifts = exports.recipeIngredients = exports.recipes = exports.stockMovements = exports.inventory = exports.suppliers = exports.verifications = exports.accounts = exports.sessions = exports.users = void 0;
-const pg_core_1 = require("drizzle-orm/pg-core");
+import { pgTable, serial, text, integer, decimal, timestamp, boolean, index } from 'drizzle-orm/pg-core';
 // -----------------------------------------------------------------------------
 // 1. AUTH & USERS (Better Auth Integration)
 // -----------------------------------------------------------------------------
-exports.users = (0, pg_core_1.pgTable)('user', {
-    id: (0, pg_core_1.text)('id').primaryKey(),
-    name: (0, pg_core_1.text)('name').notNull(),
-    email: (0, pg_core_1.text)('email').notNull().unique(),
-    emailVerified: (0, pg_core_1.boolean)('emailVerified').notNull(),
-    image: (0, pg_core_1.text)('image'),
-    role: (0, pg_core_1.text)('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
-    pin: (0, pg_core_1.text)('pin'), // 4-6 digit numeric PIN
-    createdAt: (0, pg_core_1.timestamp)('createdAt').notNull(),
-    updatedAt: (0, pg_core_1.timestamp)('updatedAt').notNull()
+export const users = pgTable('user', {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    emailVerified: boolean('emailVerified').notNull(),
+    image: text('image'),
+    role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
+    pin: text('pin'), // 4-6 digit numeric PIN
+    createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull()
 });
-exports.sessions = (0, pg_core_1.pgTable)('session', {
-    id: (0, pg_core_1.text)('id').primaryKey(),
-    expiresAt: (0, pg_core_1.timestamp)('expiresAt').notNull(),
-    token: (0, pg_core_1.text)('token').notNull().unique(),
-    createdAt: (0, pg_core_1.timestamp)('createdAt').notNull(),
-    updatedAt: (0, pg_core_1.timestamp)('updatedAt').notNull(),
-    ipAddress: (0, pg_core_1.text)('ipAddress'),
-    userAgent: (0, pg_core_1.text)('userAgent'),
-    userId: (0, pg_core_1.text)('userId').notNull().references(() => exports.users.id)
+export const sessions = pgTable('session', {
+    id: text('id').primaryKey(),
+    expiresAt: timestamp('expiresAt').notNull(),
+    token: text('token').notNull().unique(),
+    createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull(),
+    ipAddress: text('ipAddress'),
+    userAgent: text('userAgent'),
+    userId: text('userId').notNull().references(() => users.id)
 }, (t) => ({
-    userIdx: (0, pg_core_1.index)('session_user_idx').on(t.userId)
+    userIdx: index('session_user_idx').on(t.userId)
 }));
-exports.accounts = (0, pg_core_1.pgTable)('account', {
-    id: (0, pg_core_1.text)('id').primaryKey(),
-    accountId: (0, pg_core_1.text)('accountId').notNull(),
-    providerId: (0, pg_core_1.text)('providerId').notNull(),
-    userId: (0, pg_core_1.text)('userId').notNull().references(() => exports.users.id),
-    accessToken: (0, pg_core_1.text)('accessToken'),
-    refreshToken: (0, pg_core_1.text)('refreshToken'),
-    idToken: (0, pg_core_1.text)('idToken'),
-    expiresAt: (0, pg_core_1.timestamp)('expiresAt'),
-    password: (0, pg_core_1.text)('password')
+export const accounts = pgTable('account', {
+    id: text('id').primaryKey(),
+    accountId: text('accountId').notNull(),
+    providerId: text('providerId').notNull(),
+    userId: text('userId').notNull().references(() => users.id),
+    accessToken: text('accessToken'),
+    refreshToken: text('refreshToken'),
+    idToken: text('idToken'),
+    expiresAt: timestamp('expiresAt'),
+    password: text('password')
 }, (t) => ({
-    userIdx: (0, pg_core_1.index)('account_user_idx').on(t.userId)
+    userIdx: index('account_user_idx').on(t.userId)
 }));
-exports.verifications = (0, pg_core_1.pgTable)('verification', {
-    id: (0, pg_core_1.text)('id').primaryKey(),
-    identifier: (0, pg_core_1.text)('identifier').notNull(),
-    value: (0, pg_core_1.text)('value').notNull(),
-    expiresAt: (0, pg_core_1.timestamp)('expiresAt').notNull()
+export const verifications = pgTable('verification', {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expiresAt').notNull()
 });
 // -----------------------------------------------------------------------------
 // 2. INVENTORY TRACKER
 // -----------------------------------------------------------------------------
-exports.suppliers = (0, pg_core_1.pgTable)('suppliers', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    name: (0, pg_core_1.text)('name').notNull(),
-    contact: (0, pg_core_1.text)('contact'),
-    address: (0, pg_core_1.text)('address'),
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const suppliers = pgTable('suppliers', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    contact: text('contact'),
+    address: text('address'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
 });
-exports.inventory = (0, pg_core_1.pgTable)('inventory', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    name: (0, pg_core_1.text)('name').notNull(),
-    category: (0, pg_core_1.text)('category').notNull(),
-    unit: (0, pg_core_1.text)('unit').notNull(), // g, L, pcs
-    currentStock: (0, pg_core_1.decimal)('current_stock', { precision: 12, scale: 2 }).notNull().default('0'), // Supports fractions like 1.5L
-    minStock: (0, pg_core_1.decimal)('min_stock', { precision: 12, scale: 2 }).notNull().default('0'),
-    pricePerUnit: (0, pg_core_1.decimal)('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
-    discountPrice: (0, pg_core_1.decimal)('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
-    imageUrl: (0, pg_core_1.text)('image_url')
+export const inventory = pgTable('inventory', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    category: text('category').notNull(),
+    unit: text('unit').notNull(), // g, L, pcs
+    currentStock: decimal('current_stock', { precision: 12, scale: 2 }).notNull().default('0'), // Supports fractions like 1.5L
+    minStock: decimal('min_stock', { precision: 12, scale: 2 }).notNull().default('0'),
+    pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
+    discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
+    imageUrl: text('image_url')
 });
-exports.stockMovements = (0, pg_core_1.pgTable)('stock_movements', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    inventoryId: (0, pg_core_1.integer)('inventory_id').notNull().references(() => exports.inventory.id),
-    supplierId: (0, pg_core_1.integer)('supplier_id').references(() => exports.suppliers.id),
-    type: (0, pg_core_1.text)('type').notNull(), // 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
-    quantity: (0, pg_core_1.decimal)('quantity', { precision: 12, scale: 2 }).notNull(),
-    reason: (0, pg_core_1.text)('reason'), // e.g. 'Expired', 'Spillage', 'Roasting Shrinkage'
-    expiryDate: (0, pg_core_1.timestamp)('expiry_date'),
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const stockMovements = pgTable('stock_movements', {
+    id: serial('id').primaryKey(),
+    inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
+    supplierId: integer('supplier_id').references(() => suppliers.id),
+    type: text('type').notNull(), // 'IN', 'OUT', 'WASTE', 'OPNAME_ADJUSTMENT'
+    quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull(),
+    reason: text('reason'), // e.g. 'Expired', 'Spillage', 'Roasting Shrinkage'
+    expiryDate: timestamp('expiry_date'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
-    inventoryIdx: (0, pg_core_1.index)('stock_movements_inventory_idx').on(t.inventoryId),
-    supplierIdx: (0, pg_core_1.index)('stock_movements_supplier_idx').on(t.supplierId)
+    inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
+    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId)
 }));
 // -----------------------------------------------------------------------------
 // 3. RECIPES & BOM (Bill of Materials)
 // -----------------------------------------------------------------------------
-exports.recipes = (0, pg_core_1.pgTable)('recipes', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    name: (0, pg_core_1.text)('name').notNull(),
-    category: (0, pg_core_1.text)('category').notNull(),
-    price: (0, pg_core_1.decimal)('price', { precision: 12, scale: 2 }).notNull().default('0'),
-    margin: (0, pg_core_1.decimal)('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
-    imageUrl: (0, pg_core_1.text)('image_url'),
-    isActive: (0, pg_core_1.boolean)('is_active').default(true).notNull()
+export const recipes = pgTable('recipes', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    category: text('category').notNull(),
+    price: decimal('price', { precision: 12, scale: 2 }).notNull().default('0'),
+    margin: decimal('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
+    imageUrl: text('image_url'),
+    isActive: boolean('is_active').default(true).notNull()
 });
-exports.recipeIngredients = (0, pg_core_1.pgTable)('recipe_ingredients', {
-    recipeId: (0, pg_core_1.integer)('recipe_id').notNull().references(() => exports.recipes.id),
-    inventoryId: (0, pg_core_1.integer)('inventory_id').notNull().references(() => exports.inventory.id),
-    quantity: (0, pg_core_1.decimal)('quantity', { precision: 12, scale: 2 }).notNull() // Usage per serving
+export const recipeIngredients = pgTable('recipe_ingredients', {
+    recipeId: integer('recipe_id').notNull().references(() => recipes.id),
+    inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
+    quantity: decimal('quantity', { precision: 12, scale: 2 }).notNull() // Usage per serving
 }, (t) => ({
-    recipeIdx: (0, pg_core_1.index)('recipe_ingredients_recipe_idx').on(t.recipeId),
-    inventoryIdx: (0, pg_core_1.index)('recipe_ingredients_inventory_idx').on(t.inventoryId)
+    recipeIdx: index('recipe_ingredients_recipe_idx').on(t.recipeId),
+    inventoryIdx: index('recipe_ingredients_inventory_idx').on(t.inventoryId)
 }));
 // -----------------------------------------------------------------------------
 // 4. POS SALES & FINANCE TRACKER
 // -----------------------------------------------------------------------------
-exports.shifts = (0, pg_core_1.pgTable)('shifts', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    userId: (0, pg_core_1.text)('user_id').notNull().references(() => exports.users.id),
-    startTime: (0, pg_core_1.timestamp)('start_time').defaultNow().notNull(),
-    endTime: (0, pg_core_1.timestamp)('end_time'),
-    initialCash: (0, pg_core_1.decimal)('initial_cash', { precision: 12, scale: 2 }).notNull(),
-    totalCashExpected: (0, pg_core_1.decimal)('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
-    totalCashActual: (0, pg_core_1.decimal)('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
-    discrepancy: (0, pg_core_1.decimal)('discrepancy', { precision: 12, scale: 2 }).default('0')
+export const shifts = pgTable('shifts', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    startTime: timestamp('start_time').defaultNow().notNull(),
+    endTime: timestamp('end_time'),
+    initialCash: decimal('initial_cash', { precision: 12, scale: 2 }).notNull(),
+    totalCashExpected: decimal('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
+    totalCashActual: decimal('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
+    discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }).default('0')
 }, (t) => ({
-    userIdx: (0, pg_core_1.index)('shifts_user_idx').on(t.userId)
+    userIdx: index('shifts_user_idx').on(t.userId)
 }));
-exports.sales = (0, pg_core_1.pgTable)('sales', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    shiftId: (0, pg_core_1.integer)('shift_id').references(() => exports.shifts.id),
-    userId: (0, pg_core_1.text)('user_id').notNull().references(() => exports.users.id), // Cashier
-    subTotal: (0, pg_core_1.decimal)('sub_total', { precision: 12, scale: 2 }).notNull(),
-    taxAmount: (0, pg_core_1.decimal)('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'), // e.g. PB1 10%
-    serviceChargeAmount: (0, pg_core_1.decimal)('service_charge_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    totalAmount: (0, pg_core_1.decimal)('total_amount', { precision: 12, scale: 2 }).notNull(),
-    paymentMethod: (0, pg_core_1.text)('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const sales = pgTable('sales', {
+    id: serial('id').primaryKey(),
+    shiftId: integer('shift_id').references(() => shifts.id),
+    userId: text('user_id').notNull().references(() => users.id), // Cashier
+    subTotal: decimal('sub_total', { precision: 12, scale: 2 }).notNull(),
+    taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'), // e.g. PB1 10%
+    serviceChargeAmount: decimal('service_charge_amount', { precision: 12, scale: 2 }).notNull().default('0'),
+    totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
+    paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
+    createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
-    shiftIdx: (0, pg_core_1.index)('sales_shift_idx').on(t.shiftId),
-    userIdx: (0, pg_core_1.index)('sales_user_idx').on(t.userId)
+    shiftIdx: index('sales_shift_idx').on(t.shiftId),
+    userIdx: index('sales_user_idx').on(t.userId)
 }));
-exports.saleItems = (0, pg_core_1.pgTable)('sale_items', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    saleId: (0, pg_core_1.integer)('sale_id').notNull().references(() => exports.sales.id),
-    recipeId: (0, pg_core_1.integer)('recipe_id').notNull().references(() => exports.recipes.id),
-    quantity: (0, pg_core_1.integer)('quantity').notNull(),
-    subtotal: (0, pg_core_1.decimal)('subtotal', { precision: 12, scale: 2 }).notNull()
+export const saleItems = pgTable('sale_items', {
+    id: serial('id').primaryKey(),
+    saleId: integer('sale_id').notNull().references(() => sales.id),
+    recipeId: integer('recipe_id').notNull().references(() => recipes.id),
+    quantity: integer('quantity').notNull(),
+    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull()
 }, (t) => ({
-    saleIdx: (0, pg_core_1.index)('sale_items_sale_idx').on(t.saleId),
-    recipeIdx: (0, pg_core_1.index)('sale_items_recipe_idx').on(t.recipeId)
+    saleIdx: index('sale_items_sale_idx').on(t.saleId),
+    recipeIdx: index('sale_items_recipe_idx').on(t.recipeId)
 }));
-exports.expenses = (0, pg_core_1.pgTable)('expenses', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    title: (0, pg_core_1.text)('title').notNull(),
-    category: (0, pg_core_1.text)('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
-    amount: (0, pg_core_1.decimal)('amount', { precision: 12, scale: 2 }).notNull(),
-    receiptUrl: (0, pg_core_1.text)('receipt_url'),
-    expenseDate: (0, pg_core_1.timestamp)('expense_date').defaultNow().notNull(),
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const expenses = pgTable('expenses', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
+    amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+    receiptUrl: text('receipt_url'),
+    expenseDate: timestamp('expense_date').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
 });
-exports.expenseCategories = (0, pg_core_1.pgTable)('expense_categories', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    name: (0, pg_core_1.text)('name').notNull().unique(),
-    icon: (0, pg_core_1.text)('icon').default('category').notNull(),
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const expenseCategories = pgTable('expense_categories', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull().unique(),
+    icon: text('icon').default('category').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
 });
 // -----------------------------------------------------------------------------
 // 5. AUDIT LOGS
 // -----------------------------------------------------------------------------
-exports.auditLogs = (0, pg_core_1.pgTable)('audit_logs', {
-    id: (0, pg_core_1.serial)('id').primaryKey(),
-    userId: (0, pg_core_1.text)('user_id').notNull().references(() => exports.users.id),
-    action: (0, pg_core_1.text)('action').notNull(), // e.g. 'UPDATE_RECIPE_PRICE', 'STOCK_MANUAL_ADJUST'
-    tableName: (0, pg_core_1.text)('table_name').notNull(),
-    oldData: (0, pg_core_1.text)('old_data'), // Stored as JSON string representation
-    newData: (0, pg_core_1.text)('new_data'), // Stored as JSON string representation
-    createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow().notNull()
+export const auditLogs = pgTable('audit_logs', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    action: text('action').notNull(), // e.g. 'UPDATE_RECIPE_PRICE', 'STOCK_MANUAL_ADJUST'
+    tableName: text('table_name').notNull(),
+    oldData: text('old_data'), // Stored as JSON string representation
+    newData: text('new_data'), // Stored as JSON string representation
+    createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
-    userIdx: (0, pg_core_1.index)('audit_logs_user_idx').on(t.userId)
+    userIdx: index('audit_logs_user_idx').on(t.userId)
+}));
+// -----------------------------------------------------------------------------
+// 6. WORK SHIFTS & ATTENDANCE
+// -----------------------------------------------------------------------------
+export const workShifts = pgTable('work_shifts', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    startTime: text('start_time').notNull(), // e.g. "08:00"
+    endTime: text('end_time').notNull(), // e.g. "17:00"
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+}, (t) => ({
+    userIdx: index('work_shifts_user_idx').on(t.userId),
+    dateIdx: index('work_shifts_date_idx').on(t.date)
+}));
+export const attendance = pgTable('attendance', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    checkIn: timestamp('check_in'),
+    checkOut: timestamp('check_out'),
+    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t) => ({
+    userIdx: index('attendance_user_idx').on(t.userId),
+    dateIdx: index('attendance_date_idx').on(t.date)
 }));

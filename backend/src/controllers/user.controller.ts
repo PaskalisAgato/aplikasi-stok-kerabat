@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { UserService } from '../services/user.service';
-import { auth } from '../config/auth';
+import { UserService } from '../services/user.service.js';
+import { auth } from '../config/auth.js';
 
 export class UserController {
     static async loginByPin(req: Request, res: Response) {

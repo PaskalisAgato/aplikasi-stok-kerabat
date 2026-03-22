@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionController = void 0;
-const transaction_service_1 = require("../services/transaction.service");
-class TransactionController {
+import { TransactionService } from '../services/transaction.service.js';
+export class TransactionController {
     static async getAll(req, res) {
         try {
-            const transactions = await transaction_service_1.TransactionService.getAllTransactions();
+            const transactions = await TransactionService.getAllTransactions();
             res.json(transactions);
         }
         catch (error) {
@@ -18,7 +15,7 @@ class TransactionController {
             const id = parseInt(req.params.id);
             if (isNaN(id))
                 return res.status(400).json({ error: 'Invalid ID' });
-            const transaction = await transaction_service_1.TransactionService.getTransactionById(id);
+            const transaction = await TransactionService.getTransactionById(id);
             if (!transaction)
                 return res.status(404).json({ error: 'Transaction not found' });
             res.json(transaction);
@@ -35,7 +32,7 @@ class TransactionController {
             if (!items || !Array.isArray(items) || items.length === 0) {
                 return res.status(400).json({ error: 'Cart is empty' });
             }
-            const result = await transaction_service_1.TransactionService.processCheckout(req.body, userId);
+            const result = await TransactionService.processCheckout(req.body, userId);
             res.status(201).json({
                 success: true,
                 message: 'Checkout completed successfully',
@@ -54,7 +51,7 @@ class TransactionController {
             if (isNaN(id))
                 return res.status(400).json({ error: 'Invalid ID' });
             const adminId = req.user?.id || 'admin';
-            await transaction_service_1.TransactionService.updateTransaction(id, req.body, adminId);
+            await TransactionService.updateTransaction(id, req.body, adminId);
             res.json({ success: true, message: 'Transaction updated successfully' });
         }
         catch (error) {
@@ -68,7 +65,7 @@ class TransactionController {
             if (isNaN(id))
                 return res.status(400).json({ error: 'Invalid ID' });
             const adminId = req.user?.id || 'admin';
-            await transaction_service_1.TransactionService.deleteTransaction(id, adminId);
+            await TransactionService.deleteTransaction(id, adminId);
             res.json({ success: true, message: 'Transaction deleted successfully' });
         }
         catch (error) {
@@ -77,4 +74,3 @@ class TransactionController {
         }
     }
 }
-exports.TransactionController = TransactionController;

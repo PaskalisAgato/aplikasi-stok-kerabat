@@ -1,14 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSessionManually = getSessionManually;
-const crypto_1 = __importDefault(require("crypto"));
-const db_1 = require("../db");
-const schema_1 = require("../db/schema");
-const drizzle_orm_1 = require("drizzle-orm");
-async function getSessionManually(req) {
+import crypto from 'crypto';
+import { db } from '../db/index.js';
+import { sessions, users } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
+export async function getSessionManually(req) {
     try {
         const bearerToken = req.headers.authorization?.startsWith('Bearer ')
             ? req.headers.authorization.split(' ')[1]
@@ -22,11 +16,11 @@ async function getSessionManually(req) {
         let result = [];
         // 1. Bearer token = session UUID (primary key in 'id' column)
         if (bearerToken) {
-            result = await db_1.db
-                .select({ session: schema_1.sessions, user: schema_1.users })
-                .from(schema_1.sessions)
-                .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema_1.sessions.userId, schema_1.users.id))
-                .where((0, drizzle_orm_1.eq)(schema_1.sessions.id, bearerToken))
+            result = await db
+                .select({ session: sessions, user: users })
+                .from(sessions)
+                .innerJoin(users, eq(sessions.userId, users.id))
+                .where(eq(sessions.id, bearerToken))
                 .limit(1);
             if (result.length > 0) {
                 console.log(`[AUTH] Session found via Bearer UUID: ${bearerToken.substring(0, 8)}...`);
@@ -35,20 +29,20 @@ async function getSessionManually(req) {
         // 2. Cookie token = hashed token (stored in 'token' column)
         if (result.length === 0 && cookieToken) {
             // Try as-is first (cookie may already contain the hash)
-            result = await db_1.db
-                .select({ session: schema_1.sessions, user: schema_1.users })
-                .from(schema_1.sessions)
-                .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema_1.sessions.userId, schema_1.users.id))
-                .where((0, drizzle_orm_1.eq)(schema_1.sessions.token, cookieToken))
+            result = await db
+                .select({ session: sessions, user: users })
+                .from(sessions)
+                .innerJoin(users, eq(sessions.userId, users.id))
+                .where(eq(sessions.token, cookieToken))
                 .limit(1);
             // If that didn't work, try hashing it (cookie may contain plaintext token)
             if (result.length === 0) {
-                const hashedCookie = crypto_1.default.createHash('sha256').update(cookieToken).digest('hex');
-                result = await db_1.db
-                    .select({ session: schema_1.sessions, user: schema_1.users })
-                    .from(schema_1.sessions)
-                    .innerJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema_1.sessions.userId, schema_1.users.id))
-                    .where((0, drizzle_orm_1.eq)(schema_1.sessions.token, hashedCookie))
+                const hashedCookie = crypto.createHash('sha256').update(cookieToken).digest('hex');
+                result = await db
+                    .select({ session: sessions, user: users })
+                    .from(sessions)
+                    .innerJoin(users, eq(sessions.userId, users.id))
+                    .where(eq(sessions.token, hashedCookie))
                     .limit(1);
             }
             if (result.length > 0) {
