@@ -113,12 +113,16 @@ function App() {
                 className="w-full h-11 pl-12 pr-6 rounded-xl glass focus:ring-4 focus:ring-primary/20 text-xs font-bold text-[var(--text-main)] shadow-inner border-none"
             />
         </div>
+        <button onClick={handleExportExcel} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
+            <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">table_chart</span>
+        </button>
         <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
             <div className="relative">
                 <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
                 <span className="absolute -top-1 -right-1 size-2.5 bg-red-500 rounded-full border-2 border-[var(--bg-surface)]"></span>
             </div>
         </button>
+
         <a 
                 href="/settings/"
                 className="size-11 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
