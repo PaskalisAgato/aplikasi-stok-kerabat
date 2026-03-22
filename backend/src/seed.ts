@@ -1,6 +1,6 @@
 import { db } from './db/index.js';
 import * as schema from './db/schema.js';
-import { INVENTORY, EXPENSES, EMPLOYEES, RECIPES } from '../../apps/shared/mockDatabase';
+import { INVENTORY, EXPENSES, EMPLOYEES, RECIPES } from '../../apps/shared/mockDatabase.js';
 import { eq } from 'drizzle-orm';
 
 async function seed() {
