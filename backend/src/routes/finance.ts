@@ -126,17 +126,17 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
 
         // 1. Query Total Sales (All Time)
         const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
-        const revenue = allSales.reduce((sum, current) => sum + parseFloat(current.total), 0);
+        const revenue = allSales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
         
         // 2. Query Today's Sales
         const todaySales = await db.select({ total: schema.sales.totalAmount })
             .from(schema.sales)
             .where(gte(schema.sales.createdAt, today));
-        const revenueToday = todaySales.reduce((sum, current) => sum + parseFloat(current.total), 0);
+        const revenueToday = todaySales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
 
         // 3. Query Total Expenses
         const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
-        const totalExpenses = allExpenses.reduce((sum, current) => sum + parseFloat(current.total), 0);
+        const totalExpenses = allExpenses.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
 
         // 4. Get Top 5 Menus (Recipe Sales Volume)
         const topMenusRaw = await db.select({
@@ -178,7 +178,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .from(schema.sales)
         .where(gte(schema.sales.createdAt, thirtyDaysAgo));
 
-        const saleIds = salesInPeriod.map(s => s.id);
+        const saleIds = salesInPeriod.map((s: { id: number }) => s.id);
         if (saleIds.length === 0) {
             return res.json({ totalHPP: 0, ingredientsHPP: [], recipeHPP: [] });
         }
@@ -188,7 +188,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             .where(inArray(schema.saleItems.saleId, saleIds));
 
         // 2. Fetch BOM for all affected recipes
-        const recipeIds = [...new Set(items.map(i => i.recipeId))];
+        const recipeIds = [...new Set(items.map((i: any) => i.recipeId as number))];
         const boms = await db.select({
             recipeId: schema.recipeIngredients.recipeId,
             inventoryId: schema.recipeIngredients.inventoryId,
@@ -206,7 +206,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         const recipeCosts: Record<number, { name: string, cost: number }> = {};
 
         for (const item of items) {
-            const itemBoms = boms.filter(b => b.recipeId === item.recipeId);
+            const itemBoms = boms.filter((b: any) => b.recipeId === item.recipeId);
             let itemTotalCost = 0;
 
             for (const bom of itemBoms) {
