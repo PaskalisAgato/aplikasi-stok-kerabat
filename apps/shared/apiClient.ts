@@ -159,6 +159,7 @@ export const apiClient = {
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
     getExpenses: () => apiFetch<any[]>('/finance/expenses'),
+    exportExpensesExcel: () => apiFetch<Blob>('/finance/expenses/export', { method: 'GET' }, true),
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
     updateExpense: (id: number, data: unknown) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteExpense: (id: number) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),

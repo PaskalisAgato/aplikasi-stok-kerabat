@@ -59,6 +59,23 @@ function App() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const blob = await apiClient.exportExpensesExcel();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Pengeluaran_Kerabat_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed', error);
+      alert('Gagal mengekspor data.');
+    }
+  };
+
   const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
 
   const ExpenseSidebar = (
@@ -75,6 +92,13 @@ function App() {
                 <span className="material-symbols-outlined text-lg">add_circle</span>
                 Tambah Pengeluaran
             </button>
+            <button 
+              onClick={handleExportExcel} 
+              className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-[var(--border-dim)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all active:scale-[0.97]"
+            >
+                <span className="material-symbols-outlined text-lg font-black">table_chart</span>
+                Ekspor Excel
+            </button>
         </div>
 
         <div className="mt-10 pt-10 border-t border-[var(--border-dim)] space-y-4">
@@ -89,6 +113,11 @@ function App() {
       title="Pengeluaran"
       subtitle="Manajemen Arus Kas"
       sidebar={ExpenseSidebar}
+      headerExtras={
+        <button onClick={handleExportExcel} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
+            <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">table_chart</span>
+        </button>
+      }
       footer={
         <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4 lg:hidden">
             <button

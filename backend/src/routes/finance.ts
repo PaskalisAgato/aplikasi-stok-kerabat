@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { requireAdmin } from '../middleware/auth.js';
+import ExcelJS from 'exceljs';
 
 export const financeRouter = Router();
 
@@ -14,6 +15,53 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error fetching expenses:', error);
         res.status(500).json({ error: 'Failed to fetch expenses' });
+    }
+});
+
+// GET Export Expenses Excel
+financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
+    try {
+        const allExpenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Kerabat POS';
+        workbook.lastModifiedBy = 'Kerabat POS';
+        workbook.created = new Date();
+
+        const sheet = workbook.addWorksheet('Data Pengeluaran');
+        sheet.columns = [
+            { header: 'ID', key: 'id', width: 5 },
+            { header: 'Judul', key: 'title', width: 30 },
+            { header: 'Kategori', key: 'category', width: 20 },
+            { header: 'Jumlah', key: 'amount', width: 15 },
+            { header: 'Tanggal', key: 'date', width: 20 },
+            { header: 'Catatan/Bukti', key: 'receipt', width: 40 },
+        ];
+
+        // Style header
+        sheet.getRow(1).font = { bold: true };
+        sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+        allExpenses.forEach(exp => {
+            sheet.addRow({
+                id: exp.id,
+                title: exp.title,
+                category: exp.category,
+                amount: parseFloat(exp.amount),
+                date: exp.expenseDate.toLocaleString('id-ID'),
+                receipt: exp.receiptUrl || '-'
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Pengeluaran_Kerabat_POS.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.status(200).end();
+
+    } catch (error) {
+        console.error('Export expenses error:', error);
+        res.status(500).json({ error: 'Failed to generate expenses export' });
     }
 });
 
