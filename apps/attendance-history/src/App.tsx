@@ -4,10 +4,12 @@ import QueryProvider from '@shared/QueryProvider';
 import { ModernTable } from '@shared/components/ModernTable';
 import { useAttendance } from '@shared/hooks/useAttendance';
 import { useSession } from '@shared/authClient';
+import { API_BASE_URL } from '@shared/apiClient';
 
 function AttendanceHistoryPage() {
     const { data: session } = useSession();
     const isAdmin = session?.user?.role === 'Admin';
+    const UPLOADS_BASE = API_BASE_URL.replace('/api', '') + '/uploads/';
     
     const [filters, setFilters] = useState({
         startDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
@@ -35,6 +37,32 @@ function AttendanceHistoryPage() {
         { header: 'Check-In', render: (a: any) => a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--' },
         { header: 'Check-Out', render: (a: any) => a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--' },
         { 
+            header: 'Foto (In/Out)', 
+            render: (a: any) => (
+                <div className="flex gap-2">
+                    {a.checkInPhoto ? (
+                        <a href={`${UPLOADS_BASE}${a.checkInPhoto}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
+                            <img src={`${UPLOADS_BASE}${a.checkInPhoto}`} alt="In" className="size-8 object-cover" />
+                        </a>
+                    ) : (
+                        <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[10px] opacity-20">image_not_supported</span>
+                        </div>
+                    )}
+                    {a.checkOutPhoto ? (
+                        <a href={`${UPLOADS_BASE}${a.checkOutPhoto}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
+                            <img src={`${UPLOADS_BASE}${a.checkOutPhoto}`} alt="Out" className="size-8 object-cover" />
+                        </a>
+                    ) : (
+                        <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[10px] opacity-20">image_not_supported</span>
+                        </div>
+                    )}
+                </div>
+            )
+        },
+
+        { 
             header: 'Status', 
             render: (a: any) => (
                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
@@ -46,6 +74,7 @@ function AttendanceHistoryPage() {
                 </span>
             ) 
         },
+
     ];
 
     return (

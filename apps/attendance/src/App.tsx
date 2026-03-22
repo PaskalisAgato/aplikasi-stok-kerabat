@@ -1,26 +1,40 @@
-import React from 'react';
+import { useRef } from 'react';
 import Layout from '@shared/Layout';
 import QueryProvider from '@shared/QueryProvider';
 import { useAttendance } from '@shared/hooks/useAttendance';
-import { useSession } from '@shared/authClient';
+import CameraCapture from './components/CameraCapture';
+import type { CameraCaptureHandle } from './components/CameraCapture';
+import toast, { Toaster } from 'react-hot-toast';
 
 function AttendancePage() {
-    const { data: session } = useSession();
     const { todayAttendance, checkIn, checkOut, isLoading, isActionLoading } = useAttendance();
+    const cameraRef = useRef<CameraCaptureHandle>(null);
 
     const handleCheckIn = async () => {
         try {
-            await checkIn();
+            const photo = await cameraRef.current?.capture();
+            if (!photo) {
+                toast.error('Gagal mengambil foto. Pastikan kamera aktif.');
+                return;
+            }
+            await checkIn(photo);
+            toast.success('Berhasil Absen Masuk!');
         } catch (error: any) {
-            alert(error.message);
+            toast.error(error.message);
         }
     };
 
     const handleCheckOut = async () => {
         try {
-            await checkOut();
+            const photo = await cameraRef.current?.capture();
+            if (!photo) {
+                toast.error('Gagal mengambil foto. Pastikan kamera aktif.');
+                return;
+            }
+            await checkOut(photo);
+            toast.success('Berhasil Absen Pulang!');
         } catch (error: any) {
-            alert(error.message);
+            toast.error(error.message);
         }
     };
 
@@ -33,18 +47,30 @@ function AttendancePage() {
             title="Absen Karyawan"
             subtitle="Presensi Harian"
         >
+            <Toaster position="top-center" />
             <div className="max-w-2xl mx-auto space-y-10 py-10">
                 {/* Status Card */}
-                <div className="glass rounded-[3rem] p-12 text-center space-y-8 shadow-2xl relative overflow-hidden">
+                <div className="glass rounded-[3rem] p-8 sm:p-12 text-center space-y-8 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 accent-gradient opacity-50" />
                     
-                    <div className="space-y-4">
-                        <div className={`size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-slate-950 shadow-2xl transition-all duration-700 ${isCheckedOut ? 'bg-slate-500' : isCheckedIn ? 'bg-green-500' : 'bg-primary'}`}>
-                            <span className="material-symbols-outlined text-5xl font-black">
-                                {isCheckedOut ? 'check_circle' : isCheckedIn ? 'timer' : 'fingerprint'}
-                            </span>
-                        </div>
-                        <div>
+                    <div className="space-y-6">
+                        {!isCheckedOut ? (
+                            <div className="relative group">
+                                <CameraCapture 
+                                    ref={cameraRef}
+                                    className="aspect-[4/3] w-full max-w-md mx-auto"
+                                />
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Siap Mengambil Foto</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-slate-950 shadow-2xl transition-all duration-700 bg-slate-500">
+                                <span className="material-symbols-outlined text-5xl font-black">check_circle</span>
+                            </div>
+                        )}
+
+                        <div className="pt-4">
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-2">Status Hari Ini</p>
                             <h2 className="text-4xl font-black font-display tracking-tight">
                                 {isCheckedOut ? 'Sudah Pulang' : isCheckedIn ? 'Sudah Masuk' : 'Belum Absen'}
@@ -97,7 +123,7 @@ function AttendancePage() {
                             <span className="material-symbols-outlined">info</span>
                         </div>
                         <p className="text-xs font-bold leading-relaxed opacity-80">
-                            Silakan lakukan presensi tepat waktu sesuai jadwal shift Anda. Keterlambatan akan otomatis tercatat dalam sistem riwayat absen.
+                            Sistem absen kini menggunakan kamera untuk verifikasi wajah. Pastikan wajah Anda terlihat jelas dalam frame dan pencahayaan mencukupi.
                         </p>
                     </div>
                 </div>
@@ -105,6 +131,7 @@ function AttendancePage() {
         </Layout>
     );
 }
+
 
 function App() {
     return (

@@ -21,7 +21,7 @@ export class AttendanceService {
         return record || null;
     }
 
-    static async checkIn(userId: string) {
+    static async checkIn(userId: string, photoPath?: string) {
         const today = new Date();
         const dayStart = new Date(today);
         dayStart.setHours(0, 0, 0, 0);
@@ -58,7 +58,7 @@ export class AttendanceService {
         // 3. Insert or Update
         if (existing) {
             return await db.update(schema.attendance)
-                .set({ checkIn: today, status, createdAt: new Date() })
+                .set({ checkIn: today, status, checkInPhoto: photoPath, createdAt: new Date() })
                 .where(eq(schema.attendance.id, existing.id))
                 .returning();
         } else {
@@ -66,13 +66,14 @@ export class AttendanceService {
                 userId,
                 date: dayStart,
                 checkIn: today,
+                checkInPhoto: photoPath,
                 status,
                 createdAt: new Date()
             }).returning();
         }
     }
 
-    static async checkOut(userId: string) {
+    static async checkOut(userId: string, photoPath?: string) {
         const existing = await this.getTodayAttendance(userId);
         if (!existing) {
             throw new Error('Anda belum melakukan Check-In hari ini.');
@@ -82,7 +83,7 @@ export class AttendanceService {
         }
 
         return await db.update(schema.attendance)
-            .set({ checkOut: new Date() })
+            .set({ checkOut: new Date(), checkOutPhoto: photoPath })
             .where(eq(schema.attendance.id, existing.id))
             .returning();
     }
@@ -95,6 +96,8 @@ export class AttendanceService {
             date: schema.attendance.date,
             checkIn: schema.attendance.checkIn,
             checkOut: schema.attendance.checkOut,
+            checkInPhoto: schema.attendance.checkInPhoto,
+            checkOutPhoto: schema.attendance.checkOutPhoto,
             status: schema.attendance.status,
         })
         .from(schema.attendance)

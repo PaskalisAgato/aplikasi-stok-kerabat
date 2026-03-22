@@ -17,18 +17,27 @@ export function useAttendance(filters: any = {}) {
     });
 
     const checkInMutation = useMutation({
-        mutationFn: () => apiClient.checkIn(),
+        mutationFn: (photo?: File | Blob) => {
+            const formData = new FormData();
+            if (photo) formData.append('photo', photo);
+            return apiClient.checkIn(formData);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['attendance'] });
         },
     });
 
     const checkOutMutation = useMutation({
-        mutationFn: () => apiClient.checkOut(),
+        mutationFn: (photo?: File | Blob) => {
+            const formData = new FormData();
+            if (photo) formData.append('photo', photo);
+            return apiClient.checkOut(formData);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['attendance'] });
         },
     });
+
 
     return {
         todayAttendance: todayQuery.data || null,

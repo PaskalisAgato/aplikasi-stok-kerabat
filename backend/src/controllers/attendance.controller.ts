@@ -19,7 +19,8 @@ export class AttendanceController {
             const userId = (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
-            const record = await AttendanceService.checkIn(userId);
+            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
+            const record = await AttendanceService.checkIn(userId, photoPath);
             res.json(record);
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -31,7 +32,8 @@ export class AttendanceController {
             const userId = (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
-            const record = await AttendanceService.checkOut(userId);
+            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
+            const record = await AttendanceService.checkOut(userId, photoPath);
             res.json(record);
         } catch (error: any) {
             res.status(400).json({ error: error.message });

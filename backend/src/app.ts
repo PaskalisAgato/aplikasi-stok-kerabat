@@ -39,6 +39,8 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
+
 
 // 2. Health & Diag
 app.get('/api/health', async (req: Request, res: Response) => {

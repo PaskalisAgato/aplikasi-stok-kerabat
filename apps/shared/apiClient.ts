@@ -65,8 +65,9 @@ export async function apiFetch<T = unknown>(
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('kerabat_auth_token') : null;
 
+    const isFormData = init.body instanceof FormData;
     const headers: HeadersInit = {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(init.headers ?? {}),
     };
@@ -168,8 +169,8 @@ export const apiClient = {
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),
-    checkIn: () => apiFetch<any>('/attendance/check-in', { method: 'POST' }),
-    checkOut: () => apiFetch<any>('/attendance/check-out', { method: 'POST' }),
+    checkIn: (formData?: FormData) => apiFetch<any>('/attendance/check-in', { method: 'POST', body: formData }),
+    checkOut: (formData?: FormData) => apiFetch<any>('/attendance/check-out', { method: 'POST', body: formData }),
     getAttendanceHistory: (params: Record<string, string>) => {
         const query = new URLSearchParams(params).toString();
         return apiFetch<any[]>(`/attendance/history?${query}`);

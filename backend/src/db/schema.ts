@@ -205,9 +205,12 @@ export const attendance = pgTable('attendance', {
     date: timestamp('date').notNull(),
     checkIn: timestamp('check_in'),
     checkOut: timestamp('check_out'),
+    checkInPhoto: text('check_in_photo'),
+    checkOutPhoto: text('check_out_photo'),
     status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     userIdx: index('attendance_user_idx').on(t.userId),
     dateIdx: index('attendance_date_idx').on(t.date)
 }));
+
