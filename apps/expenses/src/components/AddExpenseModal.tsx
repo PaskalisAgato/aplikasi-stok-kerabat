@@ -13,6 +13,7 @@ interface AddExpenseModalProps {
 
 const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAdd, initialData }) => {
     const [name, setName] = useState('');
+    const [vendor, setVendor] = useState('');
     const [amount, setAmount] = useState('');
     const [categories, setCategories] = useState<any[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -21,6 +22,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
 
     const fetchCategories = async () => {
         try {
@@ -43,13 +46,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     React.useEffect(() => {
         if (initialData && isOpen && categories.length > 0) {
             setName(initialData.title || '');
+            setVendor(initialData.vendor || '');
             setAmount(initialData.amount?.toString() || '');
             setSelectedCategory(initialData.category || '');
             setReceipt(initialData.imageUrl || RECEIPT_PLACEHOLDER);
-            setExpenseDate(new Date(initialData.date).toISOString().split('T')[0]);
+            setExpenseDate(new Date(initialData.expenseDate || initialData.date).toISOString().split('T')[0]);
         } else if (isOpen && !initialData) {
             // Reset for new expense
             setName('');
+            setVendor('');
             setAmount('');
             if (categories.length > 0) setSelectedCategory(categories[0].name);
             setReceipt(RECEIPT_PLACEHOLDER);
@@ -113,6 +118,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             // 2. Add or Update Expense in database
             const expensePayload = {
                 title: name,
+                vendor,
                 category: selectedCategory || 'Other',
                 amount: Number(amount),
                 receiptUrl: finalReceiptUrl,
@@ -150,10 +156,14 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     };
 
     const handleAddCategory = async () => {
-        const catName = prompt('Enter new category name:');
-        if (!catName) return;
+        if (!newCategoryName.trim()) {
+            setIsAddingCategory(false);
+            return;
+        }
         try {
-            await apiClient.addExpenseCategory({ name: catName, icon: 'category' });
+            await apiClient.addExpenseCategory({ name: newCategoryName.trim(), icon: 'category' });
+            setNewCategoryName('');
+            setIsAddingCategory(false);
             fetchCategories();
         } catch (error) {
             console.error('Failed to add category:', error);
@@ -197,17 +207,30 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Expense Name */}
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Expense Name</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={e => setName(e.target.value)}
-                                placeholder="e.g. Arabica Beans Supply"
-                                required
-                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
-                            />
+                        {/* Expense Name & Vendor */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Expense Name / Title</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    placeholder="e.g. Arabica Beans Supply"
+                                    required
+                                    className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Vendor / Toko</label>
+                                <input
+                                    type="text"
+                                    value={vendor}
+                                    onChange={e => setVendor(e.target.value)}
+                                    placeholder="e.g. Toko Makmur"
+                                    required
+                                    className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
+                                />
+                            </div>
                         </div>
 
                         {/* Amount */}
@@ -280,14 +303,42 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     );
                                 })}
 
-                                {/* Add new category button */}
-                                <button
-                                    type="button"
-                                    onClick={handleAddCategory}
-                                    className="w-9 h-9 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined">add</span>
-                                </button>
+                                {/* Add new category section */}
+                                {isAddingCategory ? (
+                                    <div className="flex items-center gap-2 bg-primary/10 rounded-full pl-4 pr-1 py-1 border border-primary/30 animate-in zoom-in duration-300">
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={newCategoryName}
+                                            onChange={e => setNewCategoryName(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+                                            placeholder="Nama kategori..."
+                                            className="bg-transparent border-none outline-none text-xs font-bold text-primary placeholder:text-primary/40 w-24"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddCategory}
+                                            className="size-7 rounded-full bg-primary text-white flex items-center justify-center shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">check</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAddingCategory(false)}
+                                            className="size-7 rounded-full bg-white/10 text-primary flex items-center justify-center"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddingCategory(true)}
+                                        className="w-9 h-9 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined">add</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
 

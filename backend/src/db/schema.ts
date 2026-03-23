@@ -155,6 +155,7 @@ export const saleItems = pgTable('sale_items', {
 export const expenses = pgTable('expenses', {
     id: serial('id').primaryKey(),
     title: text('title').notNull(),
+    vendor: text('vendor'), // New: Vendor name
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     receiptUrl: text('receipt_url'),

@@ -19,6 +19,7 @@ interface ExpenseListProps {
 const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit }) => {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const MONTHS = [
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -109,7 +110,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             >
                                 <div className="flex items-center gap-5 flex-1 min-w-0">
                                     <div
-                                        className="size-16 rounded-2xl bg-cover bg-center shrink-0 border-2 border-white/5 bg-[var(--bg-app)] shadow-inner transition-transform group-hover:rotate-3"
+                                        onClick={() => expense.imageUrl && setPreviewImage(expense.imageUrl)}
+                                        className="size-16 rounded-2xl bg-cover bg-center shrink-0 border-2 border-white/5 bg-[var(--bg-app)] shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in"
                                         style={{ backgroundImage: `url('${expense.imageUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?q=80&w=200&auto=format&fit=crop"}')` }}
                                     />
                                     <div className="flex-1 min-w-0 space-y-1.5">
@@ -149,6 +151,38 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {previewImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setPreviewImage(null)}
+                        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative max-w-full max-h-full"
+                        >
+                            <img
+                                src={previewImage}
+                                alt="Receipt Preview"
+                                className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain border-4 border-white/10"
+                            />
+                            <button
+                                onClick={() => setPreviewImage(null)}
+                                className="absolute -top-12 right-0 size-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                            >
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

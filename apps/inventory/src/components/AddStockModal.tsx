@@ -34,9 +34,10 @@ interface HistoryItem {
 interface AddStockModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialItem?: InventoryItem | null;
 }
 
-const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
+const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialItem }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [items, setItems] = useState<SelectedItem[]>([]);
@@ -55,8 +56,15 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             fetchInventory();
+            if (initialItem) {
+                handleAddItem(initialItem);
+            }
+        } else {
+            setItems([]);
+            setSearchTerm('');
+            setSupplierName('');
         }
-    }, [isOpen]);
+    }, [isOpen, initialItem]);
 
     const fetchInventory = async () => {
         try {

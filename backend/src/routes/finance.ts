@@ -31,11 +31,12 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         const sheet = workbook.addWorksheet('Data Pengeluaran');
         sheet.columns = [
             { header: 'ID', key: 'id', width: 5 },
-            { header: 'Judul', key: 'title', width: 30 },
+            { header: 'Catatan/Judul', key: 'title', width: 30 },
+            { header: 'Vendor/Supplier', key: 'vendor', width: 25 },
             { header: 'Kategori', key: 'category', width: 20 },
             { header: 'Jumlah', key: 'amount', width: 15 },
             { header: 'Tanggal', key: 'date', width: 20 },
-            { header: 'Catatan/Bukti', key: 'receipt', width: 40 },
+            { header: 'Bukti', key: 'receipt', width: 40 },
         ];
 
         // Style header
@@ -46,6 +47,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
             sheet.addRow({
                 id: exp.id,
                 title: exp.title,
+                vendor: (exp as any).vendor || '-',
                 category: exp.category,
                 amount: parseFloat(exp.amount),
                 date: exp.expenseDate.toLocaleString('id-ID'),
@@ -68,7 +70,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
 // POST new expense
 financeRouter.post('/expenses', async (req: Request, res: Response) => {
     try {
-        const { title, category, amount, date, receiptUrl } = req.body;
+        const { title, vendor, category, amount, date, receiptUrl } = req.body;
         
         // Better validation: amount can be 0, but must be defined and a number
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
@@ -86,6 +88,7 @@ financeRouter.post('/expenses', async (req: Request, res: Response) => {
 
         const [newExpense] = await db.insert(schema.expenses).values({
             title,
+            vendor,
             category,
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,
@@ -130,7 +133,7 @@ financeRouter.put('/expenses/:id', async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Invalid expense ID' });
         }
 
-        const { title, category, amount, date, receiptUrl } = req.body;
+        const { title, vendor, category, amount, date, receiptUrl } = req.body;
 
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
             return res.status(400).json({ error: 'Missing or invalid required expense fields' });
@@ -147,6 +150,7 @@ financeRouter.put('/expenses/:id', async (req: Request, res: Response) => {
         const [updatedExpense] = await db.update(schema.expenses)
             .set({
                 title,
+                vendor,
                 category,
                 amount: amount.toString(),
                 receiptUrl: receiptUrl || null,

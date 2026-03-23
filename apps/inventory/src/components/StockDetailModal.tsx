@@ -6,9 +6,10 @@ interface StockDetailModalProps {
     onClose: () => void;
     selectedItem?: any;
     onEditClick?: () => void;
+    onUpdateStockClick?: () => void;
 }
 
-const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, selectedItem, onEditClick }) => {
+const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, selectedItem, onEditClick, onUpdateStockClick }) => {
     const [movements, setMovements] = React.useState<any[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
 
@@ -124,7 +125,10 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
 
                 {/* Sticky Bottom Actions */}
                 <div className="p-4 flex gap-3 sticky bottom-0 bg-background-app border-t border-border-dim">
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-lg active:scale-95 transition-transform">
+                    <button 
+                        onClick={onUpdateStockClick}
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-lg active:scale-95 transition-transform"
+                    >
                         <span className="material-symbols-outlined">inventory</span>
                         Update Stock
                     </button>

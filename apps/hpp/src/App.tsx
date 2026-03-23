@@ -6,6 +6,14 @@ import { getTargetUrl } from '@shared/navigation';
 function App() {
     const [hppData, setHppData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [sellingPrice, setSellingPrice] = useState<number>(() => {
+        const saved = localStorage.getItem('hpp_selling_price');
+        return saved ? Number(saved) : 0;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('hpp_selling_price', sellingPrice.toString());
+    }, [sellingPrice]);
 
     useEffect(() => {
         const fetchHPP = async () => {
@@ -37,15 +45,47 @@ function App() {
                 </div>
             ) : (
                 <div className="space-y-10">
-                    {/* Summary Stats */}
-                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+                    {/* Selling Price & Summary Stats */}
+                    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+                        {/* Selling Price Input */}
+                        <div className="card group p-6 flex flex-col justify-between hover:scale-[1.02] transition-all border-primary/20 bg-primary/5">
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Selling Price / Cup</p>
+                                <div className="relative">
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-lg font-black text-primary opacity-40">Rp</span>
+                                    <input 
+                                        type="number"
+                                        value={sellingPrice || ''}
+                                        onChange={(e) => setSellingPrice(Number(e.target.value))}
+                                        className="w-full bg-transparent border-none focus:ring-0 text-2xl font-black text-[var(--text-main)] pl-7 p-0 outline-none"
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-primary/10">
+                                <span className="text-[8px] font-black text-primary uppercase tracking-widest opacity-60 italic">Atur harga untuk hitung margin</span>
+                            </div>
+                        </div>
+
                         <div className="card group p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 border-white/5">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Total HPP (30 Hari)</p>
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Profit Per Cup</p>
+                                <h2 className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase leading-tight">
+                                    Rp {Math.max(0, sellingPrice - (totalHPPBahan / (hppData?.totalSalesCount || 1))).toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                </h2>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Margin: {sellingPrice > 0 ? (((sellingPrice - (totalHPPBahan / (hppData?.totalSalesCount || 1))) / sellingPrice) * 100).toFixed(1) : 0}%</span>
+                            </div>
+                        </div>
+
+                        <div className="card group p-6 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 border-white/5">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Total HPP Bahan</p>
                                 <h2 className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase leading-tight">Rp {totalHPPBahan.toLocaleString('id-ID')}</h2>
                             </div>
                             <div className="mt-4 pt-4 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Berdasarkan BOM & Penjualan</span>
+                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">30 Hari Terakhir</span>
                             </div>
                         </div>
 
@@ -56,7 +96,7 @@ function App() {
                             </div>
                             <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-emerald-500 text-xs font-black">sync</span>
-                                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Inventory Sync</span>
+                                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Sync</span>
                             </div>
                         </div>
                     </section>

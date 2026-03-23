@@ -114,12 +114,12 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                 )}
             </div>
 
-            {/* Desktop Add Button (Fixed Overlay) */}
+            {/* Add Button (Fixed Overlay) */}
             <button
                 onClick={() => setIsAddEmployeeModalOpen(true)}
-                className={`fixed ${isStandalone ? 'bottom-10 right-10' : 'bottom-10 right-10'} size-20 accent-gradient text-slate-900 rounded-[2.5rem] shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-75 transition-all hover:scale-110 z-50`}
+                className="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 size-16 sm:size-24 accent-gradient text-slate-900 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_20px_50px_rgba(200,100,20,0.4)] flex items-center justify-center active:scale-75 transition-all hover:scale-110 z-[100]"
             >
-                <span className="material-symbols-outlined text-4xl font-black">person_add</span>
+                <span className="material-symbols-outlined text-3xl sm:text-5xl font-black">person_add</span>
             </button>
 
             <AddEmployeeModal

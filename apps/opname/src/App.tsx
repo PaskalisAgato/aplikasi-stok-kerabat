@@ -165,8 +165,10 @@ function App() {
                                         <input
                                             className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
                                             type="number"
-                                            value={physicalStocks[item.id] || ''}
+                                            inputMode="decimal"
+                                            value={physicalStocks[item.id] ?? ''}
                                             onChange={(e) => handleStockChange(item.id, e.target.value)}
+                                            placeholder="0"
                                         />
                                     </div>
                                     <div className="space-y-3">

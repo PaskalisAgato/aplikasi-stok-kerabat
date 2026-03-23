@@ -277,8 +277,20 @@ function App() {
             setIsStockModalOpen(false);
             setIsEditItemModalOpen(true);
         }}
+        onUpdateStockClick={() => {
+            setIsStockModalOpen(false);
+            setIsAddStockModalOpen(true);
+        }}
       />
-      <AddStockModal isOpen={isAddStockModalOpen} onClose={() => { setIsAddStockModalOpen(false); fetchInventory() }} />
+      <AddStockModal 
+        isOpen={isAddStockModalOpen} 
+        onClose={() => { 
+            setIsAddStockModalOpen(false); 
+            setSelectedStock(null);
+            fetchInventory(); 
+        }} 
+        initialItem={selectedStock}
+      />
       <CreateItemModal isOpen={isCreateItemModalOpen} onClose={() => { setIsCreateItemModalOpen(false); fetchInventory() }} />
       <EditItemModal isOpen={isEditItemModalOpen} onClose={() => setIsEditItemModalOpen(false)} onUpdated={() => fetchInventory()} item={selectedStock} />
       <NotificationModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} inventory={inventoryList} />
