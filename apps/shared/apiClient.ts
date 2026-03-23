@@ -175,6 +175,7 @@ export const apiClient = {
     updateShift: (id: number, data: unknown) => apiFetch<any>(`/shifts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteShift: (id: number) => apiFetch<any>(`/shifts/${id}`, { method: 'DELETE' }),
     exportShiftTemplate: () => apiFetch<Blob>('/shifts/export-template', { method: 'GET' }, true),
+    exportSchedule: (data: any) => apiFetch<Blob>('/shifts/export', { method: 'POST', body: JSON.stringify(data) }, true),
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),

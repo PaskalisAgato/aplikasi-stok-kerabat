@@ -275,22 +275,18 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     };
 
     const handleExport = async () => {
-        const loadingToast = toast.loading("Menyiapkan dokumenExcel...");
+        const loadingToast = toast.loading("Menyiapkan Dokumen Excel...");
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/shifts/export`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ gridData, startDate, endDate, dates })
-            });
-            if (!response.ok) throw new Error('Gagal mengekspor jadwal.');
-            const blob = await response.blob();
+            const blob = await apiClient.exportSchedule({ gridData, startDate, endDate, dates });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `jadwal-shift-${startDate}-${endDate}.xlsx`;
             document.body.appendChild(a);
             a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
             toast.dismiss(loadingToast);
             toast.success("Ekspor berhasil!");
         } catch (e: any) {
