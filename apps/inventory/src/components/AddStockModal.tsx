@@ -342,49 +342,58 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                     </div>
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-app/80 backdrop-blur-md border-t border-border-dim z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-                    <div className="max-w-md mx-auto space-y-3">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background-app/90 backdrop-blur-lg border-t border-border-dim z-20 shadow-[0_-15px_50px_rgba(0,0,0,0.1)]">
+                    <div className="max-w-md mx-auto space-y-5">
                         {items.length > 0 && (
-                            <div className="grid grid-cols-2 gap-3 mb-2">
-                                <div>
-                                    <label className="text-[10px] uppercase font-bold text-muted mb-1 block">Nama Supplier (Opsional)</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Ketik supplier..."
-                                        value={supplierName}
-                                        onChange={e => setSupplierName(e.target.value)}
-                                        className="w-full text-sm h-10 rounded-xl bg-background-app border border-border-dim focus:ring-primary focus:border-primary px-3 text-main"
-                                    />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <span className="material-symbols-outlined text-primary text-xs font-black">info</span>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Informasi Tambahan</p>
                                 </div>
-                                <div>
-                                    <label className="text-[10px] uppercase font-bold text-muted mb-1 block">Tanggal Masuk</label>
-                                    <input 
-                                        type="date" 
-                                        value={customDate}
-                                        onChange={e => setCustomDate(e.target.value)}
-                                        className="w-full text-sm h-10 rounded-xl bg-background-app border border-border-dim focus:ring-primary focus:border-primary px-3 text-main"
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-muted ml-1 block opacity-70">Nama Supplier</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Ketik supplier..."
+                                            value={supplierName}
+                                            onChange={e => setSupplierName(e.target.value)}
+                                            className="w-full text-sm h-12 rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary px-4 text-main font-medium transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase font-bold text-muted ml-1 block opacity-70">Tanggal Masuk</label>
+                                        <input 
+                                            type="date" 
+                                            value={customDate}
+                                            onChange={e => setCustomDate(e.target.value)}
+                                            className="w-full text-sm h-12 rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary px-4 text-main font-medium transition-all"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
-                        <div className="flex justify-between items-center px-1">
-                            <span className="text-muted text-sm">Total Belanja</span>
-                            <span className="text-main text-lg font-bold">
-                                Rp {calculateTotal().toLocaleString('id-ID')}
-                            </span>
+                        
+                        <div className="pt-2 border-t border-border-dim/30">
+                            <div className="flex justify-between items-center px-1 mb-4">
+                                <span className="text-muted text-xs font-black uppercase tracking-widest">Total Belanja</span>
+                                <span className="text-primary text-2xl font-black font-display">
+                                    Rp {calculateTotal().toLocaleString('id-ID')}
+                                </span>
+                            </div>
+                            <button 
+                                onClick={handleSaveStock}
+                                disabled={isSaving || items.length === 0}
+                                className={`w-full ${isSaving ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white font-black py-4.5 rounded-2xl shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-[0.98] transition-all h-14`}
+                            >
+                                {isSaving ? (
+                                    <span className="material-symbols-outlined animate-spin text-xl">refresh</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-xl">inventory_2</span>
+                                )}
+                                <span className="uppercase tracking-[0.2em] text-xs">{isSaving ? 'Menyimpan...' : 'Simpan Stok Masuk'}</span>
+                            </button>
                         </div>
-                        <button 
-                            onClick={handleSaveStock}
-                            disabled={isSaving || items.length === 0}
-                            className={`w-full ${isSaving ? 'bg-slate-400' : 'bg-primary hover:bg-primary/90'} text-white font-bold py-4 rounded-xl shadow-[0_8px_24px_rgba(200,100,20,0.3)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all`}
-                        >
-                            {isSaving ? (
-                                <span className="material-symbols-outlined animate-spin">refresh</span>
-                            ) : (
-                                <span className="material-symbols-outlined">inventory_2</span>
-                            )}
-                            {isSaving ? 'Menyimpan...' : 'Simpan Stok'}
-                        </button>
                     </div>
                 </div>
             </div>

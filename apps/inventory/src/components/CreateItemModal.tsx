@@ -225,62 +225,76 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                 </div>
 
                                 {/* Inputs Grid */}
-                                <div className="space-y-3">
-                                    <div>
-                                    <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Nama Bahan</label>
-                                        <input 
-                                            type="text" 
-                                            value={draft.name} 
-                                            onChange={(e) => handleFieldChange(draft.id, 'name', e.target.value)}
-                                            placeholder="Nama bahannya apa?"
-                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <div>
-                                    <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Kategori</label>
-                                            <select 
-                                                value={draft.category} 
-                                                onChange={(e) => handleFieldChange(draft.id, 'category', e.target.value)}
-                                                className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium appearance-none"
-                                            >
-                                                <option value="Biji Kopi">Biji Kopi</option>
-                                                <option value="Susu & Krimer">Susu & Krimer</option>
-                                                <option value="Sirup & Perasa">Sirup & Perasa</option>
-                                                <option value="Packaging">Packaging</option>
-                                                <option value="Lainnya">Lainnya</option>
-                                            </select>
+                                <div className="space-y-6">
+                                    {/* Section: Informasi Dasar */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <span className="material-symbols-outlined text-primary text-xs font-black">info</span>
+                                            <p className="text-[9px] font-black text-muted uppercase tracking-[0.2em]">Informasi Dasar</p>
                                         </div>
-                                        <div>
-                                        <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Satuan</label>
-                                            <select 
-                                                value={draft.unit} 
-                                                onChange={(e) => handleFieldChange(draft.id, 'unit', e.target.value)}
-                                                className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium appearance-none"
-                                            >
-                                                <option value="g">Gram (g)</option>
-                                                <option value="Kg">Kilogram (Kg)</option>
-                                                <option value="L">Liter (lt/L)</option>
-                                                <option value="mL">MiliLiter (ml/mL)</option>
-                                                <option value="pcs">Pieces (pcs)</option>
-                                                <option value="pack">Pack (pack)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                        <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Min. Stok</label>
-                                            <input 
-                                                type="number" 
-                                                value={draft.minStock} 
-                                                onChange={(e) => handleFieldChange(draft.id, 'minStock', e.target.value)}
-                                                placeholder="Batas peringatan"
-                                                min="0"
-                                                className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium"
-                                            />
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-muted uppercase ml-1 block">Nama Bahan</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={draft.name} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'name', e.target.value)}
+                                                    placeholder="Nama bahannya"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-muted uppercase ml-1 block">Kategori</label>
+                                                <select 
+                                                    value={draft.category} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'category', e.target.value)}
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
+                                                >
+                                                    <option value="Biji Kopi">Biji Kopi</option>
+                                                    <option value="Susu & Krimer">Susu & Krimer</option>
+                                                    <option value="Sirup & Perasa">Sirup & Perasa</option>
+                                                    <option value="Packaging">Packaging</option>
+                                                    <option value="Lainnya">Lainnya</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
 
-
+                                    {/* Section: Pengaturan Stok */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
+                                            <p className="text-[9px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
+                                                <select 
+                                                    value={draft.unit} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'unit', e.target.value)}
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
+                                                >
+                                                    <option value="g">Gram (g)</option>
+                                                    <option value="Kg">Kilogram (Kg)</option>
+                                                    <option value="L">Liter (lt/L)</option>
+                                                    <option value="mL">MiliLiter (ml/mL)</option>
+                                                    <option value="pcs">Pieces (pcs)</option>
+                                                    <option value="pack">Pack (pack)</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-muted uppercase ml-1 block">Min. Stok</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={draft.minStock} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'minStock', e.target.value)}
+                                                    placeholder="Contoh: 100"
+                                                    min="0"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

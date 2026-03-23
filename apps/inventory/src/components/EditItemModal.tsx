@@ -115,64 +115,77 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                     <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleImageChange} className="hidden" />
 
                     <div className="bg-surface rounded-2xl border border-border-dim p-4 shadow-sm">
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-8">
                             {/* Image Section */}
-                            <div className="flex justify-center p-2">
+                            <div className="flex justify-center">
                                 <div 
-                                    className="size-32 rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-primary/5 cursor-pointer relative overflow-hidden group hover:border-primary transition-colors"
+                                    className="size-40 rounded-3xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-primary/5 cursor-pointer relative overflow-hidden group hover:border-primary transition-all shadow-inner"
                                     onClick={() => setImageMenuOpen(true)}
                                 >
                                     {imageBase64 ? (
                                         <>
                                             <img src={imageBase64} alt="Preview" className="size-full object-cover" />
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="material-symbols-outlined text-white text-3xl">edit</span>
+                                                <span className="material-symbols-outlined text-white text-4xl">edit</span>
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="text-center text-primary/40 group-hover:text-primary transition-colors flex flex-col items-center">
-                                            <span className="material-symbols-outlined text-3xl mb-1">add_a_photo</span>
-                                            <span className="text-xs font-semibold">Tukar Foto</span>
+                                        <div className="text-center text-primary/40 group-hover:text-primary transition-colors flex flex-col items-center gap-2">
+                                            <span className="material-symbols-outlined text-4xl">add_a_photo</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Tukar Foto</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Inputs */}
+                            {/* Section: Informasi Bahan */}
                             <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Nama Bahan</label>
-                                    <input 
-                                        type="text" 
-                                        value={name} 
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="Nama bahan"
-                                        className="w-full rounded-xl bg-slate-100  border-transparent focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-slate-900  text-sm font-medium"
-                                    />
+                                <div className="flex items-center gap-2 px-1">
+                                    <span className="material-symbols-outlined text-primary text-xs font-black">info</span>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Informasi Bahan</p>
                                 </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Nama Bahan</label>
+                                        <input 
+                                            type="text" 
+                                            value={name} 
+                                            onChange={(e) => setName(e.target.value)}
+                                            placeholder="Nama bahan"
+                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Kategori</label>
-                                    <select 
-                                        value={category} 
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium appearance-none"
-                                    >
-                                        <option value="Biji Kopi">Biji Kopi</option>
-                                        <option value="Susu & Krimer">Susu & Krimer</option>
-                                        <option value="Sirup & Perasa">Sirup & Perasa</option>
-                                        <option value="Packaging">Packaging</option>
-                                        <option value="Lainnya">Lainnya</option>
-                                    </select>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Kategori</label>
+                                        <select 
+                                            value={category} 
+                                            onChange={(e) => setCategory(e.target.value)}
+                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
+                                        >
+                                            <option value="Biji Kopi">Biji Kopi</option>
+                                            <option value="Susu & Krimer">Susu & Krimer</option>
+                                            <option value="Sirup & Perasa">Sirup & Perasa</option>
+                                            <option value="Packaging">Packaging</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
                                 </div>
+                            </div>
 
+                            {/* Section: Pengaturan Stok */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok</p>
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Satuan</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
                                         <select 
                                             value={unit} 
                                             onChange={(e) => setUnit(e.target.value)}
-                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium appearance-none"
+                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
                                         >
                                             <option value="g">Gram (g)</option>
                                             <option value="Kg">Kilogram (Kg)</option>
@@ -182,15 +195,15 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             <option value="pack">Pack (pack)</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-muted uppercase ml-1 block mb-1">Min. Stok</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Min. Stok</label>
                                         <input 
                                             type="number" 
                                             value={minStock} 
                                             onChange={(e) => setMinStock(e.target.value)}
                                             placeholder="Batas peringatan"
                                             min="0"
-                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:border-primary/50 focus:ring-1 focus:ring-primary h-12 px-4 text-main text-sm font-medium"
+                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
                                         />
                                     </div>
                                 </div>

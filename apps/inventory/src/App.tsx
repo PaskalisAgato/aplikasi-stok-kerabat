@@ -8,6 +8,7 @@ import CreateItemModal from './components/CreateItemModal';
 import NotificationModal from './components/NotificationModal';
 import EditItemModal from './components/EditItemModal';
 import StoreProfileModal from './components/StoreProfileModal';
+import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 
 function App() {
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
@@ -21,6 +22,9 @@ function App() {
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [inventoryList, setInventoryList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchInventory = async () => {
     try {
@@ -60,6 +64,30 @@ function App() {
     } catch (error) {
       console.error('Export failed', error);
       alert('Gagal mengekspor data.');
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, item: any) => {
+    e.stopPropagation();
+    setItemToDelete(item);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await apiClient.deleteInventoryItem(itemToDelete.id);
+      // Immediate UI Update
+      setInventoryList(prev => prev.filter(i => i.id !== itemToDelete.id));
+      setIsDeleteConfirmOpen(false);
+      setItemToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete item', error);
+      alert('Gagal menghapus bahan baku. Cek koneksi server.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -200,7 +228,7 @@ function App() {
                 onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
                 className="card group cursor-pointer relative overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
             >
-                {/* Status Indicator */}
+                {/* Status Indicator & Delete Button */}
                 <div className="flex justify-between items-start mb-8 relative z-10">
                 <div className="min-w-0 space-y-1">
                     <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</h3>
@@ -209,12 +237,21 @@ function App() {
                         <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate">{item.supplier || 'Pemasok Umum'}</p>
                     </div>
                 </div>
-                <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
-                    item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
-                    item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10 border-slate-500/20' :
-                    'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10'
-                }`}>
-                    {item.status}
+                <div className="flex flex-col items-end gap-2">
+                    <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
+                        item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
+                        item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10 border-slate-500/20' :
+                        'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10'
+                    }`}>
+                        {item.status}
+                    </div>
+                    <button 
+                        onClick={(e) => handleDeleteClick(e, item)}
+                        className="size-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-90"
+                        title="Hapus Bahan Baku"
+                    >
+                        <span className="material-symbols-outlined text-sm font-black">delete</span>
+                    </button>
                 </div>
                 </div>
 
@@ -295,6 +332,14 @@ function App() {
       <EditItemModal isOpen={isEditItemModalOpen} onClose={() => setIsEditItemModalOpen(false)} onUpdated={() => fetchInventory()} item={selectedStock} />
       <NotificationModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} inventory={inventoryList} />
       <StoreProfileModal isOpen={isStoreProfileModalOpen} onClose={() => setIsStoreProfileModalOpen(false)} />
+      
+      <DeleteConfirmationModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        itemName={itemToDelete?.name || ''}
+        isDeleting={isDeleting}
+      />
     </Layout>
   );
 }
