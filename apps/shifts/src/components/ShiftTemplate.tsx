@@ -53,7 +53,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Grid Data
     const [gridData, setGridData] = useState<GridItem[]>([]);
-    const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
 
     // Selection State (for drag-to-fill)
     const [dragStart, setDragStart] = useState<{ row: number, col: number } | null>(null);
@@ -121,13 +120,30 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         const errors: string[] = [];
         dates.forEach(date => {
             let pagi = 0;
+            let sore = 0;
             let malam = 0;
+            let off = 0;
+            
             gridData.forEach(emp => {
-                if (emp.shifts[date] === 'P') pagi++;
-                if (emp.shifts[date] === 'M') malam++;
+                const code = emp.shifts[date] || 'OFF';
+                if (code === 'P') pagi++;
+                else if (code === 'S') sore++;
+                else if (code === 'M') malam++;
+                else if (code === 'OFF') off++;
             });
+
+            const dayName = new Date(date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' });
+
+            // Rule 1: Malam must be > Pagi
             if (malam <= pagi && (pagi > 0 || malam > 0)) {
-                errors.push(`Shift Malam (${malam}) harus lebih banyak dari Pagi (${pagi}) pada ${new Date(date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' })}`);
+                errors.push(`[${dayName}] Malam (${malam}) harus lebih banyak dari Pagi (${pagi})`);
+            }
+
+            // Rule 2: No OFF Condition (Min 2P, 2M)
+            if (off === 0 && gridData.length >= 4) {
+                if (pagi < 2 || malam < 2) {
+                    errors.push(`[${dayName}] Tanpa OFF: Minimal 2 Pagi & 2 Malam (Saat ini P:${pagi}, M:${malam})`);
+                }
             }
         });
         return errors;
@@ -190,6 +206,53 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         setGridData(gridData.filter(g => g.id !== id));
     };
 
+    const balanceSchedules = (manual = true) => {
+        const newGrid = [...gridData];
+        dates.forEach((date) => {
+            let pagi: number[] = [];
+            let sore: number[] = [];
+            let malam: number[] = [];
+            let offCount = 0;
+
+            newGrid.forEach((emp, i) => {
+                const code = emp.shifts[date] || 'OFF';
+                if (code === 'P') pagi.push(i);
+                else if (code === 'S') sore.push(i);
+                else if (code === 'M') malam.push(i);
+                else offCount++;
+            });
+
+            // 1. Priority Malam > Pagi
+            while (malam.length <= pagi.length && (sore.length > 0 || pagi.length > 0)) {
+                if (sore.length > 0) {
+                    const idx = sore.pop()!;
+                    newGrid[idx].shifts[date] = 'M';
+                    malam.push(idx);
+                } else if (pagi.length > 1) { 
+                    const idx = pagi.pop()!;
+                    newGrid[idx].shifts[date] = 'M';
+                    malam.push(idx);
+                } else break;
+            }
+
+            // 2. No OFF Condition (Min 2P, 2M)
+            if (offCount === 0 && newGrid.length >= 4) {
+                while (pagi.length < 2 && sore.length > 0) {
+                    const idx = sore.pop()!;
+                    newGrid[idx].shifts[date] = 'P';
+                    pagi.push(idx);
+                }
+                while (pagi.length < 2 && malam.length > pagi.length + 1) {
+                    const idx = malam.pop()!;
+                    newGrid[idx].shifts[date] = 'P';
+                    pagi.push(idx);
+                }
+            }
+        });
+        setGridData(newGrid);
+        if (manual) toast.success("Jadwal berhasil diseimbangkan!");
+    };
+
     // Advanced Weekly Rotation
     const autoGenerate = (isManual = true) => {
         const newGrid = [...gridData];
@@ -201,33 +264,24 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         }
 
         newGrid.forEach((emp, i) => {
-            // Determine current rotation index
             let currentIdx = activeCodes.indexOf(emp.lastShiftCode as any);
             if (currentIdx === -1) currentIdx = i % activeCodes.length;
             else currentIdx = (currentIdx + 1) % activeCodes.length;
 
             const targetCode = activeCodes[currentIdx];
-            // Constraint: Malam -> Pagi not allowed, shift to Sore
             const finalCode = (targetCode === 'P' && emp.lastShiftCode === 'M') ? 'S' : targetCode;
-
-            const offDayIndex = i % 7; // Distribute OFF days
+            const offDayIndex = i % 7; 
 
             dates.forEach((date, j) => {
-                if (j === offDayIndex) {
-                    emp.shifts[date] = 'OFF';
-                } else {
-                    emp.shifts[date] = finalCode;
-                }
+                if (j === offDayIndex) emp.shifts[date] = 'OFF';
+                else emp.shifts[date] = finalCode;
             });
             emp.lastShiftCode = finalCode;
         });
 
-        // Smart Adjustment (Minimal 1P, 1S, 2M)
-        dates.forEach((_date) => {
-            // ... logic for headcounts ...
-        });
-
         setGridData(newGrid);
+        // Trigger balancing after generation
+        setTimeout(() => balanceSchedules(false), 50);
         if (isManual) toast.success("Jadwal mingguan otomatis dibuat!");
     };
 
@@ -422,13 +476,20 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     </div>
 
                     {isAdmin && (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <button 
                                 onClick={() => autoGenerate()}
                                 className="glass py-4 px-4 rounded-2xl text-sm font-black text-primary uppercase tracking-widest hover:bg-white/5 flex flex-col items-center justify-center gap-2 min-h-[72px]"
                             >
                                 <span className="material-symbols-outlined text-2xl">autorenew</span>
                                 Auto Rotasi
+                            </button>
+                            <button 
+                                onClick={() => balanceSchedules()}
+                                className="bg-white/5 border border-white/10 py-4 px-4 rounded-2xl text-sm font-black text-primary uppercase tracking-widest hover:border-primary flex flex-col items-center justify-center gap-2 transition-all min-h-[72px]"
+                            >
+                                <span className="material-symbols-outlined text-2xl">balance</span>
+                                Balance Jadwal
                             </button>
                             <button 
                                 onClick={generateNextWeek}
@@ -632,10 +693,10 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     <button 
                         onClick={handleSave} 
                         disabled={validationErrors.length > 0}
-                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-primary text-slate-950 shadow-primary/20'}`}
+                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-primary text-slate-950 shadow-primary/20'}`}
                     >
                         <span className="material-symbols-outlined text-2xl">{validationErrors.length > 0 ? 'lock' : 'save'}</span>
-                        {validationErrors.length > 0 ? 'Gagal Validasi' : 'Simpan Jadwal'}
+                        {validationErrors.length > 0 ? 'Distribusi Tidak Sesuai' : 'Simpan Jadwal'}
                     </button>
                     {validationErrors.length > 0 && (
                         <div className="size-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center animate-pulse shrink-0">
