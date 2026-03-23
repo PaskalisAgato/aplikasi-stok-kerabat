@@ -192,7 +192,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                     </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto pb-40">
+                <div className="flex-1 overflow-y-auto pb-[420px]">
                     <div className="px-4 py-4 relative">
                         <div className="flex w-full items-stretch rounded-xl h-12 shadow-sm bg-background-app border border-border-dim">
                             <div className="text-primary/70 flex items-center justify-center pl-4">
@@ -255,31 +255,34 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                             </div>
                         )}
                         {items.map(item => (
-                            <div key={item.id} className="flex flex-col gap-4 bg-surface p-4 rounded-xl border border-border-dim shadow-sm relative">
-                                <button 
-                                    onClick={() => handleRemoveItem(item.id)}
-                                    className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg shadow-sm active:scale-95 transition-all z-20 border border-red-100 group hover:bg-red-600 hover:text-white"
-                                    title="Hapus dari daftar"
-                                >
-                                    <span className="material-symbols-outlined text-sm font-bold">delete</span>
-                                    <span className="text-[10px] font-black uppercase tracking-wider">Hapus</span>
-                                </button>
+                            <div key={item.id} className="flex flex-col gap-6 bg-surface p-5 rounded-[2rem] border border-border-dim shadow-sm relative overflow-hidden group">
+                                {/* Top Section: Info & Delete */}
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div
+                                            className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-16 border border-border-dim shrink-0 shadow-sm"
+                                            style={{ backgroundImage: `url("${item.image}")` }}
+                                        />
+                                        <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
+                                            <h4 className="text-main text-base font-black leading-tight truncate">{item.name}</h4>
+                                            <p className="text-muted text-[10px] font-bold uppercase tracking-wider opacity-70">Stok: {item.stock} {item.unit}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => handleRemoveItem(item.id)}
+                                        className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 rounded-xl shadow-sm active:scale-95 transition-all flex-shrink-0 border border-red-100 group hover:bg-red-600 hover:text-white z-20"
+                                        title="Hapus dari daftar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px] font-bold">delete</span>
+                                        <span className="text-[10px] font-black uppercase tracking-wider">Hapus</span>
+                                    </button>
+                                </div>
 
                                 <div className="flex flex-col gap-6">
-                                    {/* Top Section: Info & Qty */}
+                                    {/* Middle Section: Qty */}
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                        <div className="flex items-center gap-4 flex-1">
-                                            <div
-                                                className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-16 border border-border-dim shrink-0 shadow-sm"
-                                                style={{ backgroundImage: `url("${item.image}")` }}
-                                            />
-                                            <div className="flex flex-col justify-center gap-1 min-w-0">
-                                                <h4 className="text-main text-base font-black leading-tight truncate">{item.name}</h4>
-                                                <p className="text-muted text-[10px] font-bold uppercase tracking-wider">Stok: {item.stock} {item.unit}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="w-full sm:w-auto flex justify-center">
+                                        <div className="w-full sm:w-auto flex justify-center flex-1">
                                             <div className="flex items-center gap-2 text-main bg-background-app p-1.5 rounded-2xl border border-border-dim shadow-inner w-full sm:w-auto justify-between sm:justify-start">
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, -1)}
