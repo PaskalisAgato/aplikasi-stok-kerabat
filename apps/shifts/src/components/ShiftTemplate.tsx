@@ -326,17 +326,17 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         <div className="space-y-8 animate-in fade-in duration-1000">
             {/* Validation Warnings */}
             {isAdmin && validationErrors.length > 0 && (
-                <div className="glass p-6 rounded-[2.5rem] border-red-500/20 bg-red-500/5 animate-in slide-in-from-top-4 duration-700">
-                    <div className="flex items-center gap-3 text-red-500 mb-3">
-                        <div className="size-10 rounded-2xl bg-red-500/20 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-xl">warning</span>
+                <div className="glass p-6 rounded-[2rem] border-red-500/20 bg-red-500/5 animate-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center gap-4 text-red-500 mb-4">
+                        <div className="size-12 rounded-2xl bg-red-500/20 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-2xl">warning</span>
                         </div>
                         <h4 className="text-sm font-black uppercase tracking-[0.2em]">Peringatan Validasi</h4>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2 ml-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {validationErrors.map((err, i) => (
-                            <div key={i} className="flex items-center gap-3 text-[10px] font-bold text-red-400/80 bg-red-500/5 p-3 rounded-xl border border-red-500/10">
-                                <span className="size-1.5 rounded-full bg-red-500 shrink-0" />
+                            <div key={i} className="flex items-center gap-3 text-sm font-bold text-red-400/80 bg-red-500/5 p-4 rounded-xl border border-red-500/10">
+                                <span className="size-2 rounded-full bg-red-500 shrink-0" />
                                 {err}
                             </div>
                         ))}
@@ -344,69 +344,60 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 </div>
             )}
 
-            {/* Header Controls */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 glass p-8 rounded-[2.5rem] border-white/5 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4">
-                    <span className={`text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full border ${isAdmin ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-                        {isAdmin ? 'Mode Admin' : 'Mode Karyawan'}
-                    </span>
-                </div>
+            {/* Header Controls (Mobile Optimized) */}
+            <div className="flex flex-col gap-4">
+                <div className="glass p-6 rounded-[2rem] border-white/5 shadow-2xl space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                             <span className={`text-xs font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border w-fit ${isAdmin ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
+                                {isAdmin ? 'Mode Admin' : 'Mode Karyawan'}
+                            </span>
+                        </div>
+                        <button onClick={handleExport} className="glass p-3 rounded-2xl flex items-center justify-center hover:scale-105 transition-all outline-none min-h-[44px] min-w-[44px]" title="Ekspor Excel">
+                            <span className="material-symbols-outlined text-xl">download</span>
+                        </button>
+                    </div>
 
-                <div className="flex flex-wrap items-center gap-6">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-primary uppercase tracking-widest block">Start Date</label>
-                        <input 
-                            type="date" 
-                            className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
-                            value={startDate}
-                            disabled={!isAdmin}
-                            onChange={e => setStartDate(e.target.value)}
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-primary uppercase tracking-widest block">Start Date</label>
+                            <input 
+                                type="date" 
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm font-bold focus:border-primary transition-all outline-none min-h-[48px]"
+                                value={startDate}
+                                disabled={!isAdmin}
+                                onChange={e => setStartDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-primary uppercase tracking-widest block">End Date</label>
+                            <input 
+                                type="date" 
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm font-bold focus:border-primary transition-all outline-none min-h-[48px]"
+                                value={endDate}
+                                disabled={!isAdmin}
+                                onChange={e => setEndDate(e.target.value)}
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-primary uppercase tracking-widest block">End Date</label>
-                        <input 
-                            type="date" 
-                            className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
-                            value={endDate}
-                            disabled={!isAdmin}
-                            onChange={e => setEndDate(e.target.value)}
-                        />
-                    </div>
+
                     {isAdmin && (
-                        <>
-                            <div className="h-12 w-px bg-white/10 hidden lg:block" />
+                        <div className="grid grid-cols-2 gap-4">
                             <button 
                                 onClick={() => autoGenerate()}
-                                className="glass py-3 px-6 rounded-2xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/5 flex items-center gap-2"
-                                title="Reset rotasi minggu ini"
+                                className="glass py-4 px-4 rounded-2xl text-sm font-black text-primary uppercase tracking-widest hover:bg-white/5 flex flex-col items-center justify-center gap-2 min-h-[72px]"
                             >
-                                <span className="material-symbols-outlined text-sm">autorenew</span>
+                                <span className="material-symbols-outlined text-2xl">autorenew</span>
                                 Auto Rotasi
                             </button>
                             <button 
                                 onClick={generateNextWeek}
-                                className="bg-white/5 border border-white/10 py-3 px-6 rounded-2xl text-[10px] font-black text-[#94a3b8] uppercase tracking-widest hover:border-primary/50 flex items-center gap-2 transition-all"
+                                className="bg-white/5 border border-white/10 py-4 px-4 rounded-2xl text-sm font-black text-[#94a3b8] uppercase tracking-widest hover:border-primary/50 flex flex-col items-center justify-center gap-2 transition-all min-h-[72px]"
                             >
-                                <span className="material-symbols-outlined text-sm">event_repeat</span>
-                                Minggu Berikutnya
+                                <span className="material-symbols-outlined text-2xl">event_repeat</span>
+                                Lanjut Minggu
                             </button>
-                        </>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <button onClick={handleExport} className="glass py-4 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all active:scale-95">
-                        Ekspor Excel
-                    </button>
-                    {isAdmin && (
-                        <button 
-                            onClick={handleSave} 
-                            disabled={validationErrors.length > 0}
-                            className={`py-4 px-10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all active:scale-95 ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-primary text-slate-950 shadow-primary/20 hover:scale-105'}`}
-                        >
-                            {validationErrors.length > 0 ? 'Validasi Gagal' : 'Simpan Jadwal'}
-                        </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -421,7 +412,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                     <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
                                         {type}
                                     </div>
-                                    <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
+                                    <h4 className="text-sm font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button 
@@ -460,12 +451,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 </div>
             )}
 
-            {/* Add Employee Search */}
+            {/* Add Employee Search (Mobile Optimized) */}
             {isAdmin && (
-                <div className="flex justify-end pr-4">
+                <div className="w-full">
                    <div className="relative group/search">
                         <select 
-                            className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer min-h-[56px]"
                             onChange={(e) => {
                                 const emp = allEmployees?.find((u: any) => u.id === e.target.value);
                                 if (emp) addEmployee(emp);
@@ -477,7 +468,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                 <option key={u.id} value={u.id}>{u.name}</option>
                             ))}
                         </select>
-                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
+                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-xl pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
                    </div>
                 </div>
             )}
@@ -488,39 +479,39 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     <table className="w-full border-collapse select-none">
                         <thead className="sticky top-0 z-20">
                             <tr className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
-                                <th className="p-6 text-left min-w-[200px] border-r border-white/5">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Karyawan</span>
+                                <th className="p-4 text-left min-w-[150px] border-r border-white/5">
+                                    <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Karyawan</span>
                                 </th>
                                 {dates.map(date => (
-                                    <th key={date} className="px-4 py-6 min-w-[100px] text-center border-r border-white/5">
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] font-black uppercase text-primary">
+                                    <th key={date} className="px-2 py-4 min-w-[80px] text-center border-r border-white/5">
+                                        <div className="space-y-0.5">
+                                            <p className="text-sm font-black uppercase text-primary leading-tight">
                                                 {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
                                             </p>
-                                            <p className="text-[9px] font-bold text-[var(--text-muted)]">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                                            <p className="text-sm font-bold text-[var(--text-muted)] leading-tight">{date.split('-')[2]}/{date.split('-')[1]}</p>
                                         </div>
                                     </th>
                                 ))}
-                                <th colSpan={3} className="px-4 py-6 border-r border-white/5">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Shift (Minggu)</span>
+                                <th colSpan={3} className="px-2 py-4 min-w-[120px] border-r border-white/5">
+                                    <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Total</span>
                                 </th>
-                                <th className="p-6 text-center">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Total Jam</span>
+                                <th className="p-4 text-center min-w-[80px]">
+                                    <span className="material-symbols-outlined text-primary text-2xl">timer</span>
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {gridData.map((row, rIdx) => (
                                 <tr key={row.id} className="group/row hover:bg-white/[0.02] border-b border-white/5 transition-colors">
-                                    <td className="p-6 border-r border-white/5">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs font-black uppercase tracking-wider text-[var(--text-main)] group-hover/row:text-primary transition-colors">{row.name}</p>
-                                                <p className="text-[9px] font-bold text-[var(--text-muted)] italic">User ID: #{row.id.slice(0, 8)}</p>
+                                    <td className="p-4 border-r border-white/5">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-black uppercase tracking-wider text-[var(--text-main)] transition-colors truncate">{row.name}</p>
+                                                <p className="text-sm font-bold text-[var(--text-muted)] truncate opacity-60">ID: {row.id.slice(0, 5)}</p>
                                             </div>
                                             {isAdmin && (
-                                                <button onClick={() => removeEmployee(row.id)} className="opacity-0 group-hover/row:opacity-100 p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
-                                                    <span className="material-symbols-outlined text-sm">remove_circle</span>
+                                                <button onClick={() => removeEmployee(row.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-xl">close</span>
                                                 </button>
                                             )}
                                         </div>
@@ -528,21 +519,21 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                     {dates.map((date, cIdx) => (
                                         <td 
                                             key={`${row.id}-${date}`}
-                                            className={`p-1 border-r border-white/5 relative transition-all duration-300 ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/20 scale-[0.98]' : ''}`}
+                                            className={`p-1 border-r border-white/5 relative transition-all duration-300 ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/20' : ''}`}
                                             onMouseDown={() => handleMouseDown(rIdx, cIdx)}
                                             onMouseEnter={() => handleMouseEnter(rIdx, cIdx)}
                                             onMouseUp={handleMouseUp}
                                         >
-                                            <div className={`h-12 w-full rounded-xl flex items-center justify-center text-[10px] font-black transition-all border ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color || ''}`}>
+                                            <div className={`h-11 w-full rounded-xl flex items-center justify-center text-sm font-black transition-all border ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color || ''}`}>
                                                 {row.shifts[date] || 'OFF'}
                                             </div>
                                         </td>
                                     ))}
-                                    <td className="p-4 border-r border-white/5 text-center font-bold text-blue-400 text-xs">{calculations[rIdx]?.P || 0}</td>
-                                    <td className="p-4 border-r border-white/5 text-center font-bold text-yellow-400 text-xs">{calculations[rIdx]?.S || 0}</td>
-                                    <td className="p-4 border-r border-white/5 text-center font-bold text-slate-400 text-xs">{calculations[rIdx]?.M || 0}</td>
-                                    <td className="p-4 text-center">
-                                        <div className="bg-primary/10 text-primary py-2 px-3 rounded-xl font-black text-[10px] inline-block shadow-lg shadow-primary/5">
+                                    <td className="p-2 border-r border-white/5 text-center font-black text-blue-400 text-sm">{calculations[rIdx]?.P || 0}</td>
+                                    <td className="p-2 border-r border-white/5 text-center font-black text-yellow-400 text-sm">{calculations[rIdx]?.S || 0}</td>
+                                    <td className="p-2 border-r border-white/5 text-center font-black text-slate-400 text-sm">{calculations[rIdx]?.M || 0}</td>
+                                    <td className="p-2 text-center">
+                                        <div className="bg-primary/10 text-primary py-1.5 px-2 rounded-lg font-black text-sm shadow-sm">
                                             {calculations[rIdx]?.totalHours || 0}H
                                         </div>
                                     </td>
@@ -552,14 +543,14 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         <tfoot>
                             <tr className="bg-slate-900/50 backdrop-blur-xl border-t border-white/5">
                                 <td className="p-6 border-r border-white/5">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Rekap Karyawan</span>
+                                    <span className="text-sm font-black uppercase tracking-widest text-[#94a3b8]">Rekap Karyawan</span>
                                 </td>
                                 {dailyRecap.map((day, i) => (
                                     <td key={`recap-${i}`} className="p-4 border-r border-white/5">
-                                        <div className="flex flex-col gap-1 items-center">
-                                            <span className="text-blue-400 text-[10px] font-black">P: {day.P}</span>
-                                            <span className="text-yellow-400 text-[10px] font-black">S: {day.S}</span>
-                                            <span className="text-slate-400 text-[10px] font-black">M: {day.M}</span>
+                                        <div className="flex flex-col gap-1 items-center min-w-[60px]">
+                                            <span className="text-blue-400 text-sm font-black">P: {day.P}</span>
+                                            <span className="text-yellow-400 text-sm font-black">S: {day.S}</span>
+                                            <span className="text-slate-400 text-sm font-black">M: {day.M}</span>
                                         </div>
                                     </td>
                                 ))}
@@ -572,14 +563,14 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 {/* Selection Menu (Popover) */}
                 {isAdmin && isMenuOpen && (
                     <div 
-                        className="fixed z-50 flex gap-2 p-2 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
-                        style={{ top: isMenuOpen.y - 60, left: isMenuOpen.x - 100 }}
+                        className="fixed z-50 flex gap-3 p-3 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
+                        style={{ top: isMenuOpen.y - 80, left: isMenuOpen.x - 100 }}
                     >
                         {SHIFT_TYPES.filter(t => t.code === 'OFF' || shiftSettings[t.code as keyof ShiftSettings]?.active).map(type => (
                             <button 
                                 key={type.code}
                                 onClick={() => applyShift(type.code)}
-                                className={`size-12 rounded-xl flex items-center justify-center font-black text-xs transition-all hover:scale-110 active:scale-90 ${type.activeColor}`}
+                                className={`size-14 rounded-xl flex items-center justify-center font-black text-sm transition-all hover:scale-110 active:scale-90 ${type.activeColor}`}
                             >
                                 {type.code}
                             </button>
@@ -587,6 +578,28 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     </div>
                 )}
             </div>
+
+            {/* Thumb-friendly Bottom Navigation for Admins */}
+            {isAdmin && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-slate-900/95 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom-8 duration-700 w-[calc(100%-3rem)] max-w-lg">
+                    <button 
+                        onClick={handleSave} 
+                        disabled={validationErrors.length > 0}
+                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-primary text-slate-950 shadow-primary/20'}`}
+                    >
+                        <span className="material-symbols-outlined text-2xl">{validationErrors.length > 0 ? 'lock' : 'save'}</span>
+                        {validationErrors.length > 0 ? 'Gagal Validasi' : 'Simpan Jadwal'}
+                    </button>
+                    {validationErrors.length > 0 && (
+                        <div className="size-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center animate-pulse shrink-0">
+                            <span className="material-symbols-outlined text-2xl">error_outline</span>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {/* Added padding at bottom to avoid overlap with floating bar */}
+            {isAdmin && <div className="h-32" />}
         </div>
     );
 }
