@@ -3,127 +3,118 @@ import { ShiftService } from '../services/shift.service.js';
 import ExcelJS from 'exceljs';
 
 export class ShiftController {
-    static async exportShiftTemplate(req: Request, res: Response) {
+    static async exportSchedule(req: Request, res: Response) {
         try {
+            const { gridData, startDate, endDate, dates } = req.body;
+            if (!gridData || !dates) {
+                return res.status(400).json({ error: 'Data grid dan tanggal diperlukan.' });
+            }
+
             const workbook = new ExcelJS.Workbook();
-            const sheet = workbook.addWorksheet('Shift Karyawan');
+            const sheet = workbook.addWorksheet('Jadwal Shift');
 
-            // Header structure based on the image and request
-            // Row 1: Main Headers
-            // A1: Nama
-            // B1-H1: Senin - Minggu
-            // I1-K1: Jumlah Grup Karyawan/Shift (minggu)
-            // L1: Total Jam Kerja
+            // 1. Set Title & Period
+            sheet.mergeCells('A1:M1');
+            const titleCell = sheet.getCell('A1');
+            titleCell.value = 'LAPORAN JADWAL SHIFT KARYAWAN';
+            titleCell.font = { size: 16, bold: true };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            sheet.mergeCells('A1:A2');
-            sheet.getCell('A1').value = 'Nama';
+            sheet.mergeCells('A2:M2');
+            const periodCell = sheet.getCell('A2');
+            const startFormatted = new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const endFormatted = new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            periodCell.value = `Periode: ${startFormatted} – ${endFormatted}`;
+            periodCell.font = { size: 12, italic: true };
+            periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // 3. Header Row (Row 4)
+            const headerRow = sheet.getRow(4);
+            const headers = [
+                'Nama Karyawan', 'ID Karyawan', 
+                'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu',
+                'Total P', 'Total S', 'Total M', 'Total Jam'
+            ];
             
-            const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-            days.forEach((day, i) => {
-                const col = String.fromCharCode(66 + i); // B, C, D...
-                sheet.getCell(`${col}1`).value = day;
-                sheet.getCell(`${col}2`).value = i + 1; // Date mock 1-7
-            });
-
-            sheet.mergeCells('I1:K1');
-            sheet.getCell('I1').value = 'Jumlah Grup Karyawan/Shift (minggu)';
-            sheet.getCell('I2').value = 'Shift Pagi';
-            sheet.getCell('J2').value = 'Shift Sore';
-            sheet.getCell('K2').value = 'Shift Malam';
-
-            sheet.mergeCells('L1:L2');
-            sheet.getCell('L1').value = 'Total Jam Kerja';
-
-            // Styling Headers
-            const headerRows = [sheet.getRow(1), sheet.getRow(2)];
-            headerRows.forEach(row => {
-                row.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                row.alignment = { vertical: 'middle', horizontal: 'center' };
-                row.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FF008080' } // Teal background like the image
-                };
-            });
-
-            // Sample Data for Employees A-E
-            const employees = ['A', 'B', 'C', 'D', 'E'];
-            const sampleData = [
-                ['P', 'OFF', 'S', 'OFF', 'M', 'S', 'M'],
-                ['S', 'OFF', 'P', 'S', 'OFF', 'M', 'P'],
-                ['M', 'OFF', 'OFF', 'M', 'P', 'P', 'S'],
-                ['OFF', 'P', 'M', 'P', 'OFF', 'S', 'M'],
-                ['OFF', 'S', 'P', 'OFF', 'S', 'M', 'P']
-            ];
-
-            employees.forEach((name, rowIndex) => {
-                const rowNum = rowIndex + 3;
-                const row = sheet.getRow(rowNum);
-                row.getCell(1).value = name;
-                
-                const shifts = sampleData[rowIndex];
-                shifts.forEach((shift, colIndex) => {
-                    const cell = row.getCell(2 + colIndex);
-                    cell.value = shift;
-                    
-                    // Apply conditional colors
-                    if (shift === 'P') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB3E5FC' } }; // Light Blue
-                    if (shift === 'S') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF9C4' } }; // Light Yellow
-                    if (shift === 'M') cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } }; // Gray
-                    if (shift === 'OFF') {
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } }; // Red
-                        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-                    }
-                    cell.alignment = { horizontal: 'center' };
-                });
-
-                // Formulas for Counts
-                // I (Shift Pagi): COUNTIF(B:H, "P")
-                row.getCell(9).value = { formula: `COUNTIF(B${rowNum}:H${rowNum}, "P")` };
-                // J (Shift Sore): COUNTIF(B:H, "S")
-                row.getCell(10).value = { formula: `COUNTIF(B${rowNum}:H${rowNum}, "S")` };
-                // K (Shift Malam): COUNTIF(B:H, "M")
-                row.getCell(11).value = { formula: `COUNTIF(B${rowNum}:H${rowNum}, "M")` };
-                
-                // L (Total Jam Kerja): (P+S+M) * 8
-                row.getCell(12).value = { formula: `(I${rowNum}+J${rowNum}+K${rowNum})*8` };
-                
-                [9, 10, 11, 12].forEach(col => {
-                    row.getCell(col).alignment = { horizontal: 'center' };
-                });
-            });
-
-            // Recap Section
-            const recapStartRow = 3 + employees.length + 1;
-            sheet.mergeCells(`A${recapStartRow}:H${recapStartRow}`);
-            const recapTitleCell = sheet.getCell(`A${recapStartRow}`);
-            recapTitleCell.value = 'Jumlah Karyawan/Shift (hari)';
-            recapTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF008080' } };
-            recapTitleCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-
-            const shiftTypes = [
-                { label: 'Shift Pagi', code: 'P' },
-                { label: 'Shift Sore', code: 'S' },
-                { label: 'Shift Malam', code: 'M' }
-            ];
-
-            shiftTypes.forEach((type, i) => {
-                const rowNum = recapStartRow + 1 + i;
-                const row = sheet.getRow(rowNum);
-                row.getCell(1).value = type.label;
-                row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF008080' } };
-                row.getCell(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-
-                for (let col = 2; col <= 8; col++) {
-                    const colLetter = String.fromCharCode(64 + col);
-                    row.getCell(col).value = { formula: `COUNTIF(${colLetter}3:${colLetter}${recapStartRow - 2}, "${type.code}")` };
-                    row.getCell(col).alignment = { horizontal: 'center' };
+            headers.forEach((h, i) => {
+                const cell = headerRow.getCell(i + 1);
+                cell.value = h;
+                // Add date sub-header if it's a day of the week
+                if (i >= 2 && i <= 8 && dates[i - 2]) {
+                    const d = dates[i - 2].split('-')[2];
+                    const m = dates[i - 2].split('-')[1];
+                    cell.value = `${h}\n(${d}/${m})`;
                 }
             });
 
-            // Borders for the whole table
-            sheet.eachRow((row, rowNumber) => {
-                row.eachCell((cell) => {
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            headerRow.height = 35;
+            headerRow.eachCell(cell => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF1E293B' } // Dark Slate Like UI
+                };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+
+            // 4. Data Rows
+            gridData.forEach((row: any, rIdx: number) => {
+                const sheetRow = sheet.getRow(5 + rIdx);
+                sheetRow.getCell(1).value = row.name;
+                sheetRow.getCell(2).value = row.id.slice(0, 8);
+
+                let pCount = 0, sCount = 0, mCount = 0;
+
+                dates.forEach((date: string, cIdx: number) => {
+                    const cell = sheetRow.getCell(3 + cIdx);
+                    const code = row.shifts[date] || 'OFF';
+                    cell.value = code;
+                    cell.alignment = { horizontal: 'center' };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+
+                    if (code === 'P') { 
+                        pCount++; 
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFDBFE' } }; // Blue-200
+                        cell.font = { color: { argb: 'FF1D4ED8' }, bold: true };
+                    }
+                    if (code === 'S') { 
+                        sCount++; 
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF9C3' } }; // Yellow-100
+                        cell.font = { color: { argb: 'FFA16207' }, bold: true };
+                    }
+                    if (code === 'M') { 
+                        mCount++; 
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } }; // Slate-100
+                        cell.font = { color: { argb: 'FF475569' }, bold: true };
+                    }
+                    if (code === 'OFF') { 
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // Red-100
+                        cell.font = { color: { argb: 'FFB91C1C' }, bold: true };
+                    }
+                });
+
+                // Totals
+                sheetRow.getCell(10).value = pCount;
+                sheetRow.getCell(11).value = sCount;
+                sheetRow.getCell(12).value = mCount;
+                sheetRow.getCell(13).value = (pCount + sCount + mCount) * 8;
+                
+                [10, 11, 12, 13].forEach(col => {
+                    const cell = sheetRow.getCell(col);
+                    cell.alignment = { horizontal: 'center' };
+                    cell.font = { bold: true };
                     cell.border = {
                         top: { style: 'thin' },
                         left: { style: 'thin' },
@@ -133,20 +124,65 @@ export class ShiftController {
                 });
             });
 
-            // Adjust column widths
-            sheet.getColumn(1).width = 15;
-            for (let i = 2; i <= 8; i++) sheet.getColumn(i).width = 10;
-            sheet.getColumn(9).width = 15;
-            sheet.getColumn(10).width = 15;
-            sheet.getColumn(11).width = 15;
-            sheet.getColumn(12).width = 15;
+            // 5. Recap Table (Bottom)
+            const recapStartRow = 5 + gridData.length + 2;
+            sheet.mergeCells(`A${recapStartRow}:B${recapStartRow}`);
+            const recapTitle = sheet.getCell(`A${recapStartRow}`);
+            recapTitle.value = 'Rekap Karyawan per Shift (Harian)';
+            recapTitle.font = { bold: true };
+
+            const shiftCodes = ['P', 'S', 'M'];
+            const shiftLabels = ['Shift Pagi', 'Shift Sore', 'Shift Malam'];
+            
+            shiftLabels.forEach((label, i) => {
+                const rowNum = recapStartRow + 1 + i;
+                const row = sheet.getRow(rowNum);
+                row.getCell(1).value = label;
+                row.getCell(1).font = { bold: true };
+                
+                dates.forEach((date: string, cIdx: number) => {
+                    let count = 0;
+                    gridData.forEach((emp: any) => {
+                        if (emp.shifts[date] === shiftCodes[i]) count++;
+                    });
+                    const cell = row.getCell(3 + cIdx);
+                    cell.value = count;
+                    cell.alignment = { horizontal: 'center' };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                    if (count > 0) cell.font = { bold: true };
+                });
+
+                // Recap Border
+                for (let c = 1; c <= 9; c++) {
+                    row.getCell(c).border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                }
+            });
+
+            // 6. Formatting
+            sheet.getColumn(1).width = 25;
+            sheet.getColumn(2).width = 15;
+            for (let i = 3; i <= 9; i++) sheet.getColumn(i).width = 12;
+            for (let i = 10; i <= 13; i++) sheet.getColumn(i).width = 10;
+
+            sheet.views = [{ state: 'frozen', ySplit: 4 }];
 
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.setHeader('Content-Disposition', 'attachment; filename=Template_Shift_Karyawan.xlsx');
+            res.setHeader('Content-Disposition', `attachment; filename=jadwal-shift-${startDate}-${endDate}.xlsx`);
 
             await workbook.xlsx.write(res);
             res.status(200).end();
         } catch (error: any) {
+            console.error('[Excel Export Error]', error);
             res.status(500).json({ error: error.message });
         }
     }
