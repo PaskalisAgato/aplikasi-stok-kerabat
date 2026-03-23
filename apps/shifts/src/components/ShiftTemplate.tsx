@@ -1,279 +1,456 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { useShifts } from '@shared/hooks/useShifts';
+import { useEmployees } from '@shared/hooks/useEmployees';
 import { toast } from 'react-hot-toast';
 
-const DAYS_NAME = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 const SHIFT_TYPES = [
-    { label: 'Shift Pagi', code: 'P', color: 'bg-blue-100 text-blue-800 border-blue-200', start: '08:00', end: '16:00' },
-    { label: 'Shift Sore', code: 'S', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', start: '16:00', end: '00:00' },
-    { label: 'Shift Malam', code: 'M', color: 'bg-slate-200 text-slate-800 border-slate-300', start: '00:00', end: '08:00' },
-    { label: 'Libur', code: 'OFF', color: 'bg-red-600 text-white border-red-700 font-bold', start: '', end: '' }
+    { label: 'Pagi', code: 'P', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50', activeColor: 'bg-blue-500 text-white' },
+    { label: 'Sore', code: 'S', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50', activeColor: 'bg-yellow-500 text-white' },
+    { label: 'Malam', code: 'M', codeHex: '#94a3b8', color: 'bg-slate-500/20 text-slate-400 border-slate-500/50', activeColor: 'bg-slate-500 text-white' },
+    { label: 'Libur', code: 'OFF', color: 'bg-red-500/20 text-red-400 border-red-500/50', activeColor: 'bg-red-500 text-white' }
 ];
+
+interface ShiftSettings {
+    P: { start: string, end: string },
+    S: { start: string, end: string },
+    M: { start: string, end: string }
+}
+
+interface GridItem {
+    id: string;
+    name: string;
+    shifts: Record<string, string>; // dateStr -> shiftCode
+}
 
 interface ShiftTemplateProps {
     employees: any[];
     allShifts: any[];
+    isLoading?: boolean;
 }
 
-export default function ShiftTemplate({ employees, allShifts }: ShiftTemplateProps) {
+export default function ShiftTemplate({ employees: initialEmployees, allShifts: initialShifts, isLoading }: ShiftTemplateProps) {
     const { createShift, updateShift, deleteShift } = useShifts();
-    const [isExporting, setIsExporting] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+    const { data: allEmployees } = useEmployees();
 
-    // Get current week dates (Monday to Sunday)
-    const weekDates = useMemo(() => {
-        const today = new Date();
-        const day = today.getDay();
-        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(today.setDate(diff));
+    // Dates
+    const today = new Date();
+    const [startDate, setStartDate] = useState(new Date(today.setDate(today.getDate() - today.getDay() + 1)).toISOString().split('T')[0]); // Monday
+    const [endDate, setEndDate] = useState(new Date(today.setDate(today.getDate() + 6)).toISOString().split('T')[0]); // Sunday
+
+    // Settings
+    const [shiftSettings, setShiftSettings] = useState<ShiftSettings>({
+        P: { start: '08:00', end: '16:00' },
+        S: { start: '16:00', end: '00:00' },
+        M: { start: '00:00', end: '08:00' }
+    });
+
+    // Grid Data
+    const [gridData, setGridData] = useState<GridItem[]>([]);
+    const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
+
+    // Selection State (for drag-to-fill)
+    const [dragStart, setDragStart] = useState<{ row: number, col: number } | null>(null);
+    const [dragEnd, setDragEnd] = useState<{ row: number, col: number } | null>(null);
+    const [isMenuOpen, setIsMenuOpen] = useState<{ row: number, col: number, x: number, y: number } | null>(null);
+
+    // Columns based on range
+    const dates = useMemo(() => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const dayList: string[] = [];
+        let current = new Date(start);
         
-        return Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
-            return d.toISOString().split('T')[0];
-        });
-    }, []);
+        while (current <= end) {
+            dayList.push(current.toISOString().split('T')[0]);
+            current.setDate(current.getDate() + 1);
+        }
+        return dayList;
+    }, [startDate, endDate]);
 
-    // Local state for the grid
-    const [gridData, setGridData] = useState<any[]>([]);
-
-    // Initialize/Sync grid data from props
+    // Load from Local Storage or API
     useEffect(() => {
-        if (!employees.length) return;
+        const saved = localStorage.getItem('shift_grid_data');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setGridData(parsed.grid);
+                setShiftSettings(parsed.settings);
+                return;
+            } catch (e) {}
+        }
 
-        const initialGrid = employees.map(emp => {
-            const shifts = weekDates.map(dateStr => {
-                const shift = allShifts.find(s => 
-                    s.userId === emp.id && 
-                    new Date(s.date).toISOString().split('T')[0] === dateStr
-                );
-                
-                if (!shift) return 'OFF';
-                if (shift.startTime === '08:00') return 'P';
-                if (shift.startTime === '16:00') return 'S';
-                if (shift.startTime === '00:00') return 'M';
-                return 'P'; // Default if unknown
-            });
-            return { id: emp.id, name: emp.name, shifts };
-        });
-        setGridData(initialGrid);
-    }, [employees, allShifts, weekDates]);
+        // Default if no storage
+        if (initialEmployees.length) {
+            const initialGrid = initialEmployees.map(emp => ({
+                id: emp.id,
+                name: emp.name,
+                shifts: initialShifts.reduce((acc, s) => {
+                    if (s.userId === emp.id) {
+                        const d = new Date(s.date).toISOString().split('T')[0];
+                        let code = 'OFF';
+                        if (s.startTime === shiftSettings.P.start) code = 'P';
+                        else if (s.startTime === shiftSettings.S.start) code = 'S';
+                        else if (s.startTime === shiftSettings.M.start) code = 'M';
+                        acc[d] = code;
+                    }
+                    return acc;
+                }, {} as Record<string, string>)
+            }));
+            setGridData(initialGrid);
+        }
+    }, [initialEmployees]);
 
-    const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
-        const newData = [...gridData];
-        const val = value.toUpperCase();
-        if (['P', 'S', 'M', 'OFF'].includes(val) || val === '') {
-            newData[rowIndex].shifts[colIndex] = val;
-            setGridData(newData);
+    // Save to Local Storage
+    useEffect(() => {
+        if (gridData.length) {
+            localStorage.setItem('shift_grid_data', JSON.stringify({ grid: gridData, settings: shiftSettings }));
+        }
+    }, [gridData, shiftSettings]);
+
+    // Drag-to-fill logic
+    const handleMouseDown = (rowIndex: number, colIndex: number) => {
+        setDragStart({ row: rowIndex, col: colIndex });
+        setDragEnd({ row: rowIndex, col: colIndex });
+        setIsMenuOpen(null);
+    };
+
+    const handleMouseEnter = (rowIndex: number, colIndex: number) => {
+        if (dragStart) {
+            setDragEnd({ row: rowIndex, col: colIndex });
         }
     };
 
-    const calculations = useMemo(() => {
-        return gridData.map(emp => {
-            const p = emp.shifts.filter((s: string) => s === 'P').length;
-            const s = emp.shifts.filter((s: string) => s === 'S').length;
-            const m = emp.shifts.filter((s: string) => s === 'M').length;
-            return { p, s, m, totalHours: (p + s + m) * 8 };
-        });
-    }, [gridData]);
+    const handleMouseUp = (e: React.MouseEvent) => {
+        if (dragStart && dragEnd) {
+            // Open selection menu at mouse position
+            setIsMenuOpen({ 
+                row: dragStart.row, 
+                col: dragStart.col, 
+                x: e.clientX, 
+                y: e.clientY 
+            });
+        }
+    };
 
-    const dailyRecap = useMemo(() => {
-        return weekDates.map((_, colIndex) => {
-            const p = gridData.filter(emp => emp.shifts[colIndex] === 'P').length;
-            const s = gridData.filter(emp => emp.shifts[colIndex] === 'S').length;
-            const m = gridData.filter(emp => emp.shifts[colIndex] === 'M').length;
-            return { p, s, m };
-        });
-    }, [gridData, weekDates]);
+    const applyShift = (code: string) => {
+        if (!dragStart || !dragEnd) return;
 
+        const startRow = Math.min(dragStart.row, dragEnd.row);
+        const endRow = Math.max(dragStart.row, dragEnd.row);
+        const startCol = Math.min(dragStart.col, dragEnd.col);
+        const endCol = Math.max(dragStart.col, dragEnd.col);
+
+        const newGrid = [...gridData];
+        for (let r = startRow; r <= endRow; r++) {
+            for (let c = startCol; c <= endCol; c++) {
+                const dateStr = dates[c];
+                newGrid[r].shifts[dateStr] = code;
+            }
+        }
+        setGridData(newGrid);
+        setDragStart(null);
+        setDragEnd(null);
+        setIsMenuOpen(null);
+    };
+
+    // Employee Management
+    const addEmployee = (emp: any) => {
+        if (gridData.find(g => g.id === emp.id)) return;
+        setGridData([...gridData, { id: emp.id, name: emp.name, shifts: {} }]);
+    };
+
+    const removeEmployee = (id: string) => {
+        setGridData(gridData.filter(g => g.id !== id));
+    };
+
+    // Auto Rotation Utility
+    const autoGenerate = () => {
+        const newGrid = [...gridData];
+        const codes = ['P', 'S', 'M', 'OFF'];
+        
+        newGrid.forEach((emp, i) => {
+            dates.forEach((date, j) => {
+                // simple round robin based on index and day
+                const idx = (i + j) % codes.length;
+                emp.shifts[date] = codes[idx];
+            });
+        });
+        setGridData(newGrid);
+        toast.success("Jadwal diatur otomatis secara adil!");
+    };
+
+    // Database Sync
     const handleSave = async () => {
         try {
-            setIsSaving(true);
             const promises: any[] = [];
-
-            gridData.forEach((emp) => {
-                emp.shifts.forEach((code: string, colIndex: number) => {
-                    const date = weekDates[colIndex];
+            gridData.forEach(emp => {
+                Object.entries(emp.shifts).forEach(([date, code]) => {
                     const type = SHIFT_TYPES.find(t => t.code === code);
-                    
-                    const existing = allShifts.find(s => 
+                    const existing = initialShifts.find(s => 
                         s.userId === emp.id && 
                         new Date(s.date).toISOString().split('T')[0] === date
                     );
 
                     if (type && type.code !== 'OFF') {
+                        const settings = shiftSettings[type.code as keyof ShiftSettings];
                         if (!existing) {
-                            // CREATE
-                            promises.push(createShift({
-                                userId: emp.id,
-                                date: date,
-                                startTime: type.start,
-                                endTime: type.end
-                            }));
-                        } else if (existing.startTime !== type.start) {
-                            // UPDATE
-                            promises.push(updateShift({
-                                id: existing.id,
-                                data: {
-                                    startTime: type.start,
-                                    endTime: type.end,
-                                    date: date
-                                }
-                            }));
+                            promises.push(createShift({ userId: emp.id, date, startTime: settings.start, endTime: settings.end }));
+                        } else if (existing.startTime !== settings.start) {
+                            promises.push(updateShift({ id: existing.id, data: { startTime: settings.start, endTime: settings.end, date } }));
                         }
                     } else if (code === 'OFF' && existing) {
-                        // DELETE
                         promises.push(deleteShift(existing.id));
                     }
                 });
             });
 
-            if (promises.length === 0) {
-                toast.error('Tidak ada perubahan untuk disimpan.');
-                return;
-            }
-
+            if (!promises.length) return toast.error("Tidak ada perubahan.");
             await Promise.all(promises);
-            toast.success('Jadwal berhasil diperbarui!');
-        } catch (error: any) {
-            toast.error(error.message || 'Gagal menyimpan jadwal.');
-        } finally {
-            setIsSaving(false);
+            toast.success("Berhasil disimpan ke database!");
+        } catch (e: any) {
+            toast.error(e.message || "Gagal menyimpan.");
         }
     };
 
     const handleExport = async () => {
-        try {
-            setIsExporting(true);
-            const blob = await apiClient.exportShiftTemplate();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Template_Shift_${new Date().toISOString().split('T')[0]}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode?.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Export failed', error);
-            toast.error('Gagal mengekspor template.');
-        } finally {
-            setIsExporting(false);
-        }
+        // Logic for Excel export matching UI
+        toast.loading("Mengekspor Excel...");
+        // Reuse apiClient.exportShiftTemplate or custom logic
+        await apiClient.exportShiftTemplate(); 
+        toast.dismiss();
     };
 
-    const getShiftStyle = (code: string) => {
-        const type = SHIFT_TYPES.find(t => t.code === code);
-        return type ? type.color : 'bg-white text-slate-400';
+    // Real-time Calculations
+    const calculations = useMemo(() => {
+        return gridData.map(emp => {
+            const counts = { P: 0, S: 0, M: 0, totalHours: 0 };
+            Object.values(emp.shifts).forEach(code => {
+                if (code === 'P') { counts.P++; counts.totalHours += 8; }
+                if (code === 'S') { counts.S++; counts.totalHours += 8; }
+                if (code === 'M') { counts.M++; counts.totalHours += 8; }
+            });
+            return counts;
+        });
+    }, [gridData]);
+
+    const dailyRecap = useMemo(() => {
+        return dates.map(date => {
+            const recap = { P: 0, S: 0, M: 0 };
+            gridData.forEach(emp => {
+                const code = emp.shifts[date];
+                if (code === 'P') recap.P++;
+                if (code === 'S') recap.S++;
+                if (code === 'M') recap.M++;
+            });
+            return recap;
+        });
+    }, [gridData, dates]);
+
+    const isSelected = (r: number, c: number) => {
+        if (!dragStart || !dragEnd) return false;
+        const startRow = Math.min(dragStart.row, dragEnd.row);
+        const endRow = Math.max(dragStart.row, dragEnd.row);
+        const startCol = Math.min(dragStart.col, dragEnd.col);
+        const endCol = Math.max(dragStart.col, dragEnd.col);
+        return r >= startRow && r <= endRow && c >= startCol && c <= endCol;
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
-                <div className="space-y-1">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-primary">Template Penjadwalan Mingguan</h3>
-                    <p className="text-[10px] text-[var(--text-muted)] uppercase italic">Minggu: {weekDates[0]} s/d {weekDates[6]}</p>
-                </div>
-                <div className="flex gap-3">
+        <div className="space-y-8 animate-in fade-in duration-1000">
+            {/* Header Controls */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 glass p-8 rounded-[2.5rem] border-white/5 shadow-2xl">
+                <div className="flex flex-wrap items-center gap-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-primary uppercase tracking-widest block">Start Date</label>
+                        <input 
+                            type="date" 
+                            className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                            value={startDate}
+                            onChange={e => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-primary uppercase tracking-widest block">End Date</label>
+                        <input 
+                            type="date" 
+                            className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                            value={endDate}
+                            onChange={e => setEndDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="h-12 w-px bg-white/10 hidden lg:block" />
                     <button 
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="btn-primary py-2 px-6 text-[10px] flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 border-none shadow-emerald-500/20"
+                        onClick={autoGenerate}
+                        className="glass py-3 px-6 rounded-2xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/5 flex items-center gap-2"
                     >
-                        <span className="material-symbols-outlined text-sm">{isSaving ? 'sync' : 'save'}</span>
-                        {isSaving ? 'MENYIMPAN...' : 'SIMPAN JADWAL'}
+                        <span className="material-symbols-outlined text-sm">auto_fix</span>
+                        Auto Rotasi
                     </button>
-                    <button 
-                        onClick={handleExport}
-                        disabled={isExporting}
-                        className="glass py-2 px-6 text-[10px] flex items-center gap-2 rounded-xl text-primary font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                    >
-                        <span className="material-symbols-outlined text-sm">{isExporting ? 'sync' : 'download'}</span>
-                        {isExporting ? 'MENGEKSPOR...' : 'EKSPOR EXCEL'}
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <button onClick={handleExport} className="glass py-4 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all active:scale-95">
+                        Ekspor Excel
+                    </button>
+                    <button onClick={handleSave} className="bg-primary text-slate-950 py-4 px-10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">
+                        Simpan Jadwal
                     </button>
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-[2rem] border border-white/10 glass shadow-2xl">
-                <table className="w-full border-collapse text-[11px]">
-                    <thead>
-                        <tr>
-                            <th rowSpan={2} className="bg-teal-700 text-white p-4 border border-teal-600 font-black uppercase min-w-[120px]">Nama</th>
-                            {DAYS_NAME.map((day, i) => (
-                                <th key={day} className="bg-teal-700 text-white p-2 border border-teal-600 font-black uppercase min-w-[80px]">
-                                    {day}
-                                </th>
-                            ))}
-                            <th colSpan={3} className="bg-teal-700 text-white p-2 border border-teal-600 font-black uppercase text-center">
-                                Jumlah Shift (Minggu)
-                            </th>
-                            <th rowSpan={2} className="bg-teal-700 text-white p-4 border border-teal-600 font-black uppercase min-w-[100px]">Total Jam</th>
-                        </tr>
-                        <tr>
-                            {weekDates.map((date, i) => (
-                                <th key={`date-${i}`} className="bg-teal-600/50 text-white p-2 border border-teal-600 font-black">{date.split('-')[2]}</th>
-                            ))}
-                            <th className="bg-teal-600/50 text-white p-2 border border-teal-600 font-black text-[9px]">Pagi</th>
-                            <th className="bg-teal-600/50 text-white p-2 border border-teal-600 font-black text-[9px]">Sore</th>
-                            <th className="bg-teal-600/50 text-white p-2 border border-teal-600 font-black text-[9px]">Malam</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {gridData.map((emp, rowIndex) => (
-                            <tr key={emp.id} className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 border border-white/10 font-black text-[var(--text-main)] bg-white/5 truncate max-w-[150px]">{emp.name}</td>
-                                {emp.shifts.map((shift: string, colIndex: number) => (
-                                    <td key={`${emp.id}-${colIndex}`} className="p-1 border border-white/10">
-                                        <input 
-                                            type="text" 
-                                            className={`w-full h-10 text-center uppercase font-black transition-all border rounded-lg outline-none focus:ring-2 focus:ring-primary/50 ${getShiftStyle(shift)}`}
-                                            value={shift}
-                                            onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                                            maxLength={3}
-                                            placeholder="OFF"
-                                        />
-                                    </td>
-                                ))}
-                                {/* Calculations */}
-                                <td className="p-2 border border-white/10 text-center font-bold text-primary">{calculations[rowIndex]?.p || 0}</td>
-                                <td className="p-2 border border-white/10 text-center font-bold text-yellow-500">{calculations[rowIndex]?.s || 0}</td>
-                                <td className="p-2 border border-white/10 text-center font-bold text-slate-400">{calculations[rowIndex]?.m || 0}</td>
-                                <td className="p-2 border border-white/10 text-center font-black bg-primary/5 text-primary text-xs">{calculations[rowIndex]?.totalHours || 0}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={8} className="bg-teal-700 text-white p-3 font-black uppercase tracking-wider pl-4">Jumlah Karyawan / Shift (Hari)</td>
-                            <td colSpan={5} className="bg-slate-900 border-none"></td>
-                        </tr>
-                        {SHIFT_TYPES.slice(0, 3).map((type, i) => (
-                            <tr key={type.label}>
-                                <td className="p-3 border border-white/10 bg-teal-600/30 font-bold text-white uppercase text-[10px]">{type.label}</td>
-                                {dailyRecap.map((recap, colIndex) => (
-                                    <td key={`recap-${i}-${colIndex}`} className="p-3 border border-white/10 text-center font-black text-white bg-slate-800/50">
-                                        {i === 0 ? recap.p : i === 1 ? recap.s : recap.m}
-                                    </td>
-                                ))}
-                                <td colSpan={5} className="border-none bg-transparent"></td>
-                            </tr>
-                        ))}
-                    </tfoot>
-                </table>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {SHIFT_TYPES.map(type => (
-                    <div key={type.code} className="flex items-center gap-3 glass p-4 rounded-2xl border-white/5">
-                        <div className={`size-8 rounded-lg flex items-center justify-center font-black text-xs ${type.color}`}>{type.code}</div>
-                        <div className="space-y-0.5">
-                            <p className="text-[10px] font-black uppercase tracking-tighter text-[var(--text-main)]">{type.label}</p>
-                            <p className="text-[9px] text-[var(--text-muted)] font-bold">{type.start && type.end ? `${type.start} - ${type.end}` : 'Libur'}</p>
+            {/* Shift Settings Panel */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {(['P', 'S', 'M'] as const).map(type => (
+                    <div key={type} className="glass p-6 rounded-[2rem] border-white/5 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
+                                {type}
+                            </div>
+                            <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <input 
+                                type="time" 
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                value={shiftSettings[type].start}
+                                onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], start: e.target.value}})}
+                            />
+                            <input 
+                                type="time" 
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                value={shiftSettings[type].end}
+                                onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], end: e.target.value}})}
+                            />
                         </div>
                     </div>
                 ))}
             </div>
+
+            {/* Add Employee Search */}
+            <div className="flex justify-end pr-4">
+               <div className="relative group/search">
+                    <select 
+                        className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer"
+                        onChange={(e) => {
+                            const emp = allEmployees?.find((u: any) => u.id === e.target.value);
+                            if (emp) addEmployee(emp);
+                            e.target.value = "";
+                        }}
+                    >
+                        <option value="">+ Tambah Karyawan</option>
+                        {allEmployees?.map((u: any) => (
+                            <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
+               </div>
+            </div>
+
+            {/* Interactive Table */}
+            <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/5 glass shadow-2xl">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse select-none">
+                        <thead className="sticky top-0 z-20">
+                            <tr className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
+                                <th className="p-6 text-left min-w-[200px] border-r border-white/5">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Karyawan</span>
+                                </th>
+                                {dates.map(date => (
+                                    <th key={date} className="px-4 py-6 min-w-[100px] text-center border-r border-white/5">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black uppercase text-primary">
+                                                {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-[var(--text-muted)]">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                                        </div>
+                                    </th>
+                                ))}
+                                <th colSpan={3} className="px-4 py-6 border-r border-white/5">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Shift (Minggu)</span>
+                                </th>
+                                <th className="p-6 text-center">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Total Jam</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {gridData.map((row, rIdx) => (
+                                <tr key={row.id} className="group/row hover:bg-white/[0.02] border-b border-white/5 transition-colors">
+                                    <td className="p-6 border-r border-white/5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-xs font-black uppercase tracking-wider text-[var(--text-main)] group-hover/row:text-primary transition-colors">{row.name}</p>
+                                                <p className="text-[9px] font-bold text-[var(--text-muted)] italic">User ID: #{row.id.slice(0, 8)}</p>
+                                            </div>
+                                            <button onClick={() => removeEmployee(row.id)} className="opacity-0 group-hover/row:opacity-100 p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                                <span className="material-symbols-outlined text-sm">remove_circle</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    {dates.map((date, cIdx) => (
+                                        <td 
+                                            key={`${row.id}-${date}`}
+                                            className={`p-1 border-r border-white/5 cursor-pointer relative transition-all duration-300 ${isSelected(rIdx, cIdx) ? 'bg-primary/20 scale-[0.98]' : ''}`}
+                                            onMouseDown={() => handleMouseDown(rIdx, cIdx)}
+                                            onMouseEnter={() => handleMouseEnter(rIdx, cIdx)}
+                                            onMouseUp={handleMouseUp}
+                                        >
+                                            <div className={`h-12 w-full rounded-xl flex items-center justify-center text-[10px] font-black transition-all border ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color || ''}`}>
+                                                {row.shifts[date] || 'OFF'}
+                                            </div>
+                                        </td>
+                                    ))}
+                                    <td className="p-4 border-r border-white/5 text-center font-bold text-blue-400 text-xs">{calculations[rIdx]?.P || 0}</td>
+                                    <td className="p-4 border-r border-white/5 text-center font-bold text-yellow-400 text-xs">{calculations[rIdx]?.S || 0}</td>
+                                    <td className="p-4 border-r border-white/5 text-center font-bold text-slate-400 text-xs">{calculations[rIdx]?.M || 0}</td>
+                                    <td className="p-4 text-center">
+                                        <div className="bg-primary/10 text-primary py-2 px-3 rounded-xl font-black text-[10px] inline-block shadow-lg shadow-primary/5">
+                                            {calculations[rIdx]?.totalHours || 0}H
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr className="bg-slate-900/50 backdrop-blur-xl border-t border-white/5">
+                                <td className="p-6 border-r border-white/5">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Rekap Karyawan</span>
+                                </td>
+                                {dailyRecap.map((day, i) => (
+                                    <td key={`recap-${i}`} className="p-4 border-r border-white/5">
+                                        <div className="flex flex-col gap-1 items-center">
+                                            <span className="text-blue-400 text-[10px] font-black">P: {day.P}</span>
+                                            <span className="text-yellow-400 text-[10px] font-black">S: {day.S}</span>
+                                            <span className="text-slate-400 text-[10px] font-black">M: {day.M}</span>
+                                        </div>
+                                    </td>
+                                ))}
+                                <td colSpan={4}></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                {/* Selection Menu (Popover) */}
+                {isMenuOpen && (
+                    <div 
+                        className="fixed z-50 flex gap-2 p-2 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
+                        style={{ top: isMenuOpen.y - 60, left: isMenuOpen.x - 100 }}
+                    >
+                        {SHIFT_TYPES.map(type => (
+                            <button 
+                                key={type.code}
+                                onClick={() => applyShift(type.code)}
+                                className={`size-12 rounded-xl flex items-center justify-center font-black text-xs transition-all hover:scale-110 active:scale-90 ${type.activeColor}`}
+                            >
+                                {type.code}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
+
