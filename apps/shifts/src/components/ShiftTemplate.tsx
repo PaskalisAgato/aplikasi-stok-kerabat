@@ -5,10 +5,10 @@ import { useSession } from '@shared/authClient';
 import { toast } from 'react-hot-toast';
 
 const SHIFT_TYPES = [
-    { label: 'Pagi', code: 'P', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50', activeColor: 'bg-blue-500 text-white' },
-    { label: 'Sore', code: 'S', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50', activeColor: 'bg-yellow-500 text-white' },
-    { label: 'Malam', code: 'M', codeHex: '#94a3b8', color: 'bg-slate-500/20 text-slate-400 border-slate-500/50', activeColor: 'bg-slate-500 text-white' },
-    { label: 'Libur', code: 'OFF', color: 'bg-red-500/20 text-red-400 border-red-500/50', activeColor: 'bg-red-500 text-white' }
+    { label: 'Pagi', code: 'P', color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/50', activeColor: 'bg-blue-500 text-white' },
+    { label: 'Sore', code: 'S', color: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/50', activeColor: 'bg-yellow-500 text-white' },
+    { label: 'Malam', code: 'M', codeHex: '#94a3b8', color: 'bg-slate-500/20 text-slate-600 dark:text-slate-400 border-slate-500/50', activeColor: 'bg-slate-500 text-white' },
+    { label: 'Libur', code: 'OFF', color: 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/50', activeColor: 'bg-red-500 text-white' }
 ];
 
 interface ShiftSettings {
@@ -345,11 +345,11 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     return (
         <div className="space-y-8 animate-in fade-in duration-1000 pb-32">
             {/* Header / Role Indicator */}
-            <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-3xl font-black text-slate-100 uppercase tracking-tighter">Manajemen Shift</h1>
+            <div className="flex flex-col items-center gap-2 text-center transition-all duration-300">
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Manajemen Shift</h1>
                 <div className="flex items-center gap-2">
                     <p className="text-[10px] text-primary uppercase font-bold tracking-[0.3em]">Café Employee HRIS</p>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isAdmin ? 'bg-primary text-slate-950' : 'bg-slate-800 text-slate-400 border border-white/10'}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isAdmin ? 'bg-primary text-slate-950' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-white/10'}`}>
                         {isAdmin ? 'Mode: Administrator' : 'Mode: Karyawan'}
                     </span>
                 </div>
@@ -364,13 +364,13 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         </div>
                         <div>
                             <h3 className="text-sm font-black uppercase tracking-widest text-primary">Jadwal Saya</h3>
-                            <p className="text-xs font-bold text-slate-500">Periode Aktif • {startDate} - {endDate}</p>
+                            <p className="text-xs font-bold text-gray-500 dark:text-slate-400">Periode Aktif • {startDate} - {endDate}</p>
                         </div>
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                         {dates.map(date => (
-                            <div key={date} className={`min-w-[110px] p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary text-slate-950 border-primary scale-105 shadow-xl shadow-primary/20' : 'bg-white/5 border-white/5 opacity-40'}`}>
-                                <p className="text-xs font-black uppercase opacity-60">
+                            <div key={date} className={`min-w-[110px] p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary text-slate-950 border-primary scale-105 shadow-xl shadow-primary/20' : 'bg-gray-100/50 dark:bg-white/5 border-gray-200 dark:border-white/5 opacity-40'}`}>
+                                <p className="text-xs font-black uppercase opacity-60 text-gray-600 dark:text-slate-400">
                                     {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
                                 </p>
                                 <div className="text-xl font-black">{myShifts[date] || 'OFF'}</div>
@@ -385,12 +385,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             {isAdmin && (
                 <div className="glass p-8 rounded-[2.5rem] border-white/5 space-y-8">
                     <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-2xl bg-slate-800 flex items-center justify-center text-slate-100">
+                        <div className="size-12 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-900 dark:text-slate-100">
                             <span className="material-symbols-outlined">settings_runtime</span>
                         </div>
                         <div>
-                            <h2 className="text-lg font-black uppercase tracking-widest text-slate-100 leading-tight">Pengaturan Shift</h2>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jam operasional & status shift</p>
+                            <h2 className="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-slate-100 leading-tight">Pengaturan Shift</h2>
+                            <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Jam operasional & status shift</p>
                         </div>
                     </div>
 
@@ -399,10 +399,10 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                             <div key={code} className={`p-6 rounded-3xl border transition-all duration-500 ${shiftSettings[code].active ? 'bg-white/[0.03] border-white/10' : 'bg-black/20 border-white/5 opacity-40 grayscale'}`}>
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">
-                                        <div className={`size-10 rounded-xl flex items-center justify-center font-black ${code === 'P' ? 'bg-blue-500/20 text-blue-400' : code === 'S' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                        <div className={`size-10 rounded-xl flex items-center justify-center font-black ${code === 'P' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : code === 'S' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-slate-500/20 text-slate-600 dark:text-slate-400'}`}>
                                             {code}
                                         </div>
-                                        <span className="text-xs font-black uppercase tracking-widest text-slate-200">Shift {code === 'P' ? 'Pagi' : code === 'S' ? 'Sore' : 'Malam'}</span>
+                                        <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-slate-200">Shift {code === 'P' ? 'Pagi' : code === 'S' ? 'Sore' : 'Malam'}</span>
                                     </div>
                                     <button 
                                         onClick={() => setShiftSettings(p => ({ ...p, [code]: { ...p[code], active: !p[code].active } }))}
@@ -413,12 +413,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Masuk</p>
-                                        <input type="time" value={shiftSettings[code].start} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], start: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Masuk</p>
+                                        <input type="time" value={shiftSettings[code].start} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], start: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 dark:text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pulang</p>
-                                        <input type="time" value={shiftSettings[code].end} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], end: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
+                                        <p className="text-[9px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Pulang</p>
+                                        <input type="time" value={shiftSettings[code].end} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], end: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 dark:text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
                                     </div>
                                 </div>
                             </div>
@@ -432,27 +432,27 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 <div className="glass p-6 rounded-[2rem] border-white/5 flex flex-col md:flex-row gap-4 items-center">
                     <div className="flex-1 w-full space-y-2">
                         <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-2">Mulai Dari</label>
-                        <input type="date" value={startDate} disabled={!isAdmin} onChange={e => setStartDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-slate-100 outline-none focus:border-primary transition-all" />
+                        <input type="date" value={startDate} disabled={!isAdmin} onChange={e => setStartDate(e.target.value)} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-gray-900 dark:text-slate-100 outline-none focus:border-primary transition-all" />
                     </div>
                     <div className="flex-1 w-full space-y-2">
                         <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-2">Sampai Dengan</label>
-                        <input type="date" value={endDate} disabled={!isAdmin} onChange={e => setEndDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-slate-100 outline-none focus:border-primary transition-all" />
+                        <input type="date" value={endDate} disabled={!isAdmin} onChange={e => setEndDate(e.target.value)} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-gray-900 dark:text-slate-100 outline-none focus:border-primary transition-all" />
                     </div>
                 </div>
                 <div className="flex gap-4 items-stretch">
                     {isAdmin && (
                         <div className="flex-1 glass p-4 rounded-[2rem] border-white/5 flex items-center justify-center">
                             <select 
-                                className="w-full bg-transparent text-sm font-black uppercase tracking-widest text-slate-300 outline-none appearance-none text-center cursor-pointer"
+                                className="w-full bg-transparent text-sm font-black uppercase tracking-widest text-gray-500 dark:text-slate-300 outline-none appearance-none text-center cursor-pointer"
                                 onChange={e => {
                                     const emp = allEmployees?.find((u: any) => u.id === e.target.value);
                                     if (emp) addEmployee(emp);
                                     e.target.value = "";
                                 }}
                             >
-                                <option value="">+ Tambah Karyawan</option>
+                                <option value="" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">+ Tambah Karyawan</option>
                                 {allEmployees?.filter(u => !gridData.some(g => g.id === u.id)).map((u: any) => (
-                                    <option key={u.id} value={u.id}>{u.name}</option>
+                                    <option key={u.id} value={u.id} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{u.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -468,33 +468,33 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse select-none">
                         <thead>
-                            <tr className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
-                                <th className="p-6 text-left min-w-[200px] border-r border-white/5">
+                            <tr className="bg-gray-100/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5">
+                                <th className="p-6 text-left min-w-[200px] border-r border-gray-200 dark:border-white/5">
                                     <span className="text-sm font-black uppercase tracking-[0.3em] text-primary">Karyawan</span>
                                 </th>
                                 {dates.map(date => (
-                                    <th key={date} className="px-4 py-6 min-w-[100px] text-center border-r border-white/5">
+                                    <th key={date} className="px-4 py-6 min-w-[100px] text-center border-r border-gray-200 dark:border-white/5">
                                         <p className="text-[10px] font-black uppercase text-primary mb-1 tracking-widest">
                                             {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
                                         </p>
-                                        <p className="text-sm font-black text-slate-100 leading-none">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                                        <p className="text-sm font-black text-gray-900 dark:text-slate-100 leading-none">{date.split('-')[2]}/{date.split('-')[1]}</p>
                                     </th>
                                 ))}
-                                <th colSpan={3} className="px-4 py-6 min-w-[140px] text-center border-r border-white/5 text-xs font-black uppercase tracking-widest text-primary">Shift</th>
+                                <th colSpan={3} className="px-4 py-6 min-w-[140px] text-center border-r border-gray-200 dark:border-white/5 text-xs font-black uppercase tracking-widest text-primary">Shift</th>
                                 <th className="p-6 text-center min-w-[100px]"><span className="material-symbols-outlined text-primary">timer</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             {gridData.map((row, rIdx) => (
-                                <tr key={row.id} className={`border-b border-white/5 transition-all ${row.id === currentUser?.id ? 'bg-primary/5' : ''}`}>
-                                    <td className="p-4 border-r border-white/5">
+                                <tr key={row.id} className={`border-b border-gray-200 dark:border-white/5 transition-all ${row.id === currentUser?.id ? 'bg-primary/5' : ''}`}>
+                                    <td className="p-4 border-r border-gray-200 dark:border-white/5">
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <p className={`text-sm font-black uppercase truncate ${row.id === currentUser?.id ? 'text-primary' : 'text-slate-100'}`}>{row.name}</p>
+                                                    <p className={`text-sm font-black uppercase truncate ${row.id === currentUser?.id ? 'text-primary' : 'text-gray-900 dark:text-slate-100'}`}>{row.name}</p>
                                                     {row.id === currentUser?.id && <span className="text-[8px] font-black bg-primary text-slate-950 px-1.5 py-0.5 rounded uppercase">SAYA</span>}
                                                 </div>
-                                                <p className="text-[10px] font-bold text-slate-500">ID: {row.id.slice(0, 8)}</p>
+                                                <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500">ID: {row.id.slice(0, 8)}</p>
                                             </div>
                                             {isAdmin && (
                                                 <button onClick={() => removeEmployee(row.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><span className="material-symbols-outlined text-xl">close</span></button>
@@ -502,15 +502,15 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                         </div>
                                     </td>
                                     {dates.map((date, cIdx) => (
-                                        <td key={`${row.id}-${date}`} className={`p-1 border-r border-white/5 relative ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/10' : ''}`} onMouseDown={() => handleMouseDown(rIdx, cIdx)} onMouseEnter={() => handleMouseEnter(rIdx, cIdx)} onMouseUp={handleMouseUp}>
-                                            <div className={`h-12 w-full rounded-2xl flex items-center justify-center text-sm font-black border transition-all ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color}`}>
+                                        <td key={`${row.id}-${date}`} className={`p-1 border-r border-gray-200 dark:border-white/5 relative ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/10' : ''}`} onMouseDown={() => handleMouseDown(rIdx, cIdx)} onMouseEnter={() => handleMouseEnter(rIdx, cIdx)} onMouseUp={handleMouseUp}>
+                                            <div className={`h-12 w-full rounded-2xl flex items-center justify-center text-sm font-black border transition-all ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color} dark:brightness-110`}>
                                                 {row.shifts[date] || 'OFF'}
                                             </div>
                                         </td>
                                     ))}
-                                    <td className="text-center font-black text-blue-400 text-xs border-r border-white/5">{calculations[rIdx].P}</td>
-                                    <td className="text-center font-black text-yellow-400 text-xs border-r border-white/5">{calculations[rIdx].S}</td>
-                                    <td className="text-center font-black text-slate-400 text-xs border-r border-white/5">{calculations[rIdx].M}</td>
+                                    <td className="text-center font-black text-blue-600 dark:text-blue-400 text-xs border-r border-gray-200 dark:border-white/5">{calculations[rIdx].P}</td>
+                                    <td className="text-center font-black text-yellow-600 dark:text-yellow-400 text-xs border-r border-gray-200 dark:border-white/5">{calculations[rIdx].S}</td>
+                                    <td className="text-center font-black text-gray-500 dark:text-slate-400 text-xs border-r border-gray-200 dark:border-white/5">{calculations[rIdx].M}</td>
                                     <td className="text-center">
                                         <div className="bg-primary/10 text-primary py-1 px-2 rounded-xl font-black text-xs inline-block">{calculations[rIdx].totalHours}H</div>
                                     </td>
@@ -518,14 +518,14 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                             ))}
                         </tbody>
                         <tfoot>
-                            <tr className="bg-slate-900/50 backdrop-blur-xl border-t border-white/5">
-                                <td className="p-6 border-r border-white/5 font-black uppercase tracking-widest text-[10px] text-slate-500 text-center">Rekap Harian</td>
+                            <tr className="bg-gray-100/50 dark:bg-slate-900/50 backdrop-blur-xl border-t border-gray-200 dark:border-white/5">
+                                <td className="p-6 border-r border-gray-200 dark:border-white/5 font-black uppercase tracking-widest text-[10px] text-gray-500 dark:text-slate-500 text-center">Rekap Harian</td>
                                 {dailyRecap.map((day, i) => (
-                                    <td key={i} className="p-4 border-r border-white/5">
+                                    <td key={i} className="p-4 border-r border-gray-200 dark:border-white/5">
                                         <div className="flex flex-col gap-0.5 items-center">
-                                            <span className="text-[10px] font-black text-blue-400">P: {day.P}</span>
-                                            <span className="text-[10px] font-black text-yellow-400">S: {day.S}</span>
-                                            <span className="text-[10px] font-black text-slate-400">M: {day.M}</span>
+                                            <span className="text-[10px] font-black text-blue-600 dark:text-blue-400">P: {day.P}</span>
+                                            <span className="text-[10px] font-black text-yellow-600 dark:text-yellow-400">S: {day.S}</span>
+                                            <span className="text-[10px] font-black text-gray-400 dark:text-slate-400">M: {day.M}</span>
                                         </div>
                                     </td>
                                 ))}

@@ -42,12 +42,17 @@
 
 @layer base {
   body {
-    @apply bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-500;
+    @apply bg-[var(--bg-app)] text-[var(--text-main)] transition-all duration-300;
     font-family: 'Inter', sans-serif;
   }
   
   h1, h2, h3, h4, .font-display {
+    @apply transition-colors duration-300;
     font-family: 'Outfit', sans-serif;
+  }
+
+  input, select, textarea, button {
+    @apply transition-all duration-300;
   }
 }
 
