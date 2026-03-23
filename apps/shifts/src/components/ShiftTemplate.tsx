@@ -52,8 +52,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Grid Data
     const [gridData, setGridData] = useState<GridItem[]>([]);
-    const [lastSavedHash, setLastSavedHash] = useState<string>('');
-    const hasChanges = useMemo(() => JSON.stringify(gridData) !== lastSavedHash, [gridData, lastSavedHash]);
 
     // Selection State (for drag-to-fill)
     const [dragStart, setDragStart] = useState<{ row: number, col: number } | null>(null);
@@ -129,40 +127,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         }
     }, [gridData, shiftSettings]);
 
-    // Validation (Only show if there are unsaved changes)
-    const validationErrors = useMemo(() => {
-        if (!hasChanges) return []; // Hide errors if already saved
-        const errors: string[] = [];
-        dates.forEach(date => {
-            let pagi = 0;
-            let sore = 0;
-            let malam = 0;
-            let off = 0;
-            
-            gridData.forEach(emp => {
-                const code = emp.shifts[date] || 'OFF';
-                if (code === 'P') pagi++;
-                else if (code === 'S') sore++;
-                else if (code === 'M') malam++;
-                else if (code === 'OFF') off++;
-            });
-
-            const dayName = new Date(date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' });
-
-            // Rule 1: Malam must be > Pagi
-            if (malam <= pagi && (pagi > 0 || malam > 0)) {
-                errors.push(`[${dayName}] Malam (${malam}) harus lebih banyak dari Pagi (${pagi})`);
-            }
-
-            // Rule 2: No OFF Condition (Min 2P, 2M)
-            if (off === 0 && gridData.length >= 4) {
-                if (pagi < 2 || malam < 2) {
-                    errors.push(`[${dayName}] Tanpa OFF: Minimal 2 Pagi & 2 Malam (Saat ini P:${pagi}, M:${malam})`);
-                }
-            }
-        });
-        return errors;
-    }, [gridData, dates]);
 
     // Drag-to-fill logic
     const handleMouseDown = (rowIndex: number, colIndex: number) => {
@@ -221,114 +185,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         setGridData(gridData.filter(g => g.id !== id));
     };
 
-    const balanceSchedules = (manual = true) => {
-        const newGrid = [...gridData];
-        const activeCodes = (['P', 'S', 'M'] as const).filter(code => shiftSettings[code].active);
-        
-        if (activeCodes.length === 0) return;
-
-        dates.forEach((date) => {
-            let pagi: number[] = [];
-            let sore: number[] = [];
-            let malam: number[] = [];
-            let offCount = 0;
-
-            newGrid.forEach((emp, i) => {
-                const code = emp.shifts[date] || 'OFF';
-                // Validate if current assigned code is still active. If not, reset to OFF
-                if (code !== 'OFF' && !shiftSettings[code as keyof ShiftSettings].active) {
-                    emp.shifts[date] = 'OFF';
-                    offCount++;
-                } else if (code === 'P') pagi.push(i);
-                else if (code === 'S') sore.push(i);
-                else if (code === 'M') malam.push(i);
-                else offCount++;
-            });
-
-            // 1. Priority Malam > Pagi (Only if Malam is active)
-            if (shiftSettings.M.active) {
-                while (malam.length <= pagi.length && (sore.length > 0 || pagi.length > 0)) {
-                    if (sore.length > 0) {
-                        const idx = sore.pop()!;
-                        newGrid[idx].shifts[date] = 'M';
-                        malam.push(idx);
-                    } else if (pagi.length > 1) { 
-                        const idx = pagi.pop()!;
-                        newGrid[idx].shifts[date] = 'M';
-                        malam.push(idx);
-                    } else break;
-                }
-            }
-
-            // 2. No OFF Condition (Min 2P, 2M) - Only if both P and M are active
-            if (offCount === 0 && newGrid.length >= 4 && shiftSettings.P.active && shiftSettings.M.active) {
-                while (pagi.length < 2 && sore.length > 0) {
-                    const idx = sore.pop()!;
-                    newGrid[idx].shifts[date] = 'P';
-                    pagi.push(idx);
-                }
-                while (pagi.length < 2 && (malam.length > pagi.length + 1)) {
-                    const idx = malam.pop()!;
-                    newGrid[idx].shifts[date] = 'P';
-                    pagi.push(idx);
-                }
-            }
-        });
-        setGridData(newGrid);
-        if (manual) toast.success("Jadwal diseimbangkan (berdasarkan shift aktif)!");
-    };
-
-    // Advanced Weekly Rotation
-    const autoGenerate = (isManual = true) => {
-        const newGrid = [...gridData];
-        const activeCodes = (['P', 'S', 'M'] as const).filter(code => shiftSettings[code].active);
-        
-        if (activeCodes.length === 0) {
-            toast.error("Aktifkan setidaknya satu shift untuk rotasi!");
-            return;
-        }
-
-        newGrid.forEach((emp, i) => {
-            let currentIdx = activeCodes.indexOf(emp.lastShiftCode as any);
-            if (currentIdx === -1) currentIdx = i % activeCodes.length;
-            else currentIdx = (currentIdx + 1) % activeCodes.length;
-
-            const targetCode = activeCodes[currentIdx];
-            // Constraint: Malam -> Pagi not allowed, shift to next active code (usually Sore)
-            let finalCode: string = targetCode;
-            if (targetCode === 'P' && emp.lastShiftCode === 'M') {
-                finalCode = activeCodes.find(c => c !== 'P' && c !== 'M') || 'OFF';
-            }
-            const offDayIndex = i % 7; 
-
-            dates.forEach((date, j) => {
-                if (j === offDayIndex) emp.shifts[date] = 'OFF';
-                else emp.shifts[date] = finalCode;
-            });
-            emp.lastShiftCode = finalCode;
-        });
-
-        setGridData(newGrid);
-        // Trigger balancing after generation
-        setTimeout(() => balanceSchedules(false), 50);
-        if (isManual) toast.success("Jadwal mingguan otomatis dibuat!");
-    };
-
-    const generateNextWeek = () => {
-        const currentEnd = new Date(endDate);
-        const nextStart = new Date(currentEnd);
-        nextStart.setDate(nextStart.getDate() + 1);
-        const nextEnd = new Date(nextStart);
-        nextEnd.setDate(nextEnd.getDate() + 6);
-
-        setStartDate(nextStart.toISOString().split('T')[0]);
-        setEndDate(nextEnd.toISOString().split('T')[0]);
-        
-        // Wait for dates to update in useMemo then run autoGenerate?
-        // Better: trigger a flag or use useEffect
-        setTimeout(() => autoGenerate(false), 50); 
-        toast.loading("Menyiapkan minggu berikutnya...", { duration: 1000 });
-    };
 
     // Database Sync
     const handleSave = async () => {
@@ -361,7 +217,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             if (result.count !== undefined) {
                 toast.dismiss(loadingToast);
                 toast.success(`Jadwal ditertibkan ke database!`);
-                setLastSavedHash(JSON.stringify(gridData));
             }
         } catch (e: any) {
             toast.dismiss(loadingToast);
@@ -453,25 +308,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     </div>
                 </div>
             )}
-            {/* Validation Warnings */}
-            {isAdmin && validationErrors.length > 0 && (
-                <div className="glass p-6 rounded-[2rem] border-red-500/20 bg-red-500/5 animate-in slide-in-from-top-4 duration-700">
-                    <div className="flex items-center gap-4 text-red-500 mb-4">
-                        <div className="size-12 rounded-2xl bg-red-500/20 flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-2xl">warning</span>
-                        </div>
-                        <h4 className="text-sm font-black uppercase tracking-[0.2em]">Peringatan Validasi</h4>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {validationErrors.map((err, i) => (
-                            <div key={i} className="flex items-center gap-3 text-sm font-bold text-red-400/80 bg-red-500/5 p-4 rounded-xl border border-red-500/10">
-                                <span className="size-2 rounded-full bg-red-500 shrink-0" />
-                                {err}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {/* Header Controls (Mobile Optimized) */}
             <div className="flex flex-col gap-4">
@@ -510,31 +346,6 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         </div>
                     </div>
 
-                    {isAdmin && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <button 
-                                onClick={() => autoGenerate()}
-                                className="glass py-4 px-4 rounded-2xl text-sm font-black text-primary uppercase tracking-widest hover:bg-white/5 flex flex-col items-center justify-center gap-2 min-h-[72px]"
-                            >
-                                <span className="material-symbols-outlined text-2xl">autorenew</span>
-                                Auto Rotasi
-                            </button>
-                            <button 
-                                onClick={() => balanceSchedules()}
-                                className="bg-white/5 border border-white/10 py-4 px-4 rounded-2xl text-sm font-black text-primary uppercase tracking-widest hover:border-primary flex flex-col items-center justify-center gap-2 transition-all min-h-[72px]"
-                            >
-                                <span className="material-symbols-outlined text-2xl">balance</span>
-                                Balance Jadwal
-                            </button>
-                            <button 
-                                onClick={generateNextWeek}
-                                className="bg-white/5 border border-white/10 py-4 px-4 rounded-2xl text-sm font-black text-[#94a3b8] uppercase tracking-widest hover:border-primary/50 flex flex-col items-center justify-center gap-2 transition-all min-h-[72px]"
-                            >
-                                <span className="material-symbols-outlined text-2xl">event_repeat</span>
-                                Lanjut Minggu
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -722,23 +533,15 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 )}
             </div>
 
-            {/* Thumb-friendly Bottom Navigation for Admins */}
             {isAdmin && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-slate-900/95 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom-8 duration-700 w-[calc(100%-3rem)] max-w-lg">
                     <button 
                         onClick={handleSave} 
-                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-orange-500 text-slate-950 shadow-orange-500/20' : 'bg-primary text-slate-950 shadow-primary/20'}`}
+                        className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg bg-primary text-slate-950 shadow-primary/20"
                     >
-                        <span className="material-symbols-outlined text-2xl">
-                            {validationErrors.length > 0 ? 'warning' : 'save'}
-                        </span>
-                        {validationErrors.length > 0 ? 'Simpan Tetap' : 'Simpan Jadwal'}
+                        <span className="material-symbols-outlined text-2xl">save</span>
+                        Simpan Jadwal
                     </button>
-                    {validationErrors.length > 0 && (
-                        <div className="size-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center animate-pulse shrink-0">
-                            <span className="material-symbols-outlined text-2xl">error_outline</span>
-                        </div>
-                    )}
                 </div>
             )}
             
