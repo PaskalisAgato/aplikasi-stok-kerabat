@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { useShifts } from '@shared/hooks/useShifts';
 import { useEmployees } from '@shared/hooks/useEmployees';
+import { useSession } from '@shared/authClient';
 import { toast } from 'react-hot-toast';
 
 const SHIFT_TYPES = [
@@ -31,6 +32,9 @@ interface ShiftTemplateProps {
 }
 
 export default function ShiftTemplate({ employees: initialEmployees, allShifts: initialShifts, isLoading }: ShiftTemplateProps) {
+    const { data: session } = useSession();
+    const isAdmin = session?.user?.role === 'ADMIN';
+
     const { createShift, updateShift, deleteShift } = useShifts();
     const { data: allEmployees } = useEmployees();
 
@@ -71,14 +75,16 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Load from Local Storage or API
     useEffect(() => {
-        const saved = localStorage.getItem('shift_grid_data');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                setGridData(parsed.grid);
-                setShiftSettings(parsed.settings);
-                return;
-            } catch (e) {}
+        if (isAdmin) {
+            const saved = localStorage.getItem('shift_grid_data');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    setGridData(parsed.grid);
+                    setShiftSettings(parsed.settings);
+                    return;
+                } catch (e) {}
+            }
         }
 
         // Default if no storage
@@ -109,21 +115,39 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         }
     }, [gridData, shiftSettings]);
 
+    // Validation
+    const validationErrors = useMemo(() => {
+        const errors: string[] = [];
+        dates.forEach(date => {
+            let pagi = 0;
+            let malam = 0;
+            gridData.forEach(emp => {
+                if (emp.shifts[date] === 'P') pagi++;
+                if (emp.shifts[date] === 'M') malam++;
+            });
+            if (malam <= pagi && (pagi > 0 || malam > 0)) {
+                errors.push(`Shift Malam (${malam}) harus lebih banyak dari Pagi (${pagi}) pada ${new Date(date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' })}`);
+            }
+        });
+        return errors;
+    }, [gridData, dates]);
+
     // Drag-to-fill logic
     const handleMouseDown = (rowIndex: number, colIndex: number) => {
+        if (!isAdmin) return;
         setDragStart({ row: rowIndex, col: colIndex });
         setDragEnd({ row: rowIndex, col: colIndex });
         setIsMenuOpen(null);
     };
 
     const handleMouseEnter = (rowIndex: number, colIndex: number) => {
-        if (dragStart) {
+        if (isAdmin && dragStart) {
             setDragEnd({ row: rowIndex, col: colIndex });
         }
     };
 
     const handleMouseUp = (e: React.MouseEvent) => {
-        if (dragStart && dragEnd) {
+        if (isAdmin && dragStart && dragEnd) {
             // Open selection menu at mouse position
             setIsMenuOpen({ 
                 row: dragStart.row, 
@@ -300,8 +324,34 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     return (
         <div className="space-y-8 animate-in fade-in duration-1000">
+            {/* Validation Warnings */}
+            {isAdmin && validationErrors.length > 0 && (
+                <div className="glass p-6 rounded-[2.5rem] border-red-500/20 bg-red-500/5 animate-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center gap-3 text-red-500 mb-3">
+                        <div className="size-10 rounded-2xl bg-red-500/20 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-xl">warning</span>
+                        </div>
+                        <h4 className="text-sm font-black uppercase tracking-[0.2em]">Peringatan Validasi</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2 ml-1">
+                        {validationErrors.map((err, i) => (
+                            <div key={i} className="flex items-center gap-3 text-[10px] font-bold text-red-400/80 bg-red-500/5 p-3 rounded-xl border border-red-500/10">
+                                <span className="size-1.5 rounded-full bg-red-500 shrink-0" />
+                                {err}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Header Controls */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 glass p-8 rounded-[2.5rem] border-white/5 shadow-2xl">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 glass p-8 rounded-[2.5rem] border-white/5 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4">
+                    <span className={`text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full border ${isAdmin ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
+                        {isAdmin ? 'Mode Admin' : 'Mode Karyawan'}
+                    </span>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-primary uppercase tracking-widest block">Start Date</label>
@@ -309,6 +359,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                             type="date" 
                             className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                             value={startDate}
+                            disabled={!isAdmin}
                             onChange={e => setStartDate(e.target.value)}
                         />
                     </div>
@@ -318,103 +369,118 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                             type="date" 
                             className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                             value={endDate}
+                            disabled={!isAdmin}
                             onChange={e => setEndDate(e.target.value)}
                         />
                     </div>
-                    <div className="h-12 w-px bg-white/10 hidden lg:block" />
-                    <button 
-                        onClick={() => autoGenerate()}
-                        className="glass py-3 px-6 rounded-2xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/5 flex items-center gap-2"
-                        title="Reset rotasi minggu ini"
-                    >
-                        <span className="material-symbols-outlined text-sm">autorenew</span>
-                        Auto Rotasi
-                    </button>
-                    <button 
-                        onClick={generateNextWeek}
-                        className="bg-white/5 border border-white/10 py-3 px-6 rounded-2xl text-[10px] font-black text-[#94a3b8] uppercase tracking-widest hover:border-primary/50 flex items-center gap-2 transition-all"
-                    >
-                        <span className="material-symbols-outlined text-sm">event_repeat</span>
-                        Minggu Berikutnya
-                    </button>
+                    {isAdmin && (
+                        <>
+                            <div className="h-12 w-px bg-white/10 hidden lg:block" />
+                            <button 
+                                onClick={() => autoGenerate()}
+                                className="glass py-3 px-6 rounded-2xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/5 flex items-center gap-2"
+                                title="Reset rotasi minggu ini"
+                            >
+                                <span className="material-symbols-outlined text-sm">autorenew</span>
+                                Auto Rotasi
+                            </button>
+                            <button 
+                                onClick={generateNextWeek}
+                                className="bg-white/5 border border-white/10 py-3 px-6 rounded-2xl text-[10px] font-black text-[#94a3b8] uppercase tracking-widest hover:border-primary/50 flex items-center gap-2 transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm">event_repeat</span>
+                                Minggu Berikutnya
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4">
                     <button onClick={handleExport} className="glass py-4 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all active:scale-95">
                         Ekspor Excel
                     </button>
-                    <button onClick={handleSave} className="bg-primary text-slate-950 py-4 px-10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95">
-                        Simpan Jadwal
-                    </button>
+                    {isAdmin && (
+                        <button 
+                            onClick={handleSave} 
+                            disabled={validationErrors.length > 0}
+                            className={`py-4 px-10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all active:scale-95 ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50' : 'bg-primary text-slate-950 shadow-primary/20 hover:scale-105'}`}
+                        >
+                            {validationErrors.length > 0 ? 'Validasi Gagal' : 'Simpan Jadwal'}
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Shift Settings Panel */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {(['P', 'S', 'M'] as const).map(type => (
-                    <div key={type} className={`glass p-6 rounded-[2rem] border-white/5 space-y-4 transition-all duration-500 ${!shiftSettings[type].active ? 'opacity-40 grayscale translate-y-2' : ''}`}>
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
-                                    {type}
+            {isAdmin && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {(['P', 'S', 'M'] as const).map(type => (
+                        <div key={type} className={`glass p-6 rounded-[2rem] border-white/5 space-y-4 transition-all duration-500 ${!shiftSettings[type].active ? 'opacity-40 grayscale translate-y-2' : ''}`}>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
+                                        {type}
+                                    </div>
+                                    <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
                                 </div>
-                                <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], active: !shiftSettings[type].active }})}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${shiftSettings[type].active ? 'bg-primary' : 'bg-white/10'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-slate-900 transition-transform ${shiftSettings[type].active ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                    <button 
+                                        onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], start: '', end: '' }})}
+                                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                        title="Hapus jam kerja"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], active: !shiftSettings[type].active }})}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${shiftSettings[type].active ? 'bg-primary' : 'bg-white/10'}`}
-                                >
-                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-slate-900 transition-transform ${shiftSettings[type].active ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
-                                <button 
-                                    onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], start: '', end: '' }})}
-                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                                    title="Hapus jam kerja"
-                                >
-                                    <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                                </button>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input 
+                                    type="time" 
+                                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
+                                    value={shiftSettings[type].start}
+                                    disabled={!shiftSettings[type].active}
+                                    onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], start: e.target.value}})}
+                                />
+                                <input 
+                                    type="time" 
+                                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
+                                    value={shiftSettings[type].end}
+                                    disabled={!shiftSettings[type].active}
+                                    onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], end: e.target.value}})}
+                                />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <input 
-                                type="time" 
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
-                                value={shiftSettings[type].start}
-                                disabled={!shiftSettings[type].active}
-                                onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], start: e.target.value}})}
-                            />
-                            <input 
-                                type="time" 
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
-                                value={shiftSettings[type].end}
-                                disabled={!shiftSettings[type].active}
-                                onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], end: e.target.value}})}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Add Employee Search */}
-            <div className="flex justify-end pr-4">
-               <div className="relative group/search">
-                    <select 
-                        className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer"
-                        onChange={(e) => {
-                            const emp = allEmployees?.find((u: any) => u.id === e.target.value);
-                            if (emp) addEmployee(emp);
-                            e.target.value = "";
-                        }}
-                    >
-                        <option value="">+ Tambah Karyawan</option>
-                        {allEmployees?.map((u: any) => (
-                            <option key={u.id} value={u.id}>{u.name}</option>
-                        ))}
-                    </select>
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
-               </div>
-            </div>
+            {isAdmin && (
+                <div className="flex justify-end pr-4">
+                   <div className="relative group/search">
+                        <select 
+                            className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer"
+                            onChange={(e) => {
+                                const emp = allEmployees?.find((u: any) => u.id === e.target.value);
+                                if (emp) addEmployee(emp);
+                                e.target.value = "";
+                            }}
+                        >
+                            <option value="">+ Tambah Karyawan</option>
+                            {allEmployees?.map((u: any) => (
+                                <option key={u.id} value={u.id}>{u.name}</option>
+                            ))}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
+                   </div>
+                </div>
+            )}
 
             {/* Interactive Table */}
             <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/5 glass shadow-2xl">
@@ -452,15 +518,17 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                                 <p className="text-xs font-black uppercase tracking-wider text-[var(--text-main)] group-hover/row:text-primary transition-colors">{row.name}</p>
                                                 <p className="text-[9px] font-bold text-[var(--text-muted)] italic">User ID: #{row.id.slice(0, 8)}</p>
                                             </div>
-                                            <button onClick={() => removeEmployee(row.id)} className="opacity-0 group-hover/row:opacity-100 p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
-                                                <span className="material-symbols-outlined text-sm">remove_circle</span>
-                                            </button>
+                                            {isAdmin && (
+                                                <button onClick={() => removeEmployee(row.id)} className="opacity-0 group-hover/row:opacity-100 p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                                    <span className="material-symbols-outlined text-sm">remove_circle</span>
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                     {dates.map((date, cIdx) => (
                                         <td 
                                             key={`${row.id}-${date}`}
-                                            className={`p-1 border-r border-white/5 cursor-pointer relative transition-all duration-300 ${isSelected(rIdx, cIdx) ? 'bg-primary/20 scale-[0.98]' : ''}`}
+                                            className={`p-1 border-r border-white/5 relative transition-all duration-300 ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/20 scale-[0.98]' : ''}`}
                                             onMouseDown={() => handleMouseDown(rIdx, cIdx)}
                                             onMouseEnter={() => handleMouseEnter(rIdx, cIdx)}
                                             onMouseUp={handleMouseUp}
@@ -502,7 +570,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 </div>
 
                 {/* Selection Menu (Popover) */}
-                {isMenuOpen && (
+                {isAdmin && isMenuOpen && (
                     <div 
                         className="fixed z-50 flex gap-2 p-2 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
                         style={{ top: isMenuOpen.y - 60, left: isMenuOpen.x - 100 }}
