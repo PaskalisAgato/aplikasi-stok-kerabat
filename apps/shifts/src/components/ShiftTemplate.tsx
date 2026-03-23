@@ -208,6 +208,10 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     const balanceSchedules = (manual = true) => {
         const newGrid = [...gridData];
+        const activeCodes = (['P', 'S', 'M'] as const).filter(code => shiftSettings[code].active);
+        
+        if (activeCodes.length === 0) return;
+
         dates.forEach((date) => {
             let pagi: number[] = [];
             let sore: number[] = [];
@@ -216,33 +220,39 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
             newGrid.forEach((emp, i) => {
                 const code = emp.shifts[date] || 'OFF';
-                if (code === 'P') pagi.push(i);
+                // Validate if current assigned code is still active. If not, reset to OFF
+                if (code !== 'OFF' && !shiftSettings[code as keyof ShiftSettings].active) {
+                    emp.shifts[date] = 'OFF';
+                    offCount++;
+                } else if (code === 'P') pagi.push(i);
                 else if (code === 'S') sore.push(i);
                 else if (code === 'M') malam.push(i);
                 else offCount++;
             });
 
-            // 1. Priority Malam > Pagi
-            while (malam.length <= pagi.length && (sore.length > 0 || pagi.length > 0)) {
-                if (sore.length > 0) {
-                    const idx = sore.pop()!;
-                    newGrid[idx].shifts[date] = 'M';
-                    malam.push(idx);
-                } else if (pagi.length > 1) { 
-                    const idx = pagi.pop()!;
-                    newGrid[idx].shifts[date] = 'M';
-                    malam.push(idx);
-                } else break;
+            // 1. Priority Malam > Pagi (Only if Malam is active)
+            if (shiftSettings.M.active) {
+                while (malam.length <= pagi.length && (sore.length > 0 || pagi.length > 0)) {
+                    if (sore.length > 0) {
+                        const idx = sore.pop()!;
+                        newGrid[idx].shifts[date] = 'M';
+                        malam.push(idx);
+                    } else if (pagi.length > 1) { 
+                        const idx = pagi.pop()!;
+                        newGrid[idx].shifts[date] = 'M';
+                        malam.push(idx);
+                    } else break;
+                }
             }
 
-            // 2. No OFF Condition (Min 2P, 2M)
-            if (offCount === 0 && newGrid.length >= 4) {
+            // 2. No OFF Condition (Min 2P, 2M) - Only if both P and M are active
+            if (offCount === 0 && newGrid.length >= 4 && shiftSettings.P.active && shiftSettings.M.active) {
                 while (pagi.length < 2 && sore.length > 0) {
                     const idx = sore.pop()!;
                     newGrid[idx].shifts[date] = 'P';
                     pagi.push(idx);
                 }
-                while (pagi.length < 2 && malam.length > pagi.length + 1) {
+                while (pagi.length < 2 && (malam.length > pagi.length + 1)) {
                     const idx = malam.pop()!;
                     newGrid[idx].shifts[date] = 'P';
                     pagi.push(idx);
@@ -250,7 +260,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             }
         });
         setGridData(newGrid);
-        if (manual) toast.success("Jadwal berhasil diseimbangkan!");
+        if (manual) toast.success("Jadwal diseimbangkan (berdasarkan shift aktif)!");
     };
 
     // Advanced Weekly Rotation
@@ -269,7 +279,11 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             else currentIdx = (currentIdx + 1) % activeCodes.length;
 
             const targetCode = activeCodes[currentIdx];
-            const finalCode = (targetCode === 'P' && emp.lastShiftCode === 'M') ? 'S' : targetCode;
+            // Constraint: Malam -> Pagi not allowed, shift to next active code (usually Sore)
+            let finalCode: string = targetCode;
+            if (targetCode === 'P' && emp.lastShiftCode === 'M') {
+                finalCode = activeCodes.find(c => c !== 'P' && c !== 'M') || 'OFF';
+            }
             const offDayIndex = i % 7; 
 
             dates.forEach((date, j) => {
