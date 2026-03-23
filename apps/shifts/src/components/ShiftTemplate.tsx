@@ -58,6 +58,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     const [dragEnd, setDragEnd] = useState<{ row: number, col: number } | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState<{ row: number, col: number, x: number, y: number } | null>(null);
     const [pendingDeletions, setPendingDeletions] = useState<string[]>([]);
+    const [zoom, setZoom] = useState(1);
 
     // Columns based on range
     const dates = useMemo(() => {
@@ -440,6 +441,28 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     </div>
                 </div>
                 <div className="flex gap-4 items-stretch">
+                    <div className="flex glass rounded-[2rem] border-white/5 p-1">
+                        <button 
+                            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                            className="p-3 hover:bg-white/5 rounded-2xl text-primary transition-all"
+                            title="Zoom Out"
+                        >
+                            <span className="material-symbols-outlined">zoom_out</span>
+                        </button>
+                        <button 
+                            onClick={() => setZoom(1)}
+                            className="px-4 text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/5 rounded-2xl transition-all"
+                        >
+                            {Math.round(zoom * 100)}%
+                        </button>
+                        <button 
+                            onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                            className="p-3 hover:bg-white/5 rounded-2xl text-primary transition-all"
+                            title="Zoom In"
+                        >
+                            <span className="material-symbols-outlined">zoom_in</span>
+                        </button>
+                    </div>
                     {isAdmin && (
                         <div className="flex-1 glass p-4 rounded-[2rem] border-white/5 flex items-center justify-center">
                             <select 
@@ -465,8 +488,15 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
             {/* Main Interactive Table */}
             <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/5 glass shadow-2xl">
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse select-none">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                    <table 
+                        className="w-full border-collapse select-none transition-transform duration-300 origin-top-left"
+                        style={{ 
+                            transform: `scale(${zoom})`,
+                            width: `${100 / zoom}%`,
+                            marginBottom: zoom > 1 ? `${(zoom - 1) * 100}%` : 0 // Add margin to prevent table from being cut off at bottom when zoomed
+                        }}
+                    >
                         <thead>
                             <tr className="bg-gray-100/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5">
                                 <th className="p-6 text-left min-w-[200px] border-r border-gray-200 dark:border-white/5">
