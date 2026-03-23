@@ -385,12 +385,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             {isAdmin && (
                 <div className="glass p-8 rounded-[2.5rem] border-white/5 space-y-8">
                     <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-900 dark:text-slate-100">
-                            <span className="material-symbols-outlined">settings_runtime</span>
+                        <div className="size-12 min-w-[3rem] rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-900 dark:text-slate-100">
+                            <span className="material-symbols-outlined text-2xl font-black">settings_accessibility</span>
                         </div>
-                        <div>
-                            <h2 className="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-slate-100 leading-tight">Pengaturan Shift</h2>
-                            <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Jam operasional & status shift</p>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-slate-100 leading-tight truncate">Pengaturan Shift</h2>
+                            <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider truncate">Jam operasional & status shift</p>
                         </div>
                     </div>
 
