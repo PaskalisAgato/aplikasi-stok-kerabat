@@ -127,17 +127,24 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                 <div className="p-4 flex gap-3 sticky bottom-0 bg-background-app border-t border-border-dim">
                     <button 
                         onClick={onUpdateStockClick}
-                        className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-lg active:scale-95 transition-transform"
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-xl active:scale-95 transition-transform"
                     >
                         <span className="material-symbols-outlined">inventory</span>
                         Update Stock
                     </button>
                     <button 
                         onClick={onEditClick}
-                        className="flex h-auto px-4 items-center justify-center bg-surface text-main rounded-lg border border-border-dim hover:bg-primary/5 transition-colors"
+                        className="flex size-11 items-center justify-center bg-surface text-main rounded-xl border border-border-dim hover:bg-primary/5 active:scale-95 transition-all"
                         title="Ubah Data Stok"
                     >
                         <span className="material-symbols-outlined">edit</span>
+                    </button>
+                    <button 
+                        onClick={onEditClick} // For now, reuse onEditClick but the user will see the delete option there
+                        className="flex size-11 items-center justify-center bg-red-50 text-red-500 rounded-xl border border-red-100 hover:bg-red-500 hover:text-white active:scale-95 transition-all"
+                        title="Hapus Bahan"
+                    >
+                        <span className="material-symbols-outlined">delete</span>
                     </button>
                 </div>
 

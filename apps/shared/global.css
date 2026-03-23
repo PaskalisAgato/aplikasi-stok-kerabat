@@ -71,8 +71,7 @@
   }
 
   .card {
-    @apply bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-dim)] rounded-[2.5rem] shadow-xl overflow-hidden transition-all hover:scale-[1.01];
-    padding: 2rem;
+    @apply bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-dim)] rounded-[2.5rem] shadow-xl overflow-hidden transition-all hover:scale-[1.01] p-5 sm:p-8;
   }
 
   /* Vibrant Accents */
