@@ -187,6 +187,15 @@ export const auditLogs = pgTable('audit_logs', {
 // -----------------------------------------------------------------------------
 // 6. WORK SHIFTS & ATTENDANCE
 // -----------------------------------------------------------------------------
+export const shiftSettings = pgTable('shift_settings', {
+    id: serial('id').primaryKey(),
+    code: text('code').notNull().unique(), // 'P', 'S', 'M'
+    startTime: text('start_time').notNull(),
+    endTime: text('end_time').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 export const workShifts = pgTable('work_shifts', {
     id: serial('id').primaryKey(),
     userId: text('user_id').notNull().references(() => users.id),
@@ -207,12 +216,42 @@ export const attendance = pgTable('attendance', {
     date: timestamp('date').notNull(),
     checkIn: timestamp('check_in'),
     checkOut: timestamp('check_out'),
-    checkInPhoto: text('check_in_photo'),
-    checkOutPhoto: text('check_out_photo'),
-    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
+    checkInPhoto: text('check_in_photo'), // URL to storage
+    checkOutPhoto: text('check_out_photo'), // URL to storage
+    checkInTimestamp: text('check_in_timestamp'), // Watermark text
+    checkOutTimestamp: text('check_out_timestamp'), // Watermark text
+    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Alpha', 'Izin'
+    location: text('location'), // Optional GPS
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     userIdx: index('attendance_user_idx').on(t.userId),
     dateIdx: index('attendance_date_idx').on(t.date)
 }));
 
+export const shiftRequests = pgTable('shift_requests', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    requestedShift: text('requested_shift').notNull(), // 'P', 'S', 'M', 'OFF'
+    reason: text('reason'),
+    status: text('status').default('pending').notNull(), // 'pending', 'approved', 'rejected'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// -----------------------------------------------------------------------------
+// 7. PAYROLL
+// -----------------------------------------------------------------------------
+export const payroll = pgTable('payroll', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    periodStart: timestamp('period_start').notNull(),
+    periodEnd: timestamp('period_end').notNull(),
+    totalWorkDays: integer('total_work_days').default(0).notNull(),
+    totalHours: decimal('total_hours', { precision: 10, scale: 2 }).default('0').notNull(),
+    baseSalary: decimal('base_salary', { precision: 12, scale: 2 }).notNull(),
+    overtimePay: decimal('overtime_pay', { precision: 12, scale: 2 }).default('0').notNull(),
+    deductions: decimal('deductions', { precision: 12, scale: 2 }).default('0').notNull(),
+    totalNetSalary: decimal('total_net_salary', { precision: 12, scale: 2 }).notNull(),
+    status: text('status').default('draft').notNull(), // 'draft', 'paid'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});

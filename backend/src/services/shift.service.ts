@@ -113,23 +113,54 @@ export class ShiftService {
         return deletedShift;
     }
 
-    static async batchSave(shifts: any[], currentUserId: string, options?: { startDate?: string, endDate?: string, userIdsToSync?: string[] }) {
-        const { inArray, and, gte, lte } = await import('drizzle-orm');
-        console.log('[ShiftService] batchSave triggered:', { 
-            shiftCount: shifts.length, 
-            userIdsToSync: options?.userIdsToSync, 
-            range: `${options?.startDate} to ${options?.endDate}` 
-        });
+    static async getShiftSettings() {
+        return await db.select().from(schema.shiftSettings);
+    }
+
+    static async batchSave(
+        shifts: any[], 
+        currentUserId: string, 
+        options?: { 
+            startDate?: string, 
+            endDate?: string, 
+            userIdsToSync?: string[], 
+            settings?: Record<string, { start: string, end: string, active: boolean }> 
+        }
+    ) {
+        const { inArray, and, gte, lte, notInArray } = await import('drizzle-orm');
         
         return await db.transaction(async (tx) => {
             let userIds: string[] = [];
             let minDate: Date;
             let maxDate: Date;
 
+            // 1. Sync Shift Settings
+            if (options?.settings) {
+                for (const [code, s] of Object.entries(options.settings)) {
+                    await tx.insert(schema.shiftSettings)
+                        .values({
+                            code,
+                            startTime: s.start,
+                            endTime: s.end,
+                            isActive: s.active,
+                            updatedAt: new Date()
+                        })
+                        .onConflictDoUpdate({
+                            target: schema.shiftSettings.code,
+                            set: {
+                                startTime: s.start,
+                                endTime: s.end,
+                                isActive: s.active,
+                                updatedAt: new Date()
+                            }
+                        });
+                }
+            }
+
+            // 2. Determine Scope
             if (options?.startDate && options?.endDate && options?.userIdsToSync) {
                 userIds = options.userIdsToSync;
                 minDate = new Date(options.startDate);
-                // Set maxDate to the end of the day to ensure full coverage
                 maxDate = new Date(options.endDate);
                 maxDate.setHours(23, 59, 59, 999);
             } else {
@@ -141,18 +172,34 @@ export class ShiftService {
                 maxDate.setHours(23, 59, 59, 999);
             }
 
-            console.log('[ShiftService] Cleanup range:', { minDate, maxDate, users: userIds.length });
-
+            // 3. Auto-Deactivation Logic (Mark missing employees as 'inactive')
+            // Users NOT in the currently management grid but in the system
             if (userIds.length > 0) {
-                const deleted = await tx.delete(schema.workShifts)
+                await tx.update(schema.users)
+                    .set({ status: 'active' })
+                    .where(inArray(schema.users.id, userIds));
+                
+                // Optional: Deactivate others if they are not in the grid and are 'Karyawan'
+                await tx.update(schema.users)
+                    .set({ status: 'inactive' })
+                    .where(
+                        and(
+                            eq(schema.users.role, 'Karyawan'),
+                            notInArray(schema.users.id, userIds)
+                        )
+                    );
+            }
+
+            // 4. Clean & Insert Shifts
+            if (userIds.length > 0) {
+                await tx.delete(schema.workShifts)
                     .where(
                         and(
                             gte(schema.workShifts.date, minDate),
                             lte(schema.workShifts.date, maxDate),
                             inArray(schema.workShifts.userId, userIds)
                         )
-                    ).returning();
-                console.log(`[ShiftService] Deleted ${deleted.length} existing shifts.`);
+                    );
             }
 
             let insertedCount = 0;
@@ -169,12 +216,11 @@ export class ShiftService {
                     }))
                 ).returning();
                 insertedCount = inserted.length;
-                console.log(`[ShiftService] Inserted ${insertedCount} new shifts.`);
             }
 
             await tx.insert(schema.auditLogs).values({
                 userId: currentUserId,
-                action: `BATCH_SAVE_SHIFTS: ${insertedCount} items saved, synced for ${userIds.length} users`,
+                action: `HRIS_BATCH_SAVE: ${insertedCount} shifts, settings synced`,
                 tableName: 'work_shifts',
                 newData: JSON.stringify({ count: insertedCount, userIdsSynced: userIds.length }),
                 createdAt: new Date()

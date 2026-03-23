@@ -41,7 +41,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     // Dates
     const today = new Date();
     const [startDate, setStartDate] = useState(new Date(today.setDate(today.getDate() - today.getDay() + 1)).toISOString().split('T')[0]); // Monday
-    const [endDate, setEndDate] = useState(new Date(today.setDate(today.getDate() + 6)).toISOString().split('T')[0]); // Sunday
+    const [endDate, setEndDate] = useState(new Date(new Date(startDate).setDate(new Date(startDate).getDate() + 6)).toISOString().split('T')[0]); // Sunday
 
     // Settings
     const [shiftSettings, setShiftSettings] = useState<ShiftSettings>({
@@ -73,21 +73,42 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         return dayList;
     }, [startDate, endDate]);
 
-    // 1. Initial Load from Local Storage (Run only ONCE on mount)
+    // 1. Initial Load (Settings & Local Storage)
     useEffect(() => {
-        if (isAdmin) {
-            const saved = localStorage.getItem('shift_grid_data');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.grid && parsed.settings) {
-                        setGridData(parsed.grid);
-                        setShiftSettings(parsed.settings);
-                    }
-                } catch (e) {}
+        const loadInitial = async () => {
+            // Load global settings from DB first
+            try {
+                const globalSettings = await apiFetch<any[]>('/shifts/settings');
+                if (globalSettings && globalSettings.length > 0) {
+                    const mappedSettings: ShiftSettings = { ...shiftSettings };
+                    globalSettings.forEach(s => {
+                        if (mappedSettings[s.code as keyof ShiftSettings]) {
+                            mappedSettings[s.code as keyof ShiftSettings] = {
+                                start: s.startTime,
+                                end: s.endTime,
+                                active: s.isActive
+                            };
+                        }
+                    });
+                    setShiftSettings(mappedSettings);
+                }
+            } catch (e) {
+                console.error("Failed to load global shift settings", e);
             }
-        }
-    }, [isAdmin]); // Only run on mount or when admin status changes
+
+            if (isAdmin) {
+                const saved = localStorage.getItem('shift_grid_data');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.grid) setGridData(parsed.grid);
+                    } catch (e) {}
+                }
+            }
+        };
+        
+        loadInitial();
+    }, [isAdmin]);
 
     // 2. Load from API (If no grid data yet)
     useEffect(() => {
@@ -103,9 +124,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         // Priority 1: Use the 'note' field if it contains the shift code (e.g. "Shift P")
                         if (s.note && s.note.startsWith('Shift ')) {
                             const extracted = s.note.replace('Shift ', '');
-                            if (['P', 'S', 'M', 'OFF'].includes(extracted)) {
-                                code = extracted;
-                            }
+                            if (['P', 'S', 'M', 'OFF'].includes(extracted)) code = extracted;
                         } 
                         
                         // Priority 2: Fallback to time-based matching (matching current settings)
@@ -169,8 +188,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         const newGrid = [...gridData];
         for (let r = startRow; r <= endRow; r++) {
             for (let c = startCol; c <= endCol; c++) {
-                const dateStr = dates[c];
-                newGrid[r].shifts[dateStr] = code;
+                newGrid[r].shifts[dates[c]] = code;
             }
         }
         setGridData(newGrid);
@@ -195,7 +213,23 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     const handleSave = async () => {
         if (!isAdmin) return;
         
-        const loadingToast = toast.loading("Menyimpan jadwal...");
+        // Validation: Malam > Pagi
+        const errors: string[] = [];
+        gridData.forEach(row => {
+            dates.forEach((date, i) => {
+                const tomorrow = dates[i+1];
+                if (tomorrow && row.shifts[date] === 'M' && row.shifts[tomorrow] === 'P') {
+                    errors.push(`${row.name}: Shift Malam tidak boleh dilanjut Pagi pada ${date}`);
+                }
+            });
+        });
+
+        if (errors.length > 0) {
+            toast.error(errors[0], { duration: 4000 });
+            return;
+        }
+
+        const loadingToast = toast.loading("Menyimpan jadwal & pengaturan...");
         try {
             const apiItems: any[] = [];
             gridData.forEach(row => {
@@ -215,28 +249,23 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             });
 
             const userIdsToSync = [...new Set([...gridData.map(g => g.id), ...pendingDeletions])];
-            console.log('[ShiftTemplate] Saving shifts:', { 
-                itemCount: apiItems.length, 
-                userIdsToSync, 
-                range: `${startDate} to ${endDate}` 
-            });
-
             const result = await apiFetch<any>('/shifts/batch', {
                 method: 'POST',
                 body: JSON.stringify({ 
                     shifts: apiItems,
                     startDate,
                     endDate,
-                    userIdsToSync
+                    userIdsToSync,
+                    settings: shiftSettings // Full State Save
                 })
             });
 
             if (result && result.count !== undefined) {
                 toast.dismiss(loadingToast);
-                toast.success(`Jadwal ditertibkan ke database! (${result.count} data)`);
+                toast.success(`Jadwal & Pengaturan disimpan! (${result.count} data)`);
                 setPendingDeletions([]);
             } else {
-                throw new Error(result?.error || "Gagal menyimpan data tanpa pesan error.");
+                throw new Error(result?.error || "Gagal menyimpan data.");
             }
         } catch (e: any) {
             console.error('[ShiftTemplate] Save error:', e);
@@ -246,11 +275,28 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     };
 
     const handleExport = async () => {
-        // Logic for Excel export matching UI
-        toast.loading("Mengekspor Excel...");
-        // Reuse apiClient.exportShiftTemplate or custom logic
-        await apiClient.exportShiftTemplate(); 
-        toast.dismiss();
+        const loadingToast = toast.loading("Menyiapkan dokumenExcel...");
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/shifts/export`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ gridData, startDate, endDate, dates })
+            });
+            if (!response.ok) throw new Error('Gagal mengekspor jadwal.');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `jadwal-shift-${startDate}-${endDate}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            toast.dismiss(loadingToast);
+            toast.success("Ekspor berhasil!");
+        } catch (e: any) {
+            toast.dismiss(loadingToast);
+            toast.error("Gagal ekspor: " + e.message);
+        }
     };
 
     // Real-time Calculations
@@ -301,231 +347,189 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     const myShifts = myRowIdx !== -1 ? gridData[myRowIdx].shifts : null;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-1000">
-            {/* My Schedule Card (Karyawan Only) */}
+        <div className="space-y-8 animate-in fade-in duration-1000 pb-32">
+            {/* Header / Role Indicator */}
+            <div className="flex flex-col items-center gap-2 text-center">
+                <h1 className="text-3xl font-black text-slate-100 uppercase tracking-tighter">Manajemen Shift</h1>
+                <div className="flex items-center gap-2">
+                    <p className="text-[10px] text-primary uppercase font-bold tracking-[0.3em]">Café Employee HRIS</p>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isAdmin ? 'bg-primary text-slate-950' : 'bg-slate-800 text-slate-400 border border-white/10'}`}>
+                        {isAdmin ? 'Mode: Administrator' : 'Mode: Karyawan'}
+                    </span>
+                </div>
+            </div>
+
+            {/* My Schedule (Karyawan View) */}
             {!isAdmin && myShifts && (
-                <div className="glass p-6 rounded-[2rem] border-primary/20 bg-primary/5 animate-in slide-in-from-top-4 duration-700">
+                <div className="glass p-6 rounded-[2.5rem] border-primary/20 bg-primary/5">
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="size-12 rounded-2xl bg-primary flex items-center justify-center text-slate-950">
-                            <span className="material-symbols-outlined text-2xl">calendar_month</span>
+                        <div className="size-12 rounded-2xl bg-primary flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
+                            <span className="material-symbols-outlined text-2xl">person_pin</span>
                         </div>
                         <div>
                             <h3 className="text-sm font-black uppercase tracking-widest text-primary">Jadwal Saya</h3>
-                            <p className="text-xs font-bold text-[var(--text-muted)]">Minggu ini • {startDate} - {endDate}</p>
+                            <p className="text-xs font-bold text-slate-500">Periode Aktif • {startDate} - {endDate}</p>
                         </div>
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                         {dates.map(date => (
-                            <div key={date} className={`min-w-[100px] p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary/20 border-primary/40 scale-105 shadow-lg shadow-primary/10' : 'bg-white/5 border-white/5 opacity-60'}`}>
-                                <p className="text-sm font-black uppercase text-primary leading-tight">
+                            <div key={date} className={`min-w-[110px] p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary text-slate-950 border-primary scale-105 shadow-xl shadow-primary/20' : 'bg-white/5 border-white/5 opacity-40'}`}>
+                                <p className="text-xs font-black uppercase opacity-60">
                                     {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
                                 </p>
-                                <div className={`size-12 rounded-xl flex items-center justify-center text-sm font-black border-2 ${SHIFT_TYPES.find(t => t.code === (myShifts[date] || 'OFF'))?.color}`}>
-                                    {myShifts[date] || 'OFF'}
-                                </div>
-                                <p className="text-sm font-bold text-[var(--text-muted)]">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                                <div className="text-xl font-black">{myShifts[date] || 'OFF'}</div>
+                                <p className="text-[10px] font-bold opacity-60">{date.split('-')[2]}/{date.split('-')[1]}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Header Controls (Mobile Optimized) */}
-            <div className="flex flex-col gap-4">
-                <div className="glass p-6 rounded-[2rem] border-white/5 shadow-2xl space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                             <span className={`text-xs font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border w-fit ${isAdmin ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-                                {isAdmin ? 'Mode Admin' : 'Mode Karyawan'}
-                            </span>
+            {/* Shift Settings (Admin Only) */}
+            {isAdmin && (
+                <div className="glass p-8 rounded-[2.5rem] border-white/5 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="size-12 rounded-2xl bg-slate-800 flex items-center justify-center text-slate-100">
+                            <span className="material-symbols-outlined">settings_runtime</span>
                         </div>
-                        <button onClick={handleExport} className="glass p-3 rounded-2xl flex items-center justify-center hover:scale-105 transition-all outline-none min-h-[44px] min-w-[44px]" title="Ekspor Excel">
-                            <span className="material-symbols-outlined text-xl">download</span>
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-primary uppercase tracking-widest block">Start Date</label>
-                            <input 
-                                type="date" 
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm font-bold focus:border-primary transition-all outline-none min-h-[48px]"
-                                value={startDate}
-                                disabled={!isAdmin}
-                                onChange={e => setStartDate(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-primary uppercase tracking-widest block">End Date</label>
-                            <input 
-                                type="date" 
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-sm font-bold focus:border-primary transition-all outline-none min-h-[48px]"
-                                value={endDate}
-                                disabled={!isAdmin}
-                                onChange={e => setEndDate(e.target.value)}
-                            />
+                        <div>
+                            <h2 className="text-lg font-black uppercase tracking-widest text-slate-100 leading-tight">Pengaturan Shift</h2>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jam operasional & status shift</p>
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {(['P', 'S', 'M'] as const).map(code => (
+                            <div key={code} className={`p-6 rounded-3xl border transition-all duration-500 ${shiftSettings[code].active ? 'bg-white/[0.03] border-white/10' : 'bg-black/20 border-white/5 opacity-40 grayscale'}`}>
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`size-10 rounded-xl flex items-center justify-center font-black ${code === 'P' ? 'bg-blue-500/20 text-blue-400' : code === 'S' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                            {code}
+                                        </div>
+                                        <span className="text-xs font-black uppercase tracking-widest text-slate-200">Shift {code === 'P' ? 'Pagi' : code === 'S' ? 'Sore' : 'Malam'}</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setShiftSettings(p => ({ ...p, [code]: { ...p[code], active: !p[code].active } }))}
+                                        className={`w-12 h-6 rounded-full relative transition-all duration-300 ${shiftSettings[code].active ? 'bg-primary' : 'bg-slate-800'}`}
+                                    >
+                                        <div className={`absolute top-1 size-4 rounded-full bg-slate-950 transition-all duration-300 ${shiftSettings[code].active ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Masuk</p>
+                                        <input type="time" value={shiftSettings[code].start} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], start: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pulang</p>
+                                        <input type="time" value={shiftSettings[code].end} onChange={e => setShiftSettings(p => ({ ...p, [code]: { ...p[code], end: e.target.value } }))} disabled={!shiftSettings[code].active} className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-primary transition-all disabled:opacity-30" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Date Range & Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="glass p-6 rounded-[2rem] border-white/5 flex flex-col md:flex-row gap-4 items-center">
+                    <div className="flex-1 w-full space-y-2">
+                        <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-2">Mulai Dari</label>
+                        <input type="date" value={startDate} disabled={!isAdmin} onChange={e => setStartDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-slate-100 outline-none focus:border-primary transition-all" />
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                        <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-2">Sampai Dengan</label>
+                        <input type="date" value={endDate} disabled={!isAdmin} onChange={e => setEndDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-slate-100 outline-none focus:border-primary transition-all" />
+                    </div>
+                </div>
+                <div className="flex gap-4 items-stretch">
+                    {isAdmin && (
+                        <div className="flex-1 glass p-4 rounded-[2rem] border-white/5 flex items-center justify-center">
+                            <select 
+                                className="w-full bg-transparent text-sm font-black uppercase tracking-widest text-slate-300 outline-none appearance-none text-center cursor-pointer"
+                                onChange={e => {
+                                    const emp = allEmployees?.find((u: any) => u.id === e.target.value);
+                                    if (emp) addEmployee(emp);
+                                    e.target.value = "";
+                                }}
+                            >
+                                <option value="">+ Tambah Karyawan</option>
+                                {allEmployees?.filter(u => !gridData.some(g => g.id === u.id)).map((u: any) => (
+                                    <option key={u.id} value={u.id}>{u.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    <button onClick={handleExport} className="glass w-20 rounded-[2rem] border-white/5 flex items-center justify-center text-primary hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
+                        <span className="material-symbols-outlined text-3xl">download</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Shift Settings Panel */}
-            {isAdmin && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {(['P', 'S', 'M'] as const).map(type => (
-                        <div key={type} className={`glass p-6 rounded-[2rem] border-white/5 space-y-4 transition-all duration-500 ${!shiftSettings[type].active ? 'opacity-40 grayscale translate-y-2' : ''}`}>
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
-                                        {type}
-                                    </div>
-                                    <h4 className="text-sm font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], active: !shiftSettings[type].active }})}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${shiftSettings[type].active ? 'bg-primary' : 'bg-white/10'}`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-slate-900 transition-transform ${shiftSettings[type].active ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </button>
-                                    <button 
-                                        onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], start: '', end: '' }})}
-                                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                                        title="Hapus jam kerja"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input 
-                                    type="time" 
-                                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
-                                    value={shiftSettings[type].start}
-                                    disabled={!shiftSettings[type].active}
-                                    onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], start: e.target.value}})}
-                                />
-                                <input 
-                                    type="time" 
-                                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
-                                    value={shiftSettings[type].end}
-                                    disabled={!shiftSettings[type].active}
-                                    onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], end: e.target.value}})}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Add Employee Search (Mobile Optimized) */}
-            {isAdmin && (
-                <div className="w-full">
-                   <div className="relative group/search">
-                        <select 
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-widest outline-none transition-all focus:border-primary pr-12 appearance-none cursor-pointer min-h-[56px]"
-                            onChange={(e) => {
-                                const emp = allEmployees?.find((u: any) => u.id === e.target.value);
-                                if (emp) addEmployee(emp);
-                                e.target.value = "";
-                            }}
-                        >
-                            <option value="">+ Tambah Karyawan</option>
-                            {allEmployees?.map((u: any) => (
-                                <option key={u.id} value={u.id}>{u.name}</option>
-                            ))}
-                        </select>
-                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-xl pointer-events-none opacity-50 group-focus-within/search:text-primary group-focus-within/search:opacity-100">person_add</span>
-                   </div>
-                </div>
-            )}
-
-            {/* Interactive Table */}
+            {/* Main Interactive Table */}
             <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/5 glass shadow-2xl">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse select-none">
-                        <thead className="sticky top-0 z-20">
+                        <thead>
                             <tr className="bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
-                                <th className="p-4 text-left min-w-[150px] border-r border-white/5">
-                                    <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Karyawan</span>
+                                <th className="p-6 text-left min-w-[200px] border-r border-white/5">
+                                    <span className="text-sm font-black uppercase tracking-[0.3em] text-primary">Karyawan</span>
                                 </th>
                                 {dates.map(date => (
-                                    <th key={date} className="px-2 py-4 min-w-[80px] text-center border-r border-white/5">
-                                        <div className="space-y-0.5">
-                                            <p className="text-sm font-black uppercase text-primary leading-tight">
-                                                {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
-                                            </p>
-                                            <p className="text-sm font-bold text-[var(--text-muted)] leading-tight">{date.split('-')[2]}/{date.split('-')[1]}</p>
-                                        </div>
+                                    <th key={date} className="px-4 py-6 min-w-[100px] text-center border-r border-white/5">
+                                        <p className="text-[10px] font-black uppercase text-primary mb-1 tracking-widest">
+                                            {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                        </p>
+                                        <p className="text-sm font-black text-slate-100 leading-none">{date.split('-')[2]}/{date.split('-')[1]}</p>
                                     </th>
                                 ))}
-                                <th colSpan={3} className="px-2 py-4 min-w-[120px] border-r border-white/5">
-                                    <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Total</span>
-                                </th>
-                                <th className="p-4 text-center min-w-[80px]">
-                                    <span className="material-symbols-outlined text-primary text-2xl">timer</span>
-                                </th>
+                                <th colSpan={3} className="px-4 py-6 min-w-[140px] text-center border-r border-white/5 text-xs font-black uppercase tracking-widest text-primary">Shift</th>
+                                <th className="p-6 text-center min-w-[100px]"><span className="material-symbols-outlined text-primary">timer</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             {gridData.map((row, rIdx) => (
-                                <tr key={row.id} className={`group/row border-b border-white/5 transition-all duration-500 ${row.id === currentUser?.id ? 'bg-primary/[0.03] ring-1 ring-inset ring-primary/20 relative z-10' : 'hover:bg-white/[0.02]'}`}>
+                                <tr key={row.id} className={`border-b border-white/5 transition-all ${row.id === currentUser?.id ? 'bg-primary/5' : ''}`}>
                                     <td className="p-4 border-r border-white/5">
-                                        <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <p className={`text-sm font-black uppercase tracking-wider transition-colors truncate ${row.id === currentUser?.id ? 'text-primary' : 'text-[var(--text-main)]'}`}>
-                                                        {row.name}
-                                                    </p>
-                                                    {row.id === currentUser?.id && (
-                                                        <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest">SAYA</span>
-                                                    )}
+                                                    <p className={`text-sm font-black uppercase truncate ${row.id === currentUser?.id ? 'text-primary' : 'text-slate-100'}`}>{row.name}</p>
+                                                    {row.id === currentUser?.id && <span className="text-[8px] font-black bg-primary text-slate-950 px-1.5 py-0.5 rounded uppercase">SAYA</span>}
                                                 </div>
-                                                <p className="text-sm font-bold text-[var(--text-muted)] truncate opacity-60">ID: {row.id.slice(0, 5)}</p>
+                                                <p className="text-[10px] font-bold text-slate-500">ID: {row.id.slice(0, 8)}</p>
                                             </div>
                                             {isAdmin && (
-                                                <button onClick={() => removeEmployee(row.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-xl">close</span>
-                                                </button>
+                                                <button onClick={() => removeEmployee(row.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><span className="material-symbols-outlined text-xl">close</span></button>
                                             )}
                                         </div>
                                     </td>
                                     {dates.map((date, cIdx) => (
-                                        <td 
-                                            key={`${row.id}-${date}`}
-                                            className={`p-1 border-r border-white/5 relative transition-all duration-300 ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/20' : ''}`}
-                                            onMouseDown={() => handleMouseDown(rIdx, cIdx)}
-                                            onMouseEnter={() => handleMouseEnter(rIdx, cIdx)}
-                                            onMouseUp={handleMouseUp}
-                                        >
-                                            <div className={`h-11 w-full rounded-xl flex items-center justify-center text-sm font-black transition-all border ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color || ''}`}>
+                                        <td key={`${row.id}-${date}`} className={`p-1 border-r border-white/5 relative ${isAdmin ? 'cursor-pointer' : 'cursor-default'} ${isSelected(rIdx, cIdx) ? 'bg-primary/10' : ''}`} onMouseDown={() => handleMouseDown(rIdx, cIdx)} onMouseEnter={() => handleMouseEnter(rIdx, cIdx)} onMouseUp={handleMouseUp}>
+                                            <div className={`h-12 w-full rounded-2xl flex items-center justify-center text-sm font-black border transition-all ${SHIFT_TYPES.find(t => t.code === (row.shifts[date] || 'OFF'))?.color}`}>
                                                 {row.shifts[date] || 'OFF'}
                                             </div>
                                         </td>
                                     ))}
-                                    <td className="p-2 border-r border-white/5 text-center font-black text-blue-400 text-sm">{calculations[rIdx]?.P || 0}</td>
-                                    <td className="p-2 border-r border-white/5 text-center font-black text-yellow-400 text-sm">{calculations[rIdx]?.S || 0}</td>
-                                    <td className="p-2 border-r border-white/5 text-center font-black text-slate-400 text-sm">{calculations[rIdx]?.M || 0}</td>
-                                    <td className="p-2 text-center">
-                                        <div className="bg-primary/10 text-primary py-1.5 px-2 rounded-lg font-black text-sm shadow-sm">
-                                            {calculations[rIdx]?.totalHours || 0}H
-                                        </div>
+                                    <td className="text-center font-black text-blue-400 text-xs border-r border-white/5">{calculations[rIdx].P}</td>
+                                    <td className="text-center font-black text-yellow-400 text-xs border-r border-white/5">{calculations[rIdx].S}</td>
+                                    <td className="text-center font-black text-slate-400 text-xs border-r border-white/5">{calculations[rIdx].M}</td>
+                                    <td className="text-center">
+                                        <div className="bg-primary/10 text-primary py-1 px-2 rounded-xl font-black text-xs inline-block">{calculations[rIdx].totalHours}H</div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
                             <tr className="bg-slate-900/50 backdrop-blur-xl border-t border-white/5">
-                                <td className="p-6 border-r border-white/5">
-                                    <span className="text-sm font-black uppercase tracking-widest text-[#94a3b8]">Rekap Karyawan</span>
-                                </td>
+                                <td className="p-6 border-r border-white/5 font-black uppercase tracking-widest text-[10px] text-slate-500 text-center">Rekap Harian</td>
                                 {dailyRecap.map((day, i) => (
-                                    <td key={`recap-${i}`} className="p-4 border-r border-white/5">
-                                        <div className="flex flex-col gap-1 items-center min-w-[60px]">
-                                            <span className="text-blue-400 text-sm font-black">P: {day.P}</span>
-                                            <span className="text-yellow-400 text-sm font-black">S: {day.S}</span>
-                                            <span className="text-slate-400 text-sm font-black">M: {day.M}</span>
+                                    <td key={i} className="p-4 border-r border-white/5">
+                                        <div className="flex flex-col gap-0.5 items-center">
+                                            <span className="text-[10px] font-black text-blue-400">P: {day.P}</span>
+                                            <span className="text-[10px] font-black text-yellow-400">S: {day.S}</span>
+                                            <span className="text-[10px] font-black text-slate-400">M: {day.M}</span>
                                         </div>
                                     </td>
                                 ))}
@@ -535,18 +539,11 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     </table>
                 </div>
 
-                {/* Selection Menu (Popover) */}
+                {/* Popover Menu */}
                 {isAdmin && isMenuOpen && (
-                    <div 
-                        className="fixed z-50 flex gap-3 p-3 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
-                        style={{ top: isMenuOpen.y - 80, left: isMenuOpen.x - 100 }}
-                    >
-                        {SHIFT_TYPES.filter(t => t.code === 'OFF' || (shiftSettings[t.code as keyof ShiftSettings] && shiftSettings[t.code as keyof ShiftSettings].active)).map(type => (
-                            <button 
-                                key={type.code}
-                                onClick={() => applyShift(type.code)}
-                                className={`size-14 rounded-xl flex items-center justify-center font-black text-sm transition-all hover:scale-110 active:scale-90 ${type.activeColor}`}
-                            >
+                    <div className="fixed z-50 flex gap-4 p-4 glass border border-white/10 rounded-[2rem] shadow-2xl animate-in zoom-in duration-200" style={{ top: isMenuOpen.y - 100, left: isMenuOpen.x - 120 }}>
+                        {SHIFT_TYPES.filter(t => t.code === 'OFF' || shiftSettings[t.code as keyof ShiftSettings].active).map(type => (
+                            <button key={type.code} onClick={() => applyShift(type.code)} className={`size-16 rounded-2xl flex items-center justify-center text-lg font-black transition-all hover:scale-110 active:scale-90 ${type.activeColor}`}>
                                 {type.code}
                             </button>
                         ))}
@@ -554,21 +551,15 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 )}
             </div>
 
+            {/* Floating Save Button */}
             {isAdmin && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-slate-900/95 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom-8 duration-700 w-[calc(100%-3rem)] max-w-lg">
-                    <button 
-                        onClick={handleSave} 
-                        className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg bg-primary text-slate-950 shadow-primary/20"
-                    >
-                        <span className="material-symbols-outlined text-2xl">save</span>
-                        Simpan Jadwal
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-6">
+                    <button onClick={handleSave} className="w-full bg-primary text-slate-950 h-16 rounded-[2rem] font-black uppercase tracking-[0.3em] text-sm shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 hover:scale-105 active:scale-95 transition-all">
+                        <span className="material-symbols-outlined text-3xl">cloud_sync</span>
+                        Simpan State HRIS
                     </button>
                 </div>
             )}
-            
-            {/* Added padding at bottom to avoid overlap with floating bar */}
-            {isAdmin && <div className="h-32" />}
         </div>
     );
 }
-

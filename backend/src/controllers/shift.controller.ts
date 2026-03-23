@@ -220,6 +220,15 @@ export class ShiftController {
         }
     }
 
+    static async getSettings(req: Request, res: Response) {
+        try {
+            const settings = await ShiftService.getShiftSettings();
+            res.json(settings);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     static async batchSave(req: Request, res: Response) {
         try {
             const currentUserId = (req as any).user?.id;
@@ -227,12 +236,12 @@ export class ShiftController {
                 return res.status(401).json({ error: 'Unauthorized' });
             }
 
-            const { shifts: shiftsData, startDate, endDate, userIdsToSync } = req.body;
+            const { shifts: shiftsData, startDate, endDate, userIdsToSync, settings } = req.body;
             if (!Array.isArray(shiftsData)) {
                 return res.status(400).json({ error: 'Request body must contain shifts array.' });
             }
 
-            const result = await ShiftService.batchSave(shiftsData, currentUserId, { startDate, endDate, userIdsToSync });
+            const result = await ShiftService.batchSave(shiftsData, currentUserId, { startDate, endDate, userIdsToSync, settings });
             res.status(200).json(result);
         } catch (error: any) {
             res.status(400).json({ error: error.message });
