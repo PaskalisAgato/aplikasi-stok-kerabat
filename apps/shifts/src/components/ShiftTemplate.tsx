@@ -303,11 +303,20 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {(['P', 'S', 'M'] as const).map(type => (
                     <div key={type} className="glass p-6 rounded-[2rem] border-white/5 space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
-                                {type}
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
+                                    {type}
+                                </div>
+                                <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
                             </div>
-                            <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
+                            <button 
+                                onClick={() => setShiftSettings({...shiftSettings, [type]: { start: '', end: '' }})}
+                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                title="Hapus jam kerja"
+                            >
+                                <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                            </button>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <input 
