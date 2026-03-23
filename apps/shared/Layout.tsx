@@ -3,6 +3,7 @@ import NavDrawer from './NavDrawer';
 import ThemeToggle from './ThemeToggle';
 import { useSession } from './authClient';
 import AuthPage from './AuthPage';
+import { Toaster } from 'react-hot-toast';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -155,6 +156,7 @@ const Layout: React.FC<LayoutProps> = ({
 
     return (
         <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
+            <Toaster position="top-right" reverseOrder={false} />
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
             
             <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative`} style={{ maxWidth }}>

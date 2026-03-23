@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { apiClient, apiFetch } from '@shared/apiClient';
-import { useShifts } from '@shared/hooks/useShifts';
 import { useEmployees } from '@shared/hooks/useEmployees';
 import { useSession } from '@shared/authClient';
 import { toast } from 'react-hot-toast';
