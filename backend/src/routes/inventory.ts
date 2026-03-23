@@ -451,4 +451,42 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
         res.status(500).json({ error: (error as Error).message || 'Failed to record stock movement' });
     }
 });
+// DELETE inventory item
+inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const inventoryId = parseInt(req.params.id as string);
+        const user = (req as any).user;
+
+        const item = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+        if (item.length === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        await db.transaction(async (tx: any) => {
+            // Delete related stock movements
+            await tx.delete(schema.stockMovements).where(eq(schema.stockMovements.inventoryId, inventoryId));
+            
+            // Delete related recipe ingredients (if any)
+            await tx.delete(schema.recipeIngredients).where(eq(schema.recipeIngredients.inventoryId, inventoryId));
+
+            // Delete the item
+            await tx.delete(schema.inventory).where(eq(schema.inventory.id, inventoryId));
+
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `DELETE_INVENTORY: ${item[0].name}`,
+                tableName: 'inventory',
+                oldData: JSON.stringify(item[0]),
+                createdAt: new Date()
+            });
+        });
+
+        res.json({ success: true, message: 'Item deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting inventory item:', error);
+        res.status(500).json({ error: 'Failed to delete inventory item' });
+    }
+});
+
 

@@ -223,13 +223,13 @@ function App() {
                     <div className="space-y-1">
                         <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
                         <p className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter">
-                            {item.currentStock}
+                            {Number(item.currentStock)}
                             <span className="text-xs font-black text-[var(--text-muted)] ml-2 uppercase opacity-60 font-sans tracking-widest">{item.unit}</span>
                         </p>
                     </div>
                     <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5">
                         <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Ideal Prod</p>
-                        <p className="text-sm font-black text-[var(--text-main)] opacity-80">{item.systemStock} {item.unit}</p>
+                        <p className="text-sm font-black text-[var(--text-main)] opacity-80">{Number(item.systemStock || 0)} {item.unit}</p>
                     </div>
                 </div>
 
@@ -245,7 +245,7 @@ function App() {
                 
                 {/* Bottom Info */}
                 <div className="mt-4 flex items-center justify-between relative z-10 opacity-60">
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ambang Batas: {item.minStock} {item.unit}</p>
+                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ambang Batas: {Number(item.minStock)} {item.unit}</p>
                     <span className="material-symbols-outlined text-sm font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </div>
             </div>

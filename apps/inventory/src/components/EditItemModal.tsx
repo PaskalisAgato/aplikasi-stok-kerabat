@@ -15,6 +15,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [minStock, setMinStock] = useState('');
     const [imageBase64, setImageBase64] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isConfirmDelete, setIsConfirmDelete] = useState(false);
 
     // Image Picker State
     const [imageMenuOpen, setImageMenuOpen] = useState(false);
@@ -51,6 +53,23 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 e.target.value = ''; // Reset
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!isConfirmDelete) return;
+        
+        setIsDeleting(true);
+        try {
+            await apiClient.deleteInventoryItem(item.id);
+            alert('Bahan baku berhasil dihapus!');
+            if (onUpdated) onUpdated();
+            onClose();
+        } catch (err) {
+            console.error('Failed to delete item', err);
+            alert('Gagal menghapus bahan baku. Cek koneksi Anda.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -177,6 +196,50 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="mt-8 bg-red-50/50 rounded-2xl border border-red-200 p-6 space-y-4 mb-20">
+                        <div className="flex items-center gap-3 text-red-600">
+                            <span className="material-symbols-outlined font-bold">warning</span>
+                            <h3 className="font-bold uppercase tracking-wider text-xs">Zona Bahaya</h3>
+                        </div>
+                        <p className="text-[11px] text-red-800 font-medium leading-relaxed">
+                            Menghapus bahan baku akan menghilangkan semua riwayat stok terkait. Tindakan ini tidak dapat dibatalkan.
+                        </p>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className="relative flex items-center">
+                                <input 
+                                    type="checkbox" 
+                                    checked={isConfirmDelete}
+                                    onChange={(e) => setIsConfirmDelete(e.target.checked)}
+                                    className="peer appearance-none size-5 rounded-md border-2 border-red-200 checked:bg-red-500 checked:border-red-500 transition-all cursor-pointer"
+                                />
+                                <span className="material-symbols-outlined absolute text-white text-sm opacity-0 peer-checked:opacity-100 pointer-events-none left-1/2 -translate-x-1/2 font-bold">check</span>
+                            </div>
+                            <span className="text-[11px] font-bold text-red-700 select-none group-hover:text-red-500 transition-colors">Saya yakin ingin menghapus bahan ini</span>
+                        </label>
+                        <button 
+                            onClick={handleDelete}
+                            disabled={!isConfirmDelete || isDeleting}
+                            className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                                isConfirmDelete && !isDeleting
+                                    ? 'bg-red-600 text-white shadow-lg shadow-red-200 active:scale-[0.98]' 
+                                    : 'bg-red-100 text-red-300 cursor-not-allowed'
+                            }`}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <span className="material-symbols-outlined animate-spin text-sm">refresh</span>
+                                    <span>Menghapus...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="material-symbols-outlined text-sm">delete_forever</span>
+                                    <span>Hapus Bahan Baku</span>
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
 

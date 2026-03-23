@@ -141,6 +141,7 @@ export const apiClient = {
     getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
     getStockInHistory: () => apiFetch<any[]>('/inventory/movements/in'),
     getItemWaste: (id: number) => apiFetch<any[]>(`/inventory/${id}/waste`),
+    deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
 
     // ---- PRODUCTS (Mappings to old names for frontend compatibility) ----
     getRecipes: () => apiFetch<any[]>('/products'),
