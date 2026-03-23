@@ -12,6 +12,7 @@ export class ShiftService {
             date: schema.workShifts.date,
             startTime: schema.workShifts.startTime,
             endTime: schema.workShifts.endTime,
+            note: schema.workShifts.note,
         })
         .from(schema.workShifts)
         .innerJoin(schema.users, eq(schema.workShifts.userId, schema.users.id))
@@ -139,6 +140,7 @@ export class ShiftService {
                     date: new Date(s.date),
                     startTime: s.startTime,
                     endTime: s.endTime,
+                    note: s.note,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }))

@@ -12,6 +12,7 @@ export const users = pgTable('user', {
     image: text('image'),
     role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
     pin: text('pin'), // 4-6 digit numeric PIN
+    status: text('status').default('active').notNull(),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 });
@@ -192,6 +193,7 @@ export const workShifts = pgTable('work_shifts', {
     date: timestamp('date').notNull(),
     startTime: text('start_time').notNull(), // e.g. "08:00"
     endTime: text('end_time').notNull(), // e.g. "17:00"
+    note: text('note'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 }, (t: any) => ({

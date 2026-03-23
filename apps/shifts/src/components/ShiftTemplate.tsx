@@ -97,9 +97,22 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                     if (s.userId === emp.id) {
                         const d = new Date(s.date).toISOString().split('T')[0];
                         let code = 'OFF';
-                        if (s.startTime === shiftSettings.P.start) code = 'P';
-                        else if (s.startTime === shiftSettings.S.start) code = 'S';
-                        else if (s.startTime === shiftSettings.M.start) code = 'M';
+                        
+                        // Priority 1: Use the 'note' field if it contains the shift code (e.g. "Shift P")
+                        if (s.note && s.note.startsWith('Shift ')) {
+                            const extracted = s.note.replace('Shift ', '');
+                            if (['P', 'S', 'M', 'OFF'].includes(extracted)) {
+                                code = extracted;
+                            }
+                        } 
+                        
+                        // Priority 2: Fallback to time-based matching (matching current settings)
+                        if (code === 'OFF') {
+                            if (s.startTime === shiftSettings.P.start) code = 'P';
+                            else if (s.startTime === shiftSettings.S.start) code = 'S';
+                            else if (s.startTime === shiftSettings.M.start) code = 'M';
+                        }
+                        
                         acc[d] = code;
                     }
                     return acc;

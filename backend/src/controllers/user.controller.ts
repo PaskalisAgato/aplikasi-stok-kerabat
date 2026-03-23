@@ -51,7 +51,10 @@ export class UserController {
 
     static async getAll(req: Request, res: Response) {
         try {
-            const users = await UserService.getAllUsers();
+            const user = (req as any).user;
+            const users = user.role === 'Admin' 
+                ? await UserService.getAllUsers() 
+                : await UserService.getAllUsersPublic();
             res.json(users);
         } catch (error) {
             console.error('Error in UserController.getAll:', error);

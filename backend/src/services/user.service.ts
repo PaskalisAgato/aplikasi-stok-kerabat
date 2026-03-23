@@ -22,6 +22,17 @@ export class UserService {
         return await db.select().from(users).orderBy(desc(users.createdAt));
     }
 
+    static async getAllUsersPublic() {
+        return await db.select({
+            id: users.id,
+            name: users.name,
+            role: users.role,
+            email: users.email,
+            status: users.status,
+            createdAt: users.createdAt
+        }).from(users).orderBy(desc(users.createdAt));
+    }
+
     static async createUser(data: any, currentUserId: string) {
         const { name, email, role, pin } = data;
         
