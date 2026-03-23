@@ -22,6 +22,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Manajemen Shift', icon: 'date_range', port: 5188, requiredRole: 'Karyawan' },
     { label: 'Absen Karyawan', icon: 'person_check', port: 5189, requiredRole: 'Karyawan' },
     { label: 'Riwayat Absen', icon: 'assignment_turned_in', port: 5190, requiredRole: 'Admin' },
+    { label: 'Daftar Tugas', icon: 'checklist', port: 5191, requiredRole: 'Karyawan' },
 ];
 
 
@@ -44,6 +45,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5188: 'shifts',
     5189: 'attendance',
     5190: 'attendance-history',
+    5191: 'todo-list',
 };
 
 export const getBaseUrl = () => {

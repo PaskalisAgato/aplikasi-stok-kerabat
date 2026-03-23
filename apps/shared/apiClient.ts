@@ -186,9 +186,17 @@ export const apiClient = {
         const query = new URLSearchParams(params).toString();
         return apiFetch<any[]>(`/attendance/history?${query}`);
     },
-    deleteAttendance: (id: string | number) => apiFetch<any>(`/attendance/${id}`, { method: 'DELETE' }),
     deleteAttendanceByRange: (startDate: string, endDate: string) => apiFetch<any>('/attendance/bulk-delete', { method: 'DELETE', body: JSON.stringify({ startDate, endDate }) }),
     getAttendancePhoto: (filename: string) => apiFetch<Blob>(`/attendance/view-once/${filename}`, { method: 'GET' }, true),
+
+    // ---- TODO LIST ----
+    getTodos: () => apiFetch<any[]>('/todo'),
+    createTodo: (data: unknown) => apiFetch<any>('/todo', { method: 'POST', body: JSON.stringify(data) }),
+    updateTodo: (id: number, data: unknown) => apiFetch<any>(`/todo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteTodo: (id: number) => apiFetch<any>(`/todo/${id}`, { method: 'DELETE' }),
+    completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
+    getTodoHistory: () => apiFetch<any[]>('/todo/history'),
+    clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
 };
 
 

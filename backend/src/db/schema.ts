@@ -258,3 +258,20 @@ export const payroll = pgTable('payroll', {
     status: text('status').default('draft').notNull(), // 'draft', 'paid'
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+// -----------------------------------------------------------------------------
+// 8. TO-DO LIST SYSTEM
+// -----------------------------------------------------------------------------
+export const todos = pgTable('todos', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    description: text('description'),
+    category: text('category').notNull(), // 'Opening', 'Closing', 'Request'
+    assignedTo: text('assigned_to').references(() => users.id), // Optional: individual assignment
+    status: text('status').default('Pending').notNull(), // 'Pending', 'Completed'
+    photoProof: text('photo_proof'), // Base64 or URL
+    completionTime: timestamp('completion_time'),
+    completedBy: text('completed_by').references(() => users.id),
+    createdBy: text('created_by').notNull().references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
