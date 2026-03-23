@@ -221,7 +221,9 @@ export const attendance = pgTable('attendance', {
     checkInTimestamp: text('check_in_timestamp'), // Watermark text
     checkOutTimestamp: text('check_out_timestamp'), // Watermark text
     status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Alpha', 'Izin'
-    location: text('location'), // Optional GPS
+    location: text('location'), // Alamat (Address)
+    latitude: decimal('latitude', { precision: 10, scale: 7 }),
+    longitude: decimal('longitude', { precision: 10, scale: 7 }),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     userIdx: index('attendance_user_idx').on(t.userId),

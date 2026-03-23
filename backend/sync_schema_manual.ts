@@ -9,6 +9,8 @@ async function syncSchema() {
         await db.execute(sql`ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "check_in_timestamp" text;`);
         await db.execute(sql`ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "check_out_timestamp" text;`);
         await db.execute(sql`ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "location" text;`);
+        await db.execute(sql`ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "latitude" numeric(10, 7);`);
+        await db.execute(sql`ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "longitude" numeric(10, 7);`);
         console.log("[Attendance] Columns added (if not exists).");
 
         // 2. Create shift_settings

@@ -22,6 +22,8 @@ function AttendanceHistoryPage() {
     const [isFetchingPhoto, setIsFetchingPhoto] = useState(false);
 
     const handleViewPhoto = async (photoPath: string, label: string) => {
+        if (!window.confirm('Foto ini hanya bisa dilihat satu kali saja. Jika Anda berlanjut, foto akan terhapus otomatis setelah modal ditutup. Lanjutkan?')) return;
+
         const filename = photoPath.split('/').pop();
         if (!filename) return;
 

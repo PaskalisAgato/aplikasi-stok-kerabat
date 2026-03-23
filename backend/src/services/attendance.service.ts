@@ -23,7 +23,7 @@ export class AttendanceService {
         return record || null;
     }
 
-    static async checkIn(userId: string, photoPath?: string) {
+    static async checkIn(userId: string, photoPath?: string, locationData?: { latitude?: number; longitude?: number; location?: string }) {
         const today = new Date();
         const dayStart = new Date(today);
         dayStart.setHours(0, 0, 0, 0);
@@ -57,10 +57,21 @@ export class AttendanceService {
             }
         }
 
+        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
         // 3. Insert or Update
         if (existing) {
             return await db.update(schema.attendance)
-                .set({ checkIn: today, status, checkInPhoto: photoPath, createdAt: new Date() })
+                .set({ 
+                    checkIn: today, 
+                    status, 
+                    checkInPhoto: photoPath, 
+                    checkInTimestamp: timestampStr,
+                    location: locationData?.location,
+                    latitude: locationData?.latitude?.toString(),
+                    longitude: locationData?.longitude?.toString(),
+                    createdAt: new Date() 
+                })
                 .where(eq(schema.attendance.id, existing.id))
                 .returning();
         } else {
@@ -69,13 +80,17 @@ export class AttendanceService {
                 date: dayStart,
                 checkIn: today,
                 checkInPhoto: photoPath,
+                checkInTimestamp: timestampStr,
+                location: locationData?.location,
+                latitude: locationData?.latitude?.toString(),
+                longitude: locationData?.longitude?.toString(),
                 status,
                 createdAt: new Date()
             }).returning();
         }
     }
 
-    static async checkOut(userId: string, photoPath?: string) {
+    static async checkOut(userId: string, photoPath?: string, locationData?: { latitude?: number; longitude?: number; location?: string }) {
         const existing = await this.getTodayAttendance(userId);
         if (!existing) {
             throw new Error('Anda belum melakukan Check-In hari ini.');
@@ -84,8 +99,18 @@ export class AttendanceService {
             throw new Error('Anda sudah melakukan Check-Out hari ini.');
         }
 
+        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
         return await db.update(schema.attendance)
-            .set({ checkOut: new Date(), checkOutPhoto: photoPath })
+            .set({ 
+                checkOut: new Date(), 
+                checkOutPhoto: photoPath,
+                checkOutTimestamp: timestampStr,
+                // Update location if provided during logout, or keep existing from login
+                location: locationData?.location || existing.location,
+                latitude: locationData?.latitude?.toString() || existing.latitude,
+                longitude: locationData?.longitude?.toString() || existing.longitude,
+            })
             .where(eq(schema.attendance.id, existing.id))
             .returning();
     }
@@ -151,5 +176,20 @@ export class AttendanceService {
         return await db.delete(schema.attendance)
             .where(eq(schema.attendance.id, numericId))
             .returning();
+    }
+
+    static async clearPhotoUrl(filename: string) {
+        // Find record by photo path
+        const photoPath = `attendance/${filename}`;
+        
+        // Try checkInPhoto first
+        await db.update(schema.attendance)
+            .set({ checkInPhoto: null })
+            .where(eq(schema.attendance.checkInPhoto, photoPath));
+
+        // Then checkOutPhoto
+        await db.update(schema.attendance)
+            .set({ checkOutPhoto: null })
+            .where(eq(schema.attendance.checkOutPhoto, photoPath));
     }
 }

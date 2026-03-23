@@ -21,8 +21,14 @@ export class AttendanceController {
             const userId = (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
+            const { latitude, longitude, location } = req.body;
             const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
-            const record = await AttendanceService.checkIn(userId, photoPath);
+            
+            const record = await AttendanceService.checkIn(userId, photoPath, {
+                latitude: latitude ? parseFloat(latitude) : undefined,
+                longitude: longitude ? parseFloat(longitude) : undefined,
+                location
+            });
             res.json(record);
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -34,8 +40,14 @@ export class AttendanceController {
             const userId = (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
+            const { latitude, longitude, location } = req.body;
             const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
-            const record = await AttendanceService.checkOut(userId, photoPath);
+            
+            const record = await AttendanceService.checkOut(userId, photoPath, {
+                latitude: latitude ? parseFloat(latitude) : undefined,
+                longitude: longitude ? parseFloat(longitude) : undefined,
+                location
+            });
             res.json(record);
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -67,16 +79,21 @@ export class AttendanceController {
             }
 
             // Stream and then delete
-            res.sendFile(filePath, (err) => {
+            res.sendFile(filePath, async (err) => {
                 if (err) {
                     console.error('File stream error:', err);
                 } else {
                     // Success, now delete
                     try {
+                        // 1. Delete file
                         fs.unlinkSync(filePath);
-                        console.log(`[ViewOnce] Deleted: ${filename}`);
+                        console.log(`[ViewOnce] Deleted file: ${filename}`);
+                        
+                        // 2. Clear URL in DB
+                        await AttendanceService.clearPhotoUrl(filename);
+                        console.log(`[ViewOnce] Cleared DB URL: ${filename}`);
                     } catch (unlinkErr) {
-                        console.error('Failed to unlink file:', unlinkErr);
+                        console.error('Failed to cleanup after view:', unlinkErr);
                     }
                 }
             });

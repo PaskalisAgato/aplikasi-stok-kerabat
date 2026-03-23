@@ -17,9 +17,12 @@ export function useAttendance(filters: any = {}) {
     });
 
     const checkInMutation = useMutation({
-        mutationFn: (photo?: File | Blob) => {
+        mutationFn: (data: { photo?: File | Blob; latitude?: number; longitude?: number; location?: string }) => {
             const formData = new FormData();
-            if (photo) formData.append('photo', photo);
+            if (data.photo) formData.append('photo', data.photo);
+            if (data.latitude) formData.append('latitude', data.latitude.toString());
+            if (data.longitude) formData.append('longitude', data.longitude.toString());
+            if (data.location) formData.append('location', data.location);
             return apiClient.checkIn(formData);
         },
         onSuccess: () => {
@@ -28,9 +31,12 @@ export function useAttendance(filters: any = {}) {
     });
 
     const checkOutMutation = useMutation({
-        mutationFn: (photo?: File | Blob) => {
+        mutationFn: (data: { photo?: File | Blob; latitude?: number; longitude?: number; location?: string }) => {
             const formData = new FormData();
-            if (photo) formData.append('photo', photo);
+            if (data.photo) formData.append('photo', data.photo);
+            if (data.latitude) formData.append('latitude', data.latitude.toString());
+            if (data.longitude) formData.append('longitude', data.longitude.toString());
+            if (data.location) formData.append('location', data.location);
             return apiClient.checkOut(formData);
         },
         onSuccess: () => {
