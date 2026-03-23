@@ -32,8 +32,9 @@ interface ShiftTemplateProps {
 }
 
 export default function ShiftTemplate({ employees: initialEmployees, allShifts: initialShifts, isLoading }: ShiftTemplateProps) {
-    const { data: session } = useSession();
+    const { data: session, isPending: isSessionLoading } = useSession();
     const isAdmin = session?.user?.role === 'ADMIN';
+    const currentUser = session?.user;
 
     const { createShift, updateShift, deleteShift } = useShifts();
     const { data: allEmployees } = useEmployees();
@@ -322,8 +323,47 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         return r >= startRow && r <= endRow && c >= startCol && c <= endCol;
     };
 
+    if (isSessionLoading || isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                <p className="text-sm font-black text-primary uppercase tracking-widest animate-pulse">Menyiapkan Jadwal...</p>
+            </div>
+        );
+    }
+
+    const myRowIdx = gridData.findIndex(g => g.id === currentUser?.id);
+    const myShifts = myRowIdx !== -1 ? gridData[myRowIdx].shifts : null;
+
     return (
         <div className="space-y-8 animate-in fade-in duration-1000">
+            {/* My Schedule Card (Karyawan Only) */}
+            {!isAdmin && myShifts && (
+                <div className="glass p-6 rounded-[2rem] border-primary/20 bg-primary/5 animate-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="size-12 rounded-2xl bg-primary flex items-center justify-center text-slate-950">
+                            <span className="material-symbols-outlined text-2xl">calendar_month</span>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black uppercase tracking-widest text-primary">Jadwal Saya</h3>
+                            <p className="text-xs font-bold text-[var(--text-muted)]">Minggu ini • {startDate} - {endDate}</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                        {dates.map(date => (
+                            <div key={date} className={`min-w-[100px] p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary/20 border-primary/40 scale-105 shadow-lg shadow-primary/10' : 'bg-white/5 border-white/5 opacity-60'}`}>
+                                <p className="text-sm font-black uppercase text-primary leading-tight">
+                                    {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                </p>
+                                <div className={`size-12 rounded-xl flex items-center justify-center text-sm font-black border-2 ${SHIFT_TYPES.find(t => t.code === (myShifts[date] || 'OFF'))?.color}`}>
+                                    {myShifts[date] || 'OFF'}
+                                </div>
+                                <p className="text-sm font-bold text-[var(--text-muted)]">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             {/* Validation Warnings */}
             {isAdmin && validationErrors.length > 0 && (
                 <div className="glass p-6 rounded-[2rem] border-red-500/20 bg-red-500/5 animate-in slide-in-from-top-4 duration-700">
@@ -502,11 +542,18 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         </thead>
                         <tbody>
                             {gridData.map((row, rIdx) => (
-                                <tr key={row.id} className="group/row hover:bg-white/[0.02] border-b border-white/5 transition-colors">
+                                <tr key={row.id} className={`group/row border-b border-white/5 transition-all duration-500 ${row.id === currentUser?.id ? 'bg-primary/[0.03] ring-1 ring-inset ring-primary/20 relative z-10' : 'hover:bg-white/[0.02]'}`}>
                                     <td className="p-4 border-r border-white/5">
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="text-sm font-black uppercase tracking-wider text-[var(--text-main)] transition-colors truncate">{row.name}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className={`text-sm font-black uppercase tracking-wider transition-colors truncate ${row.id === currentUser?.id ? 'text-primary' : 'text-[var(--text-main)]'}`}>
+                                                        {row.name}
+                                                    </p>
+                                                    {row.id === currentUser?.id && (
+                                                        <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest">SAYA</span>
+                                                    )}
+                                                </div>
                                                 <p className="text-sm font-bold text-[var(--text-muted)] truncate opacity-60">ID: {row.id.slice(0, 5)}</p>
                                             </div>
                                             {isAdmin && (
