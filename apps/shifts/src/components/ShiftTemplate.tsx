@@ -33,7 +33,7 @@ interface ShiftTemplateProps {
 
 export default function ShiftTemplate({ employees: initialEmployees, allShifts: initialShifts, isLoading }: ShiftTemplateProps) {
     const { data: session, isPending: isSessionLoading } = useSession();
-    const isAdmin = session?.user?.role === 'ADMIN';
+    const isAdmin = session?.user?.role?.toUpperCase() === 'ADMIN';
     const currentUser = session?.user;
 
     const { createShift, updateShift, deleteShift } = useShifts();
