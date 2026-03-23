@@ -1,4 +1,4 @@
-import React from 'react';
+// No React import needed
 
 interface DeleteConfirmationModalProps {
     isOpen: boolean;
