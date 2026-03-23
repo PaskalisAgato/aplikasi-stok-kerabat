@@ -258,11 +258,13 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                             <div key={item.id} className="flex flex-col gap-4 bg-surface p-4 rounded-xl border border-border-dim shadow-sm relative">
                                 <button 
                                     onClick={() => handleRemoveItem(item.id)}
-                                    className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                                    className="absolute top-3 right-3 size-7 bg-red-100/80 text-red-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white active:scale-90 transition-all z-10"
+                                    title="Hapus dari daftar"
                                 >
-                                    <span className="material-symbols-outlined text-xs">close</span>
+                                    <span className="material-symbols-outlined text-sm font-bold">close</span>
                                 </button>
-                                <div className="flex gap-4 justify-between">
+                                <div className="flex flex-col gap-5">
+                                    <div className="flex justify-between items-start gap-4">
                                     <div className="flex items-start gap-4">
                                         <div
                                             className="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-[64px] border border-border-dim"
@@ -273,50 +275,56 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                             <p className="text-muted text-xs font-normal">Satuan: {item.unit} • Stok: {item.stock} {item.unit}</p>
                                         </div>
                                     </div>
-                                    <div className="shrink-0">
-                                        <div className="flex items-center gap-3 text-main bg-background-app p-1 rounded-full border border-border-dim">
+                                    <div className="shrink-0 pt-1">
+                                        <div className="flex items-center gap-1 text-main bg-background-app p-1 rounded-full border border-border-dim shadow-inner">
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, -1)}
-                                                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-primary shadow-sm active:scale-95 transition-transform"
+                                                className="flex h-9 w-9 items-center justify-center rounded-full bg-surface text-primary shadow-sm hover:bg-primary/5 active:scale-90 transition-all"
                                             >
-                                                <span className="material-symbols-outlined text-sm font-bold">remove</span>
+                                                <span className="material-symbols-outlined text-base font-black">remove</span>
                                             </button>
                                             <input
                                                 type="number"
                                                 value={item.quantity || ''}
                                                 onChange={(e) => handleQuantityInput(item.id, e.target.value)}
-                                                className="text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-base text-main min-w-[32px] max-w-[100px]"
-                                                style={{ width: `${Math.max(2, String(item.quantity || '').length)}ch` }}
+                                                className="text-center bg-transparent border-none focus:ring-0 p-0 font-black text-lg text-main w-12"
                                                 min="0"
                                             />
                                             <button
                                                 onClick={() => handleQuantityChange(item.id, 1)}
-                                                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-sm active:scale-95 transition-transform"
+                                                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-md shadow-primary/20 hover:brightness-110 active:scale-90 transition-all"
                                             >
-                                                <span className="material-symbols-outlined text-sm font-bold">add</span>
+                                                <span className="material-symbols-outlined text-base font-black">add</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border-dim">
-                                    <div className="flex flex-col flex-1">
-                                        <p className="text-muted text-xs font-medium pb-1 ml-1 uppercase">Harga Beli (Rp)</p>
-                                        <input
-                                            type="number"
-                                            value={item.price}
-                                            onChange={(e) => handleInputChange(item.id, 'price', e.target.value)}
-                                            className="w-full rounded-lg text-main focus:ring-2 focus:ring-primary/50 border border-border-dim bg-transparent h-11 px-3 text-sm"
-                                        />
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-dim/50">
+                                    <div className="flex flex-col">
+                                        <label className="text-muted text-[10px] font-black uppercase tracking-widest pb-1.5 ml-1">Harga Beli (Rp)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={item.price}
+                                                onChange={(e) => handleInputChange(item.id, 'price', e.target.value)}
+                                                placeholder="0"
+                                                className="w-full rounded-xl text-main font-bold focus:ring-4 focus:ring-primary/10 border border-border-dim bg-background-app/50 h-12 px-4 text-sm transition-all"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col flex-1">
-                                        <p className="text-muted text-xs font-medium pb-1 ml-1 uppercase">Diskon (%)</p>
-                                        <input
-                                            type="number"
-                                            value={item.discount}
-                                            onChange={(e) => handleInputChange(item.id, 'discount', e.target.value)}
-                                            className="w-full rounded-lg text-main focus:ring-2 focus:ring-primary/50 border border-border-dim bg-transparent h-11 px-3 text-sm"
-                                        />
+                                    <div className="flex flex-col">
+                                        <label className="text-muted text-[10px] font-black uppercase tracking-widest pb-1.5 ml-1">Diskon (%)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={item.discount}
+                                                onChange={(e) => handleInputChange(item.id, 'discount', e.target.value)}
+                                                placeholder="0"
+                                                className="w-full rounded-xl text-main font-bold focus:ring-4 focus:ring-primary/10 border border-border-dim bg-background-app/50 h-12 px-4 text-sm transition-all"
+                                            />
+                                        </div>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         ))}
