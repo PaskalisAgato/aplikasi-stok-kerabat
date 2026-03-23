@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CameraCaptureModal from './CameraCaptureModal';
 
 interface TaskCardProps {
     task: any;
@@ -9,24 +10,15 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: TaskCardProps) {
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !onComplete) return;
-
+    const handleCapture = async (base64: string) => {
+        if (!onComplete) return;
         setIsUploading(true);
         try {
-            // Compress and convert to base64
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                onComplete(task.id, base64String);
-                setIsUploading(false);
-            };
-            reader.readAsDataURL(file);
-        } catch (error) {
-            console.error('Photo processing failed', error);
+            await onComplete(task.id, base64);
+        } finally {
             setIsUploading(false);
         }
     };
@@ -71,13 +63,22 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
             {/* Employee Action Area */}
             {!isCompleted && role === 'Karyawan' && (
                 <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
-                    <label className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 cursor-pointer transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}>
-                        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+                    <button 
+                        onClick={() => setIsCameraOpen(true)}
+                        disabled={isUploading}
+                        className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                    >
                         <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
                         <span className="text-[10px] font-black uppercase tracking-widest text-primary">{isUploading ? 'Mengunggah...' : 'Ambil Foto Bukti'}</span>
-                    </label>
+                    </button>
                 </div>
             )}
+
+            <CameraCaptureModal 
+                isOpen={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
+                onCapture={handleCapture}
+            />
 
             {/* History Details (Admin/Completed) */}
             {isCompleted && task.photoProof && (

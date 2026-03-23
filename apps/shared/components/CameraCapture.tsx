@@ -10,9 +10,15 @@ interface CameraCaptureProps {
     className?: string;
     userName?: string;
     location?: string;
+    facingMode?: 'user' | 'environment';
 }
 
-const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ className, userName, location }, ref) => {
+const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ 
+    className, 
+    userName, 
+    location,
+    facingMode = 'environment' 
+}, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -21,7 +27,7 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
     const startCamera = async () => {
         try {
             const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'user', width: 640, height: 480 }, 
+                video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, 
                 audio: false 
             });
             setStream(mediaStream);
@@ -45,7 +51,7 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
     useEffect(() => {
         startCamera();
         return () => stopCamera();
-    }, []);
+    }, [facingMode]);
 
     useImperativeHandle(ref, () => ({
         start: startCamera,
@@ -64,7 +70,14 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
             canvas.height = video.videoHeight;
 
             // Draw video frame to canvas
+            if (facingMode === 'user') {
+                context.translate(canvas.width, 0);
+                context.scale(-1, 1);
+            }
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if (facingMode === 'user') {
+                context.setTransform(1, 0, 0, 1, 0, 0); // reset
+            }
 
             // Add Timestamp Overlay
             const now = new Date();
@@ -73,12 +86,14 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            const padding = 24;
-            const fontSize = 28;
+            const padding = canvas.width * 0.04;
+            const fontSize = Math.max(16, canvas.width * 0.04);
             const lineHeight = fontSize + 8;
             
             // Draw Background Box for contrast
             const locationText = location ? (location.length > 50 ? location.substring(0, 47) + '...' : location) : '';
+            
+            context.font = `bold ${fontSize}px sans-serif`;
             const boxWidth = Math.max(
                 context.measureText(timestamp).width,
                 userName ? context.measureText(`USER: ${userName.toUpperCase()}`).width : 0,
@@ -91,7 +106,6 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
             context.fillStyle = 'rgba(0, 0, 0, 0.6)';
             context.fillRect(0, canvas.height - boxHeight, boxWidth, boxHeight);
 
-            context.font = `bold ${fontSize}px sans-serif`;
             context.fillStyle = 'white';
             
             // Draw lines from bottom up
@@ -143,7 +157,7 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
                         autoPlay 
                         playsInline 
                         muted 
-                        className="w-full h-full object-cover mirror"
+                        className={`w-full h-full object-cover ${facingMode === 'user' ? 'mirror' : ''}`}
                     />
                     <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
                         <div className="size-2 bg-red-500 rounded-full animate-pulse" />
