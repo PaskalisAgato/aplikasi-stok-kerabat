@@ -24,6 +24,7 @@
     { "source": "/shifts/:path*", "destination": "/shifts/index.html" },
     { "source": "/attendance/:path*", "destination": "/attendance/index.html" },
     { "source": "/attendance-history/:path*", "destination": "/attendance-history/index.html" },
+    { "source": "/todo-list/:path*", "destination": "/todo-list/index.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
