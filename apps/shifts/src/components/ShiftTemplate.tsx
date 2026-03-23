@@ -120,7 +120,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             }));
             setGridData(initialGrid);
         }
-    }, [initialEmployees]);
+    }, [initialEmployees, initialShifts, isAdmin, shiftSettings]);
 
     // Save to Local Storage
     useEffect(() => {
