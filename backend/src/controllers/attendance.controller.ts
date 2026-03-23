@@ -84,4 +84,14 @@ export class AttendanceController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async deleteRecord(req: Request, res: Response) {
+        try {
+            const id = req.params.id as string;
+            const record = await AttendanceService.deleteRecord(id);
+            res.json({ success: true, record });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

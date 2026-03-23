@@ -17,7 +17,16 @@ function AttendanceHistoryPage() {
         name: ''
     });
 
-    const { history, isLoading } = useAttendance(filters);
+    const { history, isLoading, deleteRecord } = useAttendance(filters);
+
+    const handleDelete = async (id: string | number) => {
+        if (!window.confirm('Apakah Anda yakin ingin menghapus riwayat absen ini? Tindakan ini tidak dapat dibatalkan.')) return;
+        try {
+            await deleteRecord(id);
+        } catch (error: any) {
+            alert(error.message);
+        }
+    };
 
     if (!isAdmin) {
         return (
@@ -74,6 +83,18 @@ function AttendanceHistoryPage() {
                 </span>
             ) 
         },
+
+        {
+            header: 'Aksi',
+            render: (a: any) => (
+                <button 
+                    onClick={() => handleDelete(a.id)}
+                    className="p-2 hover:bg-red-500/10 text-white/20 hover:text-red-500 rounded-xl transition-all group"
+                >
+                    <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">delete</span>
+                </button>
+            )
+        }
 
     ];
 

@@ -1,6 +1,8 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { eq, and, between, desc, sql, like } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 
 export class AttendanceService {
     static async getTodayAttendance(userId: string) {
@@ -122,5 +124,32 @@ export class AttendanceService {
         }
 
         return await query;
+    }
+
+    static async deleteRecord(id: string) {
+        const numericId = parseInt(id);
+        // 1. Get record to find photos
+        const [record] = await db.select().from(schema.attendance).where(eq(schema.attendance.id, numericId)).limit(1);
+        
+        if (record) {
+            // 2. Delete photos if segments exist
+            const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean) as string[];
+            for (const photo of photos) {
+                const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                if (fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                        console.log(`[DeleteRecord] Cleaned up file: ${photo}`);
+                    } catch (e) {
+                        console.error(`Failed to delete file ${photo}:`, e);
+                    }
+                }
+            }
+        }
+
+        // 3. Delete from DB
+        return await db.delete(schema.attendance)
+            .where(eq(schema.attendance.id, numericId))
+            .returning();
     }
 }

@@ -38,6 +38,12 @@ export function useAttendance(filters: any = {}) {
         },
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: (id: string | number) => apiClient.deleteAttendance(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['attendance'] });
+        },
+    });
 
     return {
         todayAttendance: todayQuery.data || null,
@@ -47,5 +53,6 @@ export function useAttendance(filters: any = {}) {
         error: todayQuery.error || historyQuery.error,
         checkIn: checkInMutation.mutateAsync,
         checkOut: checkOutMutation.mutateAsync,
+        deleteRecord: deleteMutation.mutateAsync,
     };
 }

@@ -185,6 +185,7 @@ export const apiClient = {
         const query = new URLSearchParams(params).toString();
         return apiFetch<any[]>(`/attendance/history?${query}`);
     },
+    deleteAttendance: (id: string | number) => apiFetch<any>(`/attendance/${id}`, { method: 'DELETE' }),
 };
 
 

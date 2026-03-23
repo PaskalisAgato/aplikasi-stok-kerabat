@@ -31,6 +31,7 @@ router.post('/check-in', requireAuth, upload.single('photo'), AttendanceControll
 router.post('/check-out', requireAuth, upload.single('photo'), AttendanceController.checkOut);
 router.get('/history', requireAdmin, AttendanceController.getHistory);
 router.get('/view-once/:filename', requireAdmin, AttendanceController.viewOnce);
+router.delete('/:id', requireAdmin, AttendanceController.deleteRecord);
 
 export { router as attendanceRoutes };
 
