@@ -72,22 +72,25 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         return dayList;
     }, [startDate, endDate]);
 
-    // Load from Local Storage or API
+    // 1. Initial Load from Local Storage (Run only ONCE on mount)
     useEffect(() => {
         if (isAdmin) {
             const saved = localStorage.getItem('shift_grid_data');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    setGridData(parsed.grid);
-                    setShiftSettings(parsed.settings);
-                    return;
+                    if (parsed.grid && parsed.settings) {
+                        setGridData(parsed.grid);
+                        setShiftSettings(parsed.settings);
+                    }
                 } catch (e) {}
             }
         }
+    }, [isAdmin]); // Only run on mount or when admin status changes
 
-        // Default if no storage
-        if (initialEmployees.length) {
+    // 2. Load from API (If no grid data yet)
+    useEffect(() => {
+        if (initialEmployees.length && gridData.length === 0) {
             const initialGrid = initialEmployees.map(emp => ({
                 id: emp.id,
                 name: emp.name,
@@ -118,7 +121,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             }));
             setGridData(initialGrid);
         }
-    }, [initialEmployees, initialShifts, isAdmin, shiftSettings]);
+    }, [initialEmployees, initialShifts, gridData.length, shiftSettings]);
 
     // Save to Local Storage
     useEffect(() => {
