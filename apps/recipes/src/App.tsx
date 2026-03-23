@@ -3,6 +3,7 @@ import { apiClient } from '@shared/apiClient';
 import type { Recipe } from '@shared/mockDatabase';
 import Layout from '@shared/Layout';
 import EditRecipeModal from './components/EditRecipeModal';
+import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 
 function App() {
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -10,6 +11,9 @@ function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [recipeToDelete, setRecipeToDelete] = useState<any>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchRecipes = async () => {
         try {
@@ -21,6 +25,27 @@ function App() {
             alert('Gagal mengambil daftar resep.');
         } finally {
             setIsLoading(false);
+        }
+    };
+    
+    const handleDeleteClick = (recipe: any) => {
+        setRecipeToDelete(recipe);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!recipeToDelete) return;
+        try {
+            setIsDeleting(true);
+            await apiClient.deleteRecipe(recipeToDelete.id);
+            setRecipesList(prev => prev.filter(r => r.id !== recipeToDelete.id));
+            setIsDeleteModalOpen(false);
+            setRecipeToDelete(null);
+        } catch (error) {
+            console.error('Failed to delete recipe', error);
+            alert('Gagal menghapus resep. Harap coba lagi.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -122,15 +147,26 @@ function App() {
                                     </div>
                                     <p className="text-xl font-black text-primary font-display uppercase tracking-tight">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                 </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedRecipe(recipe);
-                                    }}
-                                    className="size-11 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/20 active:scale-75 transition-all border-white/10 group/btn"
-                                >
-                                    <span className="material-symbols-outlined text-xl font-black group-hover/btn:rotate-45 transition-transform">edit_square</span>
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteClick(recipe);
+                                        }}
+                                        className="size-11 glass flex items-center justify-center rounded-2xl text-red-500 hover:bg-red-500/20 active:scale-75 transition-all border-white/10 group/btn"
+                                    >
+                                        <span className="material-symbols-outlined text-xl font-black group-hover/btn:scale-110 transition-transform">delete</span>
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedRecipe(recipe);
+                                        }}
+                                        className="size-11 glass flex items-center justify-center rounded-2xl text-primary hover:bg-primary/20 active:scale-75 transition-all border-white/10 group/btn"
+                                    >
+                                        <span className="material-symbols-outlined text-xl font-black group-hover/btn:rotate-45 transition-transform">edit_square</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -155,6 +191,14 @@ function App() {
                     }}
                 />
             )}
+
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                itemName={recipeToDelete?.name || ''}
+                isDeleting={isDeleting}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteConfirm}
+            />
         </Layout>
     );
 }
