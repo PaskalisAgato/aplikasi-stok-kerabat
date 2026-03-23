@@ -6,6 +6,7 @@ import { useAttendance } from '@shared/hooks/useAttendance';
 import { useSession } from '@shared/authClient';
 import { apiClient } from '@shared/apiClient';
 import toast, { Toaster } from 'react-hot-toast';
+import { exportToExcel, exportToCSV } from '@shared/utils/exportAttendance';
 
 function AttendanceHistoryPage() {
     const { data: session } = useSession();
@@ -46,6 +47,26 @@ function AttendanceHistoryPage() {
         } catch (error: any) {
             alert(error.message);
         }
+    };
+
+    const handleExportExcel = async () => {
+        const data = history as any[];
+        if (!data || data.length === 0) {
+            toast.error('Tidak ada data untuk diekspor');
+            return;
+        }
+        const fileName = `absensi-${filters.startDate}-${filters.endDate}`;
+        await exportToExcel(data, fileName);
+    };
+
+    const handleExportCSV = () => {
+        const data = history as any[];
+        if (!data || data.length === 0) {
+            toast.error('Tidak ada data untuk diekspor');
+            return;
+        }
+        const fileName = `absensi-${filters.startDate}-${filters.endDate}`;
+        exportToCSV(data, fileName);
     };
 
     if (!isAdmin) {
@@ -123,6 +144,24 @@ function AttendanceHistoryPage() {
             currentPort={5190}
             title="Riwayat Absen"
             subtitle="Monitoring Kehadiran"
+            headerExtras={
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleExportExcel}
+                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-500/20"
+                    >
+                        <span className="material-symbols-outlined text-sm">download_for_offline</span>
+                        Excel
+                    </button>
+                    <button 
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/10"
+                    >
+                        <span className="material-symbols-outlined text-sm">csv</span>
+                        CSV
+                    </button>
+                </div>
+            }
         >
             <Toaster position="top-center" />
             <div className="space-y-6">
