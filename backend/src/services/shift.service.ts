@@ -113,48 +113,74 @@ export class ShiftService {
         return deletedShift;
     }
 
-    static async batchSave(shifts: any[], currentUserId: string) {
+    static async batchSave(shifts: any[], currentUserId: string, options?: { startDate?: string, endDate?: string, userIdsToSync?: string[] }) {
         const { inArray, and, gte, lte } = await import('drizzle-orm');
-        if (shifts.length === 0) return { count: 0 };
-
+        console.log('[ShiftService] batchSave triggered:', { 
+            shiftCount: shifts.length, 
+            userIdsToSync: options?.userIdsToSync, 
+            range: `${options?.startDate} to ${options?.endDate}` 
+        });
+        
         return await db.transaction(async (tx) => {
-            const userIds = [...new Set(shifts.map(s => s.userId))];
-            const timeList = shifts.map(s => new Date(s.date).getTime());
-            const minDate = new Date(Math.min(...timeList));
-            const maxDate = new Date(Math.max(...timeList));
+            let userIds: string[] = [];
+            let minDate: Date;
+            let maxDate: Date;
 
-            // Clean range for these users
-            await tx.delete(schema.workShifts)
-                .where(
-                    and(
-                        gte(schema.workShifts.date, minDate),
-                        lte(schema.workShifts.date, maxDate),
-                        inArray(schema.workShifts.userId, userIds)
-                    )
-                );
+            if (options?.startDate && options?.endDate && options?.userIdsToSync) {
+                userIds = options.userIdsToSync;
+                minDate = new Date(options.startDate);
+                // Set maxDate to the end of the day to ensure full coverage
+                maxDate = new Date(options.endDate);
+                maxDate.setHours(23, 59, 59, 999);
+            } else {
+                if (shifts.length === 0) return { count: 0 };
+                userIds = [...new Set(shifts.map(s => s.userId))];
+                const timeList = shifts.map(s => new Date(s.date).getTime());
+                minDate = new Date(Math.min(...timeList));
+                maxDate = new Date(Math.max(...timeList));
+                maxDate.setHours(23, 59, 59, 999);
+            }
 
-            // Bulk Insert
-            const inserted = await tx.insert(schema.workShifts).values(
-                shifts.map(s => ({
-                    userId: s.userId,
-                    date: new Date(s.date),
-                    startTime: s.startTime,
-                    endTime: s.endTime,
-                    note: s.note,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                }))
-            ).returning();
+            console.log('[ShiftService] Cleanup range:', { minDate, maxDate, users: userIds.length });
+
+            if (userIds.length > 0) {
+                const deleted = await tx.delete(schema.workShifts)
+                    .where(
+                        and(
+                            gte(schema.workShifts.date, minDate),
+                            lte(schema.workShifts.date, maxDate),
+                            inArray(schema.workShifts.userId, userIds)
+                        )
+                    ).returning();
+                console.log(`[ShiftService] Deleted ${deleted.length} existing shifts.`);
+            }
+
+            let insertedCount = 0;
+            if (shifts.length > 0) {
+                const inserted = await tx.insert(schema.workShifts).values(
+                    shifts.map(s => ({
+                        userId: s.userId,
+                        date: new Date(s.date),
+                        startTime: s.startTime,
+                        endTime: s.endTime,
+                        note: s.note,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    }))
+                ).returning();
+                insertedCount = inserted.length;
+                console.log(`[ShiftService] Inserted ${insertedCount} new shifts.`);
+            }
 
             await tx.insert(schema.auditLogs).values({
                 userId: currentUserId,
-                action: `BATCH_SAVE_SHIFTS: ${inserted.length} items saved`,
+                action: `BATCH_SAVE_SHIFTS: ${insertedCount} items saved, synced for ${userIds.length} users`,
                 tableName: 'work_shifts',
-                newData: JSON.stringify({ count: inserted.length }),
+                newData: JSON.stringify({ count: insertedCount, userIdsSynced: userIds.length }),
                 createdAt: new Date()
             });
 
-            return { count: inserted.length };
+            return { count: insertedCount };
         });
     }
 }

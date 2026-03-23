@@ -57,6 +57,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     const [dragStart, setDragStart] = useState<{ row: number, col: number } | null>(null);
     const [dragEnd, setDragEnd] = useState<{ row: number, col: number } | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState<{ row: number, col: number, x: number, y: number } | null>(null);
+    const [pendingDeletions, setPendingDeletions] = useState<string[]>([]);
 
     // Columns based on range
     const dates = useMemo(() => {
@@ -186,6 +187,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     const removeEmployee = (id: string) => {
         setGridData(gridData.filter(g => g.id !== id));
+        setPendingDeletions(prev => [...new Set([...prev, id])]);
     };
 
 
@@ -212,16 +214,32 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 });
             });
 
-            const result = await apiFetch<any>('/shifts/batch', {
-                method: 'POST',
-                body: JSON.stringify({ shifts: apiItems })
+            const userIdsToSync = [...new Set([...gridData.map(g => g.id), ...pendingDeletions])];
+            console.log('[ShiftTemplate] Saving shifts:', { 
+                itemCount: apiItems.length, 
+                userIdsToSync, 
+                range: `${startDate} to ${endDate}` 
             });
 
-            if (result.count !== undefined) {
+            const result = await apiFetch<any>('/shifts/batch', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    shifts: apiItems,
+                    startDate,
+                    endDate,
+                    userIdsToSync
+                })
+            });
+
+            if (result && result.count !== undefined) {
                 toast.dismiss(loadingToast);
-                toast.success(`Jadwal ditertibkan ke database!`);
+                toast.success(`Jadwal ditertibkan ke database! (${result.count} data)`);
+                setPendingDeletions([]);
+            } else {
+                throw new Error(result?.error || "Gagal menyimpan data tanpa pesan error.");
             }
         } catch (e: any) {
+            console.error('[ShiftTemplate] Save error:', e);
             toast.dismiss(loadingToast);
             toast.error("Gagal simpan: " + e.message);
         }
