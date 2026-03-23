@@ -8,9 +8,10 @@ export interface CameraCaptureHandle {
 
 interface CameraCaptureProps {
     className?: string;
+    userName?: string;
 }
 
-const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ className }, ref) => {
+const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ className, userName }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -82,6 +83,13 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
             
             context.fillStyle = 'white';
             context.fillText(timestamp, padding, canvas.height - padding);
+
+            if (userName) {
+                const nameLabel = `USER: ${userName.toUpperCase()}`;
+                context.font = `bold ${fontSize - 4}px sans-serif`;
+                context.strokeText(nameLabel, padding, canvas.height - padding - fontSize - 10);
+                context.fillText(nameLabel, padding, canvas.height - padding - fontSize - 10);
+            }
 
             // Convert to Blob
             return new Promise((resolve) => {

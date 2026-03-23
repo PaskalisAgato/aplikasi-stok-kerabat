@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Layout from '@shared/Layout';
 import QueryProvider from '@shared/QueryProvider';
 import { ModernTable } from '@shared/components/ModernTable';
@@ -9,7 +9,7 @@ import { API_BASE_URL } from '@shared/apiClient';
 function AttendanceHistoryPage() {
     const { data: session } = useSession();
     const isAdmin = session?.user?.role === 'Admin';
-    const UPLOADS_BASE = API_BASE_URL.replace('/api', '') + '/uploads/';
+    const VIEW_ONCE_BASE = `${API_BASE_URL}/attendance/view-once/`;
     
     const [filters, setFilters] = useState({
         startDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
@@ -41,8 +41,8 @@ function AttendanceHistoryPage() {
             render: (a: any) => (
                 <div className="flex gap-2">
                     {a.checkInPhoto ? (
-                        <a href={`${UPLOADS_BASE}${a.checkInPhoto}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
-                            <img src={`${UPLOADS_BASE}${a.checkInPhoto}`} alt="In" className="size-8 object-cover" />
+                        <a href={`${VIEW_ONCE_BASE}${a.checkInPhoto.split('/').pop()}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
+                            <img src={`${VIEW_ONCE_BASE}${a.checkInPhoto.split('/').pop()}`} alt="In" className="size-8 object-cover" />
                         </a>
                     ) : (
                         <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
@@ -50,8 +50,8 @@ function AttendanceHistoryPage() {
                         </div>
                     )}
                     {a.checkOutPhoto ? (
-                        <a href={`${UPLOADS_BASE}${a.checkOutPhoto}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
-                            <img src={`${UPLOADS_BASE}${a.checkOutPhoto}`} alt="Out" className="size-8 object-cover" />
+                        <a href={`${VIEW_ONCE_BASE}${a.checkOutPhoto.split('/').pop()}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
+                            <img src={`${VIEW_ONCE_BASE}${a.checkOutPhoto.split('/').pop()}`} alt="Out" className="size-8 object-cover" />
                         </a>
                     ) : (
                         <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
@@ -85,8 +85,8 @@ function AttendanceHistoryPage() {
         >
             <div className="space-y-6">
                 {/* Filters */}
-                <div className="glass rounded-[2rem] p-6 flex flex-wrap gap-6 items-center border-white/5 shadow-lg">
-                    <div className="flex-1 min-w-[200px] space-y-2">
+                <div className="glass rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-center border-white/5 shadow-lg">
+                    <div className="w-full md:flex-1 space-y-2">
                         <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Cari Karyawan</label>
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">search</span>
@@ -100,24 +100,24 @@ function AttendanceHistoryPage() {
                         </div>
                     </div>
 
-                    <div className="flex gap-4 items-center">
-                        <div className="space-y-2">
+                    <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4 items-end">
+                        <div className="w-full sm:w-auto space-y-2">
                             <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Mulai</label>
                             <input 
                                 type="date" 
-                                className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                                 value={filters.startDate}
                                 onChange={e => setFilters({ ...filters, startDate: e.target.value })}
                             />
                         </div>
-                        <div className="self-end pb-4 opacity-30">
+                        <div className="hidden sm:block pb-4 opacity-30">
                             <span className="material-symbols-outlined">trending_flat</span>
                         </div>
-                        <div className="space-y-2">
+                        <div className="w-full sm:w-auto space-y-2">
                             <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Selesai</label>
                             <input 
                                 type="date" 
-                                className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                                 value={filters.endDate}
                                 onChange={e => setFilters({ ...filters, endDate: e.target.value })}
                             />

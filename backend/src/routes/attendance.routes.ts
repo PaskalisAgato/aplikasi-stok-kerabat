@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AttendanceController } from '../controllers/attendance.controller.js';
-import { requireAdmin, requireAuth } from '../middleware/auth.middleware.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -30,6 +30,7 @@ router.get('/today', requireAuth, AttendanceController.getTodayStatus);
 router.post('/check-in', requireAuth, upload.single('photo'), AttendanceController.checkIn);
 router.post('/check-out', requireAuth, upload.single('photo'), AttendanceController.checkOut);
 router.get('/history', requireAdmin, AttendanceController.getHistory);
+router.get('/view-once/:filename', requireAdmin, AttendanceController.viewOnce);
 
 export { router as attendanceRoutes };
 

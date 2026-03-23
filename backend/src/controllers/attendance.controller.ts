@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { AttendanceService } from '../services/attendance.service.js';
+import fs from 'fs';
+import path from 'path';
 
 export class AttendanceController {
     static async getTodayStatus(req: Request, res: Response) {
@@ -50,6 +52,34 @@ export class AttendanceController {
                 name: name as string 
             });
             res.json(history);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async viewOnce(req: Request, res: Response) {
+        try {
+            const filename = req.params.filename as string;
+            const filePath = path.resolve(process.cwd(), 'uploads', 'attendance', filename);
+            
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).json({ error: 'Foto tidak ditemukan atau sudah dihapus.' });
+            }
+
+            // Stream and then delete
+            res.sendFile(filePath, (err) => {
+                if (err) {
+                    console.error('File stream error:', err);
+                } else {
+                    // Success, now delete
+                    try {
+                        fs.unlinkSync(filePath);
+                        console.log(`[ViewOnce] Deleted: ${filename}`);
+                    } catch (unlinkErr) {
+                        console.error('Failed to unlink file:', unlinkErr);
+                    }
+                }
+            });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

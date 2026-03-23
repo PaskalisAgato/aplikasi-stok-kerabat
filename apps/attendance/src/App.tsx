@@ -2,11 +2,13 @@ import { useRef } from 'react';
 import Layout from '@shared/Layout';
 import QueryProvider from '@shared/QueryProvider';
 import { useAttendance } from '@shared/hooks/useAttendance';
+import { useSession } from '@shared/authClient';
 import CameraCapture from './components/CameraCapture';
 import type { CameraCaptureHandle } from './components/CameraCapture';
 import toast, { Toaster } from 'react-hot-toast';
 
 function AttendancePage() {
+    const { data: session } = useSession();
     const { todayAttendance, checkIn, checkOut, isLoading, isActionLoading } = useAttendance();
     const cameraRef = useRef<CameraCaptureHandle>(null);
 
@@ -59,6 +61,7 @@ function AttendancePage() {
                                 <CameraCapture 
                                     ref={cameraRef}
                                     className="aspect-[4/3] w-full max-w-md mx-auto"
+                                    userName={session?.user?.name}
                                 />
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
                                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Siap Mengambil Foto</p>
