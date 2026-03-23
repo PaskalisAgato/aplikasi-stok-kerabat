@@ -12,9 +12,9 @@ const SHIFT_TYPES = [
 ];
 
 interface ShiftSettings {
-    P: { start: string, end: string },
-    S: { start: string, end: string },
-    M: { start: string, end: string }
+    P: { start: string, end: string, active: boolean },
+    S: { start: string, end: string, active: boolean },
+    M: { start: string, end: string, active: boolean }
 }
 
 interface GridItem {
@@ -40,9 +40,9 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Settings
     const [shiftSettings, setShiftSettings] = useState<ShiftSettings>({
-        P: { start: '08:00', end: '16:00' },
-        S: { start: '16:00', end: '00:00' },
-        M: { start: '00:00', end: '08:00' }
+        P: { start: '08:00', end: '16:00', active: true },
+        S: { start: '16:00', end: '00:00', active: true },
+        M: { start: '00:00', end: '08:00', active: true }
     });
 
     // Grid Data
@@ -164,20 +164,24 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         setGridData(gridData.filter(g => g.id !== id));
     };
 
-    // Auto Rotation Utility
     const autoGenerate = () => {
         const newGrid = [...gridData];
-        const codes = ['P', 'S', 'M', 'OFF'];
+        const activeCodes = (['P', 'S', 'M'] as const).filter(code => shiftSettings[code].active);
+        const codes = [...activeCodes, 'OFF'];
         
+        if (activeCodes.length === 0) {
+            toast.error("Aktifkan setidaknya satu shift untuk rotasi!");
+            return;
+        }
+
         newGrid.forEach((emp, i) => {
             dates.forEach((date, j) => {
-                // simple round robin based on index and day
                 const idx = (i + j) % codes.length;
                 emp.shifts[date] = codes[idx];
             });
         });
         setGridData(newGrid);
-        toast.success("Jadwal diatur otomatis secara adil!");
+        toast.success("Jadwal diatur otomatis dengan shift yang aktif!");
     };
 
     // Database Sync
@@ -302,7 +306,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
             {/* Shift Settings Panel */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {(['P', 'S', 'M'] as const).map(type => (
-                    <div key={type} className="glass p-6 rounded-[2rem] border-white/5 space-y-4">
+                    <div key={type} className={`glass p-6 rounded-[2rem] border-white/5 space-y-4 transition-all duration-500 ${!shiftSettings[type].active ? 'opacity-40 grayscale translate-y-2' : ''}`}>
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                                 <div className={`size-10 rounded-xl flex items-center justify-center font-black text-sm ${SHIFT_TYPES.find(t => t.code === type)?.color}`}>
@@ -310,25 +314,35 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                 </div>
                                 <h4 className="text-xs font-black uppercase tracking-widest">Shift {type === 'P' ? 'Pagi' : type === 'S' ? 'Sore' : 'Malam'}</h4>
                             </div>
-                            <button 
-                                onClick={() => setShiftSettings({...shiftSettings, [type]: { start: '', end: '' }})}
-                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                                title="Hapus jam kerja"
-                            >
-                                <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], active: !shiftSettings[type].active }})}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${shiftSettings[type].active ? 'bg-primary' : 'bg-white/10'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-slate-900 transition-transform ${shiftSettings[type].active ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                                <button 
+                                    onClick={() => setShiftSettings({...shiftSettings, [type]: { ...shiftSettings[type], start: '', end: '' }})}
+                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                    title="Hapus jam kerja"
+                                >
+                                    <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <input 
                                 type="time" 
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
                                 value={shiftSettings[type].start}
+                                disabled={!shiftSettings[type].active}
                                 onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], start: e.target.value}})}
                             />
                             <input 
                                 type="time" 
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed"
                                 value={shiftSettings[type].end}
+                                disabled={!shiftSettings[type].active}
                                 onChange={e => setShiftSettings({...shiftSettings, [type]: {...shiftSettings[type], end: e.target.value}})}
                             />
                         </div>
@@ -447,7 +461,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         className="fixed z-50 flex gap-2 p-2 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
                         style={{ top: isMenuOpen.y - 60, left: isMenuOpen.x - 100 }}
                     >
-                        {SHIFT_TYPES.map(type => (
+                        {SHIFT_TYPES.filter(t => t.code === 'OFF' || shiftSettings[t.code as keyof ShiftSettings]?.active).map(type => (
                             <button 
                                 key={type.code}
                                 onClick={() => applyShift(type.code)}
