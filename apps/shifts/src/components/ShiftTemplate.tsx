@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { apiClient } from '@shared/apiClient';
+import { apiClient, apiFetch } from '@shared/apiClient';
 import { useShifts } from '@shared/hooks/useShifts';
 import { useEmployees } from '@shared/hooks/useEmployees';
 import { useSession } from '@shared/authClient';
@@ -36,7 +36,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
     const isAdmin = session?.user?.role?.toUpperCase() === 'ADMIN';
     const currentUser = session?.user;
 
-    const { createShift, updateShift, deleteShift } = useShifts();
+    // const { createShift, updateShift, deleteShift } = useShifts();
     const { data: allEmployees } = useEmployees();
 
     // Dates
@@ -53,6 +53,8 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Grid Data
     const [gridData, setGridData] = useState<GridItem[]>([]);
+    const [lastSavedHash, setLastSavedHash] = useState<string>('');
+    const hasChanges = useMemo(() => JSON.stringify(gridData) !== lastSavedHash, [gridData, lastSavedHash]);
 
     // Selection State (for drag-to-fill)
     const [dragStart, setDragStart] = useState<{ row: number, col: number } | null>(null);
@@ -115,8 +117,9 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         }
     }, [gridData, shiftSettings]);
 
-    // Validation
+    // Validation (Only show if there are unsaved changes)
     const validationErrors = useMemo(() => {
+        if (!hasChanges) return []; // Hide errors if already saved
         const errors: string[] = [];
         dates.forEach(date => {
             let pagi = 0;
@@ -317,34 +320,40 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     // Database Sync
     const handleSave = async () => {
+        if (!isAdmin) return;
+        
+        const loadingToast = toast.loading("Menyimpan jadwal...");
         try {
-            const promises: any[] = [];
-            gridData.forEach(emp => {
-                Object.entries(emp.shifts).forEach(([date, code]) => {
-                    const type = SHIFT_TYPES.find(t => t.code === code);
-                    const existing = initialShifts.find(s => 
-                        s.userId === emp.id && 
-                        new Date(s.date).toISOString().split('T')[0] === date
-                    );
-
-                    if (type && type.code !== 'OFF') {
-                        const settings = shiftSettings[type.code as keyof ShiftSettings];
-                        if (!existing) {
-                            promises.push(createShift({ userId: emp.id, date, startTime: settings.start, endTime: settings.end }));
-                        } else if (existing.startTime !== settings.start) {
-                            promises.push(updateShift({ id: existing.id, data: { startTime: settings.start, endTime: settings.end, date } }));
-                        }
-                    } else if (code === 'OFF' && existing) {
-                        promises.push(deleteShift(existing.id));
+            const apiItems: any[] = [];
+            gridData.forEach(row => {
+                Object.entries(row.shifts).forEach(([date, code]) => {
+                    if (code === 'OFF') return;
+                    const settings = shiftSettings[code as keyof typeof shiftSettings];
+                    if (settings) {
+                        apiItems.push({
+                            userId: row.id,
+                            date: date,
+                            startTime: settings.start,
+                            endTime: settings.end,
+                            note: `Shift ${code}`
+                        });
                     }
                 });
             });
 
-            if (!promises.length) return toast.error("Tidak ada perubahan.");
-            await Promise.all(promises);
-            toast.success("Berhasil disimpan ke database!");
+            const result = await apiFetch<any>('/shifts/batch', {
+                method: 'POST',
+                body: JSON.stringify({ shifts: apiItems })
+            });
+
+            if (result.count !== undefined) {
+                toast.dismiss(loadingToast);
+                toast.success(`Jadwal ditertibkan ke database!`);
+                setLastSavedHash(JSON.stringify(gridData));
+            }
         } catch (e: any) {
-            toast.error(e.message || "Gagal menyimpan.");
+            toast.dismiss(loadingToast);
+            toast.error("Gagal simpan: " + e.message);
         }
     };
 
@@ -688,7 +697,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                         className="fixed z-50 flex gap-3 p-3 glass border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in duration-200"
                         style={{ top: isMenuOpen.y - 80, left: isMenuOpen.x - 100 }}
                     >
-                        {SHIFT_TYPES.filter(t => t.code === 'OFF' || shiftSettings[t.code as keyof ShiftSettings]?.active).map(type => (
+                        {SHIFT_TYPES.filter(t => t.code === 'OFF' || (shiftSettings[t.code as keyof ShiftSettings] && shiftSettings[t.code as keyof ShiftSettings].active)).map(type => (
                             <button 
                                 key={type.code}
                                 onClick={() => applyShift(type.code)}
@@ -706,11 +715,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-slate-900/95 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom-8 duration-700 w-[calc(100%-3rem)] max-w-lg">
                     <button 
                         onClick={handleSave} 
-                        disabled={validationErrors.length > 0}
-                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-primary text-slate-950 shadow-primary/20'}`}
+                        className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl text-sm font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg ${validationErrors.length > 0 ? 'bg-orange-500 text-slate-950 shadow-orange-500/20' : 'bg-primary text-slate-950 shadow-primary/20'}`}
                     >
-                        <span className="material-symbols-outlined text-2xl">{validationErrors.length > 0 ? 'lock' : 'save'}</span>
-                        {validationErrors.length > 0 ? 'Distribusi Tidak Sesuai' : 'Simpan Jadwal'}
+                        <span className="material-symbols-outlined text-2xl">
+                            {validationErrors.length > 0 ? 'warning' : 'save'}
+                        </span>
+                        {validationErrors.length > 0 ? 'Simpan Tetap' : 'Simpan Jadwal'}
                     </button>
                     {validationErrors.length > 0 && (
                         <div className="size-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center animate-pulse shrink-0">

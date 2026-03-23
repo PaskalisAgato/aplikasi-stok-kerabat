@@ -111,4 +111,48 @@ export class ShiftService {
 
         return deletedShift;
     }
+
+    static async batchSave(shifts: any[], currentUserId: string) {
+        const { inArray, and, gte, lte } = await import('drizzle-orm');
+        if (shifts.length === 0) return { count: 0 };
+
+        return await db.transaction(async (tx) => {
+            const userIds = [...new Set(shifts.map(s => s.userId))];
+            const timeList = shifts.map(s => new Date(s.date).getTime());
+            const minDate = new Date(Math.min(...timeList));
+            const maxDate = new Date(Math.max(...timeList));
+
+            // Clean range for these users
+            await tx.delete(schema.workShifts)
+                .where(
+                    and(
+                        gte(schema.workShifts.date, minDate),
+                        lte(schema.workShifts.date, maxDate),
+                        inArray(schema.workShifts.userId, userIds)
+                    )
+                );
+
+            // Bulk Insert
+            const inserted = await tx.insert(schema.workShifts).values(
+                shifts.map(s => ({
+                    userId: s.userId,
+                    date: new Date(s.date),
+                    startTime: s.startTime,
+                    endTime: s.endTime,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }))
+            ).returning();
+
+            await tx.insert(schema.auditLogs).values({
+                userId: currentUserId,
+                action: `BATCH_SAVE_SHIFTS: ${inserted.length} items saved`,
+                tableName: 'work_shifts',
+                newData: JSON.stringify({ count: inserted.length }),
+                createdAt: new Date()
+            });
+
+            return { count: inserted.length };
+        });
+    }
 }

@@ -184,6 +184,25 @@ export class ShiftController {
         }
     }
 
+    static async batchSave(req: Request, res: Response) {
+        try {
+            const currentUserId = (req as any).user?.id;
+            if (!currentUserId) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+
+            const { shifts: shiftsData } = req.body;
+            if (!Array.isArray(shiftsData)) {
+                return res.status(400).json({ error: 'Request body must contain shifts array.' });
+            }
+
+            const result = await ShiftService.batchSave(shiftsData, currentUserId);
+            res.status(200).json(result);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
     static async updateShift(req: Request, res: Response) {
         try {
             const currentUserId = (req as any).user?.id;
