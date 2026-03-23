@@ -4,7 +4,7 @@ import { requireAdmin, requireAuth } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.get('/', requireAdmin, ShiftController.getAllShifts);
+router.get('/', requireAuth, ShiftController.getAllShifts);
 router.get('/export-template', requireAdmin, ShiftController.exportShiftTemplate);
 router.get('/my', requireAuth, ShiftController.getMyShifts);
 router.post('/batch', requireAdmin, ShiftController.batchSave);
