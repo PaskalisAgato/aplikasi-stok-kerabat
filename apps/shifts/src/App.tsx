@@ -127,7 +127,10 @@ function ShiftPage() {
                         emptyMessage="Belum ada shift yang dijadwalkan"
                     />
                 ) : (
-                    <ShiftTemplate />
+                    <ShiftTemplate 
+                        employees={employees || []} 
+                        allShifts={allShifts} 
+                    />
                 )}
             </div>
 
