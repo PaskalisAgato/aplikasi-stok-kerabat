@@ -18,9 +18,14 @@ function AttendanceHistoryPage() {
         name: ''
     });
 
-    const { history, isLoading, deleteRecord } = useAttendance(filters);
+    const { history, isLoading, deleteRecord, deleteByRange, isActionLoading } = useAttendance(filters);
     const [viewingPhoto, setViewingPhoto] = useState<{ url: string; label: string } | null>(null);
     const [isFetchingPhoto, setIsFetchingPhoto] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteRange, setDeleteRange] = useState({
+        startDate: filters.startDate,
+        endDate: filters.endDate
+    });
 
     const handleViewPhoto = async (photoPath: string, label: string) => {
         if (!window.confirm('Foto ini hanya bisa dilihat satu kali saja. Jika Anda berlanjut, foto akan terhapus otomatis setelah modal ditutup. Lanjutkan?')) return;
@@ -44,8 +49,30 @@ function AttendanceHistoryPage() {
         if (!window.confirm('Apakah Anda yakin ingin menghapus riwayat absen ini? Tindakan ini tidak dapat dibatalkan.')) return;
         try {
             await deleteRecord(id);
+            toast.success('Data berhasil dihapus');
         } catch (error: any) {
-            alert(error.message);
+            toast.error(error.message);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        const confirmMsg = `PERINGATAN KRITIKAL: Anda akan menghapus SEMUA data absensi dari tanggal ${deleteRange.startDate} sampai ${deleteRange.endDate}.\n\nTermasuk semua file foto bukti absen. Tindakan ini TIDAK BISA DIBATALKAN.\n\nKetik 'HAPUS' untuk mengonfirmasi:`;
+        
+        const input = window.prompt(confirmMsg);
+        if (input !== 'HAPUS') {
+            if (input !== null) toast.error('Konfirmasi salah. Penghapusan dibatalkan.');
+            return;
+        }
+
+        try {
+            const result = await deleteByRange({
+                startDate: deleteRange.startDate,
+                endDate: deleteRange.endDate
+            });
+            toast.success(`Berhasil menghapus ${result.count} data dan ${result.filesDeleted} file foto.`);
+            setShowDeleteModal(false);
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
@@ -160,6 +187,13 @@ function AttendanceHistoryPage() {
                         <span className="material-symbols-outlined text-sm">csv</span>
                         CSV
                     </button>
+                    <button 
+                        onClick={() => setShowDeleteModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-red-500/20 ml-2"
+                    >
+                        <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                        Hapus Riwayat
+                    </button>
                 </div>
             }
         >
@@ -257,6 +291,75 @@ function AttendanceHistoryPage() {
                         >
                             Tutup & Konfirmasi Selesai
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Bulk Delete Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="relative glass p-8 rounded-[3rem] max-w-md w-full space-y-8 shadow-2xl border border-red-500/20 zoom-in-95 duration-300">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">Penghapusan Massal</p>
+                                <h3 className="text-2xl font-black">Hapus Riwayat</h3>
+                            </div>
+                            <button 
+                                onClick={() => setShowDeleteModal(false)}
+                                className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
+                            >
+                                <span className="material-symbols-outlined text-sm group-hover:scale-110">close</span>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Dari Tanggal</label>
+                                <input 
+                                    type="date" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
+                                    value={deleteRange.startDate}
+                                    onChange={e => setDeleteRange({ ...deleteRange, startDate: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Sampai Tanggal</label>
+                                <input 
+                                    type="date" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
+                                    value={deleteRange.endDate}
+                                    onChange={e => setDeleteRange({ ...deleteRange, endDate: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex gap-4">
+                            <span className="material-symbols-outlined text-red-500">warning</span>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-red-200 leading-relaxed uppercase tracking-widest">
+                                    PENTING!
+                                </p>
+                                <p className="text-[9px] font-bold text-red-200/60 leading-relaxed uppercase tracking-widest">
+                                    Semua data absen dan file foto dalam rentang ini akan dihapus permanen.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-2">
+                            <button 
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                onClick={handleBulkDelete}
+                                disabled={isActionLoading}
+                                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 disabled:opacity-50 hover:scale-[1.05] active:scale-[0.95] transition-all shadow-lg shadow-red-500/20"
+                            >
+                                {isActionLoading ? 'Memproses...' : 'Hapus Sekarang'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

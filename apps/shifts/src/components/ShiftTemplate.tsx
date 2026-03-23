@@ -24,6 +24,17 @@ interface GridItem {
     lastShiftCode?: string;
 }
 
+const toDateStr = (date: Date | string) => {
+    const d = new Date(date);
+    if (!isNaN(d.getTime())) {
+        const year = d.getUTCFullYear();
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    return String(date).split('T')[0];
+};
+
 interface ShiftTemplateProps {
     employees: any[];
     allShifts: any[];
@@ -68,7 +79,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         let current = new Date(start);
         
         while (current <= end) {
-            dayList.push(current.toISOString().split('T')[0]);
+            dayList.push(toDateStr(current));
             current.setDate(current.getDate() + 1);
         }
         return dayList;
@@ -111,38 +122,47 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         loadInitial();
     }, [isAdmin]);
 
-    // 2. Load from API (If no grid data yet)
+    // 2. Load from API (Merge with gridData)
     useEffect(() => {
-        if (initialEmployees.length && gridData.length === 0) {
-            const initialGrid = initialEmployees.map(emp => ({
-                id: emp.id,
-                name: emp.name,
-                shifts: initialShifts.reduce((acc, s) => {
-                    if (s.userId === emp.id) {
-                        const d = new Date(s.date).toISOString().split('T')[0];
-                        let code = 'OFF';
-                        
-                        // Priority 1: Use the 'note' field if it contains the shift code (e.g. "Shift P")
-                        if (s.note && s.note.startsWith('Shift ')) {
-                            const extracted = s.note.replace('Shift ', '');
-                            if (['P', 'S', 'M', 'OFF'].includes(extracted)) code = extracted;
-                        } 
-                        
-                        // Priority 2: Fallback to time-based matching (matching current settings)
-                        if (code === 'OFF') {
-                            if (s.startTime === shiftSettings.P.start) code = 'P';
-                            else if (s.startTime === shiftSettings.S.start) code = 'S';
-                            else if (s.startTime === shiftSettings.M.start) code = 'M';
+        if (initialEmployees.length) {
+            setGridData(prev => {
+                // If it's pure initial load for Karyawan (empty prev)
+                const baseGrid = prev.length > 0 ? prev : initialEmployees.map(emp => ({
+                    id: emp.id,
+                    name: emp.name,
+                    shifts: {}
+                }));
+
+                return baseGrid.map(row => {
+                    const mappedShifts: Record<string, string> = { ...row.shifts };
+                    
+                    initialShifts.forEach(s => {
+                        if (s.userId === row.id) {
+                            const d = toDateStr(s.date);
+                            let code = 'OFF';
+                            
+                            // Priority 1: Use the 'note' field if it contains the shift code (e.g. "Shift P")
+                            if (s.note && s.note.startsWith('Shift ')) {
+                                const extracted = s.note.replace('Shift ', '');
+                                if (['P', 'S', 'M', 'OFF'].includes(extracted)) code = extracted;
+                            } 
+                            
+                            // Priority 2: Fallback to time-based matching
+                            if (code === 'OFF') {
+                                if (s.startTime === shiftSettings.P.start) code = 'P';
+                                else if (s.startTime === shiftSettings.S.start) code = 'S';
+                                else if (s.startTime === shiftSettings.M.start) code = 'M';
+                            }
+                            
+                            mappedShifts[d] = code;
                         }
-                        
-                        acc[d] = code;
-                    }
-                    return acc;
-                }, {} as Record<string, string>)
-            }));
-            setGridData(initialGrid);
+                    });
+
+                    return { ...row, shifts: mappedShifts };
+                });
+            });
         }
-    }, [initialEmployees, initialShifts, gridData.length, shiftSettings]);
+    }, [initialEmployees, initialShifts, shiftSettings]);
 
     // Save to Local Storage
     useEffect(() => {
@@ -345,15 +365,11 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
     return (
         <div className="space-y-8 animate-in fade-in duration-1000 pb-32">
-            {/* Header / Role Indicator */}
-            <div className="flex flex-col items-center gap-2 text-center transition-all duration-300">
-                <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Manajemen Shift</h1>
-                <div className="flex items-center gap-2">
-                    <p className="text-[10px] text-primary uppercase font-bold tracking-[0.3em]">Café Employee HRIS</p>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isAdmin ? 'bg-primary text-slate-950' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-white/10'}`}>
-                        {isAdmin ? 'Mode: Administrator' : 'Mode: Karyawan'}
-                    </span>
-                </div>
+            {/* Role / Mode Indicator */}
+            <div className="flex justify-end -mt-6 mb-4">
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isAdmin ? 'bg-primary text-slate-950' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-white/10'}`}>
+                    {isAdmin ? 'Mode: Administrator' : 'Mode: Karyawan'}
+                </span>
             </div>
 
             {/* My Schedule (Karyawan View) */}

@@ -204,15 +204,8 @@ const Layout: React.FC<LayoutProps> = ({
                                 )}
                             </div>
                             
-                            {/* Tengah: Judul Halaman */}
-                            {!sidebar && (
-                                <div className="flex-1 min-w-0 flex flex-col items-center justify-center text-center px-1">
-                                    <h1 className="text-base md:text-lg font-black tracking-tight truncate font-display leading-tight w-full text-[var(--text-main)]">{title}</h1>
-                                    {subtitle && (
-                                        <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest truncate opacity-80 w-full mt-0.5">{subtitle}</p>
-                                    )}
-                                </div>
-                            )}
+                            {/* Tengah: Kosong atau Navigasi Tambahan */}
+                            <div className="flex-1 min-w-0"></div>
 
                             {/* Kanan: Header Extras & Theme Toggle */}
                             <div className="flex items-center gap-2 md:gap-4 shrink-0 flex-1 justify-end">
@@ -229,8 +222,13 @@ const Layout: React.FC<LayoutProps> = ({
                     </header>
 
                     {/* Content Area */}
-                    <main className="flex-1 px-6 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
+                    <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {/* Page Header (New Location) */}
+                            <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
+                                <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
+                                <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                            </div>
                             {children}
                         </div>
                     </main>

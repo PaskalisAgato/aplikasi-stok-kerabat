@@ -155,6 +155,7 @@ function App() {
     <Layout
       currentPort={5174}
       title="Inventori"
+      subtitle="Ketersediaan Bahan Baku"
       sidebar={InventorySidebar}
       headerExtras={InventoryHeaderExtras}
       footer={MobileFooter}
@@ -186,13 +187,9 @@ function App() {
             ))}
         </div>
 
-        <div className="flex items-center justify-between mb-10 px-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <div className="space-y-1">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Daftar Bahan</h2>
-            <p className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Ketersediaan Barang</p>
-            </div>
+        <div className="flex items-center justify-end mb-10 px-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
             <div className="glass px-5 py-2 rounded-2xl border-white/5 shadow-inner">
-            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-80">{filteredInventory.length} ITEM AKTIF</p>
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-80">{filteredInventory.length} ITEM AKTIF</p>
             </div>
         </div>
 

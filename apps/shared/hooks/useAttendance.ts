@@ -51,14 +51,23 @@ export function useAttendance(filters: any = {}) {
         },
     });
 
+    const deleteByRangeMutation = useMutation({
+        mutationFn: (data: { startDate: string; endDate: string }) => 
+            apiClient.deleteAttendanceByRange(data.startDate, data.endDate),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['attendance'] });
+        },
+    });
+
     return {
         todayAttendance: todayQuery.data || null,
         history: historyQuery.data ?? [],
         isLoading: todayQuery.isLoading || historyQuery.isLoading,
-        isActionLoading: checkInMutation.isPending || checkOutMutation.isPending,
+        isActionLoading: checkInMutation.isPending || checkOutMutation.isPending || deleteByRangeMutation.isPending,
         error: todayQuery.error || historyQuery.error,
         checkIn: checkInMutation.mutateAsync,
         checkOut: checkOutMutation.mutateAsync,
         deleteRecord: deleteMutation.mutateAsync,
+        deleteByRange: deleteByRangeMutation.mutateAsync,
     };
 }

@@ -178,6 +178,40 @@ export class AttendanceService {
             .returning();
     }
 
+    static async deleteByRange(startDate: string, endDate: string) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        // 1. Find all records in range to clean up photos
+        const records = await db.select()
+            .from(schema.attendance)
+            .where(between(schema.attendance.date, start, end));
+
+        let deletedFiles = 0;
+        for (const record of records) {
+            const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean) as string[];
+            for (const photo of photos) {
+                const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                if (fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                        deletedFiles++;
+                    } catch (e) {
+                        console.error(`Failed to delete file ${photo}:`, e);
+                    }
+                }
+            }
+        }
+
+        // 2. Delete from DB
+        const result = await db.delete(schema.attendance)
+            .where(between(schema.attendance.date, start, end))
+            .returning();
+
+        return { count: result.length, filesDeleted: deletedFiles };
+    }
+
     static async clearPhotoUrl(filename: string) {
         // Find record by photo path
         const photoPath = `attendance/${filename}`;

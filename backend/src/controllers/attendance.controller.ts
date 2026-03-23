@@ -111,4 +111,17 @@ export class AttendanceController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async deleteByRange(req: Request, res: Response) {
+        try {
+            const { startDate, endDate } = req.body;
+            if (!startDate || !endDate) {
+                return res.status(400).json({ error: 'Start date and End date are required' });
+            }
+            const result = await AttendanceService.deleteByRange(startDate, endDate);
+            res.json({ success: true, ...result });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
