@@ -4,12 +4,12 @@ import QueryProvider from '@shared/QueryProvider';
 import { ModernTable } from '@shared/components/ModernTable';
 import { useAttendance } from '@shared/hooks/useAttendance';
 import { useSession } from '@shared/authClient';
-import { API_BASE_URL } from '@shared/apiClient';
+import { apiClient } from '@shared/apiClient';
+import toast, { Toaster } from 'react-hot-toast';
 
 function AttendanceHistoryPage() {
     const { data: session } = useSession();
     const isAdmin = session?.user?.role === 'Admin';
-    const VIEW_ONCE_BASE = `${API_BASE_URL}/attendance/view-once/`;
     
     const [filters, setFilters] = useState({
         startDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
@@ -18,6 +18,24 @@ function AttendanceHistoryPage() {
     });
 
     const { history, isLoading, deleteRecord } = useAttendance(filters);
+    const [viewingPhoto, setViewingPhoto] = useState<{ url: string; label: string } | null>(null);
+    const [isFetchingPhoto, setIsFetchingPhoto] = useState(false);
+
+    const handleViewPhoto = async (photoPath: string, label: string) => {
+        const filename = photoPath.split('/').pop();
+        if (!filename) return;
+
+        setIsFetchingPhoto(true);
+        try {
+            const blob = await apiClient.getAttendancePhoto(filename);
+            const url = URL.createObjectURL(blob);
+            setViewingPhoto({ url, label });
+        } catch (error: any) {
+            toast.error(error.message || 'Gagal mengambil foto. Mungkin sudah terhapus.');
+        } finally {
+            setIsFetchingPhoto(false);
+        }
+    };
 
     const handleDelete = async (id: string | number) => {
         if (!window.confirm('Apakah Anda yakin ingin menghapus riwayat absen ini? Tindakan ini tidak dapat dibatalkan.')) return;
@@ -50,23 +68,23 @@ function AttendanceHistoryPage() {
             render: (a: any) => (
                 <div className="flex gap-2">
                     {a.checkInPhoto ? (
-                        <a href={`${VIEW_ONCE_BASE}${a.checkInPhoto.split('/').pop()}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
-                            <img src={`${VIEW_ONCE_BASE}${a.checkInPhoto.split('/').pop()}`} alt="In" className="size-8 object-cover" />
-                        </a>
-                    ) : (
-                        <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[10px] opacity-20">image_not_supported</span>
-                        </div>
-                    )}
+                        <button
+                            onClick={() => handleViewPhoto(a.checkInPhoto, `Masuk: ${a.userName}`)}
+                            disabled={isFetchingPhoto}
+                            className="px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 rounded-full text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50"
+                        >
+                            {isFetchingPhoto ? '...' : 'Masuk'}
+                        </button>
+                    ) : null}
                     {a.checkOutPhoto ? (
-                        <a href={`${VIEW_ONCE_BASE}${a.checkOutPhoto.split('/').pop()}`} target="_blank" rel="noreferrer" className="size-8 rounded-lg overflow-hidden border border-white/10 hover:border-primary transition-all">
-                            <img src={`${VIEW_ONCE_BASE}${a.checkOutPhoto.split('/').pop()}`} alt="Out" className="size-8 object-cover" />
-                        </a>
-                    ) : (
-                        <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[10px] opacity-20">image_not_supported</span>
-                        </div>
-                    )}
+                        <button 
+                            onClick={() => handleViewPhoto(a.checkOutPhoto, `Pulang: ${a.userName}`)}
+                            disabled={isFetchingPhoto}
+                            className="px-3 py-1 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-full text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50"
+                        >
+                            {isFetchingPhoto ? '...' : 'Pulang'}
+                        </button>
+                    ) : null}
                 </div>
             )
         },
@@ -104,6 +122,7 @@ function AttendanceHistoryPage() {
             title="Riwayat Absen"
             subtitle="Monitoring Kehadiran"
         >
+            <Toaster position="top-center" />
             <div className="space-y-6">
                 {/* Filters */}
                 <div className="glass rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-center border-white/5 shadow-lg">
@@ -153,6 +172,53 @@ function AttendanceHistoryPage() {
                     emptyMessage="Tidak ada riwayat absen untuk periode ini"
                 />
             </div>
+            {/* Photo Viewing Modal */}
+            {viewingPhoto && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="relative glass p-6 rounded-[3rem] max-w-lg w-full space-y-6 shadow-2xl border border-white/10 zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Bukti Absensi</p>
+                                <h3 className="text-xl font-black">{viewingPhoto.label}</h3>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    URL.revokeObjectURL(viewingPhoto.url);
+                                    setViewingPhoto(null);
+                                }}
+                                className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
+                            >
+                                <span className="material-symbols-outlined text-sm group-hover:scale-110">close</span>
+                            </button>
+                        </div>
+
+                        <div className="aspect-[4/3] w-full rounded-[2rem] overflow-hidden bg-black/40 border border-white/5">
+                            <img 
+                                src={viewingPhoto.url} 
+                                alt="Attendance Proof" 
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex gap-4">
+                            <span className="material-symbols-outlined text-amber-500">warning</span>
+                            <p className="text-[10px] font-bold text-amber-200/80 leading-relaxed uppercase tracking-widest">
+                                Foto ini adalah sekali lihat. Jika Anda menutup modal ini, file asli akan terhapus dari server untuk keamanan.
+                            </p>
+                        </div>
+
+                        <button 
+                            onClick={() => {
+                                URL.revokeObjectURL(viewingPhoto.url);
+                                setViewingPhoto(null);
+                            }}
+                            className="w-full py-4 bg-primary text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        >
+                            Tutup & Konfirmasi Selesai
+                        </button>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 }

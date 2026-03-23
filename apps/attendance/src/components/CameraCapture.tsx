@@ -72,23 +72,28 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ cla
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            const padding = 20;
-            const fontSize = 24;
+            const padding = 24;
+            const fontSize = 32;
+            const lineHeight = fontSize + 10;
+            
+            // Draw Background Box for contrast
+            const boxWidth = Math.max(
+                context.measureText(timestamp).width,
+                userName ? context.measureText(`USER: ${userName.toUpperCase()}`).width : 0
+            ) + (padding * 2);
+            const boxHeight = (userName ? 2 : 1) * lineHeight + padding;
+
+            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            context.fillRect(0, canvas.height - boxHeight, boxWidth, boxHeight);
+
             context.font = `bold ${fontSize}px sans-serif`;
-            
-            // Text Shadow/Outline for visibility
-            context.strokeStyle = 'black';
-            context.lineWidth = 4;
-            context.strokeText(timestamp, padding, canvas.height - padding);
-            
             context.fillStyle = 'white';
             context.fillText(timestamp, padding, canvas.height - padding);
 
             if (userName) {
                 const nameLabel = `USER: ${userName.toUpperCase()}`;
                 context.font = `bold ${fontSize - 4}px sans-serif`;
-                context.strokeText(nameLabel, padding, canvas.height - padding - fontSize - 10);
-                context.fillText(nameLabel, padding, canvas.height - padding - fontSize - 10);
+                context.fillText(nameLabel, padding, canvas.height - padding - lineHeight);
             }
 
             // Convert to Blob

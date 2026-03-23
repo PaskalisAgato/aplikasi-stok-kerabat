@@ -186,6 +186,7 @@ export const apiClient = {
         return apiFetch<any[]>(`/attendance/history?${query}`);
     },
     deleteAttendance: (id: string | number) => apiFetch<any>(`/attendance/${id}`, { method: 'DELETE' }),
+    getAttendancePhoto: (filename: string) => apiFetch<Blob>(`/attendance/view-once/${filename}`, { method: 'GET' }, true),
 };
 
 
