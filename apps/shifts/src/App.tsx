@@ -5,6 +5,7 @@ import { ModernTable } from '@shared/components/ModernTable';
 import { useShifts } from '@shared/hooks/useShifts';
 import { useEmployees } from '@shared/hooks/useEmployees';
 import { useSession } from '@shared/authClient';
+import ShiftTemplate from './components/ShiftTemplate';
 
 function ShiftPage() {
     const { data: session } = useSession();
@@ -14,6 +15,7 @@ function ShiftPage() {
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<any>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'template'>('list');
 
     // Form state
     const [formData, setFormData] = useState({
@@ -88,23 +90,45 @@ function ShiftPage() {
             currentPort={5188}
             title="Manajemen Shift"
             subtitle="Penjadwalan Karyawan"
-            headerExtras={isAdmin && (
-                <button 
-                    onClick={() => handleOpenModal()}
-                    className="btn-primary py-2 px-4 text-xs flex items-center gap-2"
-                >
-                    <span className="material-symbols-outlined text-sm">add</span>
-                    TAMBAH SHIFT
-                </button>
+            headerExtras={(
+                <div className="flex items-center gap-4">
+                    <div className="flex glass p-1 rounded-xl border-white/5">
+                        <button 
+                            onClick={() => setViewMode('list')}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === 'list' ? 'bg-primary text-slate-950 shadow-lg' : 'text-[var(--text-muted)] hover:text-primary'}`}
+                        >
+                            Daftar
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('template')}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === 'template' ? 'bg-primary text-slate-950 shadow-lg' : 'text-[var(--text-muted)] hover:text-primary'}`}
+                        >
+                            Template
+                        </button>
+                    </div>
+                    {isAdmin && viewMode === 'list' && (
+                        <button 
+                            onClick={() => handleOpenModal()}
+                            className="btn-primary py-2 px-4 text-xs flex items-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-sm">add</span>
+                            TAMBAH SHIFT
+                        </button>
+                    )}
+                </div>
             )}
         >
             <div className="space-y-6">
-                <ModernTable 
-                    columns={columns} 
-                    data={displayShifts} 
-                    isLoading={isLoading} 
-                    emptyMessage="Belum ada shift yang dijadwalkan"
-                />
+                {viewMode === 'list' ? (
+                    <ModernTable 
+                        columns={columns} 
+                        data={displayShifts} 
+                        isLoading={isLoading} 
+                        emptyMessage="Belum ada shift yang dijadwalkan"
+                    />
+                ) : (
+                    <ShiftTemplate />
+                )}
             </div>
 
             {/* Modal */}
