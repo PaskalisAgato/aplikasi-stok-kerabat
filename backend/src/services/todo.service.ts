@@ -1,33 +1,73 @@
 import { db } from '../db/index.js';
-import { todos, users } from '../db/schema.js';
-import { eq, and, or, isNull, desc } from 'drizzle-orm';
+import { todos, users, todoCompletions } from '../db/schema.js';
+import { eq, and, or, isNull, desc, gte, sql } from 'drizzle-orm';
 
 export class TodoService {
     static async getAllTodos(role?: string, userId?: string) {
-        if (role === 'Admin') {
-            return await db.query.todos.findMany({
-                orderBy: [desc(todos.createdAt)]
-            });
-        }
+        // Get Jakarta time (UTC+7) start of day
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        // For Employees: Show pending tasks or tasks assigned to them
-        return await db.query.todos.findMany({
-            where: and(
-                eq(todos.status, 'Pending'),
-                or(
-                    isNull(todos.assignedTo),
-                    eq(todos.assignedTo, userId || '')
-                )
+        // Fetch all relevant todos
+        const allTodos = await db.query.todos.findMany({
+            where: role === 'Admin' ? undefined : or(
+                isNull(todos.assignedTo),
+                eq(todos.assignedTo, userId || '')
             ),
             orderBy: [desc(todos.createdAt)]
+        });
+
+        // Fetch today's completions
+        const completions = await db.query.todoCompletions.findMany({
+            where: gte(todoCompletions.completionTime, startOfDay),
+        });
+
+        const completionMap = new Map(completions.map(c => [c.todoId, c]));
+
+        // Merge logic
+        return allTodos.map(todo => {
+            const completion = completionMap.get(todo.id);
+            if (todo.isRecurring) {
+                return {
+                    ...todo,
+                    status: completion ? 'Completed' : 'Pending',
+                    photoProof: completion?.photoProof || null,
+                    completionTime: completion?.completionTime || null,
+                    completedBy: completion?.completedBy || null
+                };
+            }
+            return todo;
         });
     }
 
     static async getHistory() {
-        return await db.query.todos.findMany({
-            where: eq(todos.status, 'Completed'),
+        // For history, we want all non-recurring completed tasks 
+        // PLUS all entries from todoCompletions (for recurring tasks)
+        const onceOffCompleted = await db.query.todos.findMany({
+            where: and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)),
             orderBy: [desc(todos.completionTime)]
         });
+
+        const recurringCompletions = await db.query.todoCompletions.findMany({
+            with: {
+                todo: true
+            },
+            orderBy: [desc(todoCompletions.completionTime)]
+        });
+
+        // Map recurring completions to task-like objects
+        const recurringHistory = recurringCompletions.map(c => ({
+            ...(c.todo as any),
+            status: 'Completed',
+            photoProof: c.photoProof,
+            completionTime: c.completionTime,
+            completedBy: c.completedBy,
+            id: c.todoId // Use original todo ID for UI consistency
+        }));
+
+        return [...onceOffCompleted, ...recurringHistory].sort((a, b) => 
+            new Date(b.completionTime!).getTime() - new Date(a.completionTime!).getTime()
+        );
     }
 
     static async createTodo(data: any) {
@@ -47,16 +87,41 @@ export class TodoService {
     }
 
     static async completeTodo(id: number, userId: string, photoProof: string) {
-        const [completedTodo] = await db.update(todos)
-            .set({
-                status: 'Completed',
-                photoProof,
+        const todo = await db.query.todos.findFirst({ where: eq(todos.id, id) });
+        if (!todo) throw new Error('Task not found');
+
+        if (todo.isRecurring) {
+            // Check if already completed today
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const existing = await db.query.todoCompletions.findFirst({
+                where: and(
+                    eq(todoCompletions.todoId, id),
+                    gte(todoCompletions.completionTime, startOfDay)
+                )
+            });
+
+            if (existing) return existing;
+
+            const [completion] = await db.insert(todoCompletions).values({
+                todoId: id,
                 completedBy: userId,
+                photoProof,
                 completionTime: new Date()
-            })
-            .where(eq(todos.id, id))
-            .returning();
-        return completedTodo;
+            }).returning();
+            return completion;
+        } else {
+            const [completedTodo] = await db.update(todos)
+                .set({
+                    status: 'Completed',
+                    photoProof,
+                    completedBy: userId,
+                    completionTime: new Date()
+                })
+                .where(eq(todos.id, id))
+                .returning();
+            return completedTodo;
+        }
     }
 
     static async deleteTodo(id: number) {
@@ -67,8 +132,12 @@ export class TodoService {
     }
 
     static async clearHistory() {
-        return await db.delete(todos)
-            .where(eq(todos.status, 'Completed'))
-            .returning();
+        // Clear non-recurring history
+        await db.update(todos)
+            .set({ status: 'Pending', photoProof: null, completionTime: null, completedBy: null })
+            .where(eq(todos.status, 'Completed'));
+
+        // Clear recurring history
+        return await db.delete(todoCompletions).returning();
     }
 }

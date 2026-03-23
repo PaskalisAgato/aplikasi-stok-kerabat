@@ -37,7 +37,18 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                          }`}>
                              {task.category}
                          </span>
-                         {isCompleted && (
+                          {task.isRecurring && (
+                             <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center gap-1">
+                                 <span className="material-symbols-outlined text-[10px] font-black">autorenew</span>
+                                 Rutin
+                             </span>
+                          )}
+                          {!isCompleted && !task.isRecurring && (
+                             <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-500">
+                                 Sekali Saja
+                             </span>
+                          )}
+                          {isCompleted && (
                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 flex items-center gap-1">
                                  <span className="material-symbols-outlined text-[10px] font-black">check_circle</span>
                                  Selesai

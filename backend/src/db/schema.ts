@@ -273,5 +273,33 @@ export const todos = pgTable('todos', {
     completionTime: timestamp('completion_time'),
     completedBy: text('completed_by').references(() => users.id),
     createdBy: text('created_by').notNull().references(() => users.id),
+    isRecurring: boolean('is_recurring').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+export const todoCompletions = pgTable('todo_completions', {
+    id: serial('id').primaryKey(),
+    todoId: integer('todo_id').notNull().references(() => todos.id, { onDelete: 'cascade' }),
+    completedBy: text('completed_by').notNull().references(() => users.id),
+    photoProof: text('photo_proof'),
+    completionTime: timestamp('completion_time').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    todoIdx: index('todo_completions_todo_idx').on(t.todoId),
+    userIdx: index('todo_completions_user_idx').on(t.completedBy)
+}));
+
+export const todosRelations = relations(todos, ({ many }) => ({
+    completions: many(todoCompletions)
+}));
+
+export const todoCompletionsRelations = relations(todoCompletions, ({ one }) => ({
+    todo: one(todos, {
+        fields: [todoCompletions.todoId],
+        references: [todos.id]
+    }),
+    user: one(users, {
+        fields: [todoCompletions.completedBy],
+        references: [users.id]
+    })
+}));
