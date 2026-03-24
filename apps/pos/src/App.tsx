@@ -10,6 +10,7 @@ function App() {
     const [searchTerm, setSearchTerm] = useState('');
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
 
     const fetchRecipes = async () => {
@@ -76,11 +77,14 @@ function App() {
             </div>
 
             <button
+                disabled={totalItems === 0 || isCheckingOut}
                 onClick={async () => {
-                    if (totalItems === 0) return;
+                    if (totalItems === 0 || isCheckingOut) return;
                     try {
                         const confirmPos = confirm(`Selesaikan pesanan senilai Rp ${totalSalesValue.toLocaleString('id-ID')} dengan pembayaran ${paymentMethod === 'CASH' ? 'Tunai' : paymentMethod}?`);
                         if (!confirmPos) return;
+
+                        setIsCheckingOut(true);
 
                         const checkoutData = {
                             items: Object.entries(sales).map(([id, qty]) => {
@@ -106,13 +110,19 @@ function App() {
                     } catch (e: any) {
                         console.error('Checkout error:', e);
                         alert(`Gagal: ${e.message || 'Transaksi tidak dapat diproses.'}`);
+                    } finally {
+                        setIsCheckingOut(false);
                     }
                 }}
                 className={`w-full py-6 rounded-[2rem] font-black text-xl tracking-[0.1em] shadow-2xl transition-all active:scale-[0.97] flex items-center justify-center gap-4 uppercase font-display
-       ${totalItems > 0 ? 'accent-gradient text-slate-950 shadow-primary/40' : 'bg-slate-800 text-slate-500 opacity-50 cursor-not-allowed shadow-none'}`}
+       ${totalItems > 0 && !isCheckingOut ? 'accent-gradient text-slate-950 shadow-primary/40' : 'bg-slate-800 text-slate-500 opacity-50 cursor-not-allowed shadow-none'}`}
             >
-                <span className="material-symbols-outlined text-2xl md:text-3xl font-black">check_circle</span>
-                SELESAIKAN PESANAN
+                {isCheckingOut ? (
+                    <span className="material-symbols-outlined text-2xl md:text-3xl font-black animate-spin">refresh</span>
+                ) : (
+                    <span className="material-symbols-outlined text-2xl md:text-3xl font-black">check_circle</span>
+                )}
+                {isCheckingOut ? 'MEMPROSES...' : 'SELESAIKAN PESANAN'}
             </button>
         </footer>
     );
