@@ -4,12 +4,10 @@ import SalesChart from './components/SalesChart';
 import CriticalStock from './components/CriticalStock';
 import SystemHealth from './components/SystemHealth';
 import MaintenanceTools from './components/MaintenanceTools';
-import NotificationModal from './components/NotificationModal';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
 function App() {
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [reports, setReports] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [health, setHealth] = useState(null);
@@ -36,23 +34,10 @@ function App() {
     fetchData();
   }, []);
 
-  const DashboardHeaderExtras = (
-    <button 
-        onClick={() => setIsNotifOpen(true)} 
-        className="size-12 glass flex items-center justify-center text-primary group transition-all hover:bg-primary/10 rounded-2xl shrink-0 active:scale-90"
-    >
-        <div className="relative">
-            <span className="material-symbols-outlined font-bold group-hover:scale-110 transition-transform">notifications</span>
-            <span className="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[var(--bg-surface)] animate-bounce"></span>
-        </div>
-    </button>
-  );
-
   return (
     <Layout
         currentPort={5173}
         title="Dasbor"
-        headerExtras={DashboardHeaderExtras}
     >
         {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-8 animate-in fade-in zoom-in duration-700">
@@ -80,7 +65,6 @@ function App() {
                 </div>
             </div>
         )}
-        <NotificationModal isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </Layout>
   );
 }
