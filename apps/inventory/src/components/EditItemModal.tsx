@@ -16,6 +16,13 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [imageBase64, setImageBase64] = useState('');
     const [currentStock, setCurrentStock] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isConfirmDelete, setIsConfirmDelete] = useState(false);
+
+    // Image Picker State
+    const [imageMenuOpen, setImageMenuOpen] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (isOpen && item) {
