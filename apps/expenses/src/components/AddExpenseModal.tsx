@@ -77,44 +77,14 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
         if (!name || !amount) return;
 
         setIsUploading(true);
+        // We use the 'receipt' state directly now because it contains either 
+        // the placeholder, the existing URL, or the new base64 compressed data.
         let finalReceiptUrl = receipt || '';
 
         try {
-            // 1. If there's a new file, upload to Supabase Storage
-            if (selectedFile) {
-                const fileExt = selectedFile.name.split('.').pop();
-                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                const filePath = `receipts/${fileName}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('expenses')
-                    .upload(filePath, selectedFile, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (uploadError) {
-                    console.error('Supabase upload error:', uploadError);
-                    let userMessage = uploadError.message;
-                    
-                    // Specific handling for bucket errors
-                    if (uploadError.message.includes('bucket_not_found') || 
-                        uploadError.message.toLowerCase().includes('bucket not found')) {
-                        userMessage = 'Bucket "expenses" tidak ditemukan di Supabase. Silakan buat bucket "expenses" di dashboard Supabase dan pastikan statusnya "Public".';
-                    } else if (uploadError.message.includes('Permission denied') || uploadError.status === 403) {
-                        userMessage = 'Izin upload ditolak. Pastikan kebijakan storage (RLS) untuk bucket "expenses" sudah diatur ke "Allow all" atau sesuai kebutuhan.';
-                    }
-                    
-                    throw new Error(userMessage);
-                }
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('expenses')
-                    .getPublicUrl(filePath);
-                
-                finalReceiptUrl = publicUrl;
-            }
-
+            // NOTE: We no longer upload to Supabase Storage to avoid 'exceed_egress_quota' errors.
+            // Images are now stored as compressed base64 strings directly in the database.
+            
             // 2. Add or Update Expense in database
             const expensePayload = {
                 title: name,
