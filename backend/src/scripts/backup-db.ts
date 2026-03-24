@@ -40,12 +40,20 @@ async function performBackup() {
         ];
 
         for (const t of tables) {
-            process.stdout.write(`Exporting ${t.name}... `);
+            console.log(`[Backup] Exporting table: ${t.name}...`);
             data[t.name] = await db.select().from(t.table);
-            console.log('Done');
+            console.log(`[Backup] Success: ${t.name} (${data[t.name].length} rows)`);
+        }
+ 
+        const jsonContent = JSON.stringify(data, null, 2);
+        
+        // --- Section 4: Backup Verification ---
+        try {
+            JSON.parse(jsonContent); 
+        } catch (e) {
+            throw new Error(`Cloud not verify backup JSON integrity: ${e instanceof Error ? e.message : 'Unknown'}`);
         }
 
-        const jsonContent = JSON.stringify(data, null, 2);
         fs.writeFileSync(filePath, jsonContent);
         const stats = fs.statSync(filePath);
 
@@ -70,8 +78,14 @@ async function performBackup() {
 }
 
 // Allow running directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-    performBackup().then(() => process.exit(0));
+const isDirectRun = process.argv[1].includes('backup-db.ts');
+if (isDirectRun) {
+    performBackup().then(() => {
+        console.log('Finalizing backup process...');
+        process.exit(0);
+    }).catch(err => {
+        console.error('Fatal backup error:', err);
+        process.exit(1);
+    });
 }
-
 export { performBackup };

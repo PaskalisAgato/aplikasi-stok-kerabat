@@ -1,5 +1,9 @@
 import 'dotenv/config';
 import app from './app.js';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import { rateLimit } from 'express-rate-limit';
+import { db } from './db/index.js';
 
 const PORT = Number(process.env.PORT) || 5000;
 

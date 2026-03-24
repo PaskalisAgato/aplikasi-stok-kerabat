@@ -1,7 +1,9 @@
 // backend/src/app.ts - v1.0.2 (final sync)
+import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { rateLimit } from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
 
@@ -18,13 +20,31 @@ import { todoRoutes } from './routes/todo.routes.js';
 import { adminRouter } from './routes/admin.js';
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
+import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
 import { UserService } from './services/user.service.js';
-import { UserController } from './controllers/user.controller.js';
+const UserController = (await import('./controllers/user.controller.js')).UserController;
+
+// 1. Rate Limiting (Anti-Spam / Anti-Egress Abuse)
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: {
+        success: false,
+        message: 'Terlalu banyak permintaan dari IP ini. Mohon tunggu sebentar.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 const app = express();
 
 // 1. Enterprise Monitoring & Guardrails
+app.use(limiter);
 app.use(monitorMiddleware);
+app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
+
+// 2. Background Tasks (Phase 3)
+setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
 
 // 1. Global Middlewares
 app.use(cors({
@@ -35,8 +55,8 @@ app.use(cors({
     exposedHeaders: ['Set-Cookie']
 }));
 
-app.use(express.json({ limit: '20mb' }));
-
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
@@ -51,10 +71,13 @@ app.get('/api/health', async (req: Request, res: Response) => {
         dbStatus = `error: ${e.message}`;
     }
     res.status(200).json({ 
-        status: 'ok', 
-        message: 'Kerabat Modular Backend v1.0.0 is running',
-        database: dbStatus,
-        time: new Date().toISOString()
+        success: true,
+        data: {
+            status: 'ok', 
+            message: 'Kerabat Modular Backend v1.1.0 is running (Enterprise Hardened)',
+            database: dbStatus,
+            time: new Date().toISOString()
+        }
     });
 });
 
@@ -153,9 +176,12 @@ app.all(/^\/api\/auth\/.*/, (req: Request, res: Response) => {
 app.use('/api', (req: Request, res: Response) => {
     console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
-        error: "Route Not Found",
-        path: req.originalUrl,
-        method: req.method
+        success: false,
+        message: "Route Not Found",
+        data: {
+            path: req.originalUrl,
+            method: req.method
+        }
     });
 });
 

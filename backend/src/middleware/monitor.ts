@@ -2,6 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { db } from '../db/index.js';
 import { systemLogs } from '../db/schema.js';
 
+// Phase 3: Global System Health State
+let recentRequests: boolean[] = []; // true = OK, false = Error
+let safeModeUntil = 0;
+const SAFE_MODE_WINDOW = 50;
+const ERROR_SPIKE_THRESHOLD = 0.2; // 20%
+const SAFE_MODE_DURATION = 60_000;
+
 /**
  * Enterprise Monitoring Middleware
  * Tracks: Response Time, Payload Size, Errors, and Usage
@@ -13,10 +20,16 @@ export const monitorMiddleware = async (req: Request, res: Response, next: NextF
     const contentLength = parseInt(req.get('content-length') || '0');
     if (contentLength > 1024 * 1024) { // 1MB
         console.warn(`[Enterprise Guardrail] Rejected large payload (${contentLength} bytes) from ${req.ip} for ${req.path}`);
-        return res.status(413).json({ 
-            success: false, 
-            message: "Ukuran data terlalu besar (maksimal 1MB). Mohon kurangi ukuran data/gambar." 
+        return res.status(413).json({
+            success: false,
+            message: "Ukuran data terlalu besar (maksimal 1MB). Mohon kurangi ukuran data/gambar."
         });
+    }
+
+    // 2. Safe Mode Header (Phase 3)
+    const isSafeMode = Date.now() < safeModeUntil;
+    if (isSafeMode) {
+        res.setHeader('X-System-Safe-Mode', 'active');
     }
 
     // Capture original end/send to calculate outbound size
@@ -36,16 +49,34 @@ export const monitorMiddleware = async (req: Request, res: Response, next: NextF
     res.on('finish', async () => {
         const duration = Date.now() - start;
         const statusCode = res.statusCode;
+        const isError = statusCode >= 400;
+
+        // Update Global Health (Phase 3)
+        recentRequests.push(!isError);
+        if (recentRequests.length > SAFE_MODE_WINDOW) recentRequests.shift();
+
+        if (recentRequests.length >= 20) { // Need at least 20 samples to spike
+            const errorCount = recentRequests.filter(ok => !ok).length;
+            const errorRate = errorCount / recentRequests.length;
+
+            if (errorRate > ERROR_SPIKE_THRESHOLD && !isSafeMode) {
+                console.error(`[ALERT] ERROR SPIKE DETECTED (${(errorRate*100).toFixed(0)}%). Activating Safe Mode.`);
+                safeModeUntil = Date.now() + SAFE_MODE_DURATION;
+            }
+        }
 
         // Log if it's a slow request (>1s), a large response (>200KB), or an error (>=400)
         // Or just log a sample of healthy requests (e.g. 10%) to keep DB size manageable
-        const isSignificant = duration > 1000 || outboundSize > 200 * 1024 || statusCode >= 400;
-        
-        // Proactive warning for large egress payloads
+        const isSignificant = duration > 1000 || outboundSize > 200 * 1024 || isError;
+
+        // Proactive alerts for performance bottlenecks
         if (outboundSize > 200 * 1024) {
-            console.warn(`[Bandwidth Warning] Large outbound payload (${(outboundSize/1024).toFixed(2)} KB) for ${req.method} ${req.path}`);
+            console.warn(`[Bandwidth Alert] Large payload (${(outboundSize/1024).toFixed(2)} KB) for ${req.method} ${req.path}`);
         }
-        
+        if (duration > 1000) {
+            console.warn(`[Latency Alert] Slow request (${duration}ms) for ${req.method} ${req.path}`);
+        }
+
         const shouldSample = Math.random() < 0.1;
 
         if (isSignificant || shouldSample) {
@@ -58,8 +89,9 @@ export const monitorMiddleware = async (req: Request, res: Response, next: NextF
                     payloadSize: outboundSize,
                     statusCode: statusCode,
                     userId: user?.id || null,
-                    errorDetails: statusCode >= 400 ? 'Error reported by status code' : null
-                });
+                    errorDetails: isError ? `Status ${statusCode} - Significant: ${isSignificant}` : null,
+                    level: isError || duration > 3000 ? 'ERROR' : (isSignificant ? 'WARNING' : 'INFO')
+                } as any);
             } catch (err) {
                 console.error('[Monitoring] Failed to write log to DB:', err);
             }

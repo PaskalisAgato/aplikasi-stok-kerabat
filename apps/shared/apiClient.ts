@@ -59,10 +59,34 @@ export function safeJsonParse<T>(text: string, fallback: T): T {
     }
 }
 
-// ── Base fetch helper ──────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 60_000;
-const MAX_RETRIES = 1;
+// ── Resilience Config ────────────────────────────────────────────────────────
+const FETCH_TIMEOUT_MS = 5_000; // 5 seconds as per Enterprise Section 4
+const MAX_RETRIES = 1;         // 1 retry as per Enterprise Section 4
+const CACHE_TTL_MS = 30_000;   // 30 seconds as per Enterprise Section 6
 
+// Simple In-Memory Cache for GET requests
+const getCache = new Map<string, { data: any; timestamp: number }>();
+
+// ── Circuit Breaker State (Phase 3) ──────────────────────────────────────────
+let failureWindow: boolean[] = []; // true = success, false = fail
+let circuitTrippedUntil = 0;
+const BREAKER_WINDOW = 10;
+const BREAKER_THRESHOLD = 5; // 50%
+const COOLDOWN_MS = 30_000;
+
+function updateBreaker(success: boolean) {
+    failureWindow.push(success);
+    if (failureWindow.length > BREAKER_WINDOW) failureWindow.shift();
+    
+    if (failureWindow.length >= BREAKER_WINDOW) {
+        const failCount = failureWindow.filter(s => !s).length;
+        if (failCount >= BREAKER_THRESHOLD) {
+            console.error(`[Circuit Breaker] Tripped! Cooldown for ${COOLDOWN_MS/1000}s`);
+            circuitTrippedUntil = Date.now() + COOLDOWN_MS;
+        }
+    }
+}
+ 
 /**
  * `apiFetch` wraps native fetch with:
  *  - Automatic base URL prefixing
@@ -78,13 +102,32 @@ export async function apiFetch<T = unknown>(
     retries = MAX_RETRIES
 ): Promise<T> {
     const url = `${API_BASE_URL}${path}`;
+    const method = init.method || 'GET';
+
+    // 0. Circuit Breaker Check (Phase 3)
+    if (Date.now() < circuitTrippedUntil) {
+        // Fallback for GET: Try cache if offline
+        if (method === 'GET' && getCache.has(url)) {
+            console.warn(`[Failover] Circuit tripped. Serving cached data for ${path}`);
+            return getCache.get(url)!.data as T;
+        }
+        throw new ApiError(503, 'Service Busy', 'Sistem sedang sibuk karena beban tinggi (Circuit Breaker aktif). Silakan coba lagi dalam 30 detik.');
+    }
+
+    // 1. Caching (Section 6)
+    if (method === 'GET' && !asBlob) {
+        const cached = getCache.get(url);
+        if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+            return cached.data as T;
+        }
+    }
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('kerabat_auth_token') : null;
 
-    const isFormData = init.body instanceof FormData;
     const headers: HeadersInit = {
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        'X-Idempotency-Key': (init as any).idempotencyKey || `req_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`,
         ...(init.headers ?? {}),
     };
 
@@ -100,46 +143,65 @@ export async function apiFetch<T = unknown>(
         });
 
         clearTimeout(timeoutId);
+        updateBreaker(true);
 
-        if (asBlob) {
-            return (await response.blob()) as unknown as T;
+        // 2. Cache Invalidation (Phase 3)
+        if (method !== 'GET' && response.ok) {
+            console.log(`[Cache] Mutation detected on ${path}. Invalidating all GET caches.`);
+            getCache.clear(); 
         }
 
-        // Get text first to prevent JSON parse errors on non-json responses (e.g. Render 502/404)
+        if (asBlob) return (await response.blob()) as unknown as T;
         const responseText = response.status === 204 ? '' : await response.text();
 
         if (!response.ok) {
             let message = response.statusText;
             const errorBody = safeJsonParse<any>(responseText, null);
-            if (errorBody) {
-                message = errorBody.error ?? errorBody.message ?? message;
-            }
+            if (errorBody) message = errorBody.message ?? errorBody.error ?? message;
             throw new ApiError(response.status, response.statusText, message);
         }
 
         if (response.status === 204) return undefined as T;
         
-        // Final JSON parse with fallback to empty array to satisfy "data hilang" (user requested this)
-        // But we log it clearly in the console.
-        return safeJsonParse<T>(responseText, [] as unknown as T);
+        const rawData = safeJsonParse<any>(responseText, [] as unknown as T);
+        let finalData = rawData;
+        if (rawData && typeof rawData === 'object' && 'success' in rawData) {
+            if (rawData.success === true) {
+                finalData = rawData.data;
+            } else {
+                throw new ApiError(response.status, response.statusText, rawData.message || 'Operation failed');
+            }
+        }
+
+        if (method === 'GET' && !asBlob) {
+            getCache.set(url, { data: finalData, timestamp: Date.now() });
+        }
+
+        return finalData as T;
 
     } catch (err: any) {
         clearTimeout(timeoutId);
 
-
-        const isNetworkError = !(err instanceof ApiError);
-        if (isNetworkError && retries > 0) {
-            console.warn(`[apiFetch] Koneksi gagal ke ${path}, mencoba ulang...`);
-            await new Promise(r => setTimeout(r, 2000));
-            return apiFetch<T>(path, init, asBlob, retries - 1);
+        // 3. Failover / Read-Only Mode (Phase 3)
+        const isNetworkError = !(err instanceof ApiError) || err.status >= 500;
+        
+        if (isNetworkError) {
+            updateBreaker(false); 
+            // Fallback to cache on network failure
+            if (method === 'GET' && getCache.has(url)) {
+                console.warn(`[Failover] Backend unreachable. Serving STALE cached data for ${path}`);
+                return getCache.get(url)!.data as T;
+            }
         }
 
         if (err.name === 'AbortError') {
-            throw new ApiError(0, 'Timeout', `Koneksi ke server terlalu lama (60s). Server Render mungkin sedang 'Cold Start'. Harap tunggu.`);
+            if (retries > 0) return apiFetch<T>(path, init, asBlob, retries - 1);
+            throw new ApiError(408, 'Request Timeout', 'Koneksi lambat (5s). Periksa internet Anda.');
         }
 
-        if (isNetworkError) {
-             throw new ApiError(0, 'NetworkError', `Gagal terhubung ke Backend: ${err.message || 'Koneksi Ditolak/ISP Memblokir'}. Pastikan rute https://aplikasi-stok-kerabat.onrender.com/api/health bisa dibuka.`);
+        if (!(err instanceof ApiError) && retries > 0) {
+            await new Promise(r => setTimeout(r, 1000));
+            return apiFetch<T>(path, init, asBlob, retries - 1);
         }
 
         throw err;

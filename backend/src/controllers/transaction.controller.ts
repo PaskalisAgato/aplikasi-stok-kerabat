@@ -5,10 +5,10 @@ export class TransactionController {
     static async getAll(req: Request, res: Response) {
         try {
             const transactions = await TransactionService.getAllTransactions();
-            res.json(transactions);
+            res.json({ success: true, data: transactions });
         } catch (error: any) {
             console.error('--- TransactionController.getAll ERROR ---', error);
-            res.status(500).json({ error: 'Failed to fetch transactions', detail: error.message });
+            res.status(500).json({ success: false, message: 'Gagal mengambil data transaksi' });
         }
     }
 
@@ -18,12 +18,12 @@ export class TransactionController {
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
             
             const transaction = await TransactionService.getTransactionById(id);
-            if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+            if (!transaction) return res.status(404).json({ success: false, message: 'Transaksi tidak ditemukan' });
             
-            res.json(transaction);
+            res.json({ success: true, data: transaction });
         } catch (error: any) {
             console.error('--- TransactionController.getById ERROR ---', error);
-            res.status(500).json({ error: 'Failed to fetch transaction', detail: error.message });
+            res.status(500).json({ success: false, message: 'Gagal mengambil detail transaksi' });
         }
     }
 
@@ -39,13 +39,12 @@ export class TransactionController {
             const result = await TransactionService.processCheckout(req.body, userId);
             res.status(201).json({ 
                 success: true, 
-                message: 'Checkout completed successfully',
-                transactionId: result.transactionId 
+                message: 'Transaksi berhasil diselesaikan',
+                data: { transactionId: result.transactionId }
             });
         } catch (error: any) {
-            console.error('--- TransactionController.checkout ERROR ---');
-            console.error(error.message);
-            res.status(500).json({ error: 'Transaction Failed', detail: error.message });
+            console.error('--- TransactionController.checkout ERROR ---', error.message);
+            res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
         }
     }
 
@@ -56,11 +55,10 @@ export class TransactionController {
             
             const adminId = (req as any).user?.id || 'admin';
             await TransactionService.updateTransaction(id, req.body, adminId);
-            
-            res.json({ success: true, message: 'Transaction updated successfully' });
+            res.json({ success: true, message: 'Transaksi berhasil diperbarui' });
         } catch (error: any) {
             console.error('--- TransactionController.update ERROR ---', error);
-            res.status(500).json({ error: 'Failed to update transaction', detail: error.message });
+            res.status(500).json({ success: false, message: 'Gagal memperbarui transaksi: ' + error.message });
         }
     }
 
@@ -71,11 +69,10 @@ export class TransactionController {
             
             const adminId = (req as any).user?.id || 'admin';
             await TransactionService.deleteTransaction(id, adminId);
-            
-            res.json({ success: true, message: 'Transaction deleted successfully' });
+            res.json({ success: true, message: 'Transaksi berhasil dihapus (Soft Delete)' });
         } catch (error: any) {
             console.error('--- TransactionController.delete ERROR ---', error);
-            res.status(500).json({ error: 'Failed to delete transaction', detail: error.message });
+            res.status(500).json({ success: false, message: 'Gagal menghapus transaksi' });
         }
     }
 }

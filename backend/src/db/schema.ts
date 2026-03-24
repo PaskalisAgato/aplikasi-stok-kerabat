@@ -353,6 +353,7 @@ export const systemLogs = pgTable('system_logs', {
     payloadSize: integer('payload_size').notNull(), // in bytes
     statusCode: integer('status_code').notNull(),
     userId: text('user_id'),
+    level: text('level').default('INFO').notNull(), // INFO, WARNING, ERROR
     errorDetails: text('error_details'),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
