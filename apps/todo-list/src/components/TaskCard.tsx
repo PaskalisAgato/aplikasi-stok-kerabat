@@ -93,13 +93,28 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
 
             {/* History Details (Admin/Completed) */}
             {isCompleted && task.photoProof && (
-                <div className="pt-4 border-t border-white/5 flex items-center gap-4">
-                     <div className="size-16 rounded-xl bg-slate-800 overflow-hidden border border-white/10 cursor-pointer hover:scale-110 transition-transform" onClick={() => window.open(task.photoProof, '_blank')}>
-                         <img src={task.photoProof} className="w-full h-full object-cover" alt="Bukti" />
+                <div className="pt-5 border-t border-white/5 space-y-4">
+                     <div 
+                        className="w-full aspect-video rounded-[2rem] bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative" 
+                        onClick={() => window.open(task.photoProof, '_blank')}
+                     >
+                         <img src={task.photoProof} className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" alt="Bukti" />
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-4">
+                             <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
+                                 <span className="material-symbols-outlined text-sm">visibility</span>
+                                 Lihat Foto Full
+                             </span>
+                         </div>
                      </div>
-                     <div className="flex-1 min-w-0 space-y-0.5">
-                         <p className="text-[8px] font-black text-muted uppercase tracking-widest opacity-60 italic">Selesai pada {new Date(task.completionTime).toLocaleString('id-ID')}</p>
-                         <p className="text-[9px] font-black text-main uppercase tracking-tight">Oleh: <span className="text-primary">{task.completedByName || 'Staf'}</span></p>
+                     <div className="flex justify-between items-end">
+                         <div className="space-y-0.5">
+                             <p className="text-[8px] font-black text-muted uppercase tracking-widest opacity-60">Selesai pada</p>
+                             <p className="text-[10px] font-black text-main uppercase tracking-tight">{new Date(task.completionTime).toLocaleString('id-ID')}</p>
+                         </div>
+                         <div className="text-right space-y-0.5">
+                             <p className="text-[8px] font-black text-muted uppercase tracking-widest opacity-60">Oleh</p>
+                             <p className="text-[10px] font-black text-primary uppercase tracking-tight">{task.completedByName || 'Staf'}</p>
+                         </div>
                      </div>
                 </div>
             )}

@@ -37,7 +37,13 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({
             setError(null);
         } catch (err: any) {
             console.error('Camera access error:', err);
-            setError('Gagal mengakses kamera. Pastikan izin kamera diberikan.');
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                setError('Izin Kamera Ditolak. Harap aktifkan izin kamera di pengaturan browser/situs Anda untuk mengambil foto bukti.');
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                setError('Kamera tidak ditemukan di perangkat ini.');
+            } else {
+                setError('Gagal mengakses kamera. Pastikan kamera tidak sedang digunakan aplikasi lain.');
+            }
         }
     };
 
