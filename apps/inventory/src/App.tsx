@@ -22,6 +22,7 @@ function App() {
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [inventoryList, setInventoryList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -29,15 +30,57 @@ function App() {
   const fetchInventory = async () => {
     try {
       setIsLoading(true);
+      setIsError(false);
       const data = await apiClient.getInventory();
-      setInventoryList(data);
+
+      // Guard: ensure we always work with an array, never an object/null
+      if (Array.isArray(data)) {
+        setInventoryList(data);
+      } else {
+        // API returned unexpected shape (e.g. wrapped object or error body)
+        console.error('[Inventory] Unexpected response shape:', data);
+        // Attempt localStorage fallback
+        let cached: any[] = [];
+        try {
+          const raw = localStorage.getItem('inventory');
+          cached = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(cached)) cached = [];
+        } catch {
+          localStorage.removeItem('inventory');
+          cached = [];
+        }
+        setInventoryList(cached);
+        if (cached.length === 0) setIsError(true);
+      }
     } catch (error) {
       console.error('Failed to load inventory', error);
-      alert('Koneksi ke server gagal.');
+      // Try localStorage cache before showing error
+      let cached: any[] = [];
+      try {
+        const raw = localStorage.getItem('inventory');
+        cached = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(cached)) cached = [];
+      } catch {
+        localStorage.removeItem('inventory');
+        cached = [];
+      }
+      setInventoryList(cached);
+      if (cached.length === 0) setIsError(true);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Persist successful inventory data to localStorage as a cache
+  useEffect(() => {
+    if (inventoryList.length > 0) {
+      try {
+        localStorage.setItem('inventory', JSON.stringify(inventoryList));
+      } catch {
+        // Quota exceeded – ignore
+      }
+    }
+  }, [inventoryList]);
 
   useEffect(() => {
     fetchInventory();
@@ -295,8 +338,24 @@ function App() {
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menyelaraskan Stok...</p>
             </div>
         )}
+
+        {!isLoading && isError && filteredInventory.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-32 glass rounded-[3rem] border-dashed border-2 border-red-500/30 m-4 animate-in fade-in zoom-in duration-700">
+                <div className="size-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8">
+                <span className="material-symbols-outlined text-7xl text-red-500 font-black">wifi_off</span>
+                </div>
+                <p className="font-black text-lg uppercase tracking-widest text-red-400">Koneksi Gagal</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 text-[var(--text-muted)]">Tidak dapat memuat data dari server</p>
+                <button
+                    onClick={fetchInventory}
+                    className="mt-6 px-8 py-3 rounded-2xl btn-primary text-[10px] uppercase tracking-widest font-black"
+                >
+                    Coba Lagi
+                </button>
+            </div>
+        )}
         
-        {!isLoading && filteredInventory.length === 0 && (
+        {!isLoading && !isError && filteredInventory.length === 0 && (
             <div className="flex flex-col items-center justify-center py-32 glass rounded-[3rem] opacity-40 border-dashed border-2 m-4 animate-in fade-in zoom-in duration-700">
                 <div className="size-24 rounded-full bg-[var(--bg-app)] flex items-center justify-center mb-8">
                 <span className="material-symbols-outlined text-7xl text-primary font-black">inventory_2</span>
