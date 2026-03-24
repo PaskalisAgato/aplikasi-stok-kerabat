@@ -59,6 +59,16 @@ export function safeJsonParse<T>(text: string, fallback: T): T {
     }
 }
 
+// ── Shared Types (Phase 5: Build Fix) ──────────────────────────────────────────
+export interface ApiResponse<T> {
+    data: T[];
+    meta: {
+        total: number;
+        limit: number;
+        offset: number;
+    };
+}
+
 // ── Resilience Config ────────────────────────────────────────────────────────
 const FETCH_TIMEOUT_MS = 10_000; // Increased to 10s for Render cold starts
 const MAX_RETRIES = 1;         // 1 retry as per Enterprise Section 4
@@ -216,7 +226,7 @@ export async function apiFetch<T = unknown>(
 // ── Legacy compat layer (Updated for Modular Architecture) ────────────────────────
 export const apiClient = {
     // ---- INVENTORY ----
-    getInventory: (limit = 20, offset = 0) => apiFetch<any[]>(`/inventory?limit=${limit}&offset=${offset}`),
+    getInventory: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/inventory?limit=${limit}&offset=${offset}`),
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
     getInventoryPriceLogs: (id: number) => apiFetch<any[]>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),

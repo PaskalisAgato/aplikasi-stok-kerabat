@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
-
-interface InventoryItem {
-    id: number;
-    name: string;
-    unit: string;
-    currentStock: string;
-    imageUrl: string;
-}
+import type { ApiResponse } from '@shared/apiClient';
+import type { BahanBaku as InventoryItem } from '../App';
 
 interface SelectedItem {
     id: string; // matches InventoryItem.id or timestamp
@@ -68,8 +62,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
 
     const fetchInventory = async () => {
         try {
-            const data = await apiClient.getInventory();
-            setInventory(data);
+            const response: ApiResponse<InventoryItem> = await apiClient.getInventory();
+            setInventory(response.data);
         } catch (error) {
             console.error('Failed to load inventory', error);
         }
@@ -101,7 +95,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
             name: item.name,
             unit: item.unit,
             stock: parseFloat(item.currentStock),
-            image: item.imageUrl || 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
+            image: item.externalImageUrl || 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
             quantity: 1,
             price: '',
             discount: ''
@@ -220,8 +214,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                             className="p-3 hover:bg-primary/10 flex items-center gap-3 cursor-pointer border-b border-border-dim last:border-0"
                                         >
                                             <div className="size-10 rounded bg-slate-100  flex items-center justify-center overflow-hidden">
-                                                {item.imageUrl ? (
-                                                    <img src={item.imageUrl} alt={item.name} className="size-full object-cover" />
+                                                {item.externalImageUrl ? (
+                                                    <img src={item.externalImageUrl} alt={item.name} className="size-full object-cover" />
                                                 ) : (
                                                     <span className="material-symbols-outlined text-primary/40">inventory_2</span>
                                                 )}

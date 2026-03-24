@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
+import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
 import StockDetailModal from './components/StockDetailModal';
@@ -10,6 +11,22 @@ import EditItemModal from './components/EditItemModal';
 import StoreProfileModal from './components/StoreProfileModal';
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 
+export interface BahanBaku {
+  id: number;
+  name: string;
+  category: string;
+  unit: string;
+  currentStock: string;
+  minStock: string;
+  pricePerUnit: string;
+  discountPrice: string | null;
+  externalImageUrl: string | null;
+  status: 'NORMAL' | 'KRITIS' | 'HABIS';
+  supplier?: string;
+  systemStock?: number;
+  version: number;
+}
+
 function App() {
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
@@ -19,12 +36,12 @@ function App() {
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStock, setSelectedStock] = useState<any>(null);
-  const [inventoryList, setInventoryList] = useState<any[]>([]);
+  const [selectedStock, setSelectedStock] = useState<BahanBaku | null>(null);
+  const [inventoryList, setInventoryList] = useState<BahanBaku[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [itemToDelete, setItemToDelete] = useState<BahanBaku | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -39,9 +56,8 @@ function App() {
       setIsError(false);
       
       const currentPage = isLoadMore ? page + 1 : 0;
-      const response = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
-      const data = response.data; // Metadata-wrapped (Phase 4)
-      const meta = response.meta;
+      const response: ApiResponse<BahanBaku> = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
+      const { data, meta } = response;
 
       if (Array.isArray(data)) {
         if (isLoadMore) {
@@ -50,11 +66,9 @@ function App() {
         } else {
           setInventoryList(data);
         }
-        // Use server meta if available, fallback to length check
-        setHasMore(meta ? data.length >= meta.limit : data.length === PAGE_SIZE);
+        setHasMore(data.length >= meta.limit);
       } else {
         console.error('[Inventory] Unexpected response shape:', response);
-        // Attempt localStorage fallback (Phase 4: Simplified)
         const raw = localStorage.getItem('inventory');
         const cached = raw ? JSON.parse(raw) : [];
         if (Array.isArray(cached)) {
@@ -64,15 +78,12 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to load inventory', error);
-      // Try localStorage cache before showing error
-      let cached: any[] = [];
+      let cached: BahanBaku[] = [];
       try {
         const raw = localStorage.getItem('inventory');
         cached = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(cached)) cached = [];
       } catch {
         localStorage.removeItem('inventory');
-        cached = [];
       }
       setInventoryList(cached);
       if (cached.length === 0) setIsError(true);
@@ -127,7 +138,7 @@ function App() {
     }
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, item: any) => {
+  const handleDeleteClick = (e: React.MouseEvent, item: BahanBaku) => {
     e.stopPropagation();
     setItemToDelete(item);
     setIsDeleteConfirmOpen(true);
