@@ -313,9 +313,10 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Harga Unit: Rp </p>
                                                 <input 
                                                     type="number"
-                                                    value={ing.pricePerG}
+                                                    value={ing.pricePerG === 0 ? '' : ing.pricePerG}
                                                     onChange={e => {
-                                                        const newPrice = parseFloat(e.target.value) || 0;
+                                                        const val = e.target.value;
+                                                        const newPrice = val === '' ? 0 : parseFloat(val) || 0;
                                                         setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, pricePerG: newPrice, isPriceModified: true } : i));
                                                     }}
                                                     className="w-16 bg-primary/5 border-none focus:ring-0 p-0 text-[10px] font-bold text-primary underline decoration-dotted"
@@ -339,8 +340,11 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                 <label className="text-[10px] text-slate-500 font-bold ml-1">Harga Beli (Rp)</label>
                                                 <input
                                                     type="number"
-                                                    value={ing.purchasePrice || 0}
-                                                    onChange={e => updateCalculatedPrice(ing.id, parseFloat(e.target.value) || 0, ing.purchaseQty || 1000)}
+                                                    value={ing.purchasePrice || ''}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        updateCalculatedPrice(ing.id, val === '' ? 0 : parseFloat(val) || 0, ing.purchaseQty || 1000);
+                                                    }}
                                                     placeholder="Contoh: 250000"
                                                     className="w-full bg-white  border border-slate-200  rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900  focus:ring-1 focus:ring-primary"
                                                 />
@@ -349,8 +353,11 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                 <label className="text-[10px] text-slate-500 font-bold ml-1">Total Berat/Vol ({ing.unit})</label>
                                                 <input
                                                     type="number"
-                                                    value={ing.purchaseQty || 1000}
-                                                    onChange={e => updateCalculatedPrice(ing.id, ing.purchasePrice || 0, parseFloat(e.target.value) || 0)}
+                                                    value={ing.purchaseQty || ''}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        updateCalculatedPrice(ing.id, ing.purchasePrice || 0, val === '' ? 0 : parseFloat(val) || 0);
+                                                    }}
                                                     placeholder="Contoh: 1000"
                                                     className="w-full bg-white  border border-slate-200  rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900  focus:ring-1 focus:ring-primary"
                                                 />
@@ -369,8 +376,11 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                                                 <input
                                                     className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-extrabold text-base text-slate-900 "
                                                     type="number"
-                                                    value={ing.qty}
-                                                    onChange={e => setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, qty: Math.max(0, parseInt(e.target.value) || 0) } : i))}
+                                                    value={ing.qty === 0 ? '' : ing.qty}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, qty: val === '' ? 0 : Math.max(0, parseInt(val) || 0) } : i));
+                                                    }}
                                                     min={0}
                                                 />
                                                 <button
