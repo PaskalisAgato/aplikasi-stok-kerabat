@@ -56,7 +56,7 @@ export class AttendanceController {
 
     static async getHistory(req: Request, res: Response) {
         try {
-            const { userId, startDate, endDate, name } = req.query;
+            const { userId, startDate, endDate, name, limit = '100', page = '1' } = req.query;
             const history = await AttendanceService.getHistory({ 
                 userId: userId as string, 
                 startDate: startDate as string, 
@@ -66,7 +66,11 @@ export class AttendanceController {
             res.json({
                 success: true,
                 data: history,
-                meta: { total: count, limit: parseInt(limit as string), page: parseInt(page as string) }
+                meta: { 
+                    total: history.length, 
+                    limit: parseInt(limit as string), 
+                    page: parseInt(page as string) 
+                }
             });
         } catch (error: any) {
             res.status(500).json({ error: error.message });

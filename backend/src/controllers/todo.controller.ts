@@ -9,9 +9,8 @@ export class TodoController {
             res.json({
                 success: true,
                 data: todos,
-                meta: { total: count, limit: 100, page: 1 }
+                meta: { total: todos.length, limit: 100, page: 1 }
             });
- Sands
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }
