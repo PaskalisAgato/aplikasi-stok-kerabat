@@ -44,6 +44,21 @@ export class ApiError extends Error {
     }
 }
 
+// ── Safe JSON Parsing Utility ────────────────────────────────────────────────
+/**
+ * Tries to parse JSON and returns a fallback if it fails.
+ * Prevents "unterminated string" or "unexpected token" errors from crashing the app.
+ */
+export function safeJsonParse<T>(text: string, fallback: T): T {
+    if (!text) return fallback;
+    try {
+        return JSON.parse(text) as T;
+    } catch (err) {
+        console.error('[apiClient] JSON Parse Failed:', err, 'Raw text:', text.substring(0, 100) + '...');
+        return fallback;
+    }
+}
+
 // ── Base fetch helper ──────────────────────────────────────────────────────────
 const FETCH_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 1;
@@ -86,13 +101,14 @@ export async function apiFetch<T = unknown>(
 
         clearTimeout(timeoutId);
 
+        // Get text first to prevent JSON parse errors on non-json responses (e.g. Render 502/404)
+        const responseText = response.status === 204 || asBlob ? '' : await response.text();
+
         if (!response.ok) {
             let message = response.statusText;
-            try {
-                const body = await response.json();
-                message = body.error ?? body.message ?? message;
-            } catch {
-                // ignore JSON parse failures
+            const errorBody = safeJsonParse<any>(responseText, null);
+            if (errorBody) {
+                message = errorBody.error ?? errorBody.message ?? message;
             }
             throw new ApiError(response.status, response.statusText, message);
         }
@@ -103,7 +119,7 @@ export async function apiFetch<T = unknown>(
             return (await response.blob()) as unknown as T;
         }
         
-        return response.json() as Promise<T>;
+        return safeJsonParse<T>(responseText, [] as unknown as T);
 
     } catch (err: any) {
         clearTimeout(timeoutId);

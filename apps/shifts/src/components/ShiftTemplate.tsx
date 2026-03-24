@@ -113,8 +113,11 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
-                        if (parsed.grid) setGridData(parsed.grid);
-                    } catch (e) {}
+                        if (parsed && parsed.grid) setGridData(parsed.grid);
+                    } catch (e) {
+                        console.error('[ShiftTemplate] Failed to parse cached grid data:', e);
+                        localStorage.removeItem('shift_grid_data');
+                    }
                 }
             }
         };
