@@ -10,24 +10,41 @@ function App() {
   const [expensesList, setExpensesList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 20;
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = async (isLoadMore = false) => {
     try {
-        setIsLoading(true);
-        const data = await apiClient.getExpenses();
+        if (!isLoadMore) {
+            setIsLoading(true);
+            setPage(0);
+        }
+
+        const currentPage = isLoadMore ? page + 1 : 0;
+        const data = await apiClient.getExpenses(PAGE_SIZE, currentPage * PAGE_SIZE);
+        
         if (!Array.isArray(data)) {
-            setExpensesList([]);
+            if (!isLoadMore) setExpensesList([]);
             return;
         }
+
         const formatted = data.map((exp: any) => ({
             id: exp.id,
             title: exp.title || 'Untitled Expense',
             category: exp.category || 'General',
             date: exp.expenseDate || exp.date || new Date().toISOString(),
             amount: exp.amount || '0',
-            imageUrl: exp.receiptUrl || exp.imageUrl || ''
+            imageUrl: exp.externalReceiptUrl || exp.receiptUrl || ''
         }));
-        setExpensesList(formatted);
+
+        if (isLoadMore) {
+            setExpensesList(prev => [...prev, ...formatted]);
+            setPage(currentPage);
+        } else {
+            setExpensesList(formatted);
+        }
+        setHasMore(data.length === PAGE_SIZE);
     } catch (error) {
         console.error("Failed fetching expenses", error);
     } finally {
@@ -152,6 +169,17 @@ function App() {
                  onDelete={handleDeleteExpense} 
                  onEdit={handleEditExpense}
                />
+          </div>
+      )}
+
+      {hasMore && !isLoading && (
+          <div className="flex justify-center mt-12 pb-12">
+              <button 
+                  onClick={() => fetchExpenses(true)}
+                  className="px-10 py-4 glass border-white/10 text-primary font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-primary/5 active:scale-95 transition-all shadow-xl"
+              >
+                  Tampilkan Lebih Banyak
+              </button>
           </div>
       )}
 

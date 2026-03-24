@@ -15,19 +15,16 @@ import { auditRouter } from './routes/audit.js';
 import { shiftRoutes } from './routes/shift.routes.js';
 import { attendanceRoutes } from './routes/attendance.routes.js';
 import { todoRoutes } from './routes/todo.routes.js';
+import { adminRouter } from './routes/admin.js';
 
-// Middleware Imports
-import { errorHandler } from './middleware/error.middleware.js';
+import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { UserService } from './services/user.service.js';
 import { UserController } from './controllers/user.controller.js';
 
 const app = express();
 
-// Global Logger (Temporary for Debugging)
-app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`[IncomingRequest] ${req.method} ${req.originalUrl} - Path: ${req.path}`);
-    next();
-});
+// 1. Enterprise Monitoring & Guardrails
+app.use(monitorMiddleware);
 
 // 1. Global Middlewares
 app.use(cors({
@@ -144,6 +141,7 @@ app.use('/api/audit', auditRouter);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/todo', todoRoutes);
+app.use('/api/system', adminRouter);
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards
@@ -161,7 +159,7 @@ app.use('/api', (req: Request, res: Response) => {
     });
 });
 
-// 5. Error Handler
-app.use(errorHandler);
+// 5. Final Enterprise Error Handler
+app.use(enterpriseErrorHandler);
 
 export default app;

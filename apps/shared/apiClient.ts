@@ -149,7 +149,9 @@ export async function apiFetch<T = unknown>(
 // ── Legacy compat layer (Updated for Modular Architecture) ────────────────────────
 export const apiClient = {
     // ---- INVENTORY ----
-    getInventory: () => apiFetch<any[]>('/inventory'),
+    getInventory: (limit = 20, offset = 0) => apiFetch<any[]>(`/inventory?limit=${limit}&offset=${offset}`),
+    getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
+    getInventoryPriceLogs: (id: number) => apiFetch<any[]>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
     getItemMovements: (id: number) => apiFetch<any[]>(`/inventory/${id}/movements`),
     addInventoryItem: (data: unknown) => apiFetch<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
@@ -169,7 +171,7 @@ export const apiClient = {
     deleteRecipe: (id: number) => apiFetch<any>(`/products/${id}`, { method: 'DELETE' }),
 
     // ---- TRANSACTIONS ----
-    getTransactions: () => apiFetch<any[]>('/transactions'),
+    getTransactions: (limit = 20, offset = 0) => apiFetch<any[]>(`/transactions?limit=${limit}&offset=${offset}`),
     getTransactionById: (id: number) => apiFetch<any>(`/transactions/${id}`),
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -177,7 +179,8 @@ export const apiClient = {
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
-    getExpenses: () => apiFetch<any[]>('/finance/expenses'),
+    getExpenses: (limit = 20, offset = 0) => apiFetch<any[]>(`/finance/expenses?limit=${limit}&offset=${offset}`),
+    getExpenseById: (id: number) => apiFetch<any>(`/finance/expenses/${id}`),
     exportExpensesExcel: () => apiFetch<Blob>('/finance/expenses/export', { method: 'GET' }, true),
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
     updateExpense: (id: number, data: unknown) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -215,6 +218,11 @@ export const apiClient = {
     completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
     getTodoHistory: () => apiFetch<any[]>('/todo/history'),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
+
+    // ---- SYSTEM ADMIN & OBSERVABILITY ----
+    getSystemStats: () => apiFetch<any>('/system/stats'),
+    getBackups: () => apiFetch<any[]>('/system/backups'),
+    triggerBackup: () => apiFetch<any>('/system/backups/trigger', { method: 'POST' }),
 };
 
 

@@ -4,8 +4,8 @@ import * as schema from '../db/schema.js';
 
 export class TransactionService {
 
-    // 1. GET ALL TRANSACTIONS
-    static async getAllTransactions() {
+    // 1. GET ALL TRANSACTIONS WITH PAGINATION
+    static async getAllTransactions(limit = 20, offset = 0) {
         const _sales = await db.select({
             id: schema.sales.id,
             totalAmount: schema.sales.totalAmount,
@@ -15,9 +15,15 @@ export class TransactionService {
         })
         .from(schema.sales)
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-        .orderBy(desc(schema.sales.createdAt));
+        .where(eq(schema.sales.isDeleted, false))
+        .orderBy(desc(schema.sales.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-        // Fetch all items to attach to sales
+        // Fetch all items to attach to sales (Excluding recipeImage for speed)
+        const saleIds = _sales.map(s => s.id);
+        if (saleIds.length === 0) return [];
+
         const _items = await db.select({
             id: schema.saleItems.id,
             saleId: schema.saleItems.saleId,
@@ -25,10 +31,12 @@ export class TransactionService {
             quantity: schema.saleItems.quantity,
             subtotal: schema.saleItems.subtotal,
             recipeName: schema.recipes.name,
-            recipeImage: schema.recipes.imageUrl
+            // recipeImage is intentionally excluded in list view
+            externalRecipeImage: schema.recipes.externalImageUrl
         })
         .from(schema.saleItems)
-        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id));
+        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+        .where(inArray(schema.saleItems.saleId, saleIds));
 
         return _sales.map((sale: any) => ({
             ...sale,
@@ -51,7 +59,12 @@ export class TransactionService {
         })
         .from(schema.sales)
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-        .where(eq(schema.sales.id, id))
+        .where(
+            and(
+                eq(schema.sales.id, id),
+                eq(schema.sales.isDeleted, false)
+            )
+        )
         .limit(1);
 
         if (saleArr.length === 0) return null;
@@ -334,22 +347,18 @@ export class TransactionService {
 
             const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
 
-            // Revert stock
-            await TransactionService.revertStockForSaleItems(tx, oldItems, saleId);
-            
-            // Delete items
-            await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
-
-            // Delete sale
-            await tx.delete(schema.sales).where(eq(schema.sales.id, saleId));
+            // SOFT DELETE TRANSACTION
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.id, saleId));
 
             // Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
-                action: 'DELETE_TRANSACTION',
+                action: 'SOFT_DELETE_TRANSACTION',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
-                newData: null,
+                newData: { isDeleted: true },
                 createdAt: new Date()
             });
 

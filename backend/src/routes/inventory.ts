@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { eq, sql, and, gte, desc } from 'drizzle-orm';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 
 export const inventoryRouter = Router();
@@ -168,11 +168,13 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
     }
 });
 
-// GET all inventory items
+// GET all inventory items with pagination
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
+        const limit = parseInt(req.query.limit as string) || 20;
+        const offset = parseInt(req.query.offset as string) || 0;
+
         // Explicitly project fields to avoid returning large base64 imageUrl blobs
-        // which can inflate the response to 60MB+ and cause frontend parse failures.
         const items = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
@@ -182,15 +184,15 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
-            // Only include imageUrl if it is a URL (not base64). Base64 strings start with "data:"
-            imageUrl: sql<string | null>`
-                CASE
-                    WHEN ${schema.inventory.imageUrl} IS NULL THEN NULL
-                    WHEN ${schema.inventory.imageUrl} LIKE 'data:%' THEN NULL
-                    ELSE ${schema.inventory.imageUrl}
-                END
-            `,
-        }).from(schema.inventory);
+            createdAt: schema.inventory.createdAt,
+            version: schema.inventory.version,
+            externalImageUrl: schema.inventory.externalImageUrl,
+        })
+        .from(schema.inventory)
+        .where(eq(schema.inventory.isDeleted, false))
+        .orderBy(desc(schema.inventory.createdAt))
+        .limit(limit)
+        .offset(offset);
 
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
         const itemsWithStatus = items.map((item) => {
@@ -209,6 +211,63 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error fetching inventory:', error);
         res.status(500).json({ error: 'Failed to fetch inventory' });
+    }
+});
+
+// GET Single Inventory Item (Full Details including base64)
+inventoryRouter.get('/:id', async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const [item] = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            category: schema.inventory.category,
+            unit: schema.inventory.unit,
+            currentStock: schema.inventory.currentStock,
+            minStock: schema.inventory.minStock,
+            pricePerUnit: schema.inventory.pricePerUnit,
+            discountPrice: schema.inventory.discountPrice,
+            imageUrl: schema.inventory.imageUrl,
+            externalImageUrl: schema.inventory.externalImageUrl,
+            createdAt: schema.inventory.createdAt
+        })
+        .from(schema.inventory)
+        .where(
+            and(
+                eq(schema.inventory.id, id),
+                eq(schema.inventory.isDeleted, false)
+            )
+        )
+        .limit(1);
+
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        res.json(item);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch item details' });
+    }
+});
+
+// GET Price Logs for an Item
+inventoryRouter.get('/:id/price-logs', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const logs = await db.select({
+            id: schema.inventoryPriceLogs.id,
+            oldPrice: schema.inventoryPriceLogs.oldPrice,
+            newPrice: schema.inventoryPriceLogs.newPrice,
+            oldDiscount: schema.inventoryPriceLogs.oldDiscount,
+            newDiscount: schema.inventoryPriceLogs.newDiscount,
+            changedBy: schema.users.name,
+            timestamp: schema.inventoryPriceLogs.timestamp
+        })
+        .from(schema.inventoryPriceLogs)
+        .leftJoin(schema.users, eq(schema.inventoryPriceLogs.changedBy, schema.users.id))
+        .where(eq(schema.inventoryPriceLogs.itemId, id))
+        .orderBy(desc(schema.inventoryPriceLogs.timestamp));
+
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch price logs' });
     }
 });
 
@@ -311,22 +370,56 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
     }
 });
 
-// PUT update inventory item master data
-inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => {
+// PUT update inventory item master data (Hardened for Price & RBAC)
+inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl, currentStock } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;
         const user = (req as any).user;
 
-        const results = await db.transaction(async (tx: any) => {
-            const oldItem = await tx.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
-            if (oldItem.length === 0) return null;
+        // 1. Validation
+        if (pricePerUnit !== undefined && (isNaN(Number(pricePerUnit)) || Number(pricePerUnit) < 0)) {
+            return res.status(400).json({ error: 'Harga beli tidak valid' });
+        }
+        if (discountPrice !== undefined && (isNaN(Number(discountPrice)) || Number(discountPrice) < 0)) {
+            return res.status(400).json({ error: 'Harga diskon tidak valid' });
+        }
+        if (pricePerUnit !== undefined && discountPrice !== undefined && Number(discountPrice) > Number(pricePerUnit)) {
+            return res.status(400).json({ error: 'Harga diskon tidak boleh lebih besar dari harga beli' });
+        }
 
-            const oldStock = parseFloat(oldItem[0].currentStock);
+        const results = await db.transaction(async (tx: any) => {
+            const oldItemArr = await tx.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+            if (oldItemArr.length === 0) return { error: 'Item not found', status: 404 };
+            const oldItem = oldItemArr[0];
+
+            if (oldItem.isDeleted) return { error: 'Item has been deleted', status: 410 };
+
+            // Concurrency Check (Optimistic Locking)
+            if (version && new Date(version).getTime() !== new Date(oldItem.version).getTime()) {
+                return { error: 'Data telah diperbarui oleh user lain. Mohon muat ulang halaman.', status: 409 };
+            }
+
+            // 2. Handle Price Audit Logging
+            const newPrice = pricePerUnit !== undefined ? pricePerUnit.toString() : oldItem.pricePerUnit;
+            const newDiscount = discountPrice !== undefined ? discountPrice.toString() : oldItem.discountPrice;
+
+            if (newPrice !== oldItem.pricePerUnit || newDiscount !== oldItem.discountPrice) {
+                await tx.insert(schema.inventoryPriceLogs).values({
+                    itemId: inventoryId,
+                    oldPrice: oldItem.pricePerUnit,
+                    newPrice: newPrice,
+                    oldDiscount: oldItem.discountPrice,
+                    newDiscount: newDiscount,
+                    changedBy: user.id
+                });
+            }
+
+            const oldStock = parseFloat(oldItem.currentStock);
             const newStock = currentStock !== undefined ? parseFloat(currentStock.toString()) : oldStock;
             const delta = newStock - oldStock;
 
-            // If stock changed, record adjustment
+            // 3. Handle Stock Adjustment Log
             if (delta !== 0) {
                 await tx.insert(schema.stockMovements).values({
                     inventoryId,
@@ -343,26 +436,42 @@ inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => 
                     ...(category && { category }),
                     ...(unit && { unit }),
                     ...(minStock !== undefined && { minStock: minStock.toString() }),
-                    ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
-                    ...(discountPrice !== undefined && { discountPrice: discountPrice.toString() }),
+                    ...(pricePerUnit !== undefined && { pricePerUnit: newPrice }),
+                    ...(discountPrice !== undefined && { discountPrice: newDiscount }),
                     ...(imageUrl !== undefined && { imageUrl }),
-                    ...(currentStock !== undefined && { currentStock: newStock.toString() })
+                    ...(currentStock !== undefined && { currentStock: newStock.toString() }),
+                    version: new Date() // Update version on every change
                 })
                 .where(eq(schema.inventory.id, inventoryId))
-                .returning();
+                .returning({
+                    id: schema.inventory.id,
+                    name: schema.inventory.name,
+                    category: schema.inventory.category,
+                    unit: schema.inventory.unit,
+                    currentStock: schema.inventory.currentStock,
+                    minStock: schema.inventory.minStock,
+                    pricePerUnit: schema.inventory.pricePerUnit,
+                    discountPrice: schema.inventory.discountPrice,
+                    version: schema.inventory.version,
+                    externalImageUrl: schema.inventory.externalImageUrl
+                });
 
             // Log to Audit
             await tx.insert(schema.auditLogs).values({
                 userId: user.id,
-                action: `UPDATE_INVENTORY: ${updatedItem.name}${delta !== 0 ? ` (Stock Adjusted: ${delta})` : ''}`,
+                action: `UPDATE_INVENTORY_ENTERPRISE: ${updatedItem.name}`,
                 tableName: 'inventory',
-                oldData: JSON.stringify(oldItem[0]),
+                oldData: JSON.stringify(oldItem),
                 newData: JSON.stringify(updatedItem),
                 createdAt: new Date()
             });
 
             return updatedItem;
         });
+
+        if (results?.error) {
+            return res.status(results.status).json({ success: false, message: results.error });
+        }
 
         if (!results) {
             return res.status(404).json({ error: 'Item not found' });
@@ -506,19 +615,18 @@ inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) 
         }
 
         await db.transaction(async (tx: any) => {
-            // Delete related stock movements
-            await tx.delete(schema.stockMovements).where(eq(schema.stockMovements.inventoryId, inventoryId));
-            
-            // Delete related recipe ingredients (if any)
-            await tx.delete(schema.recipeIngredients).where(eq(schema.recipeIngredients.inventoryId, inventoryId));
-
-            // Delete the item
-            await tx.delete(schema.inventory).where(eq(schema.inventory.id, inventoryId));
+            // SOFT DELETE: Just set the flag and update version
+            await tx.update(schema.inventory)
+                .set({ 
+                    isDeleted: true,
+                    version: new Date()
+                })
+                .where(eq(schema.inventory.id, inventoryId));
 
             // Log to Audit
             await tx.insert(schema.auditLogs).values({
                 userId: user.id,
-                action: `DELETE_INVENTORY: ${item[0].name}`,
+                action: `SOFT_DELETE_INVENTORY: ${item[0].name}`,
                 tableName: 'inventory',
                 oldData: JSON.stringify(item[0]),
                 createdAt: new Date()

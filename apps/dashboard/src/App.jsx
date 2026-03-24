@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import KPICards from './components/KPICards';
 import SalesChart from './components/SalesChart';
 import CriticalStock from './components/CriticalStock';
+import SystemHealth from './components/SystemHealth';
+import MaintenanceTools from './components/MaintenanceTools';
 import NotificationModal from './components/NotificationModal';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
@@ -10,18 +12,21 @@ function App() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [reports, setReports] = useState(null);
   const [inventory, setInventory] = useState([]);
+  const [health, setHealth] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [reportData, invData] = await Promise.all([
+        const [reportData, invData, healthData] = await Promise.all([
           apiClient.getFinanceReports(),
-          apiClient.getInventory()
+          apiClient.getInventory(),
+          apiClient.getSystemStats()
         ]);
         setReports(reportData);
         setInventory(invData);
+        setHealth(healthData);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
@@ -68,7 +73,9 @@ function App() {
                     <KPICards reports={reports} />
                     <SalesChart reports={reports} />
                 </div>
-                <div className="lg:col-span-4">
+                <div className="lg:col-span-4 space-y-10">
+                    <SystemHealth health={health} />
+                    <MaintenanceTools />
                     <CriticalStock inventory={inventory} />
                 </div>
             </div>

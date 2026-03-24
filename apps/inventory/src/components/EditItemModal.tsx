@@ -20,6 +20,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
+    const [isConfirmSave, setIsConfirmSave] = useState(false);
+    const [margin, setMargin] = useState('0');
+    const [validationError, setValidationError] = useState('');
 
     // Image Picker State
     const [imageMenuOpen, setImageMenuOpen] = useState(false);
@@ -36,8 +39,36 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setCurrentStock(item.currentStock?.toString() || '0');
             setPricePerUnit(item.pricePerUnit?.toString() || '0');
             setDiscountPrice(item.discountPrice?.toString() || '0');
+            setValidationError('');
+            
+            // Calculate initial margin if possible
+            const price = parseFloat(item.pricePerUnit || '0');
+            if (price > 0) {
+                // This is a simple margin placeholder, real margin usually needs COGS
+                setMargin('0'); 
+            }
         }
     }, [isOpen, item]);
+
+    const formatIDR = (val: string | number) => {
+        const num = typeof val === 'string' ? parseInt(val.replace(/\D/g, '')) : val;
+        if (isNaN(num)) return '';
+        return new Intl.NumberFormat('id-ID').format(num);
+    };
+
+    const parseIDR = (val: string) => {
+        return val.replace(/\D/g, '');
+    };
+
+    const handleMarginChange = (m: string) => {
+        setMargin(m);
+        const marginVal = parseFloat(m) || 0;
+        const currentPrice = parseFloat(parseIDR(pricePerUnit)) || 0;
+        if (currentPrice > 0) {
+            const newPrice = Math.round(currentPrice * (1 + marginVal / 100));
+            setPricePerUnit(newPrice.toString());
+        }
+    };
 
     if (!isOpen || !item) return null;
 
@@ -80,11 +111,28 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     };
 
     const handleSave = async () => {
+        const p = parseFloat(parseIDR(pricePerUnit)) || 0;
+        const d = parseFloat(parseIDR(discountPrice)) || 0;
+
         if (!name.trim()) {
-            alert('Nama bahan baku tidak boleh kosong!');
+            setValidationError('Nama bahan baku tidak boleh kosong!');
+            return;
+        }
+        if (p <= 0) {
+            setValidationError('Harga beli harus lebih besar dari 0');
+            return;
+        }
+        if (d > p) {
+            setValidationError('Harga diskon tidak boleh melebihi harga beli');
             return;
         }
 
+        if (!isConfirmSave) {
+            setIsConfirmSave(true);
+            return;
+        }
+
+        setValidationError('');
         setIsSaving(true);
         try {
             await apiClient.updateInventoryItem(item.id, {
@@ -94,15 +142,17 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 minStock: minStock || '0',
                 imageUrl: imageBase64,
                 currentStock: parseFloat(currentStock) || 0,
-                pricePerUnit: parseFloat(pricePerUnit) || 0,
-                discountPrice: parseFloat(discountPrice) || 0
+                pricePerUnit: p,
+                discountPrice: d
             });
-            alert('Berhasil memperbarui data bahan baku!');
+            // Show custom success Toast or Alert eventually, using alert for now
+            alert('Berhasil memperbarui data!');
             if (onUpdated) onUpdated();
             onClose();
-        } catch (err) {
+            setIsConfirmSave(false);
+        } catch (err: any) {
             console.error('Failed to update item', err);
-            alert('Gagal memperbarui data. Cek koneksi Anda.');
+            setValidationError(err.message || 'Gagal memperbarui data. Cek koneksi Anda.');
         } finally {
             setIsSaving(false);
         }
@@ -233,34 +283,55 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                         <span className="material-symbols-outlined text-emerald-500 text-xs font-black">payments</span>
                                         <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Harga & Ekonomi</p>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-black text-muted uppercase ml-1 block">Harga Beli (Per {unit})</label>
                                             <div className="relative">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted">Rp</span>
                                                 <input 
-                                                    type="number" 
-                                                    value={pricePerUnit} 
-                                                    onChange={(e) => setPricePerUnit(e.target.value)}
+                                                    type="text" 
+                                                    inputMode="numeric"
+                                                    value={formatIDR(pricePerUnit)} 
+                                                    onChange={(e) => setPricePerUnit(parseIDR(e.target.value))}
                                                     placeholder="0"
-                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 pl-10 pr-4 text-main text-sm font-bold transition-all"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-10 pl-10 pr-4 text-main text-sm font-bold transition-all"
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Harga Diskon (Opsional)</label>
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Margin (%)</label>
+                                            <div className="relative">
+                                                <input 
+                                                    type="number" 
+                                                    value={margin} 
+                                                    onChange={(e) => handleMarginChange(e.target.value)}
+                                                    placeholder="0"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-10 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted">%</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Harga Diskon</label>
                                             <div className="relative">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted">Rp</span>
                                                 <input 
-                                                    type="number" 
-                                                    value={discountPrice} 
-                                                    onChange={(e) => setDiscountPrice(e.target.value)}
+                                                    type="text" 
+                                                    inputMode="numeric"
+                                                    value={formatIDR(discountPrice)} 
+                                                    onChange={(e) => setDiscountPrice(parseIDR(e.target.value))}
                                                     placeholder="0"
-                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 h-12 pl-10 pr-4 text-main text-sm font-bold transition-all"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 h-10 pl-10 pr-4 text-main text-sm font-bold transition-all"
                                                 />
                                             </div>
                                         </div>
                                     </div>
+                                    {validationError && (
+                                        <div className="flex items-center gap-2 bg-red-50 text-red-600 p-3 rounded-xl border border-red-200 mt-2 animate-in slide-in-from-top-2">
+                                            <span className="material-symbols-outlined text-sm">error</span>
+                                            <span className="text-[10px] font-bold uppercase">{validationError}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <p className="text-[9px] font-medium text-muted italic ml-1">
@@ -361,6 +432,38 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                         >
                             Batal
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Save Overlay */}
+            {isConfirmSave && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-background-app w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-border-dim space-y-4">
+                        <div className="size-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="material-symbols-outlined text-primary text-3xl">help</span>
+                        </div>
+                        <h3 className="text-center font-bold text-main text-lg">Konfirmasi Perubahan</h3>
+                        <p className="text-center text-muted text-xs leading-relaxed px-2">
+                            Apakah Anda yakin ingin memperbarui harga dan data bahan baku ini?
+                        </p>
+                        <div className="flex flex-col gap-3 pt-4">
+                            <button 
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 flex items-center justify-center gap-2"
+                            >
+                                {isSaving ? <span className="material-symbols-outlined animate-spin">refresh</span> : null}
+                                Ya, Simpan
+                            </button>
+                            <button 
+                                onClick={() => setIsConfirmSave(false)}
+                                disabled={isSaving}
+                                className="w-full py-3 text-muted font-bold hover:text-main transition-colors"
+                            >
+                                Batal
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -26,16 +26,30 @@ function App() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 20;
 
-  const fetchInventory = async () => {
+  const fetchInventory = async (isLoadMore = false) => {
     try {
-      setIsLoading(true);
+      if (!isLoadMore) {
+        setIsLoading(true);
+        setPage(0);
+      }
       setIsError(false);
-      const data = await apiClient.getInventory();
+      
+      const currentPage = isLoadMore ? page + 1 : 0;
+      const data = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
 
       // Guard: ensure we always work with an array, never an object/null
       if (Array.isArray(data)) {
-        setInventoryList(data);
+        if (isLoadMore) {
+          setInventoryList(prev => [...prev, ...data]);
+          setPage(currentPage);
+        } else {
+          setInventoryList(data);
+        }
+        setHasMore(data.length === PAGE_SIZE);
       } else {
         // API returned unexpected shape (e.g. wrapped object or error body)
         console.error('[Inventory] Unexpected response shape:', data);
@@ -85,6 +99,13 @@ function App() {
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  // Reset pagination when filters change (Local filtering for now, but resets help UX)
+  useEffect(() => {
+    setPage(0);
+    // If we wanted server-side filtering, we would fetch here.
+    // Since it's local, we just keep the current list but maybe we should re-fetch 'Semua' if we filtered before.
+  }, [filterType, searchQuery]);
 
   const filteredInventory = inventoryList.filter(item => {
     if (filterType === 'Kritis' && item.status !== 'KRITIS' && item.status !== 'HABIS') return false;
@@ -337,13 +358,20 @@ function App() {
                 </div>
                 
                 {/* Bottom Info */}
-                <div className="mt-4 flex items-center justify-between relative z-10 opacity-60">
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ambang Batas: {Number(item.minStock)} {item.unit}</p>
-                    <span className="material-symbols-outlined text-sm font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
             </div>
             ))}
         </div>
+
+        {hasMore && !isLoading && !searchQuery && filterType === 'Semua' && (
+            <div className="flex justify-center mt-12 pb-12">
+                <button 
+                    onClick={() => fetchInventory(true)}
+                    className="px-10 py-4 glass border-white/10 text-primary font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-primary/5 active:scale-95 transition-all shadow-xl"
+                >
+                    Tampilkan Lebih Banyak
+                </button>
+            </div>
+        )}
 
         {isLoading && (
             <div className="flex flex-col justify-center items-center py-24 gap-6">
@@ -360,7 +388,7 @@ function App() {
                 <p className="font-black text-lg uppercase tracking-widest text-red-400">Koneksi Gagal</p>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 text-[var(--text-muted)]">Tidak dapat memuat data dari server</p>
                 <button
-                    onClick={fetchInventory}
+                    onClick={() => fetchInventory()}
                     className="mt-6 px-8 py-3 rounded-2xl btn-primary text-[10px] uppercase tracking-widest font-black"
                 >
                     Coba Lagi
@@ -380,7 +408,7 @@ function App() {
 
       <StockDetailModal
         isOpen={isStockModalOpen}
-        onClose={() => { setIsStockModalOpen(false); fetchInventory() }}
+        onClose={() => { setIsStockModalOpen(false); fetchInventory(); }}
         selectedItem={selectedStock}
         onEditClick={() => {
             setIsStockModalOpen(false);

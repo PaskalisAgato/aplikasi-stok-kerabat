@@ -1,20 +1,60 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { desc, eq, gte, inArray, sql, and } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 
 export const financeRouter = Router();
 
-// GET all expenses
+// GET all expenses with pagination
 financeRouter.get('/expenses', async (req: Request, res: Response) => {
     try {
-        const _expenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+        const limit = parseInt(req.query.limit as string) || 20;
+        const offset = parseInt(req.query.offset as string) || 0;
+
+        const _expenses = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            userId: schema.expenses.userId,
+            expenseDate: schema.expenses.expenseDate,
+            createdAt: schema.expenses.createdAt,
+            // receiptUrl is excluded to save bandwidth
+            externalReceiptUrl: schema.expenses.externalReceiptUrl
+        })
+        .from(schema.expenses)
+        .where(eq(schema.expenses.isDeleted, false))
+        .orderBy(desc(schema.expenses.expenseDate))
+        .limit(limit)
+        .offset(offset);
+        
         res.json(_expenses);
     } catch (error) {
         console.error('Error fetching expenses:', error);
         res.status(500).json({ error: 'Failed to fetch expenses' });
+    }
+});
+
+// GET Single Expense Detail (Full Details including receipt image)
+financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+
+        const [expense] = await db.select().from(schema.expenses).where(
+            and(
+                eq(schema.expenses.id, id),
+                eq(schema.expenses.isDeleted, false)
+            )
+        ).limit(1);
+        if (!expense) return res.status(404).json({ error: 'Expense not found' });
+
+        res.json(expense);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch expense details' });
     }
 });
 
@@ -92,7 +132,8 @@ financeRouter.post('/expenses', requireAuth, async (req: Request, res: Response)
             category,
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,
-            expenseDate: expenseDate
+            expenseDate: expenseDate,
+            userId: (req as any).user?.id || null
         }).returning();
 
         res.status(201).json(newExpense);
@@ -110,7 +151,8 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Res
             return res.status(400).json({ error: 'Invalid expense ID' });
         }
 
-        const [deletedExpense] = await db.delete(schema.expenses)
+        const [deletedExpense] = await db.update(schema.expenses)
+            .set({ isDeleted: true })
             .where(eq(schema.expenses.id, id))
             .returning();
 
@@ -177,13 +219,20 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         today.setHours(0, 0, 0, 0);
 
         // 1. Query Total Sales (All Time)
-        const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
+        const allSales = await db.select({ total: schema.sales.totalAmount })
+            .from(schema.sales)
+            .where(eq(schema.sales.isDeleted, false));
         const revenue = allSales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
         
         // 2. Query Today's Sales
         const todaySales = await db.select({ total: schema.sales.totalAmount })
             .from(schema.sales)
-            .where(gte(schema.sales.createdAt, today));
+            .where(
+                and(
+                    gte(schema.sales.createdAt, today),
+                    eq(schema.sales.isDeleted, false)
+                )
+            );
         const revenueToday = todaySales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
 
         // 3. Query Total Expenses
@@ -228,7 +277,12 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             createdAt: schema.sales.createdAt
         })
         .from(schema.sales)
-        .where(gte(schema.sales.createdAt, thirtyDaysAgo));
+        .where(
+            and(
+                gte(schema.sales.createdAt, thirtyDaysAgo),
+                eq(schema.sales.isDeleted, false)
+            )
+        );
 
         const saleIds = salesInPeriod.map((s: { id: number }) => s.id);
         if (saleIds.length === 0) {
