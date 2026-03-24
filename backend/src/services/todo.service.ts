@@ -73,14 +73,20 @@ export class TodoService {
     static async createTodo(data: any) {
         const [newTodo] = await db.insert(todos).values({
             ...data,
+            deadline: data.deadline ? new Date(data.deadline) : null,
             createdAt: new Date()
         }).returning();
         return newTodo;
     }
 
     static async updateTodo(id: number, data: any) {
+        const updateData = { ...data };
+        if (data.deadline) {
+            updateData.deadline = new Date(data.deadline);
+        }
+
         const [updatedTodo] = await db.update(todos)
-            .set({ ...data })
+            .set(updateData)
             .where(eq(todos.id, id))
             .returning();
         return updatedTodo;

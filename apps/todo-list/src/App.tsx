@@ -5,7 +5,10 @@ import { useSession } from '@shared/authClient';
 import TaskCard from './components/TaskCard';
 import CreateTaskModal from './components/CreateTaskModal';
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
+import CameraCaptureModal from './components/CameraCaptureModal';
+import OverdueAlarmModal from './components/OverdueAlarmModal';
 import { toast } from 'react-hot-toast';
+import useTaskAlarm from './hooks/useTaskAlarm';
 
 function App() {
     const { data: session } = useSession();
@@ -19,9 +22,13 @@ function App() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isClearHistoryOpen, setIsClearHistoryOpen] = useState(false);
+    const [isAlarmCameraOpen, setIsAlarmCameraOpen] = useState(false);
     
     const [selectedTask, setSelectedTask] = useState<any>(null);
     const [taskIdToDelete, setTaskIdToDelete] = useState<number | null>(null);
+    const [alarmTask, setAlarmTask] = useState<any>(null);
+
+    const { overdueTasks, snoozeTask, stopTaskAlarm } = useTaskAlarm(todos);
 
     const fetchTodos = async () => {
         try {
@@ -197,6 +204,28 @@ function App() {
                 message="Semua riwayat tugas yang sudah selesai akan dihapus secara permanen. Lanjutkan?"
                 onClose={() => setIsClearHistoryOpen(false)}
                 onConfirm={handleClearHistory}
+            />
+
+            <OverdueAlarmModal 
+                tasks={overdueTasks}
+                onSnooze={snoozeTask}
+                onStop={stopTaskAlarm}
+                onComplete={(task) => {
+                    setAlarmTask(task);
+                    setIsAlarmCameraOpen(true);
+                }}
+            />
+
+            <CameraCaptureModal 
+                isOpen={isAlarmCameraOpen}
+                onClose={() => setIsAlarmCameraOpen(false)}
+                onCapture={(base64) => {
+                    if (alarmTask) {
+                        handleComplete(alarmTask.id, base64);
+                        setIsAlarmCameraOpen(false);
+                    }
+                }}
+                userName={session?.user?.name || undefined}
             />
         </Layout>
     );

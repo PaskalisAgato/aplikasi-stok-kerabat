@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CameraCaptureModal from './CameraCaptureModal';
 
 interface TaskCardProps {
@@ -12,7 +12,40 @@ interface TaskCardProps {
 export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: TaskCardProps) {
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [timeLeft, setTimeLeft] = useState<string | null>(null);
+    const [isOverdue, setIsOverdue] = useState(false);
     
+    useEffect(() => {
+        if (!task.deadline || task.status === 'Completed') {
+            setTimeLeft(null);
+            setIsOverdue(false);
+            return;
+        }
+
+        const updateTime = () => {
+            const now = new Date();
+            const deadlineDate = new Date(task.deadline);
+            const diff = deadlineDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeLeft('OVERDUE');
+                setIsOverdue(true);
+            } else {
+                setIsOverdue(false);
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                if (hours > 24) setTimeLeft(`${Math.floor(hours / 24)}d left`);
+                else if (hours > 0) setTimeLeft(`${hours}h ${minutes}m left`);
+                else setTimeLeft(`${minutes}m left`);
+            }
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 1000 * 30); // Update every 30s
+        return () => clearInterval(interval);
+    }, [task.deadline, task.status]);
+
     const handleCapture = async (base64: string) => {
         if (!onComplete) return;
         setIsUploading(true);
@@ -26,10 +59,10 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
     const isCompleted = task.status === 'Completed';
 
     return (
-        <div className={`card group p-5 flex flex-col gap-4 transition-all border-white/5 relative ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+        <div className={`card group p-5 flex flex-col gap-4 transition-all border-white/5 relative ${isCompleted ? 'opacity-60 grayscale-[0.5]' : ''} ${isOverdue ? 'ring-2 ring-red-500/50 bg-red-500/5 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : ''}`}>
             <div className="flex justify-between items-start gap-4">
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                             task.category === 'Opening' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5' :
                             task.category === 'Closing' ? 'text-amber-500 border-amber-500/20 bg-amber-500/5' :
@@ -37,6 +70,18 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                          }`}>
                              {task.category}
                          </span>
+
+                         {timeLeft && (
+                             <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex items-center gap-1 border animate-in fade-in zoom-in duration-500 ${
+                                 isOverdue ? 'bg-red-500 text-white border-red-500' : 'bg-primary/10 text-primary border-primary/20'
+                             }`}>
+                                 <span className="material-symbols-outlined text-[10px] font-black">
+                                     {isOverdue ? 'priority_high' : 'schedule'}
+                                 </span>
+                                 {timeLeft}
+                             </span>
+                         )}
+
                           {task.isRecurring && (
                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center gap-1">
                                  <span className="material-symbols-outlined text-[10px] font-black">autorenew</span>

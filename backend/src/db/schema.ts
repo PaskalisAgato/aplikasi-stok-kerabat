@@ -274,6 +274,7 @@ export const todos = pgTable('todos', {
     completedBy: text('completed_by').references(() => users.id),
     createdBy: text('created_by').notNull().references(() => users.id),
     isRecurring: boolean('is_recurring').default(false).notNull(),
+    deadline: timestamp('deadline'),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
 

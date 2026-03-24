@@ -12,6 +12,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Opening');
     const [assignedTo, setAssignedTo] = useState('');
+    const [deadline, setDeadline] = useState('');
 
     useEffect(() => {
         if (task) {
@@ -19,11 +20,13 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setDescription(task.description);
             setCategory(task.category);
             setAssignedTo(task.assignedTo || '');
+            setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
         } else {
             setTitle('');
             setDescription('');
             setCategory('Opening');
             setAssignedTo('');
+            setDeadline('');
         }
     }, [task, isOpen]);
 
@@ -58,7 +61,21 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             />
                         </div>
 
-                        {/* Description */}
+                        {/* Deadline */}
+                        <div className="space-y-2">
+                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                 <span className="material-symbols-outlined text-[10px]">timer</span>
+                                 Tenggat Waktu (Sangat Penting)
+                             </label>
+                             <input
+                                 type="datetime-local"
+                                 value={deadline}
+                                 onChange={(e) => setDeadline(e.target.value)}
+                                 className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                             />
+                        </div>
+
+                        {/* Description & Category ... */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Deskripsi / Detail</label>
                             <textarea
@@ -90,7 +107,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                     </div>
 
                     <button
-                        onClick={() => onSave({ title, description, category, assignedTo: assignedTo || null })}
+                        onClick={() => onSave({ title, description, category, assignedTo: assignedTo || null, deadline: deadline || null })}
                         disabled={!title}
                         className="w-full h-16 btn-primary shadow-2xl disabled:opacity-50 disabled:grayscale"
                     >
