@@ -252,26 +252,36 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // 1. Query Total Sales (All Time)
-        const allSales = await db.select({ total: schema.sales.totalAmount })
-            .from(schema.sales)
-            .where(eq(schema.sales.isDeleted, false));
-        const revenue = allSales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
+        // 1. Optimized Revenue Calculation (Native SQL SUM)
+        const revenueResult = await db.select({ 
+            total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)` 
+        })
+        .from(schema.sales)
+        .where(eq(schema.sales.isDeleted, false));
         
-        // 2. Query Today's Sales
-        const todaySales = await db.select({ total: schema.sales.totalAmount })
-            .from(schema.sales)
-            .where(
-                and(
-                    gte(schema.sales.createdAt, today),
-                    eq(schema.sales.isDeleted, false)
-                )
-            );
-        const revenueToday = todaySales.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
+        const revenue = Number(revenueResult[0].total);
+        
+        // 2. Optimized Today's Revenue (Native SQL SUM)
+        const todayRevenueResult = await db.select({ 
+            total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)` 
+        })
+        .from(schema.sales)
+        .where(
+            and(
+                gte(schema.sales.createdAt, today),
+                eq(schema.sales.isDeleted, false)
+            )
+        );
+        const revenueToday = Number(todayRevenueResult[0].total);
 
-        // 3. Query Total Expenses
-        const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
-        const totalExpenses = allExpenses.reduce((sum: number, current: { total: string }) => sum + parseFloat(current.total), 0);
+        // 3. Optimized Total Expenses (Native SQL SUM)
+        const expenseResult = await db.select({ 
+            total: sql<number>`COALESCE(SUM(${schema.expenses.amount}), 0)` 
+        })
+        .from(schema.expenses)
+        .where(eq(schema.expenses.isDeleted, false));
+        
+        const totalExpenses = Number(expenseResult[0].total);
 
         // 4. Get Top 5 Menus (Recipe Sales Volume)
         const topMenusRaw = await db.select({
@@ -350,34 +360,45 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
         }
 
-        // 3. Calculate HPP
-        let totalHPP = 0;
-        const ingredientUsage: Record<number, { name: string, totalCost: number, totalQty: number }> = {};
-        const recipeCosts: Record<number, { name: string, cost: number }> = {}; // This was declared but not used, keeping for consistency
+        // 3. Optimized HPP Calculation (Single Query Aggregate)
+        const hppResult = await db.select({
+            totalHPP: sql<number>`COALESCE(SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit}), 0)`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .innerJoin(schema.recipeIngredients, eq(schema.saleItems.recipeId, schema.recipeIngredients.recipeId))
+        .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+        .where(
+            and(
+                gte(schema.sales.createdAt, thirtyDaysAgo),
+                eq(schema.sales.isDeleted, false)
+            )
+        );
 
-        for (const item of items) {
-            const itemBoms = boms.filter((b: any) => b.recipeId === item.recipeId);
-            let itemTotalCost = 0;
+        const totalHPP = Number(hppResult[0].totalHPP);
 
-            for (const bom of itemBoms) {
-                const cost = parseFloat(bom.usageQty) * item.quantity * parseFloat(bom.pricePerUnit);
-                itemTotalCost += cost;
-                totalHPP += cost;
+        // 4. Ingredient-wise Attribution (Top Offenders)
+        const ingredientsHPP = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            totalCost: sql<number>`SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit})`,
+            totalQty: sql<number>`SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity})`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .innerJoin(schema.recipeIngredients, eq(schema.saleItems.recipeId, schema.recipeIngredients.recipeId))
+        .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+        .where(
+            and(
+                gte(schema.sales.createdAt, thirtyDaysAgo),
+                eq(schema.sales.isDeleted, false)
+            )
+        )
+        .groupBy(schema.inventory.id, schema.inventory.name)
+        .orderBy(sql`total_cost DESC`)
+        .limit(10);
 
-                if (!ingredientUsage[bom.inventoryId]) {
-                    ingredientUsage[bom.inventoryId] = { name: bom.ingredientName, totalCost: 0, totalQty: 0 };
-                }
-                ingredientUsage[bom.inventoryId].totalCost += cost;
-                ingredientUsage[bom.inventoryId].totalQty += parseFloat(bom.usageQty) * item.quantity;
-            }
-        }
-
-        const ingredientsHPP = Object.entries(ingredientUsage).map(([id, data]) => ({
-            id: parseInt(id),
-            ...data
-        })).sort((a, b) => b.totalCost - a.totalCost);
-
-        res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] } }); // recipeHPP is empty as per original logic
+        res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] } });
     } catch (error) {
         console.error('Error calculating HPP:', error);
         res.status(500).json({ success: false, message: 'Gagal menghitung HPP' });

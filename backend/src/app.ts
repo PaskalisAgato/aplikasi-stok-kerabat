@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
@@ -40,6 +41,7 @@ const app = express();
 
 // 1. Enterprise Monitoring & Guardrails
 app.use(limiter);
+app.use(compression()); // Reduce payload egress by ~75% (Phase 2)
 app.use(monitorMiddleware);
 app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
 
@@ -63,6 +65,15 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
+
+// 2. Root Handler (Explicitly Block 60MB Ghost Leaks)
+app.get('/', (req: Request, res: Response) => {
+    res.status(404).json({
+        success: false,
+        message: "Kerabat POS API Root. Use /api/* for endpoints.",
+        version: "1.1.0-hardened"
+    });
+});
 
 
 // 2. Health & Diag

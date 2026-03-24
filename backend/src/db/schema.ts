@@ -92,7 +92,8 @@ export const stockMovements = pgTable('stock_movements', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
-    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId)
+    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId),
+    createdIdx: index('stock_movements_created_at_idx').on(t.createdAt)
 }));
 
 // -----------------------------------------------------------------------------
@@ -148,7 +149,8 @@ export const sales = pgTable('sales', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
-    userIdx: index('sales_user_idx').on(t.userId)
+    userIdx: index('sales_user_idx').on(t.userId),
+    createdIdx: index('sales_created_at_idx').on(t.createdAt)
 }));
 
 export const saleItems = pgTable('sale_items', {
@@ -176,7 +178,8 @@ export const expenses = pgTable('expenses', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     createdIdx: index('expenses_created_at_idx').on(t.createdAt),
-    userIdx: index('expenses_user_id_idx').on(t.userId)
+    userIdx: index('expenses_user_id_idx').on(t.userId),
+    expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate)
 }));
 
 export const expenseCategories = pgTable('expense_categories', {
@@ -360,6 +363,13 @@ export const systemLogs = pgTable('system_logs', {
     pathIdx: index('logs_path_idx').on(t.path),
     timeIdx: index('logs_created_at_idx').on(t.createdAt)
 }));
+
+export const idempotencyKeys = pgTable('idempotency_keys', {
+    key: text('key').primaryKey(),
+    responseBody: text('response_body'), // Stored as JSON string
+    statusCode: integer('status_code').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
 
 export const backups = pgTable('backups', {
     id: serial('id').primaryKey(),
