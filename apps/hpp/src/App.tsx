@@ -19,7 +19,7 @@ function App() {
         const fetchHPP = async () => {
             try {
                 const data = await apiClient.getHPPAnalysis();
-                setHppData(data);
+                setHppData(data.data);
             } catch (error) {
                 console.error('Failed to fetch HPP analysis', error);
             } finally {

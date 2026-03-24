@@ -610,7 +610,11 @@ inventoryRouter.get('/:id/movements', async (req: Request, res: Response) => {
         .orderBy(sql`${schema.stockMovements.createdAt} DESC`)
         .limit(20);
 
-        res.json(movements);
+        res.json({
+            success: true,
+            data: movements,
+            meta: { total: movements.length, limit: 20, page: 1 }
+        });
     } catch (error) {
         console.error('Error fetching item movements:', error);
         res.status(500).json({ error: 'Failed to fetch movements' });
@@ -636,7 +640,11 @@ inventoryRouter.get('/movements/in', async (req: Request, res: Response) => {
         .orderBy(sql`${schema.stockMovements.createdAt} DESC`)
         .limit(50);
 
-        res.json(history);
+        res.json({
+            success: true,
+            data: history,
+            meta: { total: history.length, limit: 50, page: 1 }
+        });
     } catch (error) {
         console.error('Error fetching stock in history:', error);
         res.status(500).json({ error: 'Failed to fetch history' });

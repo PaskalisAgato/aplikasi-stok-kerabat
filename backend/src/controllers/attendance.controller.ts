@@ -63,7 +63,11 @@ export class AttendanceController {
                 endDate: endDate as string, 
                 name: name as string 
             });
-            res.json(history);
+            res.json({
+                success: true,
+                data: history,
+                meta: { total: count, limit: parseInt(limit as string), page: parseInt(page as string) }
+            });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

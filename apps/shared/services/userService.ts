@@ -1,4 +1,4 @@
-import { apiFetch } from '../apiClient';
+import { apiFetch, ApiResponse } from '../apiClient';
 
 export interface User {
     id: string;
@@ -27,7 +27,7 @@ export interface UpdateUserPayload {
 }
 
 export const userService = {
-    fetchAll: () => apiFetch<User[]>('/users'),
+    fetchAll: () => apiFetch<ApiResponse<User>>('/users'),
     
     create: (data: CreateUserPayload) => 
         apiFetch<User>('/users', {

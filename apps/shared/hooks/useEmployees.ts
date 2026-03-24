@@ -10,6 +10,7 @@ export const userKeys = {
 export const useEmployees = () =>
     useQuery({
         queryKey: userKeys.list(),
+        select: (res) => (res as any).data ?? [],
         queryFn: userService.fetchAll,
     });
 

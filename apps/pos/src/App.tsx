@@ -3,6 +3,13 @@ import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import TransactionHistory from './TransactionHistory';
 
+interface Recipe {
+    id: number;
+    name: string;
+    price: number;
+    imageUrl?: string;
+}
+
 interface ApiMeta {
     page: number;
     limit: number;
@@ -19,7 +26,7 @@ function App() {
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<Recipe[]>([]);
     const [meta, setMeta] = useState<ApiMeta | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -28,7 +35,7 @@ function App() {
     const fetchRecipes = async () => {
         try {
             setIsLoading(true);
-            const response: ApiResponse<any> = await apiClient.getRecipes() as any;
+            const response = await apiClient.getRecipes() as ApiResponse<Recipe>;
             setItems(response.data);
             setMeta(response.meta);
         } catch (error) {
@@ -42,11 +49,11 @@ function App() {
         fetchRecipes();
     }, []);
 
-    const filteredRecipes = items.filter((r: any) =>
+    const filteredRecipes = items.filter((r) =>
         r.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const activeCartItems = items.filter((r: any) => sales[r.id] > 0);
+    const activeCartItems = items.filter((r) => sales[r.id] > 0);
 
     const updateQty = (id: number, delta: number) => {
         setSales(prev => ({
@@ -56,7 +63,7 @@ function App() {
     };
 
     const totalSalesValue = Object.entries(sales).reduce((total, [id, qty]) => {
-        const recipe = items.find((r: any) => r.id === parseInt(id));
+        const recipe = items.find((r) => r.id === parseInt(id));
         return total + (recipe ? recipe.price * qty : 0);
     }, 0);
 
@@ -101,7 +108,7 @@ function App() {
 
                         const checkoutData = {
                             items: Object.entries(sales).map(([id, qty]) => {
-                                const recipe = items.find((r: any) => r.id === parseInt(id));
+                                const recipe = items.find((r) => r.id === parseInt(id));
                                 const itemPrice = recipe ? recipe.price : 0;
                                 return {
                                     recipeId: parseInt(id),
@@ -209,7 +216,7 @@ function App() {
                             <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-2">Pilih menu untuk memulai transaksi</p>
                         </div>
                     ) : (
-                        activeCartItems.map((recipe: any) => (
+                        activeCartItems.map((recipe) => (
                             <div key={recipe.id} className="card flex items-center justify-between gap-4 md:gap-6 group hover:scale-[1.01] active:scale-[0.99] p-4 md:p-5">
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div
@@ -286,7 +293,7 @@ function App() {
                                     <span className="material-symbols-outlined text-4xl md:text-6xl mb-4 block">sentiment_dissatisfied</span>
                                     <p className="text-sm font-black uppercase tracking-widest">Menu tidak ditemukan</p>
                                 </div>
-                            ) : filteredRecipes.map((recipe: any) => {
+                            ) : filteredRecipes.map((recipe) => {
                                 const qty = sales[recipe.id] || 0;
                                 return (
                                     <div key={`add-${recipe.id}`} className="card flex items-center justify-between gap-4 group hover:scale-[1.01] transition-all p-4 md:p-5">

@@ -5,11 +5,22 @@ import Layout from '@shared/Layout';
 import EditRecipeModal from './components/EditRecipeModal';
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 
+interface ApiMeta {
+    total: number;
+    limit: number;
+    page: number;
+}
+
+interface ApiResponse<T> {
+    data: T[];
+    meta: ApiMeta;
+}
+
 function App() {
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
     const [filterCategory, setFilterCategory] = useState<string>('Semua');
     const [searchQuery, setSearchQuery] = useState('');
-    const [recipesList, setRecipesList] = useState<any[]>([]);
+    const [recipesList, setRecipesList] = useState<Recipe[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState<any>(null);
@@ -18,8 +29,8 @@ function App() {
     const fetchRecipes = async () => {
         try {
             setIsLoading(true);
-            const data = await apiClient.getRecipes();
-            setRecipesList(data);
+            const response = await apiClient.getRecipes() as ApiResponse<Recipe>;
+            setRecipesList(response.data);
         } catch (error) {
             console.error('Fetch recipes failed', error);
             alert('Gagal mengambil daftar resep.');

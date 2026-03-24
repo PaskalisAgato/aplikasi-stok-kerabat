@@ -398,7 +398,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .orderBy(sql`total_cost DESC`)
         .limit(10);
 
-        res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] } });
+        res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] }, meta: { total: 1, limit: 1, page: 1 } });
     } catch (error) {
         console.error('Error calculating HPP:', error);
         res.status(500).json({ success: false, message: 'Gagal menghitung HPP' });
@@ -413,7 +413,11 @@ financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res:
             name: schema.expenseCategories.name,
             icon: schema.expenseCategories.icon
         }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
-        res.json({ success: true, data: cats });
+        res.json({ 
+            success: true, 
+            data: cats,
+            meta: { total: cats.length, limit: cats.length, page: 1 }
+        });
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil kategori pengeluaran' });

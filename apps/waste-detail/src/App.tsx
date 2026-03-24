@@ -14,11 +14,11 @@ function App() {
         const fetchData = async () => {
             try {
                 const inventory = await apiClient.getInventory();
-                const foundItem = inventory.find((i: any) => i.id === itemId);
+                const foundItem = inventory.data.find((i: any) => i.id === itemId);
                 setItem(foundItem);
 
                 const logs = await apiClient.getItemWaste(itemId);
-                setWasteLogs(logs);
+                setWasteLogs(logs.data);
             } catch (error) {
                 console.error('Failed to fetch waste detail', error);
             } finally {

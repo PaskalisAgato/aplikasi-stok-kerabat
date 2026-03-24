@@ -61,7 +61,7 @@ export function useAttendance(filters: any = {}) {
 
     return {
         todayAttendance: todayQuery.data || null,
-        history: historyQuery.data ?? [],
+        history: historyQuery.data?.data ?? [],
         isLoading: todayQuery.isLoading || historyQuery.isLoading,
         isActionLoading: checkInMutation.isPending || checkOutMutation.isPending || deleteByRangeMutation.isPending,
         error: todayQuery.error || historyQuery.error,

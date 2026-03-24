@@ -30,8 +30,8 @@ export function useShifts() {
     });
 
     return {
-        allShifts: allShiftsQuery.data ?? [],
-        myShifts: myShiftsQuery.data ?? [],
+        allShifts: allShiftsQuery.data?.data ?? [],
+        myShifts: myShiftsQuery.data?.data ?? [],
         isLoading: allShiftsQuery.isLoading || myShiftsQuery.isLoading,
         error: allShiftsQuery.error || myShiftsQuery.error,
         createShift: createShiftMutation.mutateAsync,

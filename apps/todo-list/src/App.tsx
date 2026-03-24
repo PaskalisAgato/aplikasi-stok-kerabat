@@ -33,12 +33,12 @@ function App() {
     const fetchTodos = async () => {
         try {
             setIsLoading(true);
-            const data = await apiClient.getTodos();
-            setTodos(data);
+            const response = await apiClient.getTodos();
+            setTodos(response.data);
             
             if (role === 'Admin') {
-                const historyData = await apiClient.getTodoHistory();
-                setHistory(historyData);
+                const historyResponse = await apiClient.getTodoHistory();
+                setHistory(historyResponse.data);
             }
         } catch (error) {
             console.error('Fetch failed', error);

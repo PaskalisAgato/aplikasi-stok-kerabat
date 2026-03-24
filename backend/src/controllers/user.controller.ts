@@ -55,7 +55,7 @@ export class UserController {
             const users = user.role === 'Admin' 
                 ? await UserService.getAllUsers() 
                 : await UserService.getAllUsersPublic();
-            res.json(users);
+            res.json({ success: true, data: users, meta: { total: users.length, limit: users.length, page: 1 } });
         } catch (error) {
             console.error('Error in UserController.getAll:', error);
             res.status(500).json({ error: 'Failed to fetch users' });

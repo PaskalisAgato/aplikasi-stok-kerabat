@@ -2,8 +2,27 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
+interface InventoryItem {
+    id: number;
+    name: string;
+    unit: string;
+    currentStock: string | number;
+    imageUrl?: string;
+}
+
+interface ApiMeta {
+    total: number;
+    limit: number;
+    page: number;
+}
+
+interface ApiResponse<T> {
+    data: T[];
+    meta: ApiMeta;
+}
+
 function App() {
-    const [inventoryList, setInventoryList] = useState<any[]>([]);
+    const [inventoryList, setInventoryList] = useState<InventoryItem[]>([]);
     const [physicalStocks, setPhysicalStocks] = useState<Record<number, string>>({});
     const [reasons, setReasons] = useState<Record<number, string>>({});
     const [isSaving, setIsSaving] = useState(false);
@@ -12,13 +31,13 @@ function App() {
     const fetchInventory = async () => {
         try {
             setIsLoading(true);
-            const data = await apiClient.getInventory();
-            setInventoryList(data);
+            const response = await apiClient.getInventory();
+            setInventoryList(response.data);
             
             // Initialize physical stocks with current stock values
             const initialStocks: Record<number, string> = {};
-            data.forEach((item: any) => {
-                initialStocks[item.id] = item.currentStock.toString();
+            response.data.forEach((item) => {
+                initialStocks[item.id] = (item.currentStock ?? 0).toString();
             });
             setPhysicalStocks(initialStocks);
         } catch (error) {
@@ -46,11 +65,11 @@ function App() {
         try {
             const adjustments = inventoryList.map(item => ({
                 inventoryId: item.id,
-                physicalStock: physicalStocks[item.id] || item.currentStock.toString(),
+                physicalStock: physicalStocks[item.id] || (item.currentStock ?? 0).toString(),
                 reason: reasons[item.id] || 'Manual Opname'
             })).filter(adj => {
                 const item = inventoryList.find(i => i.id === adj.inventoryId);
-                return adj.physicalStock !== item.currentStock.toString();
+                return item && adj.physicalStock !== (item.currentStock ?? 0).toString();
             });
 
             if (adjustments.length === 0) {
@@ -125,8 +144,8 @@ function App() {
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan ke Cold Storage...</p>
                         </div>
                     ) : inventoryList.map((item, idx) => {
-                        const physical = parseFloat(physicalStocks[item.id] || item.currentStock);
-                        const system = parseFloat(item.currentStock);
+                        const physical = parseFloat(physicalStocks[item.id] || (item.currentStock ?? 0).toString());
+                        const system = parseFloat((item.currentStock ?? 0).toString());
                         const diff = physical - system;
 
                         return (

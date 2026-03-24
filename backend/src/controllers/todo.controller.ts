@@ -6,7 +6,12 @@ export class TodoController {
         try {
             const user = (req as any).user;
             const todos = await TodoService.getAllTodos(user?.role, user?.id);
-            res.json(todos);
+            res.json({
+                success: true,
+                data: todos,
+                meta: { total: count, limit: 100, page: 1 }
+            });
+ Sands
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

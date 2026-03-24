@@ -60,14 +60,15 @@ export function safeJsonParse<T>(text: string, fallback: T): T {
 }
 
 // ── Shared Types (Phase 5: Build Fix) ──────────────────────────────────────────
+export interface ApiMeta {
+    total: number;
+    limit: number;
+    page: number;
+}
+
 export interface ApiResponse<T> {
     data: T[];
-    meta: {
-        total: number;
-        limit: number;
-        page?: number;   // New pattern for POS/Recipes
-        offset?: number; // Legacy pattern for Inventory
-    };
+    meta: ApiMeta;
 }
 
 // ── Resilience Config ────────────────────────────────────────────────────────
@@ -229,16 +230,16 @@ export const apiClient = {
     // ---- INVENTORY ----
     getInventory: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/inventory?limit=${limit}&offset=${offset}`),
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
-    getInventoryPriceLogs: (id: number) => apiFetch<any[]>(`/inventory/${id}/price-logs`),
+    getInventoryPriceLogs: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
-    getItemMovements: (id: number) => apiFetch<any[]>(`/inventory/${id}/movements`),
+    getItemMovements: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/movements`),
     addInventoryItem: (data: unknown) => apiFetch<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
     updateInventoryItem: (id: number, data: unknown) => apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     submitOpname: (adjustments: unknown[]) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
     getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
-    getStockInHistory: () => apiFetch<any[]>('/inventory/movements/in'),
-    getItemWaste: (id: number) => apiFetch<any[]>(`/inventory/${id}/waste`),
+    getStockInHistory: () => apiFetch<ApiResponse<any>>('/inventory/movements/in'),
+    getItemWaste: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/waste`),
     deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
 
     // ---- PRODUCTS (Mappings to old names for frontend compatibility) ----
@@ -263,14 +264,14 @@ export const apiClient = {
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
     updateExpense: (id: number, data: unknown) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteExpense: (id: number) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),
-    getExpenseCategories: () => apiFetch<any[]>('/finance/expenses/categories'),
+    getExpenseCategories: () => apiFetch<ApiResponse<any>>('/finance/expenses/categories'),
     addExpenseCategory: (data: unknown) => apiFetch<any>('/finance/expenses/categories', { method: 'POST', body: JSON.stringify(data) }),
     deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
-    getHPPAnalysis: () => apiFetch<any>('/finance/hpp'),
+    getHPPAnalysis: () => apiFetch<ApiResponse<any>>('/finance/hpp'),
 
     // ---- SHIFTS ----
-    getAllShifts: () => apiFetch<any[]>('/shifts'),
-    getMyShifts: () => apiFetch<any[]>('/shifts/my'),
+    getAllShifts: () => apiFetch<ApiResponse<any>>('/shifts'),
+    getMyShifts: () => apiFetch<ApiResponse<any>>('/shifts/my'),
     createShift: (data: unknown) => apiFetch<any>('/shifts', { method: 'POST', body: JSON.stringify(data) }),
     updateShift: (id: number, data: unknown) => apiFetch<any>(`/shifts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteShift: (id: number) => apiFetch<any>(`/shifts/${id}`, { method: 'DELETE' }),
@@ -283,23 +284,23 @@ export const apiClient = {
     checkOut: (formData?: FormData) => apiFetch<any>('/attendance/check-out', { method: 'POST', body: formData }),
     getAttendanceHistory: (params: Record<string, string>) => {
         const query = new URLSearchParams(params).toString();
-        return apiFetch<any[]>(`/attendance/history?${query}`);
+        return apiFetch<ApiResponse<any>>(`/attendance/history?${query}`);
     },
     deleteAttendanceByRange: (startDate: string, endDate: string) => apiFetch<any>('/attendance/bulk-delete', { method: 'DELETE', body: JSON.stringify({ startDate, endDate }) }),
     getAttendancePhoto: (filename: string) => apiFetch<Blob>(`/attendance/view-once/${filename}`, { method: 'GET' }, true),
 
     // ---- TODO LIST ----
-    getTodos: () => apiFetch<any[]>('/todo'),
+    getTodos: () => apiFetch<ApiResponse<any>>('/todo'),
     createTodo: (data: unknown) => apiFetch<any>('/todo', { method: 'POST', body: JSON.stringify(data) }),
     updateTodo: (id: number, data: unknown) => apiFetch<any>(`/todo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteTodo: (id: number) => apiFetch<any>(`/todo/${id}`, { method: 'DELETE' }),
     completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
-    getTodoHistory: () => apiFetch<any[]>('/todo/history'),
+    getTodoHistory: () => apiFetch<ApiResponse<any>>('/todo/history'),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
 
     // ---- SYSTEM ADMIN & OBSERVABILITY ----
     getSystemStats: () => apiFetch<any>('/system/stats'),
-    getBackups: () => apiFetch<any[]>('/system/backups'),
+    getBackups: () => apiFetch<ApiResponse<any>>('/system/backups'),
     triggerBackup: () => apiFetch<any>('/system/backups/trigger', { method: 'POST' }),
 };
 
