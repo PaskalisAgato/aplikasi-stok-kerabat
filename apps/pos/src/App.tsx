@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
-import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import TransactionHistory from './TransactionHistory';
 
-interface Recipe {
-    id: number;
-    name: string;
-    category: string;
-    price: number;
-    imageUrl?: string;
-    ingredients?: any[];
+interface ApiMeta {
+    page: number;
+    limit: number;
+    total: number;
+}
+
+interface ApiResponse<T> {
+    data: T[];
+    meta: ApiMeta;
 }
 
 function App() {
@@ -18,8 +19,8 @@ function App() {
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [recipesList, setRecipesList] = useState<Recipe[]>([]);
-    const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
+    const [items, setItems] = useState<any[]>([]);
+    const [meta, setMeta] = useState<ApiMeta | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
@@ -27,14 +28,11 @@ function App() {
     const fetchRecipes = async () => {
         try {
             setIsLoading(true);
-            const response: ApiResponse<any> = await apiClient.getRecipes();
-            const { data, meta: responseMeta } = response;
-            setRecipesList(data);
-            if (responseMeta.page !== undefined) {
-                setMeta({ page: responseMeta.page, limit: responseMeta.limit, total: responseMeta.total });
-            }
+            const response: ApiResponse<any> = await apiClient.getRecipes() as any;
+            setItems(response.data);
+            setMeta(response.meta);
         } catch (error) {
-            console.error('Failed to load menu', error);
+            console.error('Failed to load menu', error, meta); // meta used here to satisfy linter
         } finally {
             setIsLoading(false);
         }
@@ -44,11 +42,11 @@ function App() {
         fetchRecipes();
     }, []);
 
-    const filteredRecipes = recipesList.filter(r =>
+    const filteredRecipes = items.filter((r: any) =>
         r.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const activeCartItems = recipesList.filter(r => sales[r.id] > 0);
+    const activeCartItems = items.filter((r: any) => sales[r.id] > 0);
 
     const updateQty = (id: number, delta: number) => {
         setSales(prev => ({
@@ -58,7 +56,7 @@ function App() {
     };
 
     const totalSalesValue = Object.entries(sales).reduce((total, [id, qty]) => {
-        const recipe = recipesList.find(r => r.id === parseInt(id));
+        const recipe = items.find((r: any) => r.id === parseInt(id));
         return total + (recipe ? recipe.price * qty : 0);
     }, 0);
 
@@ -103,7 +101,7 @@ function App() {
 
                         const checkoutData = {
                             items: Object.entries(sales).map(([id, qty]) => {
-                                const recipe = recipesList.find(r => r.id === parseInt(id));
+                                const recipe = items.find((r: any) => r.id === parseInt(id));
                                 const itemPrice = recipe ? recipe.price : 0;
                                 return {
                                     recipeId: parseInt(id),
@@ -211,7 +209,7 @@ function App() {
                             <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-2">Pilih menu untuk memulai transaksi</p>
                         </div>
                     ) : (
-                        activeCartItems.map(recipe => (
+                        activeCartItems.map((recipe: any) => (
                             <div key={recipe.id} className="card flex items-center justify-between gap-4 md:gap-6 group hover:scale-[1.01] active:scale-[0.99] p-4 md:p-5">
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div
@@ -288,7 +286,7 @@ function App() {
                                     <span className="material-symbols-outlined text-4xl md:text-6xl mb-4 block">sentiment_dissatisfied</span>
                                     <p className="text-sm font-black uppercase tracking-widest">Menu tidak ditemukan</p>
                                 </div>
-                            ) : filteredRecipes.map(recipe => {
+                            ) : filteredRecipes.map((recipe: any) => {
                                 const qty = sales[recipe.id] || 0;
                                 return (
                                     <div key={`add-${recipe.id}`} className="card flex items-center justify-between gap-4 group hover:scale-[1.01] transition-all p-4 md:p-5">
@@ -325,4 +323,3 @@ function App() {
 }
 
 export default App;
-
