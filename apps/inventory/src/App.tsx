@@ -39,9 +39,10 @@ function App() {
       setIsError(false);
       
       const currentPage = isLoadMore ? page + 1 : 0;
-      const data = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
+      const response = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
+      const data = response.data; // Metadata-wrapped (Phase 4)
+      const meta = response.meta;
 
-      // Guard: ensure we always work with an array, never an object/null
       if (Array.isArray(data)) {
         if (isLoadMore) {
           setInventoryList(prev => [...prev, ...data]);
@@ -49,22 +50,17 @@ function App() {
         } else {
           setInventoryList(data);
         }
-        setHasMore(data.length === PAGE_SIZE);
+        // Use server meta if available, fallback to length check
+        setHasMore(meta ? data.length >= meta.limit : data.length === PAGE_SIZE);
       } else {
-        // API returned unexpected shape (e.g. wrapped object or error body)
-        console.error('[Inventory] Unexpected response shape:', data);
-        // Attempt localStorage fallback
-        let cached: any[] = [];
-        try {
-          const raw = localStorage.getItem('inventory');
-          cached = raw ? JSON.parse(raw) : [];
-          if (!Array.isArray(cached)) cached = [];
-        } catch {
-          localStorage.removeItem('inventory');
-          cached = [];
+        console.error('[Inventory] Unexpected response shape:', response);
+        // Attempt localStorage fallback (Phase 4: Simplified)
+        const raw = localStorage.getItem('inventory');
+        const cached = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(cached)) {
+          setInventoryList(cached);
+          if (cached.length === 0) setIsError(true);
         }
-        setInventoryList(cached);
-        if (cached.length === 0) setIsError(true);
       }
     } catch (error) {
       console.error('Failed to load inventory', error);

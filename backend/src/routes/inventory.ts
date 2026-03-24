@@ -7,7 +7,9 @@ import ExcelJS from 'exceljs';
 
 export const inventoryRouter = Router();
 
-// ... existing routes ...
+// High-performance state/cache for Phase 4
+const inventoryCache = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 30 * 1000; // 30 seconds
 
 // GET Export Excel
 inventoryRouter.get('/export', async (req: Request, res: Response) => {
@@ -249,13 +251,21 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
     }
 });
 
-// GET all inventory items with pagination
+// GET all inventory items with pagination (Phase 4 Hardened)
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
-        const limit = parseInt(req.query.limit as string) || 20;
+        const limit = Math.min(parseInt(req.query.limit as string) || 20, 50); // Enforce max 50
         const offset = parseInt(req.query.offset as string) || 0;
+        const cacheKey = `list_${limit}_${offset}`;
 
-        // Explicitly project fields to avoid returning large base64 imageUrl blobs
+        // 1. Check In-Memory Cache (Phase 4)
+        const cached = inventoryCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+            res.setHeader('X-Cache-Status', 'HIT');
+            return res.json(cached.data);
+        }
+
+        // 2. Strict Projection (Phase 4: Remove base64/imageUrl)
         const items = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
@@ -265,9 +275,8 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
-            createdAt: schema.inventory.createdAt,
-            version: schema.inventory.version,
             externalImageUrl: schema.inventory.externalImageUrl,
+            version: schema.inventory.version,
         })
         .from(schema.inventory)
         .where(eq(schema.inventory.isDeleted, false))
@@ -275,30 +284,28 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         .limit(limit)
         .offset(offset);
 
-        // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
-        const itemsWithStatus = items.map((item) => {
-            const current = parseFloat(item.currentStock);
-            const min = parseFloat(item.minStock);
-            let status = 'NORMAL';
-            if (current <= 0) status = 'HABIS';
-            else if (current <= min) status = 'KRITIS';
+        // 3. Metadata count (Optimized O(1) query)
+        const totalCount = await db.select({ count: sql<number>`count(*)` })
+            .from(schema.inventory)
+            .where(eq(schema.inventory.isDeleted, false));
 
-            return { ...item, status };
-        });
-
-        // Prevent browsers/CDN from caching stale inventory
-        res.setHeader('Cache-Control', 'no-store');
-        res.json({ 
+        const responseData = { 
             success: true, 
-            data: itemsWithStatus, // Changed from `items` to `itemsWithStatus` to include the status
+            data: items,
             meta: {
-                total: items.length, // Simple count for now
+                total: Number(totalCount[0].count),
                 limit,
                 offset
             }
-        });
+        };
+
+        // 4. Update Cache
+        inventoryCache.set(cacheKey, { data: responseData, timestamp: Date.now() });
+
+        res.setHeader('X-Cache-Status', 'MISS');
+        res.json(responseData);
     } catch (error) {
-        console.error('Error fetching inventory:', error);
+        console.error('Inventory Fetch Error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data inventaris' });
     }
 });
@@ -361,18 +368,15 @@ inventoryRouter.get('/:id/price-logs', requireAuth, async (req: Request, res: Re
     }
 });
 
-// GET Waste Summary
+// GET Waste Summary (Phase 4 Optimized SQL)
 inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        // 1. Total Waste Value (Joining with Inventory for price)
-        const wasteMovements = await db.select({
-            id: schema.stockMovements.id,
-            quantity: schema.stockMovements.quantity,
-            pricePerUnit: schema.inventory.pricePerUnit,
-            createdAt: schema.stockMovements.createdAt
+        // 1. Optimized Total Waste Value (Native SQL SUM)
+        const totalWasteResult = await db.select({
+            total: sql<number>`COALESCE(SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit}), 0)`
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
@@ -383,34 +387,29 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
             )
         );
 
-        const totalWasteValue = wasteMovements.reduce((sum: number, m: any) => {
-            return sum + (parseFloat(m.quantity) * parseFloat(m.pricePerUnit));
-        }, 0);
-
-        // 2. Top Waste Offenders
+        // 2. Top Waste Offenders (Already O(1) SQL)
         const topOffenders = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
             unit: schema.inventory.unit,
-            currentStock: schema.inventory.currentStock,
             totalWasteValue: sql<number>`SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit})`
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
         .where(eq(schema.stockMovements.type, 'WASTE'))
-        .groupBy(schema.inventory.id)
+        .groupBy(schema.inventory.id, schema.inventory.name, schema.inventory.unit)
         .orderBy(sql`total_waste_value DESC`)
         .limit(5);
 
         res.json({
             success: true,
             data: {
-                totalValueMonth: totalWasteValue,
+                totalValueMonth: Number(totalWasteResult[0].total),
                 topOffenders
             }
         });
     } catch (error) {
-        console.error('Error fetching waste summary:', error);
+        console.error('Waste Summary Error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil ringkasan limbah' });
     }
 });

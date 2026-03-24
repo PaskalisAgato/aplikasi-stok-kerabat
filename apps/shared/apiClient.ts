@@ -167,7 +167,12 @@ export async function apiFetch<T = unknown>(
         let finalData = rawData;
         if (rawData && typeof rawData === 'object' && 'success' in rawData) {
             if (rawData.success === true) {
-                finalData = rawData.data;
+                // Phase 4: Preserve metadata if present
+                if ('meta' in rawData) {
+                    finalData = { data: rawData.data, meta: rawData.meta };
+                } else {
+                    finalData = rawData.data;
+                }
             } else {
                 throw new ApiError(response.status, response.statusText, rawData.message || 'Operation failed');
             }
