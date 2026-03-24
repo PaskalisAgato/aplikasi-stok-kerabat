@@ -178,13 +178,16 @@ export async function apiFetch<T = unknown>(
         
         const rawData = safeJsonParse<any>(responseText, [] as unknown as T);
         let finalData = rawData;
-        if (rawData && typeof rawData === 'object' && 'success' in rawData) {
+        
+        if (Array.isArray(rawData)) {
+            finalData = { data: rawData, meta: { total: rawData.length, limit: rawData.length, page: 1 } };
+        } else if (rawData && typeof rawData === 'object' && 'success' in rawData) {
             if (rawData.success === true) {
                 // Phase 4: Preserve metadata if present
                 if ('meta' in rawData) {
                     finalData = { data: rawData.data, meta: rawData.meta };
                 } else {
-                    finalData = rawData.data;
+                    finalData = { data: rawData.data, meta: { total: Array.isArray(rawData.data) ? rawData.data.length : 1, limit: 100, page: 1 } };
                 }
             } else {
                 throw new ApiError(response.status, response.statusText, rawData.message || 'Operation failed');
