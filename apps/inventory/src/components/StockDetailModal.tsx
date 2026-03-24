@@ -99,7 +99,8 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                         <div className="flex-1 border-b border-border-dim pb-3">
                                             <div className="flex justify-between items-center">
                                                 <p className="text-main font-medium">
-                                                    {m.type === 'IN' ? `Restok: ${m.supplierName || 'General'}` : 
+                                                    {m.reason?.includes('Manual Adjustment') ? 'Penyesuaian Stok' :
+                                                     m.type === 'IN' ? `Restok: ${m.supplierName || 'General'}` : 
                                                      m.type === 'OUT' ? 'Penjualan' : 
                                                      m.type === 'WASTE' ? 'Waste/Rusak' : 'Penyesuaian'}
                                                 </p>

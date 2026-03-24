@@ -14,14 +14,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [unit, setUnit] = useState('g');
     const [minStock, setMinStock] = useState('');
     const [imageBase64, setImageBase64] = useState('');
+    const [currentStock, setCurrentStock] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isConfirmDelete, setIsConfirmDelete] = useState(false);
-
-    // Image Picker State
-    const [imageMenuOpen, setImageMenuOpen] = useState(false);
-    const galleryInputRef = useRef<HTMLInputElement>(null);
-    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (isOpen && item) {
@@ -30,6 +24,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setUnit(item.unit || 'g');
             setMinStock(item.minStock?.toString() || '');
             setImageBase64(item.imageUrl || '');
+            setCurrentStock(item.currentStock?.toString() || '0');
         }
     }, [isOpen, item]);
 
@@ -86,7 +81,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 category,
                 unit,
                 minStock: minStock || '0',
-                imageUrl: imageBase64
+                imageUrl: imageBase64,
+                currentStock: parseFloat(currentStock) || 0
             });
             alert('Berhasil memperbarui data bahan baku!');
             if (onUpdated) onUpdated();
@@ -177,9 +173,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2 px-1">
                                     <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
-                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok</p>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok & Satuan</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
                                         <select 
@@ -201,12 +197,25 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             type="number" 
                                             value={minStock} 
                                             onChange={(e) => setMinStock(e.target.value)}
-                                            placeholder="Batas peringatan"
+                                            placeholder="Alarm"
                                             min="0"
                                             className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
                                         />
                                     </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-primary uppercase ml-1 block">Stok Fisik</label>
+                                        <input 
+                                            type="number" 
+                                            value={currentStock} 
+                                            onChange={(e) => setCurrentStock(e.target.value)}
+                                            placeholder="Stok saat ini"
+                                            className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
+                                        />
+                                    </div>
                                 </div>
+                                <p className="text-[9px] font-medium text-muted italic ml-1">
+                                    * Mengubah "Stok Fisik" akan otomatis mencatat riwayat penyesuaian (Adjustment).
+                                </p>
                             </div>
                         </div>
                     </div>

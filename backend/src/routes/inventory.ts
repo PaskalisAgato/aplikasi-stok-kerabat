@@ -294,38 +294,59 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, imageUrl, currentStock } = req.body;
         const user = (req as any).user;
 
-        const oldItem = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+        const results = await db.transaction(async (tx: any) => {
+            const oldItem = await tx.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+            if (oldItem.length === 0) return null;
 
-        const [updatedItem] = await db.update(schema.inventory)
-            .set({
-                ...(name && { name }),
-                ...(category && { category }),
-                ...(unit && { unit }),
-                ...(minStock !== undefined && { minStock: minStock.toString() }),
-                ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
-                ...(imageUrl !== undefined && { imageUrl })
-            })
-            .where(eq(schema.inventory.id, inventoryId))
-            .returning();
+            const oldStock = parseFloat(oldItem[0].currentStock);
+            const newStock = currentStock !== undefined ? parseFloat(currentStock.toString()) : oldStock;
+            const delta = newStock - oldStock;
 
-        if (!updatedItem) {
+            // If stock changed, record adjustment
+            if (delta !== 0) {
+                await tx.insert(schema.stockMovements).values({
+                    inventoryId,
+                    type: delta > 0 ? 'IN' : 'OUT',
+                    quantity: Math.abs(delta).toString(),
+                    reason: `Manual Adjustment from ${oldStock} to ${newStock}`,
+                    createdAt: new Date()
+                });
+            }
+
+            const [updatedItem] = await tx.update(schema.inventory)
+                .set({
+                    ...(name && { name }),
+                    ...(category && { category }),
+                    ...(unit && { unit }),
+                    ...(minStock !== undefined && { minStock: minStock.toString() }),
+                    ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
+                    ...(imageUrl !== undefined && { imageUrl }),
+                    ...(currentStock !== undefined && { currentStock: newStock.toString() })
+                })
+                .where(eq(schema.inventory.id, inventoryId))
+                .returning();
+
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `UPDATE_INVENTORY: ${updatedItem.name}${delta !== 0 ? ` (Stock Adjusted: ${delta})` : ''}`,
+                tableName: 'inventory',
+                oldData: JSON.stringify(oldItem[0]),
+                newData: JSON.stringify(updatedItem),
+                createdAt: new Date()
+            });
+
+            return updatedItem;
+        });
+
+        if (!results) {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Log to Audit
-        await db.insert(schema.auditLogs).values({
-            userId: user.id,
-            action: `UPDATE_INVENTORY: ${updatedItem.name}`,
-            tableName: 'inventory',
-            oldData: JSON.stringify(oldItem[0]),
-            newData: JSON.stringify(updatedItem),
-            createdAt: new Date()
-        });
-
-        res.json(updatedItem);
+        res.json(results);
     } catch (error) {
         console.error('Error updating inventory item:', error);
         res.status(500).json({ error: 'Failed to update inventory item' });
