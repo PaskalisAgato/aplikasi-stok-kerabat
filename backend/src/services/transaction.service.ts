@@ -121,7 +121,10 @@ export class TransactionService {
         };
 
         return await db.transaction(async (tx: any) => {
-            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
+            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning({
+                id: schema.sales.id,
+                totalAmount: schema.sales.totalAmount
+            });
 
             // 1. Bulk insert saleItems
             const saleItemsInsertData = items.map((item: any) => {
@@ -139,7 +142,11 @@ export class TransactionService {
 
             // 2. Bulk fetch BOMs
             const recipeIds = items.map((i: any) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                quantity: schema.recipeIngredients.quantity
+            }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             
             // 3. Bulk fetch Inventory 
             const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
@@ -200,7 +207,11 @@ export class TransactionService {
         if (!items || items.length === 0) return;
 
         const recipeIds = items.map((i: any) => i.recipeId);
-        const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        const allBomDeps = await tx.select({
+            recipeId: schema.recipeIngredients.recipeId,
+            inventoryId: schema.recipeIngredients.inventoryId,
+            quantity: schema.recipeIngredients.quantity
+        }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
         
         const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
         if (invIds.length === 0) return;
@@ -269,7 +280,10 @@ export class TransactionService {
                 subTotal: calculatedSubTotal.toString(),
                 totalAmount: finalTotalAmount.toString(),
                 paymentMethod: paymentMethod || oldSale.paymentMethod
-            }).where(eq(schema.sales.id, saleId)).returning();
+            }).where(eq(schema.sales.id, saleId)).returning({
+                id: schema.sales.id,
+                totalAmount: schema.sales.totalAmount
+            });
 
             const saleItemsInsertData = items.map((item: any) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
@@ -286,7 +300,11 @@ export class TransactionService {
 
             // Deduct new inventory (batched)
             const recipeIds = items.map((i: any) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                quantity: schema.recipeIngredients.quantity
+            }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             
             const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
             let invMap = new Map<number, string>();

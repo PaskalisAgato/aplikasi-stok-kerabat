@@ -12,7 +12,15 @@ export const inventoryRouter = Router();
 // GET Export Excel
 inventoryRouter.get('/export', async (req: Request, res: Response) => {
     try {
-        const items = await db.select().from(schema.inventory);
+        const items = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            category: schema.inventory.category,
+            unit: schema.inventory.unit,
+            currentStock: schema.inventory.currentStock,
+            minStock: schema.inventory.minStock,
+            pricePerUnit: schema.inventory.pricePerUnit
+        }).from(schema.inventory);
         const movements = await db.select({
             id: schema.stockMovements.id,
             inventoryId: schema.stockMovements.inventoryId,
@@ -229,7 +237,8 @@ inventoryRouter.get('/:id', async (req: Request, res: Response) => {
             discountPrice: schema.inventory.discountPrice,
             imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
-            createdAt: schema.inventory.createdAt
+            createdAt: schema.inventory.createdAt,
+            version: schema.inventory.version
         })
         .from(schema.inventory)
         .where(
@@ -326,7 +335,12 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
 inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const wasteLogs = await db.select()
+        const wasteLogs = await db.select({
+            id: schema.stockMovements.id,
+            quantity: schema.stockMovements.quantity,
+            reason: schema.stockMovements.reason,
+            createdAt: schema.stockMovements.createdAt
+        })
             .from(schema.stockMovements)
             .where(
                 and(
@@ -361,7 +375,10 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
             pricePerUnit: pricePerUnit?.toString() || '0',
             discountPrice: discountPrice?.toString() || '0',
             imageUrl
-        }).returning();
+        }).returning({
+            id: schema.inventory.id,
+            name: schema.inventory.name
+        });
 
         res.status(201).json(newItem);
     } catch (error) {
@@ -389,7 +406,15 @@ inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) =>
         }
 
         const results = await db.transaction(async (tx: any) => {
-            const oldItemArr = await tx.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+            const oldItemArr = await tx.select({
+                id: schema.inventory.id,
+                name: schema.inventory.name,
+                pricePerUnit: schema.inventory.pricePerUnit,
+                discountPrice: schema.inventory.discountPrice,
+                currentStock: schema.inventory.currentStock,
+                version: schema.inventory.version,
+                isDeleted: schema.inventory.isDeleted
+            }).from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
             if (oldItemArr.length === 0) return { error: 'Item not found', status: 404 };
             const oldItem = oldItemArr[0];
 
@@ -609,7 +634,10 @@ inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) 
         const inventoryId = parseInt(req.params.id as string);
         const user = (req as any).user;
 
-        const item = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+        const item = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name
+        }).from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
         if (item.length === 0) {
             return res.status(404).json({ error: 'Item not found' });
         }

@@ -40,6 +40,12 @@ export const monitorMiddleware = async (req: Request, res: Response, next: NextF
         // Log if it's a slow request (>1s), a large response (>200KB), or an error (>=400)
         // Or just log a sample of healthy requests (e.g. 10%) to keep DB size manageable
         const isSignificant = duration > 1000 || outboundSize > 200 * 1024 || statusCode >= 400;
+        
+        // Proactive warning for large egress payloads
+        if (outboundSize > 200 * 1024) {
+            console.warn(`[Bandwidth Warning] Large outbound payload (${(outboundSize/1024).toFixed(2)} KB) for ${req.method} ${req.path}`);
+        }
+        
         const shouldSample = Math.random() < 0.1;
 
         if (isSignificant || shouldSample) {

@@ -44,7 +44,18 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
         const id = parseInt(req.params.id as string);
         if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
 
-        const [expense] = await db.select().from(schema.expenses).where(
+        const [expense] = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            receiptUrl: schema.expenses.receiptUrl,
+            externalReceiptUrl: schema.expenses.externalReceiptUrl,
+            expenseDate: schema.expenses.expenseDate,
+            userId: schema.expenses.userId,
+            createdAt: schema.expenses.createdAt
+        }).from(schema.expenses).where(
             and(
                 eq(schema.expenses.id, id),
                 eq(schema.expenses.isDeleted, false)
@@ -61,7 +72,15 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
 // GET Export Expenses Excel
 financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
     try {
-        const allExpenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+        const allExpenses = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            expenseDate: schema.expenses.expenseDate,
+            externalReceiptUrl: schema.expenses.externalReceiptUrl
+        }).from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
 
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Kerabat POS';
@@ -91,7 +110,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
                 category: exp.category,
                 amount: parseFloat(exp.amount),
                 date: exp.expenseDate.toLocaleString('id-ID'),
-                receipt: exp.receiptUrl || '-'
+                receipt: exp.externalReceiptUrl || '-'
             });
         });
 
@@ -134,7 +153,10 @@ financeRouter.post('/expenses', requireAuth, async (req: Request, res: Response)
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate,
             userId: (req as any).user?.id || null
-        }).returning();
+        }).returning({
+            id: schema.expenses.id,
+            amount: schema.expenses.amount
+        });
 
         res.status(201).json(newExpense);
     } catch (error) {
@@ -199,7 +221,10 @@ financeRouter.put('/expenses/:id', requireAuth, async (req: Request, res: Respon
                 expenseDate: expenseDate
             })
             .where(eq(schema.expenses.id, id))
-            .returning();
+            .returning({
+                id: schema.expenses.id,
+                amount: schema.expenses.amount
+            });
 
         if (!updatedExpense) {
             return res.status(404).json({ error: 'Expense not found' });
@@ -289,7 +314,10 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             return res.json({ totalHPP: 0, ingredientsHPP: [], recipeHPP: [] });
         }
 
-        const items = await db.select()
+        const items = await db.select({
+            recipeId: schema.saleItems.recipeId,
+            quantity: schema.saleItems.quantity
+        })
             .from(schema.saleItems)
             .where(inArray(schema.saleItems.saleId, saleIds));
 
@@ -350,7 +378,11 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
 // GET all expense categories
 financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res: Response) => {
     try {
-        const cats = await db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        const cats = await db.select({
+            id: schema.expenseCategories.id,
+            name: schema.expenseCategories.name,
+            icon: schema.expenseCategories.icon
+        }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
         res.json(cats);
     } catch (error) {
         console.error('Error fetching categories:', error);
