@@ -1,8 +1,8 @@
 export default function SalesChart({ reports }) {
     if (!reports || !reports.topMenus) return null;
 
-    const topMenus = reports.topMenus;
-    const maxQty = Math.max(...topMenus.map(m => m.totalQty), 1);
+    const topMenus = Array.isArray(reports?.topMenus) ? reports.topMenus : [];
+    const maxQty = topMenus.length > 0 ? Math.max(...topMenus.map(m => m.totalQty), 1) : 1;
 
     return (
         <section className="card group relative overflow-hidden transition-all duration-700">

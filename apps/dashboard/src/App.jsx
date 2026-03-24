@@ -24,9 +24,9 @@ function App() {
           apiClient.getInventory(),
           apiClient.getSystemStats()
         ]);
-        setReports(reportData);
-        setInventory(invData);
-        setHealth(healthData);
+        setReports(reportData?.data || reportData);
+        setInventory(invData?.data || invData || []);
+        setHealth(healthData?.data || healthData);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {

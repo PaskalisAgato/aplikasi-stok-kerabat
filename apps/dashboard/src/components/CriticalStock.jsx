@@ -1,9 +1,9 @@
 export default function CriticalStock({ inventory }) {
     if (!inventory) return null;
 
-    const criticalItems = inventory.filter(item => 
+    const criticalItems = Array.isArray(inventory) ? inventory.filter(item => 
         parseFloat(item.currentStock) <= parseFloat(item.minStock)
-    );
+    ) : [];
 
     return (
         <section className="space-y-8 animate-in fade-in slide-in-from-right duration-700">
