@@ -27,22 +27,18 @@ function AttendanceHistoryPage() {
         endDate: filters.endDate
     });
 
-    const handleViewPhoto = async (photoPath: string, label: string) => {
-        if (!window.confirm('Foto ini hanya bisa dilihat satu kali saja. Jika Anda berlanjut, foto akan terhapus otomatis setelah modal ditutup. Lanjutkan?')) return;
-
-        const filename = photoPath.split('/').pop();
-        if (!filename) return;
-
-        setIsFetchingPhoto(true);
-        try {
-            const blob = await apiClient.getAttendancePhoto(filename);
-            const url = URL.createObjectURL(blob);
-            setViewingPhoto({ url, label });
-        } catch (error: any) {
-            toast.error(error.message || 'Gagal mengambil foto. Mungkin sudah terhapus.');
-        } finally {
-            setIsFetchingPhoto(false);
-        }
+    const handleViewPhoto = (photoPath: string, label: string) => {
+        if (!window.confirm('Lihat bukti absen karyawan?')) return;
+        
+        const rawUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
+        const baseUrl = rawUrl.replace(/\/api$/, '');
+        
+        // Handle path that might or might not have 'uploads/' prefix
+        const cleanPath = photoPath.startsWith('/') ? photoPath.slice(1) : photoPath;
+        const finalPath = cleanPath.startsWith('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+        
+        const url = photoPath.startsWith('http') ? photoPath : `${baseUrl}/${finalPath}`;
+        setViewingPhoto({ url, label });
     };
 
     const handleDelete = async (id: string | number) => {
@@ -257,10 +253,7 @@ function AttendanceHistoryPage() {
                                 <h3 className="text-xl font-black">{viewingPhoto.label}</h3>
                             </div>
                             <button 
-                                onClick={() => {
-                                    URL.revokeObjectURL(viewingPhoto.url);
-                                    setViewingPhoto(null);
-                                }}
+                                onClick={() => setViewingPhoto(null)}
                                 className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
                             >
                                 <span className="material-symbols-outlined text-sm group-hover:scale-110">close</span>
@@ -275,18 +268,15 @@ function AttendanceHistoryPage() {
                             />
                         </div>
 
-                        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex gap-4">
-                            <span className="material-symbols-outlined text-amber-500">warning</span>
-                            <p className="text-[10px] font-bold text-amber-200/80 leading-relaxed uppercase tracking-widest">
-                                Foto ini adalah sekali lihat. Jika Anda menutup modal ini, file asli akan terhapus dari server untuk keamanan.
+                        <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl flex gap-4">
+                            <span className="material-symbols-outlined text-primary">info</span>
+                            <p className="text-[10px] font-bold text-primary/80 leading-relaxed uppercase tracking-widest">
+                                Foto ini adalah bukti sah absensi karyawan yang tersimpan di sistem.
                             </p>
                         </div>
 
                         <button 
-                            onClick={() => {
-                                URL.revokeObjectURL(viewingPhoto.url);
-                                setViewingPhoto(null);
-                            }}
+                            onClick={() => setViewingPhoto(null)}
                             className="w-full py-4 bg-primary text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
                         >
                             Tutup & Konfirmasi Selesai

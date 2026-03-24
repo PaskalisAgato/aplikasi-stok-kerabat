@@ -77,7 +77,11 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                                     <div className="relative">
                                         <div className={`size-24 rounded-[2rem] flex items-center justify-center overflow-hidden border-4 bg-[var(--bg-app)] border-white/10 shadow-2xl transition-transform group-hover:rotate-3`}>
                                             {employee.image ? (
-                                                <img className="h-full w-full object-cover" src={employee.image} alt={employee.name} />
+                                                <img 
+                                                    className="h-full w-full object-cover" 
+                                                    src={employee.image.startsWith('http') ? employee.image : `${((import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api').replace(/\/api$/, '')}/${employee.image.startsWith('/') ? employee.image.slice(1) : (employee.image.startsWith('uploads/') ? employee.image : `uploads/${employee.image}`)}`} 
+                                                    alt={employee.name} 
+                                                />
                                             ) : (
                                                 <span className="text-3xl font-black text-primary font-display">{getInitials(employee.name)}</span>
                                             )}

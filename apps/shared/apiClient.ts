@@ -163,15 +163,16 @@ export async function apiFetch<T = unknown>(
             getCache.clear(); 
         }
 
-        if (asBlob) return (await response.blob()) as unknown as T;
-        const responseText = response.status === 204 ? '' : await response.text();
-
         if (!response.ok) {
+            const errorText = await response.text();
             let message = response.statusText;
-            const errorBody = safeJsonParse<any>(responseText, null);
+            const errorBody = safeJsonParse<any>(errorText, null);
             if (errorBody) message = errorBody.message ?? errorBody.error ?? message;
             throw new ApiError(response.status, response.statusText, message);
         }
+
+        if (asBlob) return (await response.blob()) as unknown as T;
+        const responseText = response.status === 204 ? '' : await response.text();
 
         if (response.status === 204) return undefined as T;
         
