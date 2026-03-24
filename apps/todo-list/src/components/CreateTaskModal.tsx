@@ -62,17 +62,45 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                         </div>
 
                         {/* Deadline */}
-                        <div className="space-y-2">
-                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
-                                 <span className="material-symbols-outlined text-[10px]">timer</span>
-                                 Tenggat Waktu (Sangat Penting)
-                             </label>
+                        <div className="space-y-3">
+                             <div className="flex justify-between items-center ml-1">
+                                <label className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[10px]">timer</span>
+                                    Tenggat Waktu
+                                </label>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setDeadline('')}
+                                    className="text-[8px] font-black text-primary uppercase tracking-widest hover:underline"
+                                >
+                                    Hapus
+                                </button>
+                             </div>
                              <input
                                  type="datetime-local"
                                  value={deadline}
                                  onChange={(e) => setDeadline(e.target.value)}
                                  className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                              />
+                             <div className="grid grid-cols-4 gap-2">
+                                 {[1, 2, 4, 8].map(h => (
+                                     <button
+                                         key={h}
+                                         type="button"
+                                         onClick={() => {
+                                             const d = new Date();
+                                             d.setHours(d.getHours() + h);
+                                             // Fast format to datetime-local
+                                             const offset = d.getTimezoneOffset();
+                                             const localDate = new Date(d.getTime() - (offset * 60 * 1000));
+                                             setDeadline(localDate.toISOString().slice(0, 16));
+                                         }}
+                                         className="h-10 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-muted uppercase tracking-widest active:scale-90 transition-all hover:border-primary/40 hover:text-primary"
+                                     >
+                                         +{h} Jam
+                                     </button>
+                                 ))}
+                             </div>
                         </div>
 
                         {/* Description & Category ... */}
