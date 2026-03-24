@@ -4,3 +4,4 @@ backend/uploads
 *.log
 .env
 
+backend/backups/

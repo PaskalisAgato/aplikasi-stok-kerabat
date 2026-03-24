@@ -10,16 +10,9 @@ interface InventoryItem {
     imageUrl?: string;
 }
 
-interface ApiMeta {
-    total: number;
-    limit: number;
-    page: number;
-}
 
-interface ApiResponse<T> {
-    data: T[];
-    meta: ApiMeta;
-}
+
+
 
 function App() {
     const [inventoryList, setInventoryList] = useState<InventoryItem[]>([]);

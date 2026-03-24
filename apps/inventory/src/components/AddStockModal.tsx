@@ -73,7 +73,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
         setIsLoadingHistory(true);
         try {
             const data = await apiClient.getStockInHistory();
-            setHistoryData(data);
+            setHistoryData(data.data);
         } catch (error) {
             console.error('Failed to load history', error);
         } finally {

@@ -1,4 +1,4 @@
-import { apiFetch, ApiResponse } from '../apiClient';
+import { apiFetch, type ApiResponse } from '../apiClient';
 
 export interface User {
     id: string;

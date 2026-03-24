@@ -35,8 +35,8 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     const [inventoryData, setInventoryData] = useState<any[]>([]);
 
     useEffect(() => {
-        apiClient.getInventory().then(data => {
-            setInventoryData(data);
+        apiClient.getInventory().then(res => {
+            setInventoryData(res.data);
         }).catch(err => console.error("Failed to fetch inventory for recipe editing", err));
     }, []);
 

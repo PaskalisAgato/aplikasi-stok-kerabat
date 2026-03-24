@@ -21,7 +21,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
 
     if (!isOpen) return null;
 
-    const filteredEmployees = employees.filter(emp =>
+    const filteredEmployees = employees.filter((emp: User) =>
         emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.role.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -67,7 +67,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {filteredEmployees.map((employee) => (
+                        {filteredEmployees.map((employee: User) => (
                             <div
                                 key={employee.id}
                                 onClick={() => setSelectedEmployee(employee)}

@@ -287,6 +287,7 @@ export const apiClient = {
         return apiFetch<ApiResponse<any>>(`/attendance/history?${query}`);
     },
     deleteAttendanceByRange: (startDate: string, endDate: string) => apiFetch<any>('/attendance/bulk-delete', { method: 'DELETE', body: JSON.stringify({ startDate, endDate }) }),
+    deleteAttendance: (id: string | number) => apiFetch<any>(`/attendance/${id}`, { method: 'DELETE' }),
     getAttendancePhoto: (filename: string) => apiFetch<Blob>(`/attendance/view-once/${filename}`, { method: 'GET' }, true),
 
     // ---- TODO LIST ----

@@ -25,7 +25,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
 
     useEffect(() => {
         if (isOpen) {
-            apiClient.getInventory().then(setInventoryList).catch(console.error);
+            apiClient.getInventory().then(res => setInventoryList(res.data)).catch(console.error);
         }
     }, [isOpen]);
 

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, type CreateUserPayload, type UpdateUserPayload, type User } from '../services/userService';
+import type { ApiResponse } from '../apiClient';
 export type { User };
 
 export const userKeys = {
@@ -8,9 +9,9 @@ export const userKeys = {
 };
 
 export const useEmployees = () =>
-    useQuery({
+    useQuery<ApiResponse<User>, Error, User[]>({
         queryKey: userKeys.list(),
-        select: (res) => (res as any).data ?? [],
+        select: (res) => res.data ?? [],
         queryFn: userService.fetchAll,
     });
 

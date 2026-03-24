@@ -493,7 +493,7 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
                                 }}
                             >
                                 <option value="" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">+ Tambah Karyawan</option>
-                                {allEmployees?.filter(u => !gridData.some(g => g.id === u.id)).map((u: any) => (
+                                {allEmployees?.filter((u: any) => !gridData.some(g => g.id === u.id)).map((u: any) => (
                                     <option key={u.id} value={u.id} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{u.name}</option>
                                 ))}
                             </select>

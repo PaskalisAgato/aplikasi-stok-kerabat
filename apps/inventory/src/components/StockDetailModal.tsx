@@ -23,7 +23,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
         setIsLoading(true);
         try {
             const data = await apiClient.getItemMovements(selectedItem.id);
-            setMovements(data);
+            setMovements(data.data);
         } catch (err) {
             console.error('Failed to fetch movements', err);
         } finally {
