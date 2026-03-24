@@ -3,14 +3,25 @@ import SummaryCard from './components/SummaryCard';
 import ExpenseList from './components/ExpenseList';
 import AddExpenseModal from './components/AddExpenseModal';
 import { apiClient } from '@shared/apiClient';
+import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+
+interface ExpenseItem {
+    id: number;
+    title: string;
+    category: string;
+    date: string;
+    amount: string;
+    imageUrl: string;
+}
 
 function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [expensesList, setExpensesList] = useState<any[]>([]);
+  const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
   const [page, setPage] = useState(0);
+  const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 20;
 
@@ -22,14 +33,16 @@ function App() {
         }
 
         const currentPage = isLoadMore ? page + 1 : 0;
-        const data = await apiClient.getExpenses(PAGE_SIZE, currentPage * PAGE_SIZE);
+        const response: ApiResponse<any> = await apiClient.getExpenses(PAGE_SIZE, currentPage * PAGE_SIZE);
+        const { data, meta: responseMeta } = response;
+        if (responseMeta.page !== undefined) setMeta({ page: responseMeta.page, limit: responseMeta.limit, total: responseMeta.total });
         
         if (!Array.isArray(data)) {
             if (!isLoadMore) setExpensesList([]);
             return;
         }
 
-        const formatted = data.map((exp: any) => ({
+        const formatted: ExpenseItem[] = data.map((exp: any) => ({
             id: exp.id,
             title: exp.title || 'Untitled Expense',
             category: exp.category || 'General',
@@ -44,7 +57,7 @@ function App() {
         } else {
             setExpensesList(formatted);
         }
-        setHasMore(data.length === PAGE_SIZE);
+        setHasMore(data.length >= responseMeta.limit);
     } catch (error) {
         console.error("Failed fetching expenses", error);
     } finally {
@@ -93,7 +106,7 @@ function App() {
     }
   };
 
-  const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+  const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat((exp.amount || 0).toString()), 0);
 
   const ExpenseSidebar = (
     <div className="space-y-10 animate-in fade-in slide-in-from-left duration-700">

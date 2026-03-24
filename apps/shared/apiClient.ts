@@ -65,7 +65,8 @@ export interface ApiResponse<T> {
     meta: {
         total: number;
         limit: number;
-        offset: number;
+        page?: number;   // New pattern for POS/Recipes
+        offset?: number; // Legacy pattern for Inventory
     };
 }
 
@@ -241,14 +242,14 @@ export const apiClient = {
     deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
 
     // ---- PRODUCTS (Mappings to old names for frontend compatibility) ----
-    getRecipes: () => apiFetch<any[]>('/products'),
-    getProducts: () => apiFetch<any[]>('/products'),
+    getRecipes: () => apiFetch<ApiResponse<any>>('/products'),
+    getProducts: () => apiFetch<ApiResponse<any>>('/products'),
     createRecipe: (data: unknown) => apiFetch<any>('/products', { method: 'POST', body: JSON.stringify(data) }),
     updateRecipe: (id: number, data: unknown) => apiFetch<any>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteRecipe: (id: number) => apiFetch<any>(`/products/${id}`, { method: 'DELETE' }),
 
     // ---- TRANSACTIONS ----
-    getTransactions: (limit = 20, offset = 0) => apiFetch<any[]>(`/transactions?limit=${limit}&offset=${offset}`),
+    getTransactions: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/transactions?limit=${limit}&offset=${offset}`),
     getTransactionById: (id: number) => apiFetch<any>(`/transactions/${id}`),
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -256,7 +257,7 @@ export const apiClient = {
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
-    getExpenses: (limit = 20, offset = 0) => apiFetch<any[]>(`/finance/expenses?limit=${limit}&offset=${offset}`),
+    getExpenses: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/finance/expenses?limit=${limit}&offset=${offset}`),
     getExpenseById: (id: number) => apiFetch<any>(`/finance/expenses/${id}`),
     exportExpensesExcel: () => apiFetch<Blob>('/finance/expenses/export', { method: 'GET' }, true),
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),

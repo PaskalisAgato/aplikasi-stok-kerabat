@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
+import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import TransactionHistory from './TransactionHistory';
+
+interface Recipe {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    imageUrl?: string;
+    ingredients?: any[];
+}
 
 function App() {
     const [view, setView] = useState<'pos' | 'history'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [showAddMenu, setShowAddMenu] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [recipesList, setRecipesList] = useState<any[]>([]);
+    const [recipesList, setRecipesList] = useState<Recipe[]>([]);
+    const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
@@ -16,8 +27,12 @@ function App() {
     const fetchRecipes = async () => {
         try {
             setIsLoading(true);
-            const data = await apiClient.getRecipes();
+            const response: ApiResponse<any> = await apiClient.getRecipes();
+            const { data, meta: responseMeta } = response;
             setRecipesList(data);
+            if (responseMeta.page !== undefined) {
+                setMeta({ page: responseMeta.page, limit: responseMeta.limit, total: responseMeta.total });
+            }
         } catch (error) {
             console.error('Failed to load menu', error);
         } finally {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
+import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { useSession } from '@shared/authClient';
 
@@ -9,6 +10,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const isAdmin = userRole === 'Admin';
 
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Modals state
@@ -25,12 +27,16 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const loadData = async () => {
         try {
             setIsLoading(true);
-            const [txRes, recRes] = await Promise.all([
+            const [txRes, recRes]: [ApiResponse<any>, ApiResponse<any>] = await Promise.all([
                 apiClient.getTransactions(),
                 apiClient.getRecipes()
             ]);
-            setTransactions(txRes);
-            setRecipesList(recRes);
+            
+            setTransactions(txRes.data);
+            if (txRes.meta.page !== undefined) {
+                setMeta({ page: txRes.meta.page, limit: txRes.meta.limit, total: txRes.meta.total });
+            }
+            setRecipesList(recRes.data);
         } catch (error) {
             console.error('Failed to load transaction history', error);
         } finally {
