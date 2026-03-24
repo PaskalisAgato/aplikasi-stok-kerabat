@@ -60,7 +60,7 @@ export function safeJsonParse<T>(text: string, fallback: T): T {
 }
 
 // ── Resilience Config ────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 5_000; // 5 seconds as per Enterprise Section 4
+const FETCH_TIMEOUT_MS = 10_000; // Increased to 10s for Render cold starts
 const MAX_RETRIES = 1;         // 1 retry as per Enterprise Section 4
 const CACHE_TTL_MS = 30_000;   // 30 seconds as per Enterprise Section 6
 
@@ -70,9 +70,9 @@ const getCache = new Map<string, { data: any; timestamp: number }>();
 // ── Circuit Breaker State (Phase 3) ──────────────────────────────────────────
 let failureWindow: boolean[] = []; // true = success, false = fail
 let circuitTrippedUntil = 0;
-const BREAKER_WINDOW = 10;
-const BREAKER_THRESHOLD = 5; // 50%
-const COOLDOWN_MS = 30_000;
+const BREAKER_WINDOW = 20;    // Increased window for better sample size
+const BREAKER_THRESHOLD = 14; // 70% failures needed to trip
+const COOLDOWN_MS = 15_000;   // Reduced cooldown to 15s for faster recovery
 
 function updateBreaker(success: boolean) {
     failureWindow.push(success);
