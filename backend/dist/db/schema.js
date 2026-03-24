@@ -1,4 +1,5 @@
 import { pgTable, serial, text, integer, decimal, timestamp, boolean, index } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 // -----------------------------------------------------------------------------
 // 1. AUTH & USERS (Better Auth Integration)
 // -----------------------------------------------------------------------------
@@ -10,6 +11,7 @@ export const users = pgTable('user', {
     image: text('image'),
     role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
     pin: text('pin'), // 4-6 digit numeric PIN
+    status: text('status').default('active').notNull(),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 });
@@ -140,6 +142,7 @@ export const saleItems = pgTable('sale_items', {
 export const expenses = pgTable('expenses', {
     id: serial('id').primaryKey(),
     title: text('title').notNull(),
+    vendor: text('vendor'), // New: Vendor name
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     receiptUrl: text('receipt_url'),
@@ -169,12 +172,21 @@ export const auditLogs = pgTable('audit_logs', {
 // -----------------------------------------------------------------------------
 // 6. WORK SHIFTS & ATTENDANCE
 // -----------------------------------------------------------------------------
+export const shiftSettings = pgTable('shift_settings', {
+    id: serial('id').primaryKey(),
+    code: text('code').notNull().unique(), // 'P', 'S', 'M'
+    startTime: text('start_time').notNull(),
+    endTime: text('end_time').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
 export const workShifts = pgTable('work_shifts', {
     id: serial('id').primaryKey(),
     userId: text('user_id').notNull().references(() => users.id),
     date: timestamp('date').notNull(),
     startTime: text('start_time').notNull(), // e.g. "08:00"
     endTime: text('end_time').notNull(), // e.g. "17:00"
+    note: text('note'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 }, (t) => ({
@@ -187,9 +199,84 @@ export const attendance = pgTable('attendance', {
     date: timestamp('date').notNull(),
     checkIn: timestamp('check_in'),
     checkOut: timestamp('check_out'),
-    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Tidak Hadir'
+    checkInPhoto: text('check_in_photo'), // URL to storage
+    checkOutPhoto: text('check_out_photo'), // URL to storage
+    checkInTimestamp: text('check_in_timestamp'), // Watermark text
+    checkOutTimestamp: text('check_out_timestamp'), // Watermark text
+    status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Alpha', 'Izin'
+    location: text('location'), // Alamat (Address)
+    latitude: decimal('latitude', { precision: 10, scale: 7 }),
+    longitude: decimal('longitude', { precision: 10, scale: 7 }),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
     userIdx: index('attendance_user_idx').on(t.userId),
     dateIdx: index('attendance_date_idx').on(t.date)
+}));
+export const shiftRequests = pgTable('shift_requests', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    date: timestamp('date').notNull(),
+    requestedShift: text('requested_shift').notNull(), // 'P', 'S', 'M', 'OFF'
+    reason: text('reason'),
+    status: text('status').default('pending').notNull(), // 'pending', 'approved', 'rejected'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+// -----------------------------------------------------------------------------
+// 7. PAYROLL
+// -----------------------------------------------------------------------------
+export const payroll = pgTable('payroll', {
+    id: serial('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    periodStart: timestamp('period_start').notNull(),
+    periodEnd: timestamp('period_end').notNull(),
+    totalWorkDays: integer('total_work_days').default(0).notNull(),
+    totalHours: decimal('total_hours', { precision: 10, scale: 2 }).default('0').notNull(),
+    baseSalary: decimal('base_salary', { precision: 12, scale: 2 }).notNull(),
+    overtimePay: decimal('overtime_pay', { precision: 12, scale: 2 }).default('0').notNull(),
+    deductions: decimal('deductions', { precision: 12, scale: 2 }).default('0').notNull(),
+    totalNetSalary: decimal('total_net_salary', { precision: 12, scale: 2 }).notNull(),
+    status: text('status').default('draft').notNull(), // 'draft', 'paid'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+// -----------------------------------------------------------------------------
+// 8. TO-DO LIST SYSTEM
+// -----------------------------------------------------------------------------
+export const todos = pgTable('todos', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    description: text('description'),
+    category: text('category').notNull(), // 'Opening', 'Closing', 'Request'
+    assignedTo: text('assigned_to').references(() => users.id), // Optional: individual assignment
+    status: text('status').default('Pending').notNull(), // 'Pending', 'Completed'
+    photoProof: text('photo_proof'), // Base64 or URL
+    completionTime: timestamp('completion_time'),
+    completedBy: text('completed_by').references(() => users.id),
+    createdBy: text('created_by').notNull().references(() => users.id),
+    isRecurring: boolean('is_recurring').default(false).notNull(),
+    deadline: timestamp('deadline'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+export const todoCompletions = pgTable('todo_completions', {
+    id: serial('id').primaryKey(),
+    todoId: integer('todo_id').notNull().references(() => todos.id, { onDelete: 'cascade' }),
+    completedBy: text('completed_by').notNull().references(() => users.id),
+    photoProof: text('photo_proof'),
+    completionTime: timestamp('completion_time').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t) => ({
+    todoIdx: index('todo_completions_todo_idx').on(t.todoId),
+    userIdx: index('todo_completions_user_idx').on(t.completedBy)
+}));
+export const todosRelations = relations(todos, ({ many }) => ({
+    completions: many(todoCompletions)
+}));
+export const todoCompletionsRelations = relations(todoCompletions, ({ one }) => ({
+    todo: one(todos, {
+        fields: [todoCompletions.todoId],
+        references: [todos.id]
+    }),
+    user: one(users, {
+        fields: [todoCompletions.completedBy],
+        references: [users.id]
+    })
 }));

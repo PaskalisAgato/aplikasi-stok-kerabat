@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { requireAdmin } from '../middleware/auth.js';
+import ExcelJS from 'exceljs';
 export const financeRouter = Router();
 // GET all expenses
 financeRouter.get('/expenses', async (req, res) => {
@@ -15,10 +16,52 @@ financeRouter.get('/expenses', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch expenses' });
     }
 });
+// GET Export Expenses Excel
+financeRouter.get('/expenses/export', async (req, res) => {
+    try {
+        const allExpenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Kerabat POS';
+        workbook.lastModifiedBy = 'Kerabat POS';
+        workbook.created = new Date();
+        const sheet = workbook.addWorksheet('Data Pengeluaran');
+        sheet.columns = [
+            { header: 'ID', key: 'id', width: 5 },
+            { header: 'Catatan/Judul', key: 'title', width: 30 },
+            { header: 'Vendor/Supplier', key: 'vendor', width: 25 },
+            { header: 'Kategori', key: 'category', width: 20 },
+            { header: 'Jumlah', key: 'amount', width: 15 },
+            { header: 'Tanggal', key: 'date', width: 20 },
+            { header: 'Bukti', key: 'receipt', width: 40 },
+        ];
+        // Style header
+        sheet.getRow(1).font = { bold: true };
+        sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        allExpenses.forEach(exp => {
+            sheet.addRow({
+                id: exp.id,
+                title: exp.title,
+                vendor: exp.vendor || '-',
+                category: exp.category,
+                amount: parseFloat(exp.amount),
+                date: exp.expenseDate.toLocaleString('id-ID'),
+                receipt: exp.receiptUrl || '-'
+            });
+        });
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Pengeluaran_Kerabat_POS.xlsx');
+        await workbook.xlsx.write(res);
+        res.status(200).end();
+    }
+    catch (error) {
+        console.error('Export expenses error:', error);
+        res.status(500).json({ error: 'Failed to generate expenses export' });
+    }
+});
 // POST new expense
 financeRouter.post('/expenses', async (req, res) => {
     try {
-        const { title, category, amount, date, receiptUrl } = req.body;
+        const { title, vendor, category, amount, date, receiptUrl } = req.body;
         // Better validation: amount can be 0, but must be defined and a number
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
             return res.status(400).json({ error: 'Missing or invalid required expense fields' });
@@ -33,6 +76,7 @@ financeRouter.post('/expenses', async (req, res) => {
         }
         const [newExpense] = await db.insert(schema.expenses).values({
             title,
+            vendor,
             category,
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,
@@ -72,7 +116,7 @@ financeRouter.put('/expenses/:id', async (req, res) => {
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid expense ID' });
         }
-        const { title, category, amount, date, receiptUrl } = req.body;
+        const { title, vendor, category, amount, date, receiptUrl } = req.body;
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
             return res.status(400).json({ error: 'Missing or invalid required expense fields' });
         }
@@ -86,6 +130,7 @@ financeRouter.put('/expenses/:id', async (req, res) => {
         const [updatedExpense] = await db.update(schema.expenses)
             .set({
             title,
+            vendor,
             category,
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,

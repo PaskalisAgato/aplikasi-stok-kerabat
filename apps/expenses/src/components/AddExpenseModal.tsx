@@ -140,8 +140,19 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setSelectedFile(null);
             onClose();
         } catch (error: any) {
-            console.error('Failed to save expense:', error);
-            alert(`Gagal merekam pengeluaran: ${error.message || 'Unknown error'}`);
+            console.error('Detailed Expense Save Failure:', {
+                stage: selectedFile && !finalReceiptUrl ? 'Supabase Upload' : 'Backend API Call',
+                error: error
+            });
+
+            let userFriendlyMessage = error.message || 'Unknown error';
+            if (error.status === 403) {
+                userFriendlyMessage = "Akses ditolak (403). Pastikan akun Anda memiliki izin yang cukup.";
+            } else if (error.status === 401) {
+                userFriendlyMessage = "Sesi berakhir (401). Silakan log out dan login kembali.";
+            }
+
+            alert(`Gagal merekam pengeluaran: ${userFriendlyMessage}`);
         } finally {
             setIsUploading(false);
         }

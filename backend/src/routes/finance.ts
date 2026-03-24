@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
-import { requireAdmin } from '../middleware/auth.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 
 export const financeRouter = Router();
@@ -68,7 +68,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
 });
 
 // POST new expense
-financeRouter.post('/expenses', async (req: Request, res: Response) => {
+financeRouter.post('/expenses', requireAuth, async (req: Request, res: Response) => {
     try {
         const { title, vendor, category, amount, date, receiptUrl } = req.body;
         
@@ -103,7 +103,7 @@ financeRouter.post('/expenses', async (req: Request, res: Response) => {
 });
 
 // DELETE expense
-financeRouter.delete('/expenses/:id', async (req: Request, res: Response) => {
+financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id as string);
         if (isNaN(id)) {
@@ -126,7 +126,7 @@ financeRouter.delete('/expenses/:id', async (req: Request, res: Response) => {
 });
 
 // UPDATE expense
-financeRouter.put('/expenses/:id', async (req: Request, res: Response) => {
+financeRouter.put('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id as string);
         if (isNaN(id)) {
@@ -294,7 +294,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
 });
 
 // GET all expense categories
-financeRouter.get('/expenses/categories', async (req: Request, res: Response) => {
+financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res: Response) => {
     try {
         const cats = await db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
         res.json(cats);

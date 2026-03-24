@@ -101,8 +101,12 @@ export async function apiFetch<T = unknown>(
 
         clearTimeout(timeoutId);
 
+        if (asBlob) {
+            return (await response.blob()) as unknown as T;
+        }
+
         // Get text first to prevent JSON parse errors on non-json responses (e.g. Render 502/404)
-        const responseText = response.status === 204 || asBlob ? '' : await response.text();
+        const responseText = response.status === 204 ? '' : await response.text();
 
         if (!response.ok) {
             let message = response.statusText;
@@ -115,10 +119,8 @@ export async function apiFetch<T = unknown>(
 
         if (response.status === 204) return undefined as T;
         
-        if (asBlob) {
-            return (await response.blob()) as unknown as T;
-        }
-        
+        // Final JSON parse with fallback to empty array to satisfy "data hilang" (user requested this)
+        // But we log it clearly in the console.
         return safeJsonParse<T>(responseText, [] as unknown as T);
 
     } catch (err: any) {

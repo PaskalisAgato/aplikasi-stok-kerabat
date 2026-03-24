@@ -1,6 +1,8 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { eq, and, between, desc, like } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 export class AttendanceService {
     static async getTodayAttendance(userId) {
         const today = new Date();
@@ -12,7 +14,7 @@ export class AttendanceService {
             .where(and(eq(schema.attendance.userId, userId), between(schema.attendance.date, today, tonight))).limit(1);
         return record || null;
     }
-    static async checkIn(userId) {
+    static async checkIn(userId, photoPath, locationData) {
         const today = new Date();
         const dayStart = new Date(today);
         dayStart.setHours(0, 0, 0, 0);
@@ -36,10 +38,20 @@ export class AttendanceService {
                 status = 'Terlambat';
             }
         }
+        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
         // 3. Insert or Update
         if (existing) {
             return await db.update(schema.attendance)
-                .set({ checkIn: today, status, createdAt: new Date() })
+                .set({
+                checkIn: today,
+                status,
+                checkInPhoto: photoPath,
+                checkInTimestamp: timestampStr,
+                location: locationData?.location,
+                latitude: locationData?.latitude?.toString(),
+                longitude: locationData?.longitude?.toString(),
+                createdAt: new Date()
+            })
                 .where(eq(schema.attendance.id, existing.id))
                 .returning();
         }
@@ -48,12 +60,17 @@ export class AttendanceService {
                 userId,
                 date: dayStart,
                 checkIn: today,
+                checkInPhoto: photoPath,
+                checkInTimestamp: timestampStr,
+                location: locationData?.location,
+                latitude: locationData?.latitude?.toString(),
+                longitude: locationData?.longitude?.toString(),
                 status,
                 createdAt: new Date()
             }).returning();
         }
     }
-    static async checkOut(userId) {
+    static async checkOut(userId, photoPath, locationData) {
         const existing = await this.getTodayAttendance(userId);
         if (!existing) {
             throw new Error('Anda belum melakukan Check-In hari ini.');
@@ -61,8 +78,17 @@ export class AttendanceService {
         if (existing.checkOut) {
             throw new Error('Anda sudah melakukan Check-Out hari ini.');
         }
+        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
         return await db.update(schema.attendance)
-            .set({ checkOut: new Date() })
+            .set({
+            checkOut: new Date(),
+            checkOutPhoto: photoPath,
+            checkOutTimestamp: timestampStr,
+            // Update location if provided during logout, or keep existing from login
+            location: locationData?.location || existing.location,
+            latitude: locationData?.latitude?.toString() || existing.latitude,
+            longitude: locationData?.longitude?.toString() || existing.longitude,
+        })
             .where(eq(schema.attendance.id, existing.id))
             .returning();
     }
@@ -74,6 +100,8 @@ export class AttendanceService {
             date: schema.attendance.date,
             checkIn: schema.attendance.checkIn,
             checkOut: schema.attendance.checkOut,
+            checkInPhoto: schema.attendance.checkInPhoto,
+            checkOutPhoto: schema.attendance.checkOutPhoto,
             status: schema.attendance.status,
         })
             .from(schema.attendance)
@@ -94,5 +122,72 @@ export class AttendanceService {
             query = query.where(and(...conditions));
         }
         return await query;
+    }
+    static async deleteRecord(id) {
+        const numericId = parseInt(id);
+        // 1. Get record to find photos
+        const [record] = await db.select().from(schema.attendance).where(eq(schema.attendance.id, numericId)).limit(1);
+        if (record) {
+            // 2. Delete photos if segments exist
+            const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean);
+            for (const photo of photos) {
+                const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                if (fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                        console.log(`[DeleteRecord] Cleaned up file: ${photo}`);
+                    }
+                    catch (e) {
+                        console.error(`Failed to delete file ${photo}:`, e);
+                    }
+                }
+            }
+        }
+        // 3. Delete from DB
+        return await db.delete(schema.attendance)
+            .where(eq(schema.attendance.id, numericId))
+            .returning();
+    }
+    static async deleteByRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        // 1. Find all records in range to clean up photos
+        const records = await db.select()
+            .from(schema.attendance)
+            .where(between(schema.attendance.date, start, end));
+        let deletedFiles = 0;
+        for (const record of records) {
+            const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean);
+            for (const photo of photos) {
+                const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                if (fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                        deletedFiles++;
+                    }
+                    catch (e) {
+                        console.error(`Failed to delete file ${photo}:`, e);
+                    }
+                }
+            }
+        }
+        // 2. Delete from DB
+        const result = await db.delete(schema.attendance)
+            .where(between(schema.attendance.date, start, end))
+            .returning();
+        return { count: result.length, filesDeleted: deletedFiles };
+    }
+    static async clearPhotoUrl(filename) {
+        // Find record by photo path
+        const photoPath = `attendance/${filename}`;
+        // Try checkInPhoto first
+        await db.update(schema.attendance)
+            .set({ checkInPhoto: null })
+            .where(eq(schema.attendance.checkInPhoto, photoPath));
+        // Then checkOutPhoto
+        await db.update(schema.attendance)
+            .set({ checkOutPhoto: null })
+            .where(eq(schema.attendance.checkOutPhoto, photoPath));
     }
 }

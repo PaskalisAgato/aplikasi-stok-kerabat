@@ -11,6 +11,7 @@ export class ShiftService {
             date: schema.workShifts.date,
             startTime: schema.workShifts.startTime,
             endTime: schema.workShifts.endTime,
+            note: schema.workShifts.note,
         })
             .from(schema.workShifts)
             .innerJoin(schema.users, eq(schema.workShifts.userId, schema.users.id))
@@ -90,5 +91,91 @@ export class ShiftService {
             });
         }
         return deletedShift;
+    }
+    static async getShiftSettings() {
+        return await db.select().from(schema.shiftSettings);
+    }
+    static async batchSave(shifts, currentUserId, options) {
+        const { inArray, and, gte, lte, notInArray } = await import('drizzle-orm');
+        return await db.transaction(async (tx) => {
+            let userIds = [];
+            let minDate;
+            let maxDate;
+            // 1. Sync Shift Settings
+            if (options?.settings) {
+                for (const [code, s] of Object.entries(options.settings)) {
+                    await tx.insert(schema.shiftSettings)
+                        .values({
+                        code,
+                        startTime: s.start,
+                        endTime: s.end,
+                        isActive: s.active,
+                        updatedAt: new Date()
+                    })
+                        .onConflictDoUpdate({
+                        target: schema.shiftSettings.code,
+                        set: {
+                            startTime: s.start,
+                            endTime: s.end,
+                            isActive: s.active,
+                            updatedAt: new Date()
+                        }
+                    });
+                }
+            }
+            // 2. Determine Scope
+            if (options?.startDate && options?.endDate && options?.userIdsToSync) {
+                userIds = options.userIdsToSync;
+                minDate = new Date(options.startDate);
+                maxDate = new Date(options.endDate);
+                maxDate.setHours(23, 59, 59, 999);
+            }
+            else {
+                if (shifts.length === 0)
+                    return { count: 0 };
+                userIds = [...new Set(shifts.map(s => s.userId))];
+                const timeList = shifts.map(s => new Date(s.date).getTime());
+                minDate = new Date(Math.min(...timeList));
+                maxDate = new Date(Math.max(...timeList));
+                maxDate.setHours(23, 59, 59, 999);
+            }
+            // 3. Auto-Deactivation Logic (Mark missing employees as 'inactive')
+            // Users NOT in the currently management grid but in the system
+            if (userIds.length > 0) {
+                await tx.update(schema.users)
+                    .set({ status: 'active' })
+                    .where(inArray(schema.users.id, userIds));
+                // Optional: Deactivate others if they are not in the grid and are 'Karyawan'
+                await tx.update(schema.users)
+                    .set({ status: 'inactive' })
+                    .where(and(eq(schema.users.role, 'Karyawan'), notInArray(schema.users.id, userIds)));
+            }
+            // 4. Clean & Insert Shifts
+            if (userIds.length > 0) {
+                await tx.delete(schema.workShifts)
+                    .where(and(gte(schema.workShifts.date, minDate), lte(schema.workShifts.date, maxDate), inArray(schema.workShifts.userId, userIds)));
+            }
+            let insertedCount = 0;
+            if (shifts.length > 0) {
+                const inserted = await tx.insert(schema.workShifts).values(shifts.map(s => ({
+                    userId: s.userId,
+                    date: new Date(s.date),
+                    startTime: s.startTime,
+                    endTime: s.endTime,
+                    note: s.note,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }))).returning();
+                insertedCount = inserted.length;
+            }
+            await tx.insert(schema.auditLogs).values({
+                userId: currentUserId,
+                action: `HRIS_BATCH_SAVE: ${insertedCount} shifts, settings synced`,
+                tableName: 'work_shifts',
+                newData: JSON.stringify({ count: insertedCount, userIdsSynced: userIds.length }),
+                createdAt: new Date()
+            });
+            return { count: insertedCount };
+        });
     }
 }

@@ -315,7 +315,7 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, pricePerUnit, imageUrl, currentStock } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl, currentStock } = req.body;
         const user = (req as any).user;
 
         const results = await db.transaction(async (tx: any) => {
@@ -344,6 +344,7 @@ inventoryRouter.put('/:id', requireAuth, async (req: Request, res: Response) => 
                     ...(unit && { unit }),
                     ...(minStock !== undefined && { minStock: minStock.toString() }),
                     ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
+                    ...(discountPrice !== undefined && { discountPrice: discountPrice.toString() }),
                     ...(imageUrl !== undefined && { imageUrl }),
                     ...(currentStock !== undefined && { currentStock: newStock.toString() })
                 })

@@ -288,13 +288,26 @@ function App() {
                     }`}>
                         {item.status}
                     </div>
-                    <button 
-                        onClick={(e) => handleDeleteClick(e, item)}
-                        className="size-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-90"
-                        title="Hapus Bahan Baku"
-                    >
-                        <span className="material-symbols-outlined text-sm font-black">delete</span>
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStock(item);
+                                setIsEditItemModalOpen(true);
+                            }}
+                            className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/5 active:scale-90"
+                            title="Edit Data Bahan"
+                        >
+                            <span className="material-symbols-outlined text-sm font-black">edit</span>
+                        </button>
+                        <button 
+                            onClick={(e) => handleDeleteClick(e, item)}
+                            className="size-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-90"
+                            title="Hapus Bahan Baku"
+                        >
+                            <span className="material-symbols-outlined text-sm font-black">delete</span>
+                        </button>
+                    </div>
                 </div>
                 </div>
 

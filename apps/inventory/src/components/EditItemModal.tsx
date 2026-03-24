@@ -15,6 +15,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [minStock, setMinStock] = useState('');
     const [imageBase64, setImageBase64] = useState('');
     const [currentStock, setCurrentStock] = useState('');
+    const [pricePerUnit, setPricePerUnit] = useState('');
+    const [discountPrice, setDiscountPrice] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
@@ -32,6 +34,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setMinStock(item.minStock?.toString() || '');
             setImageBase64(item.imageUrl || '');
             setCurrentStock(item.currentStock?.toString() || '0');
+            setPricePerUnit(item.pricePerUnit?.toString() || '0');
+            setDiscountPrice(item.discountPrice?.toString() || '0');
         }
     }, [isOpen, item]);
 
@@ -89,7 +93,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 unit,
                 minStock: minStock || '0',
                 imageUrl: imageBase64,
-                currentStock: parseFloat(currentStock) || 0
+                currentStock: parseFloat(currentStock) || 0,
+                pricePerUnit: parseFloat(pricePerUnit) || 0,
+                discountPrice: parseFloat(discountPrice) || 0
             });
             alert('Berhasil memperbarui data bahan baku!');
             if (onUpdated) onUpdated();
@@ -220,6 +226,43 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                         />
                                     </div>
                                 </div>
+                                
+                                {/* Section: Harga & Ekonomi */}
+                                <div className="space-y-4 pt-4 border-t border-border-dim/50">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <span className="material-symbols-outlined text-emerald-500 text-xs font-black">payments</span>
+                                        <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Harga & Ekonomi</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Harga Beli (Per {unit})</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted">Rp</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={pricePerUnit} 
+                                                    onChange={(e) => setPricePerUnit(e.target.value)}
+                                                    placeholder="0"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 pl-10 pr-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Harga Diskon (Opsional)</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted">Rp</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={discountPrice} 
+                                                    onChange={(e) => setDiscountPrice(e.target.value)}
+                                                    placeholder="0"
+                                                    className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 h-12 pl-10 pr-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <p className="text-[9px] font-medium text-muted italic ml-1">
                                     * Mengubah "Stok Fisik" akan otomatis mencatat riwayat penyesuaian (Adjustment).
                                 </p>

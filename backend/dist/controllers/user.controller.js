@@ -43,7 +43,10 @@ export class UserController {
     }
     static async getAll(req, res) {
         try {
-            const users = await UserService.getAllUsers();
+            const user = req.user;
+            const users = user.role === 'Admin'
+                ? await UserService.getAllUsers()
+                : await UserService.getAllUsersPublic();
             res.json(users);
         }
         catch (error) {

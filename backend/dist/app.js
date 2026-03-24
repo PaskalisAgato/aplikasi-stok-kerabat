@@ -13,6 +13,7 @@ import { financeRouter } from './routes/finance.js';
 import { auditRouter } from './routes/audit.js';
 import { shiftRoutes } from './routes/shift.routes.js';
 import { attendanceRoutes } from './routes/attendance.routes.js';
+import { todoRoutes } from './routes/todo.routes.js';
 // Middleware Imports
 import { errorHandler } from './middleware/error.middleware.js';
 import { UserService } from './services/user.service.js';
@@ -31,8 +32,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
 // 2. Health & Diag
 app.get('/api/health', async (req, res) => {
     let dbStatus = 'waiting';
@@ -121,6 +123,7 @@ app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/todo', todoRoutes);
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards
 app.all(/^\/api\/auth\/.*/, (req, res) => {
