@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import CameraCapture from '@shared/components/CameraCapture';
 import type { CameraCaptureHandle } from '@shared/components/CameraCapture';
 
@@ -16,6 +17,17 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
     const [isSwitching, setIsSwitching] = useState(false);
 
+    // Scroll Lock Logic
+    useEffect(() => {
+        if (isOpen) {
+            const originalStyle = window.getComputedStyle(document.body).overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalStyle;
+            };
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const handleCapture = async () => {
@@ -30,6 +42,8 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                 };
                 reader.readAsDataURL(blob);
             }
+        } catch (err) {
+            console.error('Capture failed', err);
         } finally {
             setIsCapturing(false);
         }
@@ -50,73 +64,77 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
     const toggleCamera = () => {
         setIsSwitching(true);
         setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-        setTimeout(() => setIsSwitching(false), 500);
+        setTimeout(() => setIsSwitching(false), 400);
     };
 
-    return (
-        <div className="fixed inset-0 z-[1000] bg-black animate-in fade-in duration-300 flex flex-col">
-            {/* Header */}
-            <div className="absolute top-0 inset-x-0 z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-                <div className="animate-in slide-in-from-top duration-500">
-                    <h3 className="text-white font-black uppercase tracking-widest text-sm">
-                        {previewImage ? 'Konfirmasi Bukti' : 'Preview Kamera'}
-                    </h3>
-                    <p className="text-white/60 text-[10px] uppercase font-bold tracking-widest">{userName || 'Karyawan'}</p>
-                </div>
-                <button 
-                    onClick={onClose}
-                    className="size-12 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white active:scale-75 transition-all"
-                >
-                    <span className="material-symbols-outlined text-xl">close</span>
-                </button>
-            </div>
-
-            {/* Camera Area */}
-            <div className={`flex-1 relative overflow-hidden transition-all duration-500 ${isSwitching ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+    const modalContent = (
+        <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-stretch overflow-hidden select-none touch-none">
+            {/* STICKY FULLSCREEN CAMERA */}
+            <div className={`absolute inset-0 transition-opacity duration-300 ${isSwitching ? 'opacity-0' : 'opacity-100'}`}>
                 {previewImage ? (
-                    <div className="w-full h-full animate-in zoom-in-110 duration-500">
+                    <div className="w-full h-full relative animate-in fade-in zoom-in-110 duration-500">
                         <img src={previewImage} className="w-full h-full object-cover" alt="Capture Preview" />
-                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 bg-black/30" />
                     </div>
                 ) : (
-                    <>
-                        <CameraCapture 
-                            ref={cameraRef}
-                            className="w-full h-full rounded-none shadow-none"
-                            userName={userName}
-                            facingMode={facingMode}
-                        />
-
-                        {/* Overlays / Guides */}
-                        <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 aspect-square border-2 border-dashed border-white/20 rounded-3xl pointer-events-none" />
-                        
-                        <p className="absolute bottom-32 inset-x-0 text-center text-white/40 text-[10px] font-black uppercase tracking-[0.3em] pointer-events-none animate-pulse">
-                            Posisikan Bukti di Tengah Kotak
-                        </p>
-                    </>
+                    <CameraCapture 
+                        ref={cameraRef}
+                        className="w-full h-full"
+                        userName={userName}
+                        facingMode={facingMode}
+                    />
                 )}
             </div>
 
-            {/* Footer / Controls */}
-            <div className="h-48 bg-black flex items-center justify-center relative px-6">
-                {!previewImage ? (
-                    <>
-                        {/* Cancel Button */}
-                        <button 
-                            onClick={onClose}
-                            className="absolute left-8 md:relative md:left-0 md:flex-1 text-white/40 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors text-left"
-                        >
-                            Batal
-                        </button>
+            {/* OVERLAY UI: TOP ACTIONS */}
+            <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
+                <div className="animate-in slide-in-from-top-4 duration-500">
+                    <h3 className="text-white font-black uppercase tracking-[0.2em] text-xs">
+                        {previewImage ? 'Konfirmasi Foto' : 'Hanya Kamera'}
+                    </h3>
+                    {!previewImage && (
+                         <div className="flex items-center gap-2 mt-1 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/20 w-fit">
+                             <div className="size-1.5 bg-red-500 rounded-full animate-pulse" />
+                             <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Live Preview</span>
+                         </div>
+                    )}
+                </div>
 
-                        {/* Main Capture Button */}
+                <button 
+                    onClick={onClose}
+                    className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-75 transition-all shadow-2xl"
+                >
+                    <span className="material-symbols-outlined text-2xl font-black">close</span>
+                </button>
+            </div>
+
+            {/* OVERLAY UI: GUIDES */}
+            {!previewImage && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-10">
+                    <div className="w-full max-w-sm aspect-[3/4] border-2 border-dashed border-white/20 rounded-[3rem] relative">
+                         <div className="absolute inset-0 border-[40px] border-black/20 rounded-[3rem]" />
+                    </div>
+                    <p className="mt-8 text-white/40 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse text-center">
+                        Posisikan Bukti di Tengah
+                    </p>
+                </div>
+            )}
+
+            {/* OVERLAY UI: BOTTOM ACTIONS */}
+            <div className="absolute bottom-0 inset-x-0 h-48 flex justify-center items-center z-50 bg-gradient-to-t from-black/80 to-transparent px-8">
+                {!previewImage ? (
+                    <div className="w-full max-w-md flex justify-between items-center relative gap-4">
+                        {/* Hidden placeholders for balance */}
+                        <div className="size-14 hidden md:block" />
+
+                        {/* Capture Button */}
                         <button 
                             onClick={handleCapture}
                             disabled={isCapturing || isSwitching}
-                            className={`group relative size-24 rounded-full flex items-center justify-center transition-all active:scale-90 ${isCapturing ? 'opacity-50' : ''}`}
+                            className={`group relative size-24 md:size-28 rounded-full flex items-center justify-center transition-all active:scale-90 ${isCapturing ? 'opacity-50 grayscale' : ''}`}
                         >
-                            <div className="absolute inset-0 rounded-full border-4 border-white/20 scale-110" />
-                            <div className="absolute inset-2 rounded-full bg-white transition-all group-hover:scale-95" />
+                            <div className="absolute inset-0 rounded-full bg-white/20 animate-pulse scale-110" />
+                            <div className="absolute inset-2 rounded-full bg-white shadow-2xl transition-all group-hover:scale-95" />
                             {isCapturing && (
                                 <div className="absolute inset-0 flex items-center justify-center z-10">
                                     <div className="size-8 border-4 border-slate-950 border-t-transparent rounded-full animate-spin" />
@@ -128,33 +146,39 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         <button 
                             onClick={toggleCamera}
                             disabled={isSwitching}
-                            className="absolute right-8 md:relative md:right-0 md:flex-1 flex flex-col items-center gap-2 group"
+                            className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
                         >
-                            <div className="size-12 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white group-active:scale-75 transition-all">
-                                <span className="material-symbols-outlined text-xl">flip_camera_ios</span>
-                            </div>
-                            <span className="text-[8px] text-white/40 font-black uppercase tracking-widest">Ganti</span>
+                            <span className="material-symbols-outlined text-2xl group-hover:rotate-180 transition-transform duration-500">flip_camera_ios</span>
                         </button>
-                    </>
+                    </div>
                 ) : (
-                    <div className="flex w-full gap-4 max-w-md animate-in slide-in-from-bottom duration-500">
+                    <div className="flex w-full gap-4 max-w-sm animate-in slide-in-from-bottom-8 duration-500 mb-6">
                         <button 
                             onClick={handleRetake}
-                            className="flex-1 h-14 rounded-2xl bg-white/10 border border-white/10 text-white flex items-center justify-center gap-3 active:scale-95 transition-all"
+                            className="flex-1 h-14 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border border-white/20 text-white flex items-center justify-center gap-3 active:scale-95 transition-all"
                         >
                             <span className="material-symbols-outlined text-xl">refresh</span>
-                            <span className="text-xs font-black uppercase tracking-widest">Ulang</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Ulang</span>
                         </button>
                         <button 
                             onClick={handleConfirm}
-                            className="flex-[2] h-14 rounded-2xl bg-primary text-slate-950 flex items-center justify-center gap-3 active:scale-95 transition-all"
+                            className="flex-[1.5] h-14 rounded-[1.5rem] bg-primary text-slate-950 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-2xl shadow-primary/40 ring-4 ring-primary/20"
                         >
-                            <span className="material-symbols-outlined text-xl">check_circle</span>
-                            <span className="text-xs font-black uppercase tracking-widest">Gunakan Foto</span>
+                            <span className="material-symbols-outlined text-xl font-black">check_circle</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Simpan Bukti</span>
                         </button>
                     </div>
                 )}
             </div>
+
+            <style>{`
+                body.modal-open {
+                    overflow: hidden !important;
+                    height: 100vh !important;
+                }
+            `}</style>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }

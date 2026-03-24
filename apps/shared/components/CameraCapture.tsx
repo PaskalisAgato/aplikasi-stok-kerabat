@@ -144,7 +144,7 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({
     }));
 
     return (
-        <div className={`relative overflow-hidden bg-slate-900 rounded-[2.5rem] shadow-2xl ${className}`}>
+        <div className={`relative overflow-hidden bg-slate-950 w-full h-full ${className}`}>
             {error ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center space-y-4">
                     <span className="material-symbols-outlined text-red-500 text-5xl">videocam_off</span>
