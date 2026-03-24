@@ -1,13 +1,175 @@
 import { Router } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { eq, sql, and, gte } from 'drizzle-orm';
+import { eq, sql, and, gte, desc } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth.js';
+import ExcelJS from 'exceljs';
 export const inventoryRouter = Router();
+// ... existing routes ...
+// GET Export Excel
+inventoryRouter.get('/export', async (req, res) => {
+    try {
+        const items = await db.select().from(schema.inventory);
+        const movements = await db.select({
+            id: schema.stockMovements.id,
+            inventoryId: schema.stockMovements.inventoryId,
+            inventoryName: schema.inventory.name,
+            type: schema.stockMovements.type,
+            quantity: schema.stockMovements.quantity,
+            reason: schema.stockMovements.reason,
+            createdAt: schema.stockMovements.createdAt
+        })
+            .from(schema.stockMovements)
+            .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+            .orderBy(desc(schema.stockMovements.createdAt));
+        const allSuppliers = await db.select().from(schema.suppliers);
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Kerabat POS';
+        workbook.lastModifiedBy = 'Kerabat POS';
+        workbook.created = new Date();
+        // 1. Sheet Data Inventory
+        const inventorySheet = workbook.addWorksheet('Data Inventory');
+        inventorySheet.columns = [
+            { header: 'ID', key: 'id', width: 5 },
+            { header: 'Nama Barang', key: 'name', width: 25 },
+            { header: 'Kategori', key: 'category', width: 15 },
+            { header: 'Satuan', key: 'unit', width: 10 },
+            { header: 'Stok Awal', key: 'initial', width: 12 },
+            { header: 'Stok Masuk', key: 'in', width: 12 },
+            { header: 'Stok Keluar', key: 'out', width: 12 },
+            { header: 'Stok Akhir', key: 'final', width: 12 },
+            { header: 'Harga Beli', key: 'price', width: 15 },
+            { header: 'Nilai Stok', key: 'value', width: 15 },
+            { header: 'Min Stok', key: 'min', width: 12 },
+        ];
+        // Style header
+        inventorySheet.getRow(1).font = { bold: true };
+        inventorySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        items.forEach((item, index) => {
+            const rowIdx = index + 2;
+            inventorySheet.addRow({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                unit: item.unit,
+                initial: 0,
+                price: parseFloat(item.pricePerUnit),
+                min: parseFloat(item.minStock)
+            });
+            // Formulas targeting 'Log Transaksi'
+            inventorySheet.getCell(`F${rowIdx}`).value = {
+                formula: `SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "IN")`,
+                result: 0
+            };
+            inventorySheet.getCell(`G${rowIdx}`).value = {
+                formula: `SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "OUT") + SUMIFS('Log Transaksi'!E:E, 'Log Transaksi'!B:B, A${rowIdx}, 'Log Transaksi'!D:D, "WASTE")`,
+                result: 0
+            };
+            inventorySheet.getCell(`H${rowIdx}`).value = {
+                formula: `E${rowIdx} + F${rowIdx} - G${rowIdx}`,
+                result: parseFloat(item.currentStock)
+            };
+            inventorySheet.getCell(`J${rowIdx}`).value = {
+                formula: `H${rowIdx} * I${rowIdx}`,
+                result: parseFloat(item.currentStock) * parseFloat(item.pricePerUnit)
+            };
+            // Conditional Formatting for Low Stock (RED)
+            inventorySheet.addConditionalFormatting({
+                ref: `H${rowIdx}`,
+                rules: [
+                    {
+                        type: 'expression',
+                        formulae: [`H${rowIdx}<=K${rowIdx}`],
+                        priority: 1,
+                        style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFFC7CE' } }, font: { color: { argb: 'FF9C0006' } } }
+                    }
+                ]
+            });
+        });
+        // 2. Sheet Log Transaksi
+        const logSheet = workbook.addWorksheet('Log Transaksi');
+        logSheet.columns = [
+            { header: 'Tanggal', key: 'date', width: 20 },
+            { header: 'ID Barang', key: 'id', width: 10 },
+            { header: 'Nama Barang', key: 'name', width: 25 },
+            { header: 'Jenis', key: 'type', width: 10 },
+            { header: 'Jumlah', key: 'qty', width: 12 },
+            { header: 'Keterangan', key: 'note', width: 30 },
+        ];
+        logSheet.getRow(1).font = { bold: true };
+        logSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        movements.forEach(m => {
+            logSheet.addRow({
+                date: m.createdAt.toLocaleString('id-ID'),
+                id: m.inventoryId,
+                name: m.inventoryName,
+                type: m.type,
+                qty: parseFloat(m.quantity),
+                note: m.reason || '-'
+            });
+        });
+        // 3. Sheet Supplier
+        const supplierSheet = workbook.addWorksheet('Supplier');
+        supplierSheet.columns = [
+            { header: 'Nama Supplier', key: 'name', width: 25 },
+            { header: 'Kontak', key: 'contact', width: 20 },
+            { header: 'Alamat', key: 'address', width: 40 },
+        ];
+        supplierSheet.getRow(1).font = { bold: true };
+        supplierSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        allSuppliers.forEach(s => {
+            supplierSheet.addRow({
+                name: s.name,
+                contact: s.contact || '-',
+                address: s.address || '-'
+            });
+        });
+        // 4. Sheet Dashboard
+        const dashSheet = workbook.addWorksheet('Dashboard');
+        dashSheet.getCell('A1').value = 'RINGKASAN INVENTORY';
+        dashSheet.getCell('A1').font = { size: 16, bold: true };
+        dashSheet.getCell('A3').value = 'Total Nilai Stok';
+        dashSheet.getCell('B3').value = { formula: "SUM('Data Inventory'!J:J)" };
+        dashSheet.getCell('B3').numFmt = '#,##0';
+        dashSheet.getCell('B3').font = { bold: true };
+        dashSheet.getCell('A4').value = 'Total Item';
+        dashSheet.getCell('B4').value = { formula: "COUNTA('Data Inventory'!B:B) - 1" };
+        dashSheet.getCell('B4').font = { bold: true };
+        dashSheet.getCell('A6').value = 'NOTIFIKASI STOK MINIMUM';
+        dashSheet.getCell('A6').font = { bold: true, color: { argb: 'FFFF0000' } };
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Inventory_Kerabat_POS.xlsx');
+        await workbook.xlsx.write(res);
+        res.status(200).end();
+    }
+    catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Failed to generate export' });
+    }
+});
 // GET all inventory items
 inventoryRouter.get('/', async (req, res) => {
     try {
-        const items = await db.select().from(schema.inventory);
+        // Explicitly project fields to avoid returning large base64 imageUrl blobs
+        // which can inflate the response to 60MB+ and cause frontend parse failures.
+        const items = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            category: schema.inventory.category,
+            unit: schema.inventory.unit,
+            currentStock: schema.inventory.currentStock,
+            minStock: schema.inventory.minStock,
+            pricePerUnit: schema.inventory.pricePerUnit,
+            discountPrice: schema.inventory.discountPrice,
+            // Only include imageUrl if it is a URL (not base64). Base64 strings start with "data:"
+            imageUrl: sql `
+                CASE
+                    WHEN ${schema.inventory.imageUrl} IS NULL THEN NULL
+                    WHEN ${schema.inventory.imageUrl} LIKE 'data:%' THEN NULL
+                    ELSE ${schema.inventory.imageUrl}
+                END
+            `,
+        }).from(schema.inventory);
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
         const itemsWithStatus = items.map((item) => {
             const current = parseFloat(item.currentStock);
@@ -19,6 +181,8 @@ inventoryRouter.get('/', async (req, res) => {
                 status = 'KRITIS';
             return { ...item, status };
         });
+        // Prevent browsers/CDN from caching stale inventory
+        res.setHeader('Cache-Control', 'no-store');
         res.json(itemsWithStatus);
     }
     catch (error) {
@@ -111,33 +275,52 @@ inventoryRouter.post('/', async (req, res) => {
 inventoryRouter.put('/:id', requireAuth, async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
-        const { name, category, unit, minStock, pricePerUnit, imageUrl } = req.body;
+        const { name, category, unit, minStock, pricePerUnit, imageUrl, currentStock } = req.body;
         const user = req.user;
-        const oldItem = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
-        const [updatedItem] = await db.update(schema.inventory)
-            .set({
-            ...(name && { name }),
-            ...(category && { category }),
-            ...(unit && { unit }),
-            ...(minStock !== undefined && { minStock: minStock.toString() }),
-            ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
-            ...(imageUrl !== undefined && { imageUrl })
-        })
-            .where(eq(schema.inventory.id, inventoryId))
-            .returning();
-        if (!updatedItem) {
+        const results = await db.transaction(async (tx) => {
+            const oldItem = await tx.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+            if (oldItem.length === 0)
+                return null;
+            const oldStock = parseFloat(oldItem[0].currentStock);
+            const newStock = currentStock !== undefined ? parseFloat(currentStock.toString()) : oldStock;
+            const delta = newStock - oldStock;
+            // If stock changed, record adjustment
+            if (delta !== 0) {
+                await tx.insert(schema.stockMovements).values({
+                    inventoryId,
+                    type: delta > 0 ? 'IN' : 'OUT',
+                    quantity: Math.abs(delta).toString(),
+                    reason: `Manual Adjustment from ${oldStock} to ${newStock}`,
+                    createdAt: new Date()
+                });
+            }
+            const [updatedItem] = await tx.update(schema.inventory)
+                .set({
+                ...(name && { name }),
+                ...(category && { category }),
+                ...(unit && { unit }),
+                ...(minStock !== undefined && { minStock: minStock.toString() }),
+                ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit.toString() }),
+                ...(imageUrl !== undefined && { imageUrl }),
+                ...(currentStock !== undefined && { currentStock: newStock.toString() })
+            })
+                .where(eq(schema.inventory.id, inventoryId))
+                .returning();
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `UPDATE_INVENTORY: ${updatedItem.name}${delta !== 0 ? ` (Stock Adjusted: ${delta})` : ''}`,
+                tableName: 'inventory',
+                oldData: JSON.stringify(oldItem[0]),
+                newData: JSON.stringify(updatedItem),
+                createdAt: new Date()
+            });
+            return updatedItem;
+        });
+        if (!results) {
             return res.status(404).json({ error: 'Item not found' });
         }
-        // Log to Audit
-        await db.insert(schema.auditLogs).values({
-            userId: user.id,
-            action: `UPDATE_INVENTORY: ${updatedItem.name}`,
-            tableName: 'inventory',
-            oldData: JSON.stringify(oldItem[0]),
-            newData: JSON.stringify(updatedItem),
-            createdAt: new Date()
-        });
-        res.json(updatedItem);
+        res.json(results);
     }
     catch (error) {
         console.error('Error updating inventory item:', error);
@@ -251,5 +434,37 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req, res) => {
     catch (error) {
         console.error('Error recording movement:', error);
         res.status(500).json({ error: error.message || 'Failed to record stock movement' });
+    }
+});
+// DELETE inventory item
+inventoryRouter.delete('/:id', requireAuth, async (req, res) => {
+    try {
+        const inventoryId = parseInt(req.params.id);
+        const user = req.user;
+        const item = await db.select().from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
+        if (item.length === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        await db.transaction(async (tx) => {
+            // Delete related stock movements
+            await tx.delete(schema.stockMovements).where(eq(schema.stockMovements.inventoryId, inventoryId));
+            // Delete related recipe ingredients (if any)
+            await tx.delete(schema.recipeIngredients).where(eq(schema.recipeIngredients.inventoryId, inventoryId));
+            // Delete the item
+            await tx.delete(schema.inventory).where(eq(schema.inventory.id, inventoryId));
+            // Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: user.id,
+                action: `DELETE_INVENTORY: ${item[0].name}`,
+                tableName: 'inventory',
+                oldData: JSON.stringify(item[0]),
+                createdAt: new Date()
+            });
+        });
+        res.json({ success: true, message: 'Item deleted successfully' });
+    }
+    catch (error) {
+        console.error('Error deleting inventory item:', error);
+        res.status(500).json({ error: 'Failed to delete inventory item' });
     }
 });

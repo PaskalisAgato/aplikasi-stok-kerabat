@@ -171,10 +171,29 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
 // GET all inventory items
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
-        const items = await db.select().from(schema.inventory);
-        
+        // Explicitly project fields to avoid returning large base64 imageUrl blobs
+        // which can inflate the response to 60MB+ and cause frontend parse failures.
+        const items = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            category: schema.inventory.category,
+            unit: schema.inventory.unit,
+            currentStock: schema.inventory.currentStock,
+            minStock: schema.inventory.minStock,
+            pricePerUnit: schema.inventory.pricePerUnit,
+            discountPrice: schema.inventory.discountPrice,
+            // Only include imageUrl if it is a URL (not base64). Base64 strings start with "data:"
+            imageUrl: sql<string | null>`
+                CASE
+                    WHEN ${schema.inventory.imageUrl} IS NULL THEN NULL
+                    WHEN ${schema.inventory.imageUrl} LIKE 'data:%' THEN NULL
+                    ELSE ${schema.inventory.imageUrl}
+                END
+            `,
+        }).from(schema.inventory);
+
         // Add dynamic status (NORMAL, KRITIS, HABIS) based on currentStock vs minStock
-        const itemsWithStatus = items.map((item: typeof schema.inventory.$inferSelect) => {
+        const itemsWithStatus = items.map((item) => {
             const current = parseFloat(item.currentStock);
             const min = parseFloat(item.minStock);
             let status = 'NORMAL';
@@ -184,6 +203,8 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             return { ...item, status };
         });
 
+        // Prevent browsers/CDN from caching stale inventory
+        res.setHeader('Cache-Control', 'no-store');
         res.json(itemsWithStatus);
     } catch (error) {
         console.error('Error fetching inventory:', error);
