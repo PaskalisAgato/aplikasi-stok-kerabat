@@ -27,20 +27,23 @@ function AttendanceHistoryPage() {
         endDate: filters.endDate
     });
 
-    const handleViewPhoto = (photoPath: string, label: string) => {
-        if (!window.confirm('Lihat bukti absen karyawan?')) return;
-        
-        const rawUrl = import.meta.env.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
-        const baseUrl = rawUrl.replace(/\/api$/, '');
-        
-        // Handle path that might or might not have 'uploads/' prefix
-        const cleanPath = photoPath.startsWith('/') ? photoPath.slice(1) : photoPath;
-        const finalPath = cleanPath.startsWith('uploads/') ? cleanPath : `uploads/${cleanPath}`;
-        
-        const url = photoPath.startsWith('http') ? photoPath : `${baseUrl}/${finalPath}`;
-        setViewingPhoto({ url, label });
-    };
+    const handleViewPhoto = async (photoPath: string, label: string) => {
+        if (!window.confirm('Foto ini adalah bukti sah absensi karyawan. Buka?')) return;
 
+        const filename = photoPath.split('/').pop();
+        if (!filename) return;
+
+        setIsFetchingPhoto(true);
+        try {
+            const blob = await apiClient.getAttendancePhoto(filename);
+            const url = URL.createObjectURL(blob);
+            setViewingPhoto({ url, label });
+        } catch (error: any) {
+            toast.error(error.message || 'Error: Foto gagal dimuat atau telah dihapus oleh sistem.');
+        } finally {
+            setIsFetchingPhoto(false);
+        }
+    };
     const handleDelete = async (id: string | number) => {
         if (!window.confirm('Apakah Anda yakin ingin menghapus riwayat absen ini? Tindakan ini tidak dapat dibatalkan.')) return;
         try {
@@ -276,7 +279,10 @@ function AttendanceHistoryPage() {
                         </div>
 
                         <button 
-                            onClick={() => setViewingPhoto(null)}
+                            onClick={() => {
+                                if (viewingPhoto.url.startsWith('blob:')) URL.revokeObjectURL(viewingPhoto.url);
+                                setViewingPhoto(null);
+                            }}
                             className="w-full py-4 bg-primary text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
                         >
                             Tutup & Konfirmasi Selesai
