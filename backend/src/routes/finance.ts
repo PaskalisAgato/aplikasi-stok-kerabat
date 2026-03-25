@@ -54,13 +54,15 @@ financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res:
             name: schema.expenseCategories.name,
             icon: schema.expenseCategories.icon
         }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        
+        console.log(`[FinanceAPI] Fetched ${cats.length} expense categories`);
         res.json({ 
             success: true, 
             data: cats,
             meta: { total: cats.length, limit: cats.length, page: 1 }
         });
     } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('[FinanceAPI] Error fetching categories:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil kategori pengeluaran' });
     }
 });
@@ -71,8 +73,21 @@ financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, re
         const { name, icon } = req.body;
         if (!name) return res.status(400).json({ success: false, message: 'Nama kategori diperlukan' });
 
+        const categoryName = name.trim();
+        
+        // CASE-INSENSITIVE DUPLICATE CHECK
+        const [existing] = await db.select()
+            .from(schema.expenseCategories)
+            .where(sql`lower(${schema.expenseCategories.name}) = lower(${categoryName})`)
+            .limit(1);
+        
+        if (existing) {
+            console.warn(`[FinanceAPI] Duplicate category attempt: ${categoryName}`);
+            return res.status(409).json({ success: false, message: 'Nama kategori sudah ada' });
+        }
+
         const [newCat] = await db.insert(schema.expenseCategories).values({
-            name,
+            name: categoryName,
             icon: icon || 'category'
         }).returning({
             id: schema.expenseCategories.id,
@@ -80,10 +95,11 @@ financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, re
             icon: schema.expenseCategories.icon
         });
 
+        console.log(`[FinanceAPI] Category created: ${newCat.name} (ID: ${newCat.id})`);
         res.status(201).json({ success: true, data: newCat });
     } catch (error: any) {
-        console.error('Error adding category:', error);
-        // Handle unique constraint violation
+        console.error('[FinanceAPI] Error adding category:', error);
+        // Handle unique constraint violation just in case of race condition
         if (error.code === '23505') {
             return res.status(409).json({ success: false, message: 'Nama kategori sudah ada' });
         }
@@ -230,9 +246,10 @@ financeRouter.post('/expenses', requireAuth, async (req: Request, res: Response)
             amount: schema.expenses.amount
         });
 
+        console.log(`[FinanceAPI] Expense recorded: "${title}" | Amount: ${amount} | Receipt: ${receiptUrl ? 'YES' : 'NO'}`);
         res.status(201).json({ success: true, data: newExpense });
     } catch (error) {
-        console.error('Error adding expense:', error);
+        console.error('[FinanceAPI] Error adding expense:', error);
         res.status(500).json({ success: false, message: 'Gagal merekam pengeluaran' });
     }
 });

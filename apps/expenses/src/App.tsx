@@ -33,8 +33,10 @@ function App() {
         }
 
         const currentPage = isLoadMore ? page + 1 : 0;
+        console.log(`[ExpensesApp] Fetching expenses: Page ${currentPage}, Limit ${PAGE_SIZE}`);
         const response: ApiResponse<any> = await apiClient.getExpenses(PAGE_SIZE, currentPage * PAGE_SIZE);
         const { data, meta: responseMeta } = response;
+        console.log(`[ExpensesApp] Success: Received ${data?.length || 0} items. Total available: ${responseMeta.total}`);
         if (responseMeta.page !== undefined) setMeta({ page: responseMeta.page, limit: responseMeta.limit, total: responseMeta.total });
         
         if (!Array.isArray(data)) {
@@ -89,22 +91,24 @@ function App() {
     }
   };
 
-  const handleExportExcel = async () => {
-    try {
-      const blob = await apiClient.exportExpensesExcel();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Pengeluaran_Kerabat_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed', error);
-      alert('Gagal mengekspor data.');
-    }
-  };
+    const handleExportExcel = async () => {
+        try {
+            console.log('[ExpensesApp] Exporting to Excel...');
+            const blob = await apiClient.exportExpensesExcel();
+            console.log(`[ExpensesApp] Export blob received: ${blob.size} bytes`);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Pengeluaran_Kerabat_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('[ExpensesApp] Export failed:', error);
+            alert('Gagal mengekspor data.');
+        }
+    };
 
   const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat((exp.amount || 0).toString()), 0);
 

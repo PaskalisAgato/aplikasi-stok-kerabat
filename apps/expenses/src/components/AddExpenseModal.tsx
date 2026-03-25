@@ -26,13 +26,17 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
     const fetchCategories = async () => {
         try {
-            const data = await apiClient.getExpenseCategories();
-            setCategories(Array.isArray(data) ? data : []);
-            if (Array.isArray(data) && data.length > 0 && !selectedCategory && !initialData) {
-                setSelectedCategory(data[0].name);
+            console.log('[ExpenseForm] Fetching categories...');
+            const response = await apiClient.getExpenseCategories();
+            const categoriesData = response?.data || [];
+            console.log(`[ExpenseForm] Received ${categoriesData.length} categories`);
+            setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+            
+            if (Array.isArray(categoriesData) && categoriesData.length > 0 && !selectedCategory && !initialData) {
+                setSelectedCategory(categoriesData[0].name);
             }
         } catch (error) {
-            console.error('Failed to fetch categories:', error);
+            console.error('[ExpenseForm] Failed to fetch categories:', error);
         }
     };
 
@@ -97,13 +101,14 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     };
 
     const validateFile = (file: File): string | null => {
+        console.log(`[ExpenseForm] Validating file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
         const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!validTypes.includes(file.type)) {
-            return 'Format file harus berupa gambar (JPG, PNG, atau WEBP).';
+            return `Format [${file.type}] tidak valid. Hanya JPG, PNG, dan WEBP yang diperbolehkan.`;
         }
-        const maxSize = 2 * 1024 * 1024; // 2MB
+        const maxSize = 3 * 1024 * 1024; // 3MB (Architect adjusted)
         if (file.size > maxSize) {
-            return 'Ukuran gambar maksimal adalah 2MB.';
+            return `File terlalu besar (${(file.size / 1024 / 1024).toFixed(2)}MB). Maksimal 3MB.`;
         }
         return null;
     };
@@ -135,33 +140,46 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !amount) return;
+        console.log('[ExpenseForm] Submit initiated');
+        
+        if (!name || !amount) {
+            console.warn('[ExpenseForm] Submit blocked: missing name or amount');
+            return;
+        }
 
         setIsUploading(true);
         let finalReceiptUrl = receipt || '';
 
         try {
-            // Direct Upload to Supabase Storage for optimized performance
+            // Stage 1: File Upload (if new file selected)
             if (receipt && receipt.startsWith('data:')) {
+                console.log('[ExpenseForm] Stage 1/2: Uploading receipt to Supabase...');
                 const fileName = `${Date.now()}-${name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
                 finalReceiptUrl = await uploadFile('expense-receipts', fileName, receipt);
+                console.log('[ExpenseForm] Upload successful:', finalReceiptUrl);
+            } else {
+                console.log('[ExpenseForm] Stage 1/2: Skipping upload (no new receipt)');
             }
             
-            // 2. Add or Update Expense in database
+            // Stage 2: Database Save
+            console.log('[ExpenseForm] Stage 2/2: Saving payload to Backend...');
             const expensePayload = {
                 title: name,
                 vendor,
-                category: selectedCategory || 'Other',
+                category: selectedCategory || 'Lainnya',
                 amount: Number(amount),
                 receiptUrl: finalReceiptUrl,
                 date: expenseDate
             };
 
             if (initialData?.id) {
+                console.log(`[ExpenseForm] Updating expense ID: ${initialData.id}`);
                 await apiClient.updateExpense(initialData.id, expensePayload);
             } else {
+                console.log('[ExpenseForm] Creating new expense');
                 await apiClient.addExpense(expensePayload);
             }
+            console.log('[ExpenseForm] Final Stage: Complete');
 
             onAdd({}); 
             setName('');
@@ -204,13 +222,17 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             return;
         }
         try {
+            console.log(`[ExpenseForm] Adding new category: ${newCategoryName.trim()}`);
             await apiClient.addExpenseCategory({ name: newCategoryName.trim(), icon: 'category' });
+            console.log('[ExpenseForm] Category added successfully');
             setNewCategoryName('');
             setIsAddingCategory(false);
+            // Instant re-fetch to update UI without reload
             fetchCategories();
-        } catch (error) {
-            console.error('Failed to add category:', error);
-            alert('Gagal menambah kategori');
+        } catch (error: any) {
+            console.error('[ExpenseForm] Failed to add category:', error);
+            const msg = error.message || 'Gagal menambah kategori';
+            alert(msg);
         }
     };
 
