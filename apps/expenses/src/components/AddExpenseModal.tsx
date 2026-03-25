@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { apiClient } from '@shared/apiClient';
 
-const RECEIPT_PLACEHOLDER = "https://lh3.googleusercontent.com/aida-public/AB6AXuBTvM5Q12GfACKk9r_zhhw0OCgi9ANw5ZQbnmRdZetIXY2IR3efM2tFVbCE_z-ayy4fuevoCkOqm5uVU-5A_uCSbNe4ZFN94yJ2SjBO18yqrqxlF4ER2zBQsumlEyrSfloxdwmMNMwXfuoAKplmadbY_WOY6XMEr4WzFOlNFSx5QKyxrOv0efcANCpDWZxf6x2jCbs2QPvmD9xqQQCmQpYywyNcr07DFBxMHCFKiMltoQHOUZfUx1QcRDaJmkBdRjf2MnLxircFQKo";
+
 
 interface AddExpenseModalProps {
     isOpen: boolean;
@@ -17,7 +17,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [categories, setCategories] = useState<any[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [categorySearch, setCategorySearch] = useState('');
-    const [receipt, setReceipt] = useState<string | null>(RECEIPT_PLACEHOLDER);
+    const [receipt, setReceipt] = useState<string | null>(null);
     const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -48,7 +48,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setVendor(initialData.vendor || '');
             setAmount(initialData.amount?.toString() || '');
             setSelectedCategory(initialData.category || '');
-            setReceipt(initialData.imageUrl || RECEIPT_PLACEHOLDER);
+            setReceipt(initialData.imageUrl || null);
             setExpenseDate(new Date(initialData.expenseDate || initialData.date).toISOString().split('T')[0]);
         } else if (isOpen && !initialData) {
             // Reset for new expense
@@ -56,7 +56,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setVendor('');
             setAmount('');
             if (categories.length > 0) setSelectedCategory(categories[0].name);
-            setReceipt(RECEIPT_PLACEHOLDER);
+            setReceipt(null);
             setExpenseDate(new Date().toISOString().split('T')[0]);
         }
     }, [initialData, isOpen, categories]);
@@ -147,7 +147,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setAmount('');
             setSelectedCategory('coffee');
             setCategorySearch('');
-            setReceipt(RECEIPT_PLACEHOLDER);
+            setReceipt(null);
             setSelectedFile(null);
             onClose();
         } catch (error: any) {

@@ -111,9 +111,12 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                 <div className="flex items-center gap-5 flex-1 min-w-0">
                                     <div
                                         onClick={() => expense.imageUrl && setPreviewImage(expense.imageUrl)}
-                                        className="size-16 rounded-2xl bg-cover bg-center shrink-0 border-2 border-white/5 bg-[var(--bg-app)] shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in"
-                                        style={{ backgroundImage: `url('${expense.imageUrl || "https://images.unsplash.com/photo-1554224155-1696413565d3?q=80&w=200&auto=format&fit=crop"}')` }}
-                                    />
+                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in"
+                                    >
+                                        <span className="material-symbols-outlined text-3xl font-black">
+                                            {expense.imageUrl ? 'receipt_long' : 'no_photography'}
+                                        </span>
+                                    </div>
                                     <div className="flex-1 min-w-0 space-y-1.5">
                                         <div className="flex items-center gap-2">
                                             <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{expense.category}</span>
