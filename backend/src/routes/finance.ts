@@ -74,12 +74,20 @@ financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, re
         const [newCat] = await db.insert(schema.expenseCategories).values({
             name,
             icon: icon || 'category'
-        }).returning();
+        }).returning({
+            id: schema.expenseCategories.id,
+            name: schema.expenseCategories.name,
+            icon: schema.expenseCategories.icon
+        });
 
-        res.status(201).json(newCat);
-    } catch (error) {
+        res.status(201).json({ success: true, data: newCat });
+    } catch (error: any) {
         console.error('Error adding category:', error);
-        res.status(500).json({ error: 'Failed to add expense category' });
+        // Handle unique constraint violation
+        if (error.code === '23505') {
+            return res.status(409).json({ success: false, message: 'Nama kategori sudah ada' });
+        }
+        res.status(500).json({ success: false, message: 'Gagal menambah kategori pengeluaran' });
     }
 });
 
@@ -176,17 +184,17 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
 financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id as string);
-        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+        if (isNaN(id)) return res.status(400).json({ success: false, message: 'ID tidak valid' });
 
         const [deleted] = await db.delete(schema.expenseCategories)
             .where(eq(schema.expenseCategories.id, id))
             .returning();
 
-        if (!deleted) return res.status(404).json({ error: 'Category not found' });
-        res.json({ message: 'Category deleted' });
+        if (!deleted) return res.status(404).json({ success: false, message: 'Kategori tidak ditemukan' });
+        res.json({ success: true, message: 'Kategori berhasil dihapus' });
     } catch (error) {
         console.error('Error deleting category:', error);
-        res.status(500).json({ error: 'Failed to delete expense category' });
+        res.status(500).json({ success: false, message: 'Gagal menghapus kategori' });
     }
 });
 
