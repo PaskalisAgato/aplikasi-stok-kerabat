@@ -4,11 +4,22 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials missing. Database functionality may be limited.');
+// ARCHITECT SAFEGUARD: Prevent top-level crash if env vars are missing
+let supabaseInstance: any = null;
+
+if (supabaseUrl && supabaseAnonKey) {
+    try {
+        supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+    } catch (e) {
+        console.error('[Supabase] CRITICAL: Failed to initialize client:', e);
+    }
+} else {
+    console.error('%c[Supabase] CRITICAL CONFIG ERROR: VITE_SUPABASE_URL atau VITE_SUPABASE_ANON_KEY tidak ditemukan!', 'color: white; background: red; font-size: 16px; font-weight: bold; padding: 10px;');
+    console.warn('[Supabase] Hubungkan aplikasi ke Supabase dengan menambahkan environment variables di Dashboard Vercel/Render.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Export a safe proxy or the instance
+export const supabase = supabaseInstance;
 
 /**
  * Uploads a file (File, Blob, or base64 string) to a Supabase bucket.
@@ -25,6 +36,10 @@ export async function uploadFile(
     if (typeof file === 'string' && file.startsWith('data:')) {
         const res = await fetch(file);
         uploadData = await res.blob();
+    }
+
+    if (!supabase) {
+        throw new Error('Supabase not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to environment variables.');
     }
 
     const { data, error } = await supabase.storage
@@ -49,6 +64,10 @@ export function getOptimizedImageUrl(path: string, options: { width?: number; he
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 
     const projectUrl = import.meta.env.VITE_SUPABASE_URL; // e.g. https://lvfqfynqzgxjbkotlccp.supabase.co
+    if (!projectUrl) {
+        console.warn('[Supabase] getOptimizedImageUrl: VITE_SUPABASE_URL missing, returning raw path.');
+        return path;
+    }
     const { width = 300, height = 300, resize = 'contain' } = options;
     
     // Format: https://project-id.supabase.co/storage/v1/render/image/public/bucket/path?width=300&height=300&resize=contain
@@ -56,6 +75,7 @@ export function getOptimizedImageUrl(path: string, options: { width?: number; he
 }
 
 export function getPublicUrl(bucket: string, path: string) {
+    if (!supabase) return '';
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
 }
