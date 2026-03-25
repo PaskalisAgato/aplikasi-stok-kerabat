@@ -331,7 +331,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
 
         res.setHeader('X-Cache-Status', 'MISS');
         res.json(responseData);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Inventory Fetch Error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data inventaris' });
     }
