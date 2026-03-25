@@ -23,7 +23,7 @@ export interface BahanBaku {
   externalImageUrl: string | null;
   status: 'NORMAL' | 'KRITIS' | 'HABIS';
   supplier?: string;
-  systemStock?: number;
+  idealStock?: string | number;
   version: number;
 }
 
@@ -120,6 +120,8 @@ function App() {
     if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+  
+  const criticalCount = inventoryList.filter(item => item.status === 'KRITIS' || item.status === 'HABIS').length;
 
   const handleExportExcel = async () => {
     try {
@@ -218,7 +220,11 @@ function App() {
         <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
             <div className="relative">
                 <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
-                <span className="absolute -top-1 -right-1 size-2.5 bg-red-500 rounded-full border-2 border-[var(--bg-surface)]"></span>
+                {criticalCount > 0 && (
+                    <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[var(--bg-surface)] animate-pulse">
+                        {criticalCount}
+                    </span>
+                )}
             </div>
         </button>
 
@@ -350,7 +356,7 @@ function App() {
                     </div>
                     <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5">
                         <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Ideal Prod</p>
-                        <p className="text-sm font-black text-[var(--text-main)] opacity-80">{Number(item.systemStock || 0)} {item.unit}</p>
+                        <p className="text-sm font-black text-[var(--text-main)] opacity-80">{Number(item.idealStock || 0)} {item.unit}</p>
                     </div>
                 </div>
 

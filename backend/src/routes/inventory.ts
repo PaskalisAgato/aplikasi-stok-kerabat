@@ -275,6 +275,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
+            idealStock: schema.inventory.idealStock,
             externalImageUrl: schema.inventory.externalImageUrl,
             version: schema.inventory.version,
         })
@@ -323,6 +324,7 @@ inventoryRouter.get('/:id', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
+            idealStock: schema.inventory.idealStock,
             imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
             createdAt: schema.inventory.createdAt,
@@ -441,9 +443,9 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 });
 
 // POST new inventory item
-inventoryRouter.post('/', async (req: Request, res: Response) => {
+    inventoryRouter.post('/', async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl } = req.body;
         
         if (!name || !category || !unit) {
              return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
@@ -455,6 +457,7 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
             unit,
             currentStock: '0',
             minStock: minStock?.toString() || '0',
+            idealStock: idealStock?.toString() || '0',
             pricePerUnit: pricePerUnit?.toString() || '0',
             discountPrice: discountPrice?.toString() || '0',
             imageUrl
@@ -474,7 +477,7 @@ inventoryRouter.post('/', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;
         const user = (req as any).user;
 
         // 1. Validation
@@ -544,6 +547,7 @@ inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) =>
                     ...(category && { category }),
                     ...(unit && { unit }),
                     ...(minStock !== undefined && { minStock: minStock.toString() }),
+                    ...(idealStock !== undefined && { idealStock: idealStock.toString() }),
                     ...(pricePerUnit !== undefined && { pricePerUnit: newPrice }),
                     ...(discountPrice !== undefined && { discountPrice: newDiscount }),
                     ...(imageUrl !== undefined && { imageUrl }),
@@ -560,6 +564,7 @@ inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) =>
                     minStock: schema.inventory.minStock,
                     pricePerUnit: schema.inventory.pricePerUnit,
                     discountPrice: schema.inventory.discountPrice,
+                    idealStock: schema.inventory.idealStock,
                     version: schema.inventory.version,
                     externalImageUrl: schema.inventory.externalImageUrl
                 });

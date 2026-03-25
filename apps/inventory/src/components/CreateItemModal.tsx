@@ -9,6 +9,7 @@ interface DraftItem {
     minStock: string;
     price: string;
     discount: string;
+    idealStock: string;
     imageBase64: string;
 }
 
@@ -32,6 +33,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
             minStock: '',
             price: '',
             discount: '',
+            idealStock: '',
             imageBase64: ''
         };
     }
@@ -148,6 +150,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         minStock: item.minStock || '0',
                         pricePerUnit: item.price || '0',
                         discountPrice: item.discount || '0',
+                        idealStock: item.idealStock || '0',
                         imageUrl: item.imageBase64
                     });
                     successCount++;
@@ -288,9 +291,20 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     type="number" 
                                                     value={draft.minStock} 
                                                     onChange={(e) => handleFieldChange(draft.id, 'minStock', e.target.value)}
-                                                    placeholder="Contoh: 100"
+                                                    placeholder="100"
                                                     min="0"
                                                     className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-primary uppercase ml-1 block font-display">Ideal Prod</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={draft.idealStock} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'idealStock', e.target.value)}
+                                                    placeholder="Target"
+                                                    min="0"
+                                                    className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
                                                 />
                                             </div>
                                         </div>

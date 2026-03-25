@@ -70,6 +70,7 @@ export const inventory = pgTable('inventory', {
     unit: text('unit').notNull(), // g, L, pcs
     currentStock: decimal('current_stock', { precision: 12, scale: 2 }).notNull().default('0'), // Supports fractions like 1.5L
     minStock: decimal('min_stock', { precision: 12, scale: 2 }).notNull().default('0'),
+    idealStock: decimal('ideal_stock', { precision: 12, scale: 2 }).notNull().default('0'),
     pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
     imageUrl: text('image_url'),

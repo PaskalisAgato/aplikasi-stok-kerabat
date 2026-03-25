@@ -13,6 +13,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [category, setCategory] = useState('Biji Kopi');
     const [unit, setUnit] = useState('g');
     const [minStock, setMinStock] = useState('');
+    const [idealStock, setIdealStock] = useState('');
     const [imageBase64, setImageBase64] = useState('');
     const [currentStock, setCurrentStock] = useState('');
     const [pricePerUnit, setPricePerUnit] = useState('');
@@ -37,6 +38,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setMinStock(item.minStock?.toString() || '');
             setImageBase64(item.imageUrl || '');
             setCurrentStock(item.currentStock?.toString() || '0');
+            setIdealStock(item.idealStock?.toString() || '0');
             setPricePerUnit(item.pricePerUnit?.toString() || '0');
             setDiscountPrice(item.discountPrice?.toString() || '0');
             setValidationError('');
@@ -140,6 +142,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 category,
                 unit,
                 minStock: minStock || '0',
+                idealStock: idealStock || '0',
                 imageUrl: imageBase64,
                 currentStock: parseFloat(currentStock) || 0,
                 pricePerUnit: p,
@@ -266,13 +269,23 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-primary uppercase ml-1 block">Stok Fisik</label>
+                                        <label className="text-[10px] font-black text-primary uppercase ml-1 block font-display">Ideal Prod</label>
+                                        <input 
+                                            type="number" 
+                                            value={idealStock} 
+                                            onChange={(e) => setIdealStock(e.target.value)}
+                                            placeholder="Target"
+                                            className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Stok Fisik</label>
                                         <input 
                                             type="number" 
                                             value={currentStock} 
                                             onChange={(e) => setCurrentStock(e.target.value)}
-                                            placeholder="Stok saat ini"
-                                            className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
+                                            placeholder="Fisik"
+                                            className="w-full rounded-xl bg-emerald-500/10 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-black transition-all"
                                         />
                                     </div>
                                 </div>
