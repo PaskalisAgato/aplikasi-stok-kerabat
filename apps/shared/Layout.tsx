@@ -184,7 +184,6 @@ const Layout: React.FC<LayoutProps> = ({
                 <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                     {/* Shell Header (Glass) */}
                     <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
-                        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
                         <div className="glass rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm">
                             
                             {/* Kiri: Hamburger + Logo */}

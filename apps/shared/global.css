@@ -1,9 +1,15 @@
-/* apps/shared/global.css */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;700;900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Standardize properties to avoid browser warnings */
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Fix for Material Symbols injection */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
   /* New Premium Color Palette: Midnight & Amber */
