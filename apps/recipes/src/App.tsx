@@ -135,7 +135,7 @@ function App() {
                     >
                         <div
                             className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3"
-                            style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                            style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
                         ></div>
                         
                         <div className="flex-1 flex flex-col justify-between space-y-4 min-w-0">

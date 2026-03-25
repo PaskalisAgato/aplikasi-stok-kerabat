@@ -95,7 +95,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
             name: item.name,
             unit: item.unit,
             stock: parseFloat(item.currentStock),
-            image: item.externalImageUrl || 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop',
+            image: item.externalImageUrl || '',
             quantity: 1,
             price: '',
             discount: ''

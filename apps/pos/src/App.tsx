@@ -221,7 +221,7 @@ function App() {
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div
                                         className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/10 group-hover:rotate-2 transition-transform"
-                                        style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                        style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
                                     />
                                     <div className="flex-1 min-w-0 space-y-1">
                                         <h3 className="font-black text-[var(--text-main)] text-lg md:text-xl font-display tracking-tight leading-tight truncate uppercase w-full max-w-[150px] md:max-w-none">{recipe.name}</h3>
@@ -300,7 +300,7 @@ function App() {
                                         <div className="flex items-center gap-4 min-w-0">
                                             <div
                                                 className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/5"
-                                                style={{ backgroundImage: `url('${recipe.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                                style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
                                             />
                                             <div className="flex-1 min-w-0 space-y-2">
                                                 <h3 className="font-black text-[var(--text-main)] text-base md:text-lg truncate font-display tracking-tight uppercase max-w-[130px] md:max-w-none">{recipe.name}</h3>

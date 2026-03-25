@@ -112,7 +112,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         criticalItems.map(item => (
                             <NotificationCard
                                 key={item.id}
-                                image={item.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}
+                                image={item.imageUrl || ""}
                                 title={item.name}
                                 status={item.status === 'HABIS' ? 'CRITICAL' : 'LOW'}
                                 time="Baru saja"

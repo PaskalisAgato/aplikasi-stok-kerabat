@@ -66,7 +66,7 @@ export const INVENTORY: InventoryItem[] = [
         supplier: 'Gayo Highlands Co.',
         status: 'NORMAL',
         pricePerUnit: 250000,
-        imageUrl: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop'
+        imageUrl: ''
     },
     {
         id: 2,
@@ -182,7 +182,7 @@ export const RECIPES: Recipe[] = [
             { ingredientId: 4, name: 'Bubuk Kopi Robusta', qty: 20, unit: 'g' },
             { ingredientId: 5, name: 'Gula Pasir', qty: 10, unit: 'g' }
         ],
-        imageUrl: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop'
+        imageUrl: ''
     },
     {
         id: 2,

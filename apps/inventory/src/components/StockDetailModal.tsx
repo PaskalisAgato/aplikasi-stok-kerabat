@@ -55,7 +55,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                             <div className="flex gap-4 items-center">
                                 <div
                                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl min-h-[6rem] w-24 bg-primary/10 border border-border-dim"
-                                    style={{ backgroundImage: `url('${selectedItem?.imageUrl || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"}')` }}
+                                    style={{ backgroundImage: `url('${selectedItem?.imageUrl || ""}')` }}
                                 />
                                 <div className="flex flex-col">
                                     <h1 className="text-main text-2xl font-bold leading-tight">{selectedItem?.name || 'Item Name'}</h1>
