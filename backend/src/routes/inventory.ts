@@ -254,7 +254,7 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
 // GET all inventory items with pagination, search, and filtering
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
-        const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+        const limit = Math.min(parseInt(req.query.limit as string) || 20, 500);
         const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
         const search = req.query.search as string;
         const statusFilter = req.query.status as string; // 'Normal', 'Kritis'

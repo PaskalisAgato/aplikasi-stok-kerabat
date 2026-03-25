@@ -24,7 +24,7 @@ function formatRp(n: number) {
     return 'Rp ' + n.toLocaleString('id-ID');
 }
 
-export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProps) {
+export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeModalProps) {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [namaResep, setNamaResep] = useState(recipe.name || '');
     const [category, setCategory] = useState(recipe.category || 'Minuman');
@@ -35,7 +35,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
     const [inventoryData, setInventoryData] = useState<any[]>([]);
 
     useEffect(() => {
-        apiClient.getInventory().then(res => {
+        apiClient.getInventory(500).then(res => {
             setInventoryData(res.data);
         }).catch(err => console.error("Failed to fetch inventory for recipe editing", err));
     }, []);
@@ -105,7 +105,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
             prev.map(ing => {
                 if (ing.id === id) {
                     const pricePerUnit = amount > 0 ? price / amount : 0;
-                    return { ...ing, purchasePrice: price, purchaseQty: amount, pricePerG: pricePerUnit };
+                    return { ...ing, purchasePrice: price, purchaseQty: amount, pricePerG: pricePerUnit, isPriceModified: true };
                 }
                 return ing;
             })
@@ -169,7 +169,6 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
             const isExisting = recipe.id && recipe.id < 1_000_000_000;
             if (isExisting) {
                 await apiClient.updateRecipe(recipe.id, payload);
-                alert('Resep berhasil diupdate!');
             } else {
                 await apiClient.createRecipe(payload);
             }
@@ -190,7 +189,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
             }
 
             alert('Resep berhasil disimpan dan harga bahan diperbarui!');
-            onClose();
+            onSave();
         } catch (error) {
             console.error(error);
             alert('Gagal menyimpan resep!');
@@ -215,7 +214,7 @@ export default function EditRecipeModal({ recipe, onClose }: EditRecipeModalProp
                         </div>
                         <button
                             className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-xl active:scale-95 transition-all text-sm"
-                            onClick={onClose}
+                            onClick={handleSaveAPI}
                         >
                             Selesai
                         </button>
