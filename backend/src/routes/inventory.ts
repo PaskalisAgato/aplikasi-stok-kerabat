@@ -255,11 +255,11 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
         const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-        const offset = parseInt(req.query.offset as string) || 0;
+        const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
         const search = req.query.search as string;
-        const status = req.query.status as string;
+        const statusFilter = req.query.status as string; // 'Normal', 'Kritis'
 
-        const cacheKey = `list_${limit}_${offset}_${search || ''}_${status || ''}`;
+        const cacheKey = `list_${limit}_${offset}_${search || ''}_${statusFilter || ''}`;
 
         // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
@@ -268,16 +268,34 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             return res.json(cached.data);
         }
 
-        // 2. Build Where Clause
-        let whereClause: any = eq(schema.inventory.isDeleted, false);
-        if (search) {
-            whereClause = and(whereClause, ilike(schema.inventory.name, `%${search}%`));
-        }
+        // 2. Build Base Where Clause
+        let filters = [eq(schema.inventory.isDeleted, false)];
         
-        // Note: For status filtering, we need to know what 'KRITIS' and 'NORMAL' mean.
-        // We'll calculate it in JS after fetching OR use complex SQL.
-        // Since we need to support pagination, we must filter in SQL if possible.
+        if (search) {
+            filters.push(ilike(schema.inventory.name, `%${search}%`));
+        }
 
+        // SQL-level Status Filtering Logic
+        // NORMAL: currentStock > minStock
+        // KRITIS/HABIS: currentStock <= minStock
+        if (statusFilter === 'Normal') {
+            filters.push(sql`${schema.inventory.currentStock} > ${schema.inventory.minStock}`);
+        } else if (statusFilter === 'Kritis') {
+            filters.push(sql`${schema.inventory.currentStock} <= ${schema.inventory.minStock}`);
+        }
+
+        const whereClause = and(...filters);
+
+        // 3. Get Total Count (for meta)
+        const [countResult] = await db.select({
+            count: sql<number>`count(*)`
+        })
+        .from(schema.inventory)
+        .where(whereClause);
+
+        const total = Number(countResult?.count || 0);
+
+        // 4. Fetch Paginated Data with Selected Fields (Omit potentially large imageUrl)
         const rawItems = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
@@ -286,36 +304,25 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             currentStock: schema.inventory.currentStock,
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
-            discountPrice: schema.inventory.discountPrice,
             idealStock: schema.inventory.idealStock,
-            imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
             version: schema.inventory.version,
         })
         .from(schema.inventory)
         .where(whereClause)
-        .orderBy(desc(schema.inventory.createdAt));
+        .orderBy(desc(schema.inventory.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-        // 3. Status Calculation & Filter
-        const itemsWithStatus = rawItems.map(item => {
+        // 5. Post-process Status Label (cheap maps on small paged size)
+        const pagedItems = rawItems.map(item => {
             const current = parseFloat(item.currentStock);
             const min = parseFloat(item.minStock);
-            let itemStatus: 'NORMAL' | 'KRITIS' | 'HABIS' = 'NORMAL';
-            if (current <= 0) itemStatus = 'HABIS';
-            else if (current <= min) itemStatus = 'KRITIS';
-            return { ...item, status: itemStatus };
+            let status: 'NORMAL' | 'KRITIS' | 'HABIS' = 'NORMAL';
+            if (current <= 0) status = 'HABIS';
+            else if (current <= min) status = 'KRITIS';
+            return { ...item, status };
         });
-
-        let filteredItems = itemsWithStatus;
-        if (status === 'Kritis') {
-            filteredItems = itemsWithStatus.filter(i => i.status === 'KRITIS' || i.status === 'HABIS');
-        } else if (status === 'Normal') {
-            filteredItems = itemsWithStatus.filter(i => i.status === 'NORMAL');
-        }
-
-        // 4. Pagination on filtered results
-        const total = filteredItems.length;
-        const pagedItems = filteredItems.slice(offset, offset + limit);
 
         const responseData = { 
             success: true, 
@@ -327,14 +334,19 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             }
         };
 
-        // 5. Update Cache
+        // 6. Update Cache
         inventoryCache.set(cacheKey, { data: responseData, timestamp: Date.now() });
 
         res.setHeader('X-Cache-Status', 'MISS');
         res.json(responseData);
     } catch (error: any) {
         console.error('Inventory Fetch Error:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil data inventaris' });
+        res.status(500).json({ 
+            success: false, 
+            error: true,
+            message: 'Gagal mengambil data inventaris',
+            details: error.message 
+        });
     }
 });
 

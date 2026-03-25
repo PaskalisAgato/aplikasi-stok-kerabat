@@ -79,7 +79,10 @@ export const inventory = pgTable('inventory', {
     version: timestamp('version').defaultNow().notNull(), // For concurrency control
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
-    createdIdx: index('inventory_created_at_idx').on(t.createdAt)
+    createdIdx: index('inventory_created_at_idx').on(t.createdAt),
+    stockIdx: index('inventory_stock_idx').on(t.currentStock), // New: Speed up status filtering
+    minStockIdx: index('inventory_min_stock_idx').on(t.minStock), // New: Speed up status filtering
+    isDeletedIdx: index('inventory_is_deleted_idx').on(t.isDeleted) // New: Speed up active filtering
 }));
 
 export const stockMovements = pgTable('stock_movements', {

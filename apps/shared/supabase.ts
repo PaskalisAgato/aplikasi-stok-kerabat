@@ -20,6 +20,7 @@ if (supabaseUrl && supabaseAnonKey) {
 
 // Export a safe proxy or the instance
 export const supabase = supabaseInstance;
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 /**
  * Uploads a file (File, Blob, or base64 string) to a Supabase bucket.
