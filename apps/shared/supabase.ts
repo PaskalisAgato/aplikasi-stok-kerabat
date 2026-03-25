@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { compressImage } from './imageUtils';
 
 // Load environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -37,6 +38,15 @@ export async function uploadFile(
     if (typeof file === 'string' && file.startsWith('data:')) {
         const res = await fetch(file);
         uploadData = await res.blob();
+    }
+
+    // BANDWIDTH OPTIMIZATION: Auto-compress if it's an image
+    if (uploadData instanceof Blob && uploadData.type.startsWith('image/')) {
+        try {
+            uploadData = await compressImage(uploadData, { maxWidth: 1200, maxHeight: 1200, quality: 0.7 });
+        } catch (e) {
+            console.warn('[Supabase] Compression failed, uploading original:', e);
+        }
     }
 
     if (!supabase) {
