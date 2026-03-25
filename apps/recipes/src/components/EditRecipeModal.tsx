@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { Recipe } from '@shared/mockDatabase';
 
@@ -34,25 +34,93 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const [hargaJual, setHargaJual] = useState(recipe.price);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [inventoryData, setInventoryData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [inventoryData, setInventoryData] = useState<any[]>([]); // Results from search
+    const [initialInventoryData, setInitialInventoryData] = useState<any[]>([]); // Data for current recipe ingredients
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
+    // Debounce search term
     useEffect(() => {
-        setIsLoading(true);
-        apiClient.getInventory(500).then(res => {
-            setInventoryData(res.data);
-        }).catch(err => console.error("Failed to fetch inventory for recipe editing", err))
-        .finally(() => setIsLoading(false));
-    }, []);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Fetch initial ingredients data for the current recipe
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            if (!recipe.ingredients || recipe.ingredients.length === 0) return;
+            
+            try {
+                const ids = recipe.ingredients.map(ing => ing.ingredientId).join(',');
+                const res = await apiClient.getInventory(100, 0, '', '', ids);
+                setInitialInventoryData(res.data || []);
+            } catch (err) {
+                console.error("Failed to fetch initial inventory data", err);
+            }
+        };
+
+        fetchInitialData();
+    }, [recipe.ingredients]); // Only run if ingredients list changes
+
+    // Fetch inventory results based on search term
+    useEffect(() => {
+        const fetchSearchResults = async () => {
+            // Guard: Hanya hit API jika minimal 2 karakter
+            if (debouncedSearch && debouncedSearch.trim().length < 2) {
+                setInventoryData([]);
+                setSearchError(null);
+                return;
+            }
+
+            // Edge case: empty search should show nothing in search results
+            if (!debouncedSearch) {
+                setInventoryData([]);
+                setSearchError(null);
+                return;
+            }
+
+            // Race Condition Guard: Batalkan request sebelumnya jika user masih mengetik
+            abortControllerRef.current?.abort();
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+
+            setIsSearching(true);
+            setSearchError(null);
+            
+            try {
+                // limit cap 20 items
+                const res = await apiClient.getInventory(20, 0, debouncedSearch, '', '', controller.signal);
+                setInventoryData(res.data || []);
+            } catch (err: any) {
+                if (err.name === 'AbortError') return;
+                console.error("Search failed", err);
+                setSearchError("Gagal mencari bahan baku. SIlakan coba lagi.");
+                setInventoryData([]);
+            } finally {
+                if (abortControllerRef.current === controller) {
+                    setIsSearching(false);
+                }
+            }
+        };
+
+        fetchSearchResults();
+
+        // Cleanup: Batalkan request saat komponen unmount
+        return () => abortControllerRef.current?.abort();
+    }, [debouncedSearch]);
 
     // Inisialisasi data dari resep yang dipilih
     useEffect(() => {
-        // Jika belum ada data inventori, tunggu dulu
-        if (inventoryData.length === 0 && recipe.ingredients.length > 0) return;
-
-        // Melakukan pemetaan bahan resep ke data inventori untuk mendapatkan harga mentah per unit
+        // Gabungkan data awal dangan data hasil search untuk lookup harga/unit
+        const allReferenceData = [...initialInventoryData, ...inventoryData];
+        
+        // Pemetaan bahan resep ke data inventori untuk mendapatkan harga mentah per unit
         const initialIngredients = recipe.ingredients.map(ing => {
-            const inventoryItem = inventoryData.find(item => item.id === ing.ingredientId);
+            const inventoryItem = allReferenceData.find(item => item.id === ing.ingredientId);
             
             let pricePerG = 0;
             let displayUnit = ing.unit;
@@ -87,7 +155,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
         } else {
             setOverhead(10);
         }
-    }, [recipe, inventoryData]);
+    }, [recipe, initialInventoryData]); // Removed inventoryData to avoid unwanted resets during search
 
     const changeQty = (id: number, delta: number) => {
         setIngredients(prev =>
@@ -144,8 +212,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     };
 
     const availableIngredients = inventoryData.filter(item =>
-        !ingredients.some(ing => ing.id === item.id) &&
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        !ingredients.some(ing => ing.id === item.id)
     );
 
     const totalBahan = ingredients.reduce((sum, ing) => sum + ing.pricePerG * ing.qty, 0);
@@ -180,9 +247,11 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
             // Sync modified prices back to inventory
             const modifiedIngredients = ingredients.filter(ing => ing.isPriceModified);
+            const allReferenceData = [...initialInventoryData, ...inventoryData];
+            
             for (const ing of modifiedIngredients) {
                 // Adjust back if it was Kg/L (inventory stores as price per Kg/L)
-                const inventoryItem = inventoryData.find(item => item.id === ing.id);
+                const inventoryItem = allReferenceData.find(item => item.id === ing.id);
                 let priceToSave = ing.pricePerG;
                 if (inventoryItem && (inventoryItem.unit === 'Kg' || inventoryItem.unit === 'L')) {
                     priceToSave = ing.pricePerG * 1000;
@@ -284,13 +353,21 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                             />
                                         </div>
                                         <div className="max-h-60 overflow-y-auto">
-                                            {isLoading ? (
+                                            {isSearching ? (
                                                 <div className="p-8 text-center">
                                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary/30 border-t-primary mb-2"></div>
-                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat Bahan...</p>
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mencari Bahan...</p>
                                                 </div>
-                                            ) : availableIngredients.length === 0 ? (
-                                                <p className="p-4 text-center text-sm text-slate-500">Tidak ada bahan tersedia</p>
+                                            ) : searchError ? (
+                                                <div className="p-4 text-center">
+                                                    <p className="text-sm text-red-500 font-bold">{searchError}</p>
+                                                </div>
+                                            ) : searchTerm && searchTerm.trim().length < 2 ? (
+                                                <p className="p-4 text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">Minimal 2 karakter...</p>
+                                            ) : searchTerm && availableIngredients.length === 0 ? (
+                                                <p className="p-4 text-center text-sm text-slate-500">Tidak ditemukan "{searchTerm}"</p>
+                                            ) : !searchTerm ? (
+                                                <p className="p-4 text-center text-sm text-slate-400 font-medium italic">Ketik untuk mencari bahan baku...</p>
                                             ) : (
                                                 availableIngredients.map(item => (
                                                     <button

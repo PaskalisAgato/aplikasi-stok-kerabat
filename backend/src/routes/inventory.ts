@@ -251,15 +251,28 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
     }
 });
 
-// GET all inventory items with pagination, search, and filtering
+// GET all inventory items with pagination, search, targeted IDs, and filtering
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
-        const limit = Math.min(parseInt(req.query.limit as string) || 20, 500);
+        // 1. Input Validation & Parsing
+        const maxLimit = 100; // Strict limit for production
+        const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), maxLimit);
         const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-        const search = req.query.search as string;
+        const search = (req.query.search as string || '').trim();
         const statusFilter = req.query.status as string; // 'Normal', 'Kritis'
+        const idsParam = req.query.ids as string;
 
-        const cacheKey = `list_${limit}_${offset}_${search || ''}_${statusFilter || ''}`;
+        // Hardened IDs parsing: numeric filter, uniqueness, and max limit of 50
+        let targetIds: number[] = [];
+        if (idsParam) {
+            const parsedIds = idsParam.split(',')
+                .map(id => parseInt(id.trim()))
+                .filter(id => !isNaN(id));
+            // Take unique IDs and limit to 50 to prevent heavy queries
+            targetIds = [...new Set(parsedIds)].slice(0, 50);
+        }
+
+        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${idsParam || ''}`;
 
         // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
@@ -268,10 +281,14 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             return res.json(cached.data);
         }
 
-        // 2. Build Base Where Clause
+        // 2. Build Base Where Clause (Optimized indexing handles this)
         let filters = [eq(schema.inventory.isDeleted, false)];
         
-        if (search) {
+        if (targetIds.length > 0) {
+            // Priority: If IDs are requested, we fetch exactly those IDs
+            filters.push(sql`${schema.inventory.id} IN ${targetIds}`);
+        } else if (search) {
+            // Search filtering
             filters.push(ilike(schema.inventory.name, `%${search}%`));
         }
 

@@ -1,3 +1,6 @@
+"use client";
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { Recipe } from '@shared/mockDatabase';

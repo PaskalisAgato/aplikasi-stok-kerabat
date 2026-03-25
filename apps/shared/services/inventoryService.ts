@@ -5,7 +5,7 @@
  * Each function maps 1-to-1 with a backend route.
  */
 
-import { apiFetch } from '../apiClient';
+import { apiFetch, type ApiResponse } from '../apiClient';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -86,9 +86,15 @@ export interface RecordMovementPayload {
 // ── Service functions ──────────────────────────────────────────────────────────
 
 export const inventoryService = {
-    /** GET /api/inventory — list all items with computed status */
-    fetchAll: () =>
-        apiFetch<InventoryItem[]>('/inventory'),
+    /** GET /api/inventory — list items with optional search and targeted IDs */
+    fetchAll: (search?: string, ids?: string) => {
+        let url = '/inventory';
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (ids) params.append('ids', ids);
+        const query = params.toString();
+        return apiFetch<ApiResponse<InventoryItem>>(query ? `${url}?${query}` : url);
+    },
 
     /** GET /api/inventory/:id/movements — last 20 movements for an item */
     fetchMovements: (id: number) =>
