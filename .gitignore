@@ -5,3 +5,5 @@ backend/uploads
 .env
 
 backend/backups/
+dist-global/
+dist-pages/

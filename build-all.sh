@@ -1,4 +1,4 @@
-# build-all.sh - v3.0 (parallelized optimization)
+# build-all.sh - v3.1 (trigger deploy 2026-03-25 22:45)
 set -e
 
 echo "--- VERCEL CONSOLIDATED BUILD START ---"
