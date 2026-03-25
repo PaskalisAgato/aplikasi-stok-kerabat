@@ -138,6 +138,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                                 alt="Receipt" 
                                                 loading="lazy"
                                                 className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/10 group-hover/thumb:scale-110 transition-transform cursor-zoom-in"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Error';
+                                                }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setPreviewImage(getOptimizedImageUrl(expense.imageUrl!, { width: 800, height: 800 }));
@@ -190,6 +193,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                 src={previewImage}
                                 alt="Receipt Preview"
                                 className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain border-4 border-white/10"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://placehold.co/800x800?text=Gambar+Tidak+Tersedia';
+                                }}
                             />
                             <button
                                 onClick={() => setPreviewImage(null)}

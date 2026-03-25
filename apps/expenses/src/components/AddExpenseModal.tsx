@@ -96,9 +96,29 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
         });
     };
 
+    const validateFile = (file: File): string | null => {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            return 'Format file harus berupa gambar (JPG, PNG, atau WEBP).';
+        }
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+            return 'Ukuran gambar maksimal adalah 2MB.';
+        }
+        return null;
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+            
+            const validationError = validateFile(file);
+            if (validationError) {
+                alert(validationError);
+                e.target.value = '';
+                return;
+            }
+
             setSelectedFile(file);
             
             const reader = new FileReader();
@@ -301,7 +321,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
                             {/* Category Chips */}
                             <div className="flex flex-wrap gap-2">
-                                {filteredCategories.map(cat => {
+                                {(Array.isArray(categories) ? filteredCategories : []).map(cat => {
                                     const isSelected = selectedCategory === cat.name;
                                     return (
                                         <button
@@ -396,6 +416,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                             src={receipt}
                                             alt="Receipt"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Logo+POS';
+                                            }}
                                         />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <span className="material-symbols-outlined text-white">visibility</span>
