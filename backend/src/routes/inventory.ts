@@ -288,6 +288,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
             idealStock: schema.inventory.idealStock,
+            imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
             version: schema.inventory.version,
         })

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { apiClient } from '@shared/apiClient';
-
+import { uploadFile } from '@shared/supabase';
 
 
 interface AddExpenseModalProps {
@@ -118,13 +118,14 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
         if (!name || !amount) return;
 
         setIsUploading(true);
-        // We use the 'receipt' state directly now because it contains either 
-        // the placeholder, the existing URL, or the new base64 compressed data.
         let finalReceiptUrl = receipt || '';
 
         try {
-            // NOTE: We no longer upload to Supabase Storage to avoid 'exceed_egress_quota' errors.
-            // Images are now stored as compressed base64 strings directly in the database.
+            // Direct Upload to Supabase Storage for optimized performance
+            if (receipt && receipt.startsWith('data:')) {
+                const fileName = `${Date.now()}-${name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+                finalReceiptUrl = await uploadFile('expense-receipts', fileName, receipt);
+            }
             
             // 2. Add or Update Expense in database
             const expensePayload = {

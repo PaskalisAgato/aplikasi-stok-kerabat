@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getOptimizedImageUrl } from '@shared/supabase';
 
 interface Expense {
     id: number;
@@ -130,6 +131,20 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                     <p className="text-xl font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
                                         Rp {Number(expense.amount).toLocaleString('id-ID')}
                                     </p>
+                                    {expense.imageUrl && (
+                                        <div className="relative group/thumb">
+                                            <img 
+                                                src={getOptimizedImageUrl(expense.imageUrl!, { width: 200, height: 200 })} 
+                                                alt="Receipt" 
+                                                loading="lazy"
+                                                className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/10 group-hover/thumb:scale-110 transition-transform cursor-zoom-in"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPreviewImage(getOptimizedImageUrl(expense.imageUrl!, { width: 800, height: 800 }));
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                     <div className="flex gap-2">
                                         {onEdit && (
                                             <button 

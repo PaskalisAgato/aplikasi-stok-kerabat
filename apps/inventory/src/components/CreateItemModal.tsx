@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
+import { uploadFile } from '@shared/supabase';
 
 interface DraftItem {
     id: string; // Internal local ID for mapping
@@ -143,6 +144,12 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
         try {
             for (const item of validDrafts) {
                 try {
+                    let imagePath = '';
+                    if (item.imageBase64 && item.imageBase64.startsWith('data:')) {
+                        const fileName = `${Date.now()}-${item.name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+                        imagePath = await uploadFile('inventory-images', fileName, item.imageBase64);
+                    }
+
                     await apiClient.addInventoryItem({
                         name: item.name,
                         category: item.category,
@@ -151,7 +158,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         pricePerUnit: item.price || '0',
                         discountPrice: item.discount || '0',
                         idealStock: item.idealStock || '0',
-                        imageUrl: item.imageBase64
+                        imageUrl: imagePath || item.imageBase64 // This now stores the path or fallback
                     });
                     successCount++;
                 } catch (err: any) {

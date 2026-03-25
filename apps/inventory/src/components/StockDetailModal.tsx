@@ -1,5 +1,6 @@
 import React from 'react'; // Final deploy trigger
 import { apiClient } from '@shared/apiClient';
+import { getOptimizedImageUrl } from '@shared/supabase';
 
 interface StockDetailModalProps {
     isOpen: boolean;
@@ -53,10 +54,17 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                     <div className="flex p-4">
                         <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between items-start">
                             <div className="flex gap-4 items-center">
-                                <div
-                                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl min-h-[6rem] w-24 bg-primary/10 border border-border-dim"
-                                    style={{ backgroundImage: `url('${selectedItem?.imageUrl || ""}')` }}
-                                />
+                                <div className="size-24 rounded-xl overflow-hidden border border-border-dim bg-primary/10 flex-shrink-0">
+                                    <img 
+                                        src={getOptimizedImageUrl(selectedItem?.imageUrl, { width: 300, height: 300 })} 
+                                        alt={selectedItem?.name}
+                                        loading="lazy"
+                                        className="size-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300?text=No+Image';
+                                        }}
+                                    />
+                                </div>
                                 <div className="flex flex-col">
                                     <h1 className="text-main text-2xl font-bold leading-tight">{selectedItem?.name || 'Item Name'}</h1>
                                     <div className="flex items-center gap-2 mt-1">

@@ -46,35 +46,40 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
     }
 });
 
-// GET Single Expense Detail (Full Details including receipt image)
-financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
+// GET all expense categories
+financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id as string);
-        if (isNaN(id)) return res.status(400).json({ success: false, message: 'ID tidak valid' });
-
-        const [expense] = await db.select({
-            id: schema.expenses.id,
-            title: schema.expenses.title,
-            vendor: schema.expenses.vendor,
-            category: schema.expenses.category,
-            amount: schema.expenses.amount,
-            receiptUrl: schema.expenses.receiptUrl,
-            externalReceiptUrl: schema.expenses.externalReceiptUrl,
-            expenseDate: schema.expenses.expenseDate,
-            userId: schema.expenses.userId,
-            createdAt: schema.expenses.createdAt
-        }).from(schema.expenses).where(
-            and(
-                eq(schema.expenses.id, id),
-                eq(schema.expenses.isDeleted, false)
-            )
-        ).limit(1);
-        if (!expense) return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
-
-        res.json({ success: true, data: expense });
+        const cats = await db.select({
+            id: schema.expenseCategories.id,
+            name: schema.expenseCategories.name,
+            icon: schema.expenseCategories.icon
+        }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        res.json({ 
+            success: true, 
+            data: cats,
+            meta: { total: cats.length, limit: cats.length, page: 1 }
+        });
     } catch (error) {
-        console.error('Error fetching expense details:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil detail pengeluaran' });
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil kategori pengeluaran' });
+    }
+});
+
+// POST new expense category
+financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { name, icon } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: 'Nama kategori diperlukan' });
+
+        const [newCat] = await db.insert(schema.expenseCategories).values({
+            name,
+            icon: icon || 'category'
+        }).returning();
+
+        res.status(201).json(newCat);
+    } catch (error) {
+        console.error('Error adding category:', error);
+        res.status(500).json({ error: 'Failed to add expense category' });
     }
 });
 
@@ -132,6 +137,56 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         if (!res.headersSent) {
             res.status(500).json({ success: false, message: 'Gagal mengekspor data pengeluaran' });
         }
+    }
+});
+
+// GET Single Expense Detail (Full Details including receipt image)
+financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) return res.status(400).json({ success: false, message: 'ID tidak valid' });
+
+        const [expense] = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            receiptUrl: schema.expenses.receiptUrl,
+            externalReceiptUrl: schema.expenses.externalReceiptUrl,
+            expenseDate: schema.expenses.expenseDate,
+            userId: schema.expenses.userId,
+            createdAt: schema.expenses.createdAt
+        }).from(schema.expenses).where(
+            and(
+                eq(schema.expenses.id, id),
+                eq(schema.expenses.isDeleted, false)
+            )
+        ).limit(1);
+        if (!expense) return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
+
+        res.json({ success: true, data: expense });
+    } catch (error) {
+        console.error('Error fetching expense details:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil detail pengeluaran' });
+    }
+});
+
+// DELETE expense category
+financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+
+        const [deleted] = await db.delete(schema.expenseCategories)
+            .where(eq(schema.expenseCategories.id, id))
+            .returning();
+
+        if (!deleted) return res.status(404).json({ error: 'Category not found' });
+        res.json({ message: 'Category deleted' });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({ error: 'Failed to delete expense category' });
     }
 });
 
@@ -402,60 +457,5 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error calculating HPP:', error);
         res.status(500).json({ success: false, message: 'Gagal menghitung HPP' });
-    }
-});
-
-// GET all expense categories
-financeRouter.get('/expenses/categories', requireAuth, async (req: Request, res: Response) => {
-    try {
-        const cats = await db.select({
-            id: schema.expenseCategories.id,
-            name: schema.expenseCategories.name,
-            icon: schema.expenseCategories.icon
-        }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
-        res.json({ 
-            success: true, 
-            data: cats,
-            meta: { total: cats.length, limit: cats.length, page: 1 }
-        });
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil kategori pengeluaran' });
-    }
-});
-
-// POST new expense category
-financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, res: Response) => {
-    try {
-        const { name, icon } = req.body;
-        if (!name) return res.status(400).json({ success: false, message: 'Nama kategori diperlukan' });
-
-        const [newCat] = await db.insert(schema.expenseCategories).values({
-            name,
-            icon: icon || 'category'
-        }).returning();
-
-        res.status(201).json(newCat);
-    } catch (error) {
-        console.error('Error adding category:', error);
-        res.status(500).json({ error: 'Failed to add expense category' });
-    }
-});
-
-// DELETE expense category
-financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string);
-        if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
-
-        const [deleted] = await db.delete(schema.expenseCategories)
-            .where(eq(schema.expenseCategories.id, id))
-            .returning();
-
-        if (!deleted) return res.status(404).json({ error: 'Category not found' });
-        res.json({ message: 'Category deleted' });
-    } catch (error) {
-        console.error('Error deleting category:', error);
-        res.status(500).json({ error: 'Failed to delete expense category' });
     }
 });

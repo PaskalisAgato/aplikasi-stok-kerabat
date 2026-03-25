@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
+import { uploadFile } from '@shared/supabase';
 
 interface EditItemModalProps {
     isOpen: boolean;
@@ -137,13 +138,19 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
         setValidationError('');
         setIsSaving(true);
         try {
+            let imagePath = imageBase64;
+            if (imageBase64 && imageBase64.startsWith('data:')) {
+                const fileName = `${Date.now()}-${name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+                imagePath = await uploadFile('inventory-images', fileName, imageBase64);
+            }
+
             await apiClient.updateInventoryItem(item.id, {
                 name,
                 category,
                 unit,
                 minStock: minStock || '0',
                 idealStock: idealStock || '0',
-                imageUrl: imageBase64,
+                imageUrl: imagePath,
                 currentStock: parseFloat(currentStock) || 0,
                 pricePerUnit: p,
                 discountPrice: d

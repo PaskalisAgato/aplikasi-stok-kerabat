@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import { getOptimizedImageUrl } from '@shared/supabase';
 
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
@@ -20,6 +21,7 @@ export interface BahanBaku {
   minStock: string;
   pricePerUnit: string;
   discountPrice: string | null;
+  imageUrl: string | null;
   externalImageUrl: string | null;
   status: 'NORMAL' | 'KRITIS' | 'HABIS';
   supplier?: string;
@@ -294,15 +296,28 @@ function App() {
                 onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
                 className="card group cursor-pointer relative overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
             >
-                {/* Status Indicator & Delete Button */}
-                <div className="flex justify-between items-start mb-8 relative z-10">
-                <div className="min-w-0 space-y-1">
-                    <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors">{item.name}</h3>
-                    <div className="flex items-center gap-2 opacity-60">
-                        <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate">{item.supplier || 'Pemasok Umum'}</p>
+                {/* Image and Info */}
+                <div className="flex justify-between items-start mb-6 relative z-10 gap-4">
+                    <div className="flex gap-4 items-start min-w-0 flex-1">
+                        <div className="size-16 rounded-2xl overflow-hidden glass border border-white/10 shrink-0 bg-primary/5">
+                            <img 
+                                src={getOptimizedImageUrl(item.imageUrl || item.externalImageUrl || '', { width: 200, height: 200 })} 
+                                alt={item.name}
+                                loading="lazy"
+                                className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200?text=No+Image';
+                                }}
+                            />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                            <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors truncate">{item.name}</h3>
+                            <div className="flex items-center gap-2 opacity-60">
+                                <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
+                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate">{item.supplier || 'Pemasok Umum'}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
                 <div className="flex flex-col items-end gap-2">
                     <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
                         item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
