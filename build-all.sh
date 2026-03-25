@@ -26,7 +26,7 @@ build_app() {
 }
 
 # List all apps
-APPS=("inventory" "reports" "dashboard" "activity-history" "employees" "expenses" "hpp" "opname" "recipes" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history" "todo-list")
+APPS=("inventory" "reports" "dashboard" "employees" "expenses" "hpp" "opname" "recipes" "waste" "waste-detail" "cogs" "recipe-edit" "shifts" "attendance" "attendance-history" "todo-list")
 
 for APP in "${APPS[@]}"; do
   build_app "$APP"

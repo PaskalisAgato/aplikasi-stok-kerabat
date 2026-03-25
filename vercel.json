@@ -10,7 +10,6 @@
     { "source": "/inventory/:path*", "destination": "/inventory/index.html" },
     { "source": "/reports/:path*", "destination": "/reports/index.html" },
     { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
-    { "source": "/activity-history/:path*", "destination": "/activity-history/index.html" },
     { "source": "/employees/:path*", "destination": "/employees/index.html" },
     { "source": "/expenses/:path*", "destination": "/expenses/index.html" },
     { "source": "/hpp/:path*", "destination": "/hpp/index.html" },
