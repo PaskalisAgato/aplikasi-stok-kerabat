@@ -16,7 +16,6 @@
     { "source": "/hpp/:path*", "destination": "/hpp/index.html" },
     { "source": "/opname/:path*", "destination": "/opname/index.html" },
     { "source": "/recipes/:path*", "destination": "/recipes/index.html" },
-    { "source": "/settings/:path*", "destination": "/settings/index.html" },
     { "source": "/waste/:path*", "destination": "/waste/index.html" },
     { "source": "/waste-detail/:path*", "destination": "/waste-detail/index.html" },
     { "source": "/cogs/:path*", "destination": "/cogs/index.html" },
