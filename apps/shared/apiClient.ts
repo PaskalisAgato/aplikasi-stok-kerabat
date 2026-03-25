@@ -232,7 +232,12 @@ export async function apiFetch<T = unknown>(
 // ── Legacy compat layer (Updated for Modular Architecture) ────────────────────────
 export const apiClient = {
     // ---- INVENTORY ----
-    getInventory: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/inventory?limit=${limit}&offset=${offset}`),
+    getInventory: (limit = 20, offset = 0, search = '', status = '') => {
+        let url = `/inventory?limit=${limit}&offset=${offset}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
+        return apiFetch<ApiResponse<any>>(url);
+    },
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
     getInventoryPriceLogs: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),

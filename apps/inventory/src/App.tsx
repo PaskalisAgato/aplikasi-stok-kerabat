@@ -56,17 +56,18 @@ function App() {
       setIsError(false);
       
       const currentPage = isLoadMore ? page + 1 : 0;
-      const response: ApiResponse<BahanBaku> = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE);
+      const response: ApiResponse<BahanBaku> = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE, searchQuery, filterType);
       const { data, meta } = response;
 
       if (Array.isArray(data)) {
         if (isLoadMore) {
           setInventoryList(prev => [...prev, ...data]);
           setPage(currentPage);
+          setHasMore((inventoryList.length + data.length) < meta.total);
         } else {
           setInventoryList(data);
+          setHasMore(data.length < meta.total);
         }
-        setHasMore(data.length >= meta.limit);
       } else {
         console.error('[Inventory] Unexpected response shape:', response);
         const raw = localStorage.getItem('inventory');
@@ -104,22 +105,10 @@ function App() {
   }, [inventoryList]);
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
-
-  // Reset pagination when filters change (Local filtering for now, but resets help UX)
-  useEffect(() => {
-    setPage(0);
-    // If we wanted server-side filtering, we would fetch here.
-    // Since it's local, we just keep the current list but maybe we should re-fetch 'Semua' if we filtered before.
+    fetchInventory(false);
   }, [filterType, searchQuery]);
 
-  const filteredInventory = inventoryList.filter(item => {
-    if (filterType === 'Kritis' && item.status !== 'KRITIS' && item.status !== 'HABIS') return false;
-    if (filterType === 'Normal' && item.status !== 'NORMAL') return false;
-    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const filteredInventory = inventoryList;
   
   const criticalCount = inventoryList.filter(item => item.status === 'KRITIS' || item.status === 'HABIS').length;
 
@@ -375,7 +364,7 @@ function App() {
             ))}
         </div>
 
-        {hasMore && !isLoading && !searchQuery && filterType === 'Semua' && (
+        {hasMore && !isLoading && (
             <div className="flex justify-center mt-12 pb-12">
                 <button 
                     onClick={() => fetchInventory(true)}

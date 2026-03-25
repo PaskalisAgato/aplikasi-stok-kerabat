@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { eq, sql, and, gte, desc } from 'drizzle-orm';
+import { eq, sql, and, gte, desc, ilike } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 
@@ -251,22 +251,34 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
     }
 });
 
-// GET all inventory items with pagination (Phase 4 Hardened)
+// GET all inventory items with pagination, search, and filtering
 inventoryRouter.get('/', async (req: Request, res: Response) => {
     try {
-        const limit = Math.min(parseInt(req.query.limit as string) || 20, 50); // Enforce max 50
+        const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
         const offset = parseInt(req.query.offset as string) || 0;
-        const cacheKey = `list_${limit}_${offset}`;
+        const search = req.query.search as string;
+        const status = req.query.status as string;
 
-        // 1. Check In-Memory Cache (Phase 4)
+        const cacheKey = `list_${limit}_${offset}_${search || ''}_${status || ''}`;
+
+        // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
             res.setHeader('X-Cache-Status', 'HIT');
             return res.json(cached.data);
         }
 
-        // 2. Strict Projection (Phase 4: Remove base64/imageUrl)
-        const items = await db.select({
+        // 2. Build Where Clause
+        let whereClause: any = eq(schema.inventory.isDeleted, false);
+        if (search) {
+            whereClause = and(whereClause, ilike(schema.inventory.name, `%${search}%`));
+        }
+        
+        // Note: For status filtering, we need to know what 'KRITIS' and 'NORMAL' mean.
+        // We'll calculate it in JS after fetching OR use complex SQL.
+        // Since we need to support pagination, we must filter in SQL if possible.
+
+        const rawItems = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
             category: schema.inventory.category,
@@ -280,27 +292,41 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             version: schema.inventory.version,
         })
         .from(schema.inventory)
-        .where(eq(schema.inventory.isDeleted, false))
-        .orderBy(desc(schema.inventory.createdAt))
-        .limit(limit)
-        .offset(offset);
+        .where(whereClause)
+        .orderBy(desc(schema.inventory.createdAt));
 
-        // 3. Metadata count (Optimized O(1) query)
-        const totalCount = await db.select({ count: sql<number>`count(*)` })
-            .from(schema.inventory)
-            .where(eq(schema.inventory.isDeleted, false));
+        // 3. Status Calculation & Filter
+        const itemsWithStatus = rawItems.map(item => {
+            const current = parseFloat(item.currentStock);
+            const min = parseFloat(item.minStock);
+            let itemStatus: 'NORMAL' | 'KRITIS' | 'HABIS' = 'NORMAL';
+            if (current <= 0) itemStatus = 'HABIS';
+            else if (current <= min) itemStatus = 'KRITIS';
+            return { ...item, status: itemStatus };
+        });
+
+        let filteredItems = itemsWithStatus;
+        if (status === 'Kritis') {
+            filteredItems = itemsWithStatus.filter(i => i.status === 'KRITIS' || i.status === 'HABIS');
+        } else if (status === 'Normal') {
+            filteredItems = itemsWithStatus.filter(i => i.status === 'NORMAL');
+        }
+
+        // 4. Pagination on filtered results
+        const total = filteredItems.length;
+        const pagedItems = filteredItems.slice(offset, offset + limit);
 
         const responseData = { 
             success: true, 
-            data: items,
+            data: pagedItems,
             meta: {
-                total: Number(totalCount[0].count),
+                total,
                 limit,
                 offset
             }
         };
 
-        // 4. Update Cache
+        // 5. Update Cache
         inventoryCache.set(cacheKey, { data: responseData, timestamp: Date.now() });
 
         res.setHeader('X-Cache-Status', 'MISS');
