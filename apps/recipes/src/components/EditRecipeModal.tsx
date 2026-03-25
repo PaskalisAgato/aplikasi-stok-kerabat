@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { Recipe } from '@shared/mockDatabase';
@@ -33,11 +35,14 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [inventoryData, setInventoryData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        setIsLoading(true);
         apiClient.getInventory(500).then(res => {
             setInventoryData(res.data);
-        }).catch(err => console.error("Failed to fetch inventory for recipe editing", err));
+        }).catch(err => console.error("Failed to fetch inventory for recipe editing", err))
+        .finally(() => setIsLoading(false));
     }, []);
 
     // Inisialisasi data dari resep yang dipilih
@@ -279,7 +284,12 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                             />
                                         </div>
                                         <div className="max-h-60 overflow-y-auto">
-                                            {availableIngredients.length === 0 ? (
+                                            {isLoading ? (
+                                                <div className="p-8 text-center">
+                                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary/30 border-t-primary mb-2"></div>
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat Bahan...</p>
+                                                </div>
+                                            ) : availableIngredients.length === 0 ? (
                                                 <p className="p-4 text-center text-sm text-slate-500">Tidak ada bahan tersedia</p>
                                             ) : (
                                                 availableIngredients.map(item => (

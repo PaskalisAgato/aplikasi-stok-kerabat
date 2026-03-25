@@ -18,7 +18,14 @@ build_app() {
   local name=$1
   if [ -d "apps/$name" ]; then
     echo "Building $name..."
-    cd "apps/$name" && npm run build && cd ../..
+    cd "apps/$name"
+    if [ "$SKIP_TSC" = "true" ]; then
+      echo "Skipping TSC for $name, running vite build directly..."
+      npx vite build
+    else
+      npm run build
+    fi
+    cd ../..
     mkdir -p "dist-global/$name"
     cp -r "apps/$name/dist/." "dist-global/$name/"
     echo "$name DONE"
