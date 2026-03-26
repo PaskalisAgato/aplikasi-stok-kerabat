@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 
@@ -20,30 +20,58 @@ function App() {
     const [reasons, setReasons] = useState<Record<number, string>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const controllerRef = useRef<AbortController | null>(null);
 
-    const fetchInventory = async () => {
+    const fetchInventory = async (isLoadMore = false) => {
         try {
             setIsLoading(true);
-            const response = await apiClient.getInventory();
-            setInventoryList(response.data);
+            const currentPage = isLoadMore ? page + 1 : 1;
             
-            // Initialize physical stocks with current stock values
-            const initialStocks: Record<number, string> = {};
-            response.data.forEach((item) => {
-                initialStocks[item.id] = (item.currentStock ?? 0).toString();
+            controllerRef.current?.abort();
+            const controller = new AbortController();
+            controllerRef.current = controller;
+
+            const response = await apiClient.getInventory(20, (currentPage - 1) * 20, searchTerm, '', '', controller.signal);
+            
+            if (isLoadMore) {
+                setInventoryList(prev => [...prev, ...response.data]);
+                setPage(currentPage);
+            } else {
+                setInventoryList(response.data);
+                setPage(1);
+            }
+
+            setHasMore(response.data.length === 20);
+            
+            // Update physical stocks with current stock values for new items
+            setPhysicalStocks(prev => {
+                const newStocks = { ...prev };
+                response.data.forEach((item: any) => {
+                    if (!(item.id in newStocks)) {
+                        newStocks[item.id] = (item.currentStock ?? 0).toString();
+                    }
+                });
+                return newStocks;
             });
-            setPhysicalStocks(initialStocks);
-        } catch (error) {
-            console.error('Failed to load inventory', error);
-            alert('Gagal memuat data inventaris.');
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+                console.error('Failed to load inventory', error);
+                alert('Gagal memuat data inventaris.');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchInventory();
-    }, []);
+        const timeout = setTimeout(() => {
+            fetchInventory();
+        }, 300);
+        return () => clearTimeout(timeout);
+    }, [searchTerm]);
 
     const handleStockChange = (id: number, value: string) => {
         setPhysicalStocks(prev => ({ ...prev, [id]: value }));
@@ -114,6 +142,8 @@ function App() {
                             className="block w-full pl-14 pr-6 py-5 glass border-white/10 rounded-3xl focus:ring-4 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm font-black uppercase tracking-widest outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-40"
                             placeholder="Cari Bahan Baku..."
                             type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </section>
@@ -218,6 +248,14 @@ function App() {
                             </div>
                         );
                     })}
+                    {hasMore && !isLoading && (
+                        <button 
+                            onClick={() => fetchInventory(true)}
+                            className="w-full py-6 glass border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.4em] text-primary hover:bg-primary/5 transition-all"
+                        >
+                            Muat Lebih Banyak...
+                        </button>
+                    )}
                 </div>
             </div>
         </Layout>

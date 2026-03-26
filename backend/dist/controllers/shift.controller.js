@@ -171,7 +171,11 @@ export class ShiftController {
     static async getAllShifts(req, res) {
         try {
             const shifts = await ShiftService.getAllShifts();
-            res.json(shifts);
+            res.json({
+                success: true,
+                data: shifts,
+                meta: { total: shifts.length, limit: shifts.length, page: 1 }
+            });
         }
         catch (error) {
             res.status(500).json({ error: error.message });
@@ -183,7 +187,11 @@ export class ShiftController {
             if (!userId)
                 return res.status(401).json({ error: 'Unauthorized' });
             const shifts = await ShiftService.getShiftsByUser(userId);
-            res.json(shifts);
+            res.json({
+                success: true,
+                data: shifts,
+                meta: { total: shifts.length, limit: shifts.length, page: 1 }
+            });
         }
         catch (error) {
             res.status(500).json({ error: error.message });

@@ -1,25 +1,115 @@
 import { Router } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { desc, eq, gte, inArray, sql } from 'drizzle-orm';
-import { requireAdmin } from '../middleware/auth.js';
+import { desc, eq, gte, inArray, sql, and } from 'drizzle-orm';
+import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 export const financeRouter = Router();
-// GET all expenses
+// GET all expenses with pagination
 financeRouter.get('/expenses', async (req, res) => {
     try {
-        const _expenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
-        res.json(_expenses);
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = parseInt(req.query.offset) || 0;
+        const _expenses = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            userId: schema.expenses.userId,
+            expenseDate: schema.expenses.expenseDate,
+            createdAt: schema.expenses.createdAt,
+            // receiptUrl is excluded to save bandwidth
+            externalReceiptUrl: schema.expenses.externalReceiptUrl
+        })
+            .from(schema.expenses)
+            .where(eq(schema.expenses.isDeleted, false))
+            .orderBy(desc(schema.expenses.expenseDate))
+            .limit(limit)
+            .offset(offset);
+        res.json({
+            success: true,
+            data: _expenses,
+            meta: {
+                total: _expenses.length, // Note: This only reflects the count of the current page, not total available.
+                limit,
+                offset
+            }
+        });
     }
     catch (error) {
         console.error('Error fetching expenses:', error);
-        res.status(500).json({ error: 'Failed to fetch expenses' });
+        res.status(500).json({ success: false, message: 'Gagal mengambil data pengeluaran' });
+    }
+});
+// GET all expense categories
+financeRouter.get('/expenses/categories', requireAuth, async (req, res) => {
+    try {
+        const cats = await db.select({
+            id: schema.expenseCategories.id,
+            name: schema.expenseCategories.name,
+            icon: schema.expenseCategories.icon
+        }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
+        console.log(`[FinanceAPI] Fetched ${cats.length} expense categories`);
+        res.json({
+            success: true,
+            data: cats,
+            meta: { total: cats.length, limit: cats.length, page: 1 }
+        });
+    }
+    catch (error) {
+        console.error('[FinanceAPI] Error fetching categories:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil kategori pengeluaran' });
+    }
+});
+// POST new expense category
+financeRouter.post('/expenses/categories', requireAdmin, async (req, res) => {
+    try {
+        const { name, icon } = req.body;
+        if (!name)
+            return res.status(400).json({ success: false, message: 'Nama kategori diperlukan' });
+        const categoryName = name.trim();
+        // CASE-INSENSITIVE DUPLICATE CHECK
+        const [existing] = await db.select()
+            .from(schema.expenseCategories)
+            .where(sql `lower(${schema.expenseCategories.name}) = lower(${categoryName})`)
+            .limit(1);
+        if (existing) {
+            console.warn(`[FinanceAPI] Duplicate category attempt: ${categoryName}`);
+            return res.status(409).json({ success: false, message: 'Nama kategori sudah ada' });
+        }
+        const [newCat] = await db.insert(schema.expenseCategories).values({
+            name: categoryName,
+            icon: icon || 'category'
+        }).returning({
+            id: schema.expenseCategories.id,
+            name: schema.expenseCategories.name,
+            icon: schema.expenseCategories.icon
+        });
+        console.log(`[FinanceAPI] Category created: ${newCat.name} (ID: ${newCat.id})`);
+        res.status(201).json({ success: true, data: newCat });
+    }
+    catch (error) {
+        console.error('[FinanceAPI] Error adding category:', error);
+        // Handle unique constraint violation just in case of race condition
+        if (error.code === '23505') {
+            return res.status(409).json({ success: false, message: 'Nama kategori sudah ada' });
+        }
+        res.status(500).json({ success: false, message: 'Gagal menambah kategori pengeluaran' });
     }
 });
 // GET Export Expenses Excel
 financeRouter.get('/expenses/export', async (req, res) => {
     try {
-        const allExpenses = await db.select().from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+        const allExpenses = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            expenseDate: schema.expenses.expenseDate,
+            externalReceiptUrl: schema.expenses.externalReceiptUrl
+        }).from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Kerabat POS';
         workbook.lastModifiedBy = 'Kerabat POS';
@@ -45,33 +135,79 @@ financeRouter.get('/expenses/export', async (req, res) => {
                 category: exp.category,
                 amount: parseFloat(exp.amount),
                 date: exp.expenseDate.toLocaleString('id-ID'),
-                receipt: exp.receiptUrl || '-'
+                receipt: exp.externalReceiptUrl || '-'
             });
         });
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=Pengeluaran_Kerabat_POS.xlsx');
         await workbook.xlsx.write(res);
-        res.status(200).end();
     }
     catch (error) {
         console.error('Export expenses error:', error);
-        res.status(500).json({ error: 'Failed to generate expenses export' });
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: 'Gagal mengekspor data pengeluaran' });
+        }
+    }
+});
+// GET Single Expense Detail (Full Details including receipt image)
+financeRouter.get('/expenses/:id', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id))
+            return res.status(400).json({ success: false, message: 'ID tidak valid' });
+        const [expense] = await db.select({
+            id: schema.expenses.id,
+            title: schema.expenses.title,
+            vendor: schema.expenses.vendor,
+            category: schema.expenses.category,
+            amount: schema.expenses.amount,
+            receiptUrl: schema.expenses.receiptUrl,
+            externalReceiptUrl: schema.expenses.externalReceiptUrl,
+            expenseDate: schema.expenses.expenseDate,
+            userId: schema.expenses.userId,
+            createdAt: schema.expenses.createdAt
+        }).from(schema.expenses).where(and(eq(schema.expenses.id, id), eq(schema.expenses.isDeleted, false))).limit(1);
+        if (!expense)
+            return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
+        res.json({ success: true, data: expense });
+    }
+    catch (error) {
+        console.error('Error fetching expense details:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil detail pengeluaran' });
+    }
+});
+// DELETE expense category
+financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id))
+            return res.status(400).json({ success: false, message: 'ID tidak valid' });
+        const [deleted] = await db.delete(schema.expenseCategories)
+            .where(eq(schema.expenseCategories.id, id))
+            .returning();
+        if (!deleted)
+            return res.status(404).json({ success: false, message: 'Kategori tidak ditemukan' });
+        res.json({ success: true, message: 'Kategori berhasil dihapus' });
+    }
+    catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({ success: false, message: 'Gagal menghapus kategori' });
     }
 });
 // POST new expense
-financeRouter.post('/expenses', async (req, res) => {
+financeRouter.post('/expenses', requireAuth, async (req, res) => {
     try {
         const { title, vendor, category, amount, date, receiptUrl } = req.body;
         // Better validation: amount can be 0, but must be defined and a number
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
-            return res.status(400).json({ error: 'Missing or invalid required expense fields' });
+            return res.status(400).json({ success: false, message: 'Bidang pengeluaran yang diperlukan tidak ada atau tidak valid' });
         }
         // Validate date to prevent 500 errors from Postgres
         let expenseDate = new Date();
         if (date) {
             expenseDate = new Date(date);
             if (isNaN(expenseDate.getTime())) {
-                return res.status(400).json({ error: 'Invalid date format' });
+                return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
             }
         }
         const [newExpense] = await db.insert(schema.expenses).values({
@@ -80,51 +216,57 @@ financeRouter.post('/expenses', async (req, res) => {
             category,
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,
-            expenseDate: expenseDate
-        }).returning();
-        res.status(201).json(newExpense);
+            expenseDate: expenseDate,
+            userId: req.user?.id || null
+        }).returning({
+            id: schema.expenses.id,
+            amount: schema.expenses.amount
+        });
+        console.log(`[FinanceAPI] Expense recorded: "${title}" | Amount: ${amount} | Receipt: ${receiptUrl ? 'YES' : 'NO'}`);
+        res.status(201).json({ success: true, data: newExpense });
     }
     catch (error) {
-        console.error('Error adding expense:', error);
-        res.status(500).json({ error: 'Failed to record expense' });
+        console.error('[FinanceAPI] Error adding expense:', error);
+        res.status(500).json({ success: false, message: 'Gagal merekam pengeluaran' });
     }
 });
 // DELETE expense
-financeRouter.delete('/expenses/:id', async (req, res) => {
+financeRouter.delete('/expenses/:id', requireAuth, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid expense ID' });
+            return res.status(400).json({ success: false, message: 'ID pengeluaran tidak valid' });
         }
-        const [deletedExpense] = await db.delete(schema.expenses)
+        const [deletedExpense] = await db.update(schema.expenses)
+            .set({ isDeleted: true })
             .where(eq(schema.expenses.id, id))
             .returning();
         if (!deletedExpense) {
-            return res.status(404).json({ error: 'Expense not found' });
+            return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
         }
-        res.json({ message: 'Expense deleted successfully' });
+        res.json({ success: true, message: 'Pengeluaran berhasil dihapus' });
     }
     catch (error) {
         console.error('Error deleting expense:', error);
-        res.status(500).json({ error: 'Failed to delete expense' });
+        res.status(500).json({ success: false, message: 'Gagal menghapus pengeluaran' });
     }
 });
 // UPDATE expense
-financeRouter.put('/expenses/:id', async (req, res) => {
+financeRouter.put('/expenses/:id', requireAuth, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid expense ID' });
+            return res.status(400).json({ success: false, message: 'ID pengeluaran tidak valid' });
         }
         const { title, vendor, category, amount, date, receiptUrl } = req.body;
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
-            return res.status(400).json({ error: 'Missing or invalid required expense fields' });
+            return res.status(400).json({ success: false, message: 'Bidang pengeluaran yang diperlukan tidak ada atau tidak valid' });
         }
         let expenseDate = new Date();
         if (date) {
             expenseDate = new Date(date);
             if (isNaN(expenseDate.getTime())) {
-                return res.status(400).json({ error: 'Invalid date format' });
+                return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
             }
         }
         const [updatedExpense] = await db.update(schema.expenses)
@@ -137,15 +279,18 @@ financeRouter.put('/expenses/:id', async (req, res) => {
             expenseDate: expenseDate
         })
             .where(eq(schema.expenses.id, id))
-            .returning();
+            .returning({
+            id: schema.expenses.id,
+            amount: schema.expenses.amount
+        });
         if (!updatedExpense) {
-            return res.status(404).json({ error: 'Expense not found' });
+            return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
         }
-        res.json(updatedExpense);
+        res.json({ success: true, data: updatedExpense });
     }
     catch (error) {
         console.error('Error updating expense:', error);
-        res.status(500).json({ error: 'Failed to update expense' });
+        res.status(500).json({ success: false, message: 'Gagal memperbarui pengeluaran' });
     }
 });
 // GET Dashboard & P&L Report Summary
@@ -153,17 +298,27 @@ financeRouter.get('/reports', requireAdmin, async (req, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // 1. Query Total Sales (All Time)
-        const allSales = await db.select({ total: schema.sales.totalAmount }).from(schema.sales);
-        const revenue = allSales.reduce((sum, current) => sum + parseFloat(current.total), 0);
-        // 2. Query Today's Sales
-        const todaySales = await db.select({ total: schema.sales.totalAmount })
+        // 1. Optimized Revenue Calculation (Native SQL SUM)
+        const revenueResult = await db.select({
+            total: sql `COALESCE(SUM(${schema.sales.totalAmount}), 0)`
+        })
             .from(schema.sales)
-            .where(gte(schema.sales.createdAt, today));
-        const revenueToday = todaySales.reduce((sum, current) => sum + parseFloat(current.total), 0);
-        // 3. Query Total Expenses
-        const allExpenses = await db.select({ total: schema.expenses.amount }).from(schema.expenses);
-        const totalExpenses = allExpenses.reduce((sum, current) => sum + parseFloat(current.total), 0);
+            .where(eq(schema.sales.isDeleted, false));
+        const revenue = Number(revenueResult[0].total);
+        // 2. Optimized Today's Revenue (Native SQL SUM)
+        const todayRevenueResult = await db.select({
+            total: sql `COALESCE(SUM(${schema.sales.totalAmount}), 0)`
+        })
+            .from(schema.sales)
+            .where(and(gte(schema.sales.createdAt, today), eq(schema.sales.isDeleted, false)));
+        const revenueToday = Number(todayRevenueResult[0].total);
+        // 3. Optimized Total Expenses (Native SQL SUM)
+        const expenseResult = await db.select({
+            total: sql `COALESCE(SUM(${schema.expenses.amount}), 0)`
+        })
+            .from(schema.expenses)
+            .where(eq(schema.expenses.isDeleted, false));
+        const totalExpenses = Number(expenseResult[0].total);
         // 4. Get Top 5 Menus (Recipe Sales Volume)
         const topMenusRaw = await db.select({
             recipeId: schema.saleItems.recipeId,
@@ -176,16 +331,19 @@ financeRouter.get('/reports', requireAdmin, async (req, res) => {
             .orderBy(sql `sum(${schema.saleItems.quantity}) DESC`)
             .limit(5);
         res.json({
-            revenue,
-            revenueToday,
-            expenses: totalExpenses,
-            netProfit: revenue - totalExpenses,
-            topMenus: topMenusRaw
+            success: true,
+            data: {
+                revenue,
+                revenueToday,
+                expenses: totalExpenses,
+                netProfit: revenue - totalExpenses,
+                topMenus: topMenusRaw
+            }
         });
     }
     catch (error) {
         console.error('Error computing finance reports:', error);
-        res.status(500).json({ error: 'Failed to compute financial reports' });
+        res.status(500).json({ success: false, message: 'Gagal menghitung laporan keuangan' });
     }
 });
 // GET HPP (COGS) Analysis
@@ -199,12 +357,15 @@ financeRouter.get('/hpp', requireAdmin, async (req, res) => {
             createdAt: schema.sales.createdAt
         })
             .from(schema.sales)
-            .where(gte(schema.sales.createdAt, thirtyDaysAgo));
+            .where(and(gte(schema.sales.createdAt, thirtyDaysAgo), eq(schema.sales.isDeleted, false)));
         const saleIds = salesInPeriod.map((s) => s.id);
         if (saleIds.length === 0) {
-            return res.json({ totalHPP: 0, ingredientsHPP: [], recipeHPP: [] });
+            return res.json({ success: true, data: { totalHPP: 0, ingredientsHPP: [], recipeHPP: [] } });
         }
-        const items = await db.select()
+        const items = await db.select({
+            recipeId: schema.saleItems.recipeId,
+            quantity: schema.saleItems.quantity
+        })
             .from(schema.saleItems)
             .where(inArray(schema.saleItems.saleId, saleIds));
         // 2. Fetch BOM for all affected recipes
@@ -222,81 +383,35 @@ financeRouter.get('/hpp', requireAdmin, async (req, res) => {
                 .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
                 .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
         }
-        // 3. Calculate HPP
-        let totalHPP = 0;
-        const ingredientUsage = {};
-        const recipeCosts = {};
-        for (const item of items) {
-            const itemBoms = boms.filter((b) => b.recipeId === item.recipeId);
-            let itemTotalCost = 0;
-            for (const bom of itemBoms) {
-                const cost = parseFloat(bom.usageQty) * item.quantity * parseFloat(bom.pricePerUnit);
-                itemTotalCost += cost;
-                totalHPP += cost;
-                if (!ingredientUsage[bom.inventoryId]) {
-                    ingredientUsage[bom.inventoryId] = { name: bom.ingredientName, totalCost: 0, totalQty: 0 };
-                }
-                ingredientUsage[bom.inventoryId].totalCost += cost;
-                ingredientUsage[bom.inventoryId].totalQty += parseFloat(bom.usageQty) * item.quantity;
-            }
-        }
-        res.json({
-            totalHPP,
-            ingredientsHPP: Object.entries(ingredientUsage).map(([id, data]) => ({
-                id: parseInt(id),
-                ...data
-            })).sort((a, b) => b.totalCost - a.totalCost),
-            // Could add more breakdowns here
-        });
+        // 3. Optimized HPP Calculation (Single Query Aggregate)
+        const hppResult = await db.select({
+            totalHPP: sql `COALESCE(SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit}), 0)`
+        })
+            .from(schema.saleItems)
+            .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+            .innerJoin(schema.recipeIngredients, eq(schema.saleItems.recipeId, schema.recipeIngredients.recipeId))
+            .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+            .where(and(gte(schema.sales.createdAt, thirtyDaysAgo), eq(schema.sales.isDeleted, false)));
+        const totalHPP = Number(hppResult[0].totalHPP);
+        // 4. Ingredient-wise Attribution (Top Offenders)
+        const ingredientsHPP = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            totalCost: sql `SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit})`,
+            totalQty: sql `SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity})`
+        })
+            .from(schema.saleItems)
+            .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+            .innerJoin(schema.recipeIngredients, eq(schema.saleItems.recipeId, schema.recipeIngredients.recipeId))
+            .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+            .where(and(gte(schema.sales.createdAt, thirtyDaysAgo), eq(schema.sales.isDeleted, false)))
+            .groupBy(schema.inventory.id, schema.inventory.name)
+            .orderBy(sql `total_cost DESC`)
+            .limit(10);
+        res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] }, meta: { total: 1, limit: 1, page: 1 } });
     }
     catch (error) {
         console.error('Error calculating HPP:', error);
-        res.status(500).json({ error: 'Failed to calculate HPP analysis' });
-    }
-});
-// GET all expense categories
-financeRouter.get('/expenses/categories', async (req, res) => {
-    try {
-        const cats = await db.select().from(schema.expenseCategories).orderBy(schema.expenseCategories.name);
-        res.json(cats);
-    }
-    catch (error) {
-        console.error('Error fetching categories:', error);
-        res.status(500).json({ error: 'Failed to fetch expense categories' });
-    }
-});
-// POST new expense category
-financeRouter.post('/expenses/categories', requireAdmin, async (req, res) => {
-    try {
-        const { name, icon } = req.body;
-        if (!name)
-            return res.status(400).json({ error: 'Category name is required' });
-        const [newCat] = await db.insert(schema.expenseCategories).values({
-            name,
-            icon: icon || 'category'
-        }).returning();
-        res.status(201).json(newCat);
-    }
-    catch (error) {
-        console.error('Error adding category:', error);
-        res.status(500).json({ error: 'Failed to add expense category' });
-    }
-});
-// DELETE expense category
-financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req, res) => {
-    try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id))
-            return res.status(400).json({ error: 'Invalid ID' });
-        const [deleted] = await db.delete(schema.expenseCategories)
-            .where(eq(schema.expenseCategories.id, id))
-            .returning();
-        if (!deleted)
-            return res.status(404).json({ error: 'Category not found' });
-        res.json({ message: 'Category deleted' });
-    }
-    catch (error) {
-        console.error('Error deleting category:', error);
-        res.status(500).json({ error: 'Failed to delete expense category' });
+        res.status(500).json({ success: false, message: 'Gagal menghitung HPP' });
     }
 });

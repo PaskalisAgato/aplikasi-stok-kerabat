@@ -1,7 +1,10 @@
 // backend/src/app.ts - v1.0.2 (final sync)
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import { rateLimit } from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
 // Route Imports
@@ -14,27 +17,66 @@ import { auditRouter } from './routes/audit.js';
 import { shiftRoutes } from './routes/shift.routes.js';
 import { attendanceRoutes } from './routes/attendance.routes.js';
 import { todoRoutes } from './routes/todo.routes.js';
-// Middleware Imports
-import { errorHandler } from './middleware/error.middleware.js';
+import { adminRouter } from './routes/admin.js';
+import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
+import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
 import { UserService } from './services/user.service.js';
-import { UserController } from './controllers/user.controller.js';
+const UserController = (await import('./controllers/user.controller.js')).UserController;
+// 1. Rate Limiting (Anti-Spam / Anti-Egress Abuse)
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: {
+        success: false,
+        message: 'Terlalu banyak permintaan dari IP ini. Mohon tunggu sebentar.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 const app = express();
-// Global Logger (Temporary for Debugging)
+// 1. Enterprise Monitoring & Guardrails
+app.use(limiter);
+app.use(compression()); // Reduce payload egress by ~75% (Phase 2)
+// 1.5 Response Size Guardrail (Phase 4: Prevent Egress Runaway)
 app.use((req, res, next) => {
-    console.log(`[IncomingRequest] ${req.method} ${req.originalUrl} - Path: ${req.path}`);
+    const originalSend = res.send;
+    res.send = function (body) {
+        if (typeof body === 'string' && body.length > 2 * 1024 * 1024) {
+            console.error(`[Guardrail] Blocked massive response (${(body.length / 1024 / 1024).toFixed(2)}MB) from ${req.method} ${req.originalUrl}`);
+            return res.status(500).json({ success: false, message: 'Response payload too large. Please use pagination.' });
+        }
+        return originalSend.call(this, body);
+    };
     next();
 });
+app.use(monitorMiddleware);
+app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
+// 2. Background Tasks (Phase 3)
+setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
 // 1. Global Middlewares
 app.use(cors({
-    origin: true, // Allow all origins during debugging to rule out CORS as the cause of "Koneksi Terhambat"
+    origin: [
+        'https://aplikasi-stok-kerabat-pos.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:3000'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
+    exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
 }));
-app.use(express.json({ limit: '20mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
+// 2. Root Handler (Explicitly Block 60MB Ghost Leaks)
+app.get('/', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Kerabat POS API Root. Use /api/* for endpoints.",
+        version: "1.1.0-hardened"
+    });
+});
 // 2. Health & Diag
 app.get('/api/health', async (req, res) => {
     let dbStatus = 'waiting';
@@ -46,10 +88,13 @@ app.get('/api/health', async (req, res) => {
         dbStatus = `error: ${e.message}`;
     }
     res.status(200).json({
-        status: 'ok',
-        message: 'Kerabat Modular Backend v1.0.0 is running',
-        database: dbStatus,
-        time: new Date().toISOString()
+        success: true,
+        data: {
+            status: 'ok',
+            message: 'Kerabat Modular Backend v1.1.0 is running (Enterprise Hardened)',
+            database: dbStatus,
+            time: new Date().toISOString()
+        }
     });
 });
 // 3. Custom Auth Endpoints (High Priority)
@@ -124,6 +169,7 @@ app.use('/api/audit', auditRouter);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/todo', todoRoutes);
+app.use('/api/system', adminRouter);
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards
 app.all(/^\/api\/auth\/.*/, (req, res) => {
@@ -133,11 +179,14 @@ app.all(/^\/api\/auth\/.*/, (req, res) => {
 app.use('/api', (req, res) => {
     console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
     res.status(404).json({
-        error: "Route Not Found",
-        path: req.originalUrl,
-        method: req.method
+        success: false,
+        message: "Route Not Found",
+        data: {
+            path: req.originalUrl,
+            method: req.method
+        }
     });
 });
-// 5. Error Handler
-app.use(errorHandler);
+// 5. Final Enterprise Error Handler
+app.use(enterpriseErrorHandler);
 export default app;

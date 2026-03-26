@@ -8,8 +8,10 @@
     "backend"
   ],
   "scripts": {
-    "build": "echo '🚀 [VERCEL BUILD] START' && bash build-all.sh && echo '🏁 [VERCEL BUILD] FINISHED'",
-    "install-all": "npm install --include=dev"
+    "build": "turbo build && bash consolidate-dist.sh",
+    "build:vercel": "echo '🚀 [TURBO BUILD] START' && turbo build && bash consolidate-dist.sh && echo '🏁 [TURBO BUILD] FINISHED'",
+    "install-all": "npm install --include=dev",
+    "postinstall": "npx -y turbo --version"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
@@ -49,10 +51,12 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.21.0",
+    "turbo": "^2.8.20",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   },
   "engines": {
     "node": ">=20.x"
-  }
+  },
+  "packageManager": "npm@10.8.2"
 }

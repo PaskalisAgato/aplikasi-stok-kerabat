@@ -47,25 +47,52 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
     const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
+    const controllerRef = React.useRef<AbortController | null>(null);
+
     useEffect(() => {
-        if (isOpen) {
-            fetchInventory();
-            if (initialItem) {
-                handleAddItem(initialItem);
-            }
-        } else {
+        if (!isOpen) {
             setItems([]);
             setSearchTerm('');
             setSupplierName('');
+            setInventory([]);
+            return;
+        }
+
+        if (initialItem) {
+            handleAddItem(initialItem);
         }
     }, [isOpen, initialItem]);
 
+    // Debounced search effect
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        // If search term is empty or too short, clear results
+        if (!searchTerm || searchTerm.length < 2) {
+            setInventory([]);
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            fetchInventory();
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [searchTerm, isOpen]);
+
     const fetchInventory = async () => {
+        // Cancel previous request
+        controllerRef.current?.abort();
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
         try {
-            const response: ApiResponse<InventoryItem> = await apiClient.getInventory();
+            const response: ApiResponse<InventoryItem> = await apiClient.getInventory(20, 0, searchTerm, '', '', controller.signal);
             setInventory(response.data);
-        } catch (error) {
-            console.error('Failed to load inventory', error);
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+                console.error('Failed to load inventory', error);
+            }
         }
     };
 
@@ -84,7 +111,6 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
     if (!isOpen) return null;
 
     const filteredInventory = inventory.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !items.some(selected => selected.inventoryId === item.id)
     );
 

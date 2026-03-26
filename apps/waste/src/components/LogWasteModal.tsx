@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 
 const WASTE_REASONS = [
@@ -23,17 +23,52 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const controllerRef = React.useRef<AbortController | null>(null);
+
     useEffect(() => {
-        if (isOpen) {
-            apiClient.getInventory().then(res => setInventoryList(res.data)).catch(console.error);
+        if (!isOpen) {
+            setInventoryList([]);
+            setSelectedItem(null);
+            setQuantity('');
+            setSearchTerm('');
+            return;
         }
     }, [isOpen]);
 
+    // Debounced search effect
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        if (!searchTerm || searchTerm.length < 2) {
+            setInventoryList([]);
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            fetchInventory();
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [searchTerm, isOpen]);
+
+    const fetchInventory = async () => {
+        controllerRef.current?.abort();
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
+        try {
+            const res = await apiClient.getInventory(20, 0, searchTerm, '', '', controller.signal);
+            setInventoryList(res.data);
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+                console.error('Failed to load inventory', error);
+            }
+        }
+    };
+
     if (!isOpen) return null;
 
-    const filteredInventory = inventoryList.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredInventory = inventoryList;
 
     const handleSubmit = async () => {
         if (!selectedItem || !quantity || parseFloat(quantity) <= 0) {

@@ -2,8 +2,8 @@ import { eq, sql, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 export class TransactionService {
-    // 1. GET ALL TRANSACTIONS
-    static async getAllTransactions() {
+    // 1. GET ALL TRANSACTIONS WITH PAGINATION
+    static async getAllTransactions(limit = 20, offset = 0) {
         const _sales = await db.select({
             id: schema.sales.id,
             totalAmount: schema.sales.totalAmount,
@@ -13,8 +13,14 @@ export class TransactionService {
         })
             .from(schema.sales)
             .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-            .orderBy(desc(schema.sales.createdAt));
-        // Fetch all items to attach to sales
+            .where(eq(schema.sales.isDeleted, false))
+            .orderBy(desc(schema.sales.createdAt))
+            .limit(limit)
+            .offset(offset);
+        // Fetch all items to attach to sales (Excluding recipeImage for speed)
+        const saleIds = _sales.map(s => s.id);
+        if (saleIds.length === 0)
+            return [];
         const _items = await db.select({
             id: schema.saleItems.id,
             saleId: schema.saleItems.saleId,
@@ -22,10 +28,12 @@ export class TransactionService {
             quantity: schema.saleItems.quantity,
             subtotal: schema.saleItems.subtotal,
             recipeName: schema.recipes.name,
-            recipeImage: schema.recipes.imageUrl
+            // recipeImage is intentionally excluded in list view
+            externalRecipeImage: schema.recipes.externalImageUrl
         })
             .from(schema.saleItems)
-            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id));
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+            .where(inArray(schema.saleItems.saleId, saleIds));
         return _sales.map((sale) => ({
             ...sale,
             items: _items.filter((i) => i.saleId === sale.id)
@@ -46,7 +54,7 @@ export class TransactionService {
         })
             .from(schema.sales)
             .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-            .where(eq(schema.sales.id, id))
+            .where(and(eq(schema.sales.id, id), eq(schema.sales.isDeleted, false)))
             .limit(1);
         if (saleArr.length === 0)
             return null;
@@ -95,7 +103,10 @@ export class TransactionService {
             paymentMethod: paymentMethod || 'CASH'
         };
         return await db.transaction(async (tx) => {
-            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning();
+            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning({
+                id: schema.sales.id,
+                totalAmount: schema.sales.totalAmount
+            });
             // 1. Bulk insert saleItems
             const saleItemsInsertData = items.map((item) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
@@ -111,7 +122,11 @@ export class TransactionService {
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
             // 2. Bulk fetch BOMs
             const recipeIds = items.map((i) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                quantity: schema.recipeIngredients.quantity
+            }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             // 3. Bulk fetch Inventory 
             const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
             let invMap = new Map();
@@ -164,7 +179,11 @@ export class TransactionService {
         if (!items || items.length === 0)
             return;
         const recipeIds = items.map((i) => i.recipeId);
-        const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        const allBomDeps = await tx.select({
+            recipeId: schema.recipeIngredients.recipeId,
+            inventoryId: schema.recipeIngredients.inventoryId,
+            quantity: schema.recipeIngredients.quantity
+        }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
         const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
         if (invIds.length === 0)
             return;
@@ -215,7 +234,10 @@ export class TransactionService {
                 subTotal: calculatedSubTotal.toString(),
                 totalAmount: finalTotalAmount.toString(),
                 paymentMethod: paymentMethod || oldSale.paymentMethod
-            }).where(eq(schema.sales.id, saleId)).returning();
+            }).where(eq(schema.sales.id, saleId)).returning({
+                id: schema.sales.id,
+                totalAmount: schema.sales.totalAmount
+            });
             const saleItemsInsertData = items.map((item) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
@@ -230,7 +252,11 @@ export class TransactionService {
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
             // Deduct new inventory (batched)
             const recipeIds = items.map((i) => i.recipeId);
-            const allBomDeps = await tx.select().from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            const allBomDeps = await tx.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                quantity: schema.recipeIngredients.quantity
+            }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
             const invIds = [...new Set(allBomDeps.map((b) => b.inventoryId))];
             let invMap = new Map();
             if (invIds.length > 0) {
@@ -283,19 +309,17 @@ export class TransactionService {
                 throw new Error('Transaction not found');
             const oldSale = oldSaleArr[0];
             const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
-            // Revert stock
-            await TransactionService.revertStockForSaleItems(tx, oldItems, saleId);
-            // Delete items
-            await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
-            // Delete sale
-            await tx.delete(schema.sales).where(eq(schema.sales.id, saleId));
+            // SOFT DELETE TRANSACTION
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.id, saleId));
             // Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
-                action: 'DELETE_TRANSACTION',
+                action: 'SOFT_DELETE_TRANSACTION',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
-                newData: null,
+                newData: { isDeleted: true },
                 createdAt: new Date()
             });
             return { success: true };

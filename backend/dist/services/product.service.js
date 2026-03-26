@@ -71,24 +71,38 @@ export class ProductService {
     static async updateProduct(id, data) {
         const { name, category, price, margin, imageUrl, ingredients } = data;
         return await db.transaction(async (tx) => {
-            await tx.update(schema.recipes)
-                .set({
+            // 1. Update main recipe data
+            const updatePayload = {
                 name,
                 category,
-                price: price.toString(),
-                margin: margin?.toString() || '0',
                 imageUrl,
-            })
+            };
+            // Defensive check for mandatory numeric fields
+            if (price !== undefined && price !== null) {
+                updatePayload.price = price.toString();
+            }
+            if (margin !== undefined && margin !== null) {
+                updatePayload.margin = margin.toString();
+            }
+            await tx.update(schema.recipes)
+                .set(updatePayload)
                 .where(eq(schema.recipes.id, id));
+            // 2. Refresh Ingredients (BOM)
+            // Delete existing ingredients for this recipe
             await tx.delete(schema.recipeIngredients)
                 .where(eq(schema.recipeIngredients.recipeId, id));
+            // Insert new ingredients if provided
             if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients.map((ing) => ({
+                const bomInserts = ingredients
+                    .filter((ing) => ing.ingredientId && ing.qty !== undefined)
+                    .map((ing) => ({
                     recipeId: id,
                     inventoryId: ing.ingredientId,
                     quantity: ing.qty.toString()
                 }));
-                await tx.insert(schema.recipeIngredients).values(bomInserts);
+                if (bomInserts.length > 0) {
+                    await tx.insert(schema.recipeIngredients).values(bomInserts);
+                }
             }
             return { success: true };
         });

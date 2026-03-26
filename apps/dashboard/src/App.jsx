@@ -19,7 +19,7 @@ function App() {
         setIsLoading(true);
         const [reportData, invData, healthData] = await Promise.all([
           apiClient.getFinanceReports(),
-          apiClient.getInventory(),
+          apiClient.getInventory(20, 0, '', 'Kritis'),
           apiClient.getSystemStats()
         ]);
         setReports(reportData?.data || reportData);

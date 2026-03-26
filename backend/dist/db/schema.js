@@ -9,6 +9,7 @@ export const users = pgTable('user', {
     email: text('email').notNull().unique(),
     emailVerified: boolean('emailVerified').notNull(),
     image: text('image'),
+    externalImage: text('external_image_url'),
     role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
     pin: text('pin'), // 4-6 digit numeric PIN
     status: text('status').default('active').notNull(),
@@ -63,10 +64,20 @@ export const inventory = pgTable('inventory', {
     unit: text('unit').notNull(), // g, L, pcs
     currentStock: decimal('current_stock', { precision: 12, scale: 2 }).notNull().default('0'), // Supports fractions like 1.5L
     minStock: decimal('min_stock', { precision: 12, scale: 2 }).notNull().default('0'),
+    idealStock: decimal('ideal_stock', { precision: 12, scale: 2 }).notNull().default('0'),
     pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
-    imageUrl: text('image_url')
-});
+    imageUrl: text('image_url'),
+    externalImageUrl: text('external_image_url'),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
+    version: timestamp('version').defaultNow().notNull(), // For concurrency control
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t) => ({
+    createdIdx: index('inventory_created_at_idx').on(t.createdAt),
+    stockIdx: index('inventory_stock_idx').on(t.currentStock), // New: Speed up status filtering
+    minStockIdx: index('inventory_min_stock_idx').on(t.minStock), // New: Speed up status filtering
+    isDeletedIdx: index('inventory_is_deleted_idx').on(t.isDeleted) // New: Speed up active filtering
+}));
 export const stockMovements = pgTable('stock_movements', {
     id: serial('id').primaryKey(),
     inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
@@ -78,7 +89,8 @@ export const stockMovements = pgTable('stock_movements', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
     inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
-    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId)
+    supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId),
+    createdIdx: index('stock_movements_created_at_idx').on(t.createdAt)
 }));
 // -----------------------------------------------------------------------------
 // 3. RECIPES & BOM (Bill of Materials)
@@ -90,6 +102,8 @@ export const recipes = pgTable('recipes', {
     price: decimal('price', { precision: 12, scale: 2 }).notNull().default('0'),
     margin: decimal('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
     imageUrl: text('image_url'),
+    externalImageUrl: text('external_image_url'),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull()
 });
 export const recipeIngredients = pgTable('recipe_ingredients', {
@@ -124,10 +138,12 @@ export const sales = pgTable('sales', {
     serviceChargeAmount: decimal('service_charge_amount', { precision: 12, scale: 2 }).notNull().default('0'),
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
+    isDeleted: boolean('is_deleted').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
-    userIdx: index('sales_user_idx').on(t.userId)
+    userIdx: index('sales_user_idx').on(t.userId),
+    createdIdx: index('sales_created_at_idx').on(t.createdAt)
 }));
 export const saleItems = pgTable('sale_items', {
     id: serial('id').primaryKey(),
@@ -145,10 +161,17 @@ export const expenses = pgTable('expenses', {
     vendor: text('vendor'), // New: Vendor name
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+    userId: text('user_id').references(() => users.id),
     receiptUrl: text('receipt_url'),
+    externalReceiptUrl: text('external_receipt_url'),
     expenseDate: timestamp('expense_date').defaultNow().notNull(),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
-});
+}, (t) => ({
+    createdIdx: index('expenses_created_at_idx').on(t.createdAt),
+    userIdx: index('expenses_user_id_idx').on(t.userId),
+    expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate)
+}));
 export const expenseCategories = pgTable('expense_categories', {
     id: serial('id').primaryKey(),
     name: text('name').notNull().unique(),
@@ -201,6 +224,8 @@ export const attendance = pgTable('attendance', {
     checkOut: timestamp('check_out'),
     checkInPhoto: text('check_in_photo'), // URL to storage
     checkOutPhoto: text('check_out_photo'), // URL to storage
+    externalCheckInPhoto: text('external_check_in_photo'),
+    externalCheckOutPhoto: text('external_check_out_photo'),
     checkInTimestamp: text('check_in_timestamp'), // Watermark text
     checkOutTimestamp: text('check_out_timestamp'), // Watermark text
     status: text('status').notNull(), // 'Hadir', 'Terlambat', 'Alpha', 'Izin'
@@ -249,6 +274,7 @@ export const todos = pgTable('todos', {
     assignedTo: text('assigned_to').references(() => users.id), // Optional: individual assignment
     status: text('status').default('Pending').notNull(), // 'Pending', 'Completed'
     photoProof: text('photo_proof'), // Base64 or URL
+    externalPhotoProof: text('external_photo_proof'),
     completionTime: timestamp('completion_time'),
     completedBy: text('completed_by').references(() => users.id),
     createdBy: text('created_by').notNull().references(() => users.id),
@@ -261,6 +287,7 @@ export const todoCompletions = pgTable('todo_completions', {
     todoId: integer('todo_id').notNull().references(() => todos.id, { onDelete: 'cascade' }),
     completedBy: text('completed_by').notNull().references(() => users.id),
     photoProof: text('photo_proof'),
+    externalPhotoProof: text('external_photo_proof'),
     completionTime: timestamp('completion_time').defaultNow().notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
@@ -280,3 +307,50 @@ export const todoCompletionsRelations = relations(todoCompletions, ({ one }) => 
         references: [users.id]
     })
 }));
+// -----------------------------------------------------------------------------
+// 9. AUDIT LOGS - PRICE & ECONOMY
+// -----------------------------------------------------------------------------
+export const inventoryPriceLogs = pgTable('inventory_price_logs', {
+    id: serial('id').primaryKey(),
+    itemId: integer('item_id').notNull().references(() => inventory.id, { onDelete: 'cascade' }),
+    oldPrice: decimal('old_price', { precision: 12, scale: 2 }).notNull(),
+    newPrice: decimal('new_price', { precision: 12, scale: 2 }).notNull(),
+    oldDiscount: decimal('old_discount', { precision: 12, scale: 2 }).default('0'),
+    newDiscount: decimal('new_discount', { precision: 12, scale: 2 }).default('0'),
+    changedBy: text('changed_by').notNull().references(() => users.id),
+    timestamp: timestamp('timestamp').defaultNow().notNull()
+}, (t) => ({
+    itemIdx: index('price_logs_item_idx').on(t.itemId),
+    timeIdx: index('price_logs_timestamp_idx').on(t.timestamp)
+}));
+// -----------------------------------------------------------------------------
+// 10. SYSTEM MONITORING & ENTERPRISE
+// -----------------------------------------------------------------------------
+export const systemLogs = pgTable('system_logs', {
+    id: serial('id').primaryKey(),
+    method: text('method').notNull(),
+    path: text('path').notNull(),
+    responseTime: integer('response_time').notNull(), // in ms
+    payloadSize: integer('payload_size').notNull(), // in bytes
+    statusCode: integer('status_code').notNull(),
+    userId: text('user_id'),
+    level: text('level').default('INFO').notNull(), // INFO, WARNING, ERROR
+    errorDetails: text('error_details'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t) => ({
+    pathIdx: index('logs_path_idx').on(t.path),
+    timeIdx: index('logs_created_at_idx').on(t.createdAt)
+}));
+export const idempotencyKeys = pgTable('idempotency_keys', {
+    key: text('key').primaryKey(),
+    responseBody: text('response_body'), // Stored as JSON string
+    statusCode: integer('status_code').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+export const backups = pgTable('backups', {
+    id: serial('id').primaryKey(),
+    filename: text('filename').notNull(),
+    size: integer('size').notNull(),
+    status: text('status').notNull(), // 'Success', 'Failed'
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
