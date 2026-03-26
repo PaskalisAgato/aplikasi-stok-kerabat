@@ -16,7 +16,7 @@ import { apiFetch, API_BASE_URL } from './apiClient';
 // Better Auth React client should use the /api base so it can naturally hit /api/auth
 const AUTH_BASE_URL = API_BASE_URL;
 
-export const authClient = createAuthClient({
+export const authClient: ReturnType<typeof createAuthClient> = createAuthClient({
     baseURL: AUTH_BASE_URL,
     fetchOptions: {
         credentials: 'include',

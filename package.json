@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "build": "turbo build && bash consolidate-dist.sh",
-    "build:vercel": "echo '🚀 [TURBO BUILD] START' && turbo build && bash consolidate-dist.sh && echo '🏁 [TURBO BUILD] FINISHED'",
+    "build:vercel": "turbo type-check && turbo build && bash consolidate-dist.sh",
+    "type-check": "turbo type-check",
     "install-all": "npm install --include=dev",
     "postinstall": "npx -y turbo --version"
   },

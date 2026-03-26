@@ -9,7 +9,9 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "composite": true,
+    "incremental": true
   },
   "include": ["src/**/*"],
   "exclude": ["src/seed.ts"]

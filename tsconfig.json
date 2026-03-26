@@ -23,7 +23,30 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["apps/shared/*"]
-    }
+    },
+    "composite": true,
+    "incremental": true
   },
-  "include": ["apps/*/src"]
+  "files": [],
+  "references": [
+    { "path": "apps/shared" },
+    { "path": "apps/pos" },
+    { "path": "apps/inventory" },
+    { "path": "apps/reports" },
+    { "path": "apps/dashboard" },
+    { "path": "apps/employees" },
+    { "path": "apps/expenses" },
+    { "path": "apps/hpp" },
+    { "path": "apps/opname" },
+    { "path": "apps/recipes" },
+    { "path": "apps/waste" },
+    { "path": "apps/waste-detail" },
+    { "path": "apps/cogs" },
+    { "path": "apps/recipe-edit" },
+    { "path": "apps/shifts" },
+    { "path": "apps/attendance" },
+    { "path": "apps/attendance-history" },
+    { "path": "apps/todo-list" },
+    { "path": "backend" }
+  ]
 }

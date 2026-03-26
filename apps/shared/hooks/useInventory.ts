@@ -34,7 +34,7 @@ export const inventoryKeys = {
 export const useInventory = () =>
     useQuery({
         queryKey: inventoryKeys.list(),
-        queryFn: inventoryService.fetchAll,
+        queryFn: () => inventoryService.fetchAll(),
         staleTime: 1000 * 30, // 30 seconds
     });
 

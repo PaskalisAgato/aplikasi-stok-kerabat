@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
+    
     "baseUrl": ".",
     "paths": {
       "@shared/*": [
@@ -25,7 +28,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
-    "noEmit": true,
+     
     "jsx": "react-jsx",
     /* Linting */
     "strict": true,
@@ -35,6 +38,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
+  
+    "references": [
+    { "path": "../shared" }
+  ],
   "include": [
     "src"
   ]
