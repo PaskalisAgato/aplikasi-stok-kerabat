@@ -8,8 +8,8 @@
     "backend"
   ],
   "scripts": {
-    "build": "turbo build && bash consolidate-dist.sh",
-    "build:vercel": "npm run type-check && turbo build --concurrency=2 ${APPS_FILTER:+\"--filter=$APPS_FILTER...\"} && bash consolidate-dist.sh",
+    "build": "turbo build --filter=!backend && bash consolidate-dist.sh",
+    "build:vercel": "turbo build --filter=!backend --concurrency=2 && bash consolidate-dist.sh",
     "type-check": "tsc -b",
     "install-all": "npm install --include=dev",
     "postinstall": "npx -y turbo --version"

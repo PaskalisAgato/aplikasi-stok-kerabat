@@ -1,17 +1,17 @@
 # Dependencies
-node_modules
+node_modules/
 
 # Build & cache
-.turbo
-.next
-dist
-dist-global
-dist-pages
+.turbo/
+.next/
+dist/
+dist-global/
+dist-pages/
 **/dist/
 
 # Temp & uploads
-tmp
-backend/uploads
+tmp/
+backend/uploads/
 backend/backups/
 
 # Logs & zip
@@ -22,6 +22,11 @@ build_errors*.txt
 # Env
 .env
 .env*.local
+backend/.env
 
 # Vercel
-.vercel
+.vercel/
+
+# OS files
+.DS_Store
+Thumbs.db
