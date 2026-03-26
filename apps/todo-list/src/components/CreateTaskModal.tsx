@@ -10,23 +10,29 @@ interface CreateTaskModalProps {
 export default function CreateTaskModal({ isOpen, onClose, onSave, task }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('Opening');
+    const [category, setCategory] = useState('RUTIN');
     const [assignedTo, setAssignedTo] = useState('');
     const [deadline, setDeadline] = useState('');
+    const [intervalType, setIntervalType] = useState('daily');
+    const [intervalValue, setIntervalValue] = useState(1);
 
     useEffect(() => {
         if (task) {
             setTitle(task.title);
             setDescription(task.description);
-            setCategory(task.category);
+            setCategory(task.category || 'RUTIN');
             setAssignedTo(task.assignedTo || '');
             setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
+            setIntervalType(task.intervalType || 'daily');
+            setIntervalValue(task.intervalValue || 1);
         } else {
             setTitle('');
             setDescription('');
-            setCategory('Opening');
+            setCategory('RUTIN');
             setAssignedTo('');
             setDeadline('');
+            setIntervalType('daily');
+            setIntervalValue(1);
         }
     }, [task, isOpen]);
 
@@ -48,18 +54,69 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                         </button>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         {/* Title */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Judul Tugas</label>
                             <input
                                 type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20"
-                                placeholder="Contoh: Nyalakan Mesin Kopi"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20"
+                                    placeholder="Contoh: Nyalakan Mesin Kopi"
                             />
                         </div>
+
+                        {/* Category */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kategori</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {['RUTIN', 'REQUEST'].map(cat => (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        onClick={() => setCategory(cat)}
+                                        className={`h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                                            category === cat ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-muted'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Interval Settings (Only for RUTIN) */}
+                        {category === 'RUTIN' && (
+                            <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
+                                <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-1">Pengaturan Perulangan</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-muted uppercase tracking-widest ml-1">Tipe</label>
+                                        <select
+                                            value={intervalType}
+                                            onChange={(e) => setIntervalType(e.target.value)}
+                                            className="w-full h-12 bg-white/5 border-white/10 rounded-xl px-4 text-xs text-main font-bold outline-none cursor-pointer"
+                                        >
+                                            <option value="daily">Harian</option>
+                                            <option value="weekly">Mingguan</option>
+                                            <option value="monthly">Bulanan</option>
+                                            <option value="custom">Custom (Hari)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-muted uppercase tracking-widest ml-1">Nilai Interval</label>
+                                        <input
+                                            type="number"
+                                            value={intervalValue}
+                                            onChange={(e) => setIntervalValue(parseInt(e.target.value))}
+                                            className="w-full h-12 bg-white/5 border-white/10 rounded-xl px-4 text-xs text-main font-bold outline-none"
+                                            min="1"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Deadline */}
                         <div className="space-y-3">
@@ -82,60 +139,32 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                  onChange={(e) => setDeadline(e.target.value)}
                                  className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                              />
-                             <div className="grid grid-cols-4 gap-2">
-                                 {[1, 2, 4, 8].map(h => (
-                                     <button
-                                         key={h}
-                                         type="button"
-                                         onClick={() => {
-                                             const d = new Date();
-                                             d.setHours(d.getHours() + h);
-                                             // Fast format to datetime-local
-                                             const offset = d.getTimezoneOffset();
-                                             const localDate = new Date(d.getTime() - (offset * 60 * 1000));
-                                             setDeadline(localDate.toISOString().slice(0, 16));
-                                         }}
-                                         className="h-10 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-muted uppercase tracking-widest active:scale-90 transition-all hover:border-primary/40 hover:text-primary"
-                                     >
-                                         +{h} Jam
-                                     </button>
-                                 ))}
-                             </div>
                         </div>
 
-                        {/* Description & Category ... */}
+                        {/* Description */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Deskripsi / Detail</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 className="w-full h-24 bg-white/5 border-white/10 rounded-2xl p-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20 resize-none"
-                                placeholder="Jelaskan langkah-langkah detail tugas ini..."
+                                placeholder="..."
                             />
                         </div>
 
-                        {/* Category */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kategori</label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {['Opening', 'Closing', 'Request'].map(cat => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        onClick={() => setCategory(cat)}
-                                        className={`h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                                            category === cat ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-muted'
-                                        }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
                     </div>
 
                     <button
-                        onClick={() => onSave({ title, description, category, assignedTo: assignedTo || null, deadline: deadline || null })}
+                        onClick={() => onSave({ 
+                            title, 
+                            description, 
+                            category, 
+                            assignedTo: assignedTo || null, 
+                            deadline: deadline || null,
+                            intervalType: category === 'RUTIN' ? intervalType : null,
+                            intervalValue: category === 'RUTIN' ? intervalValue : null,
+                            nextRunAt: category === 'RUTIN' ? new Date() : null // Start immediately
+                        })}
                         disabled={!title}
                         className="w-full h-16 btn-primary shadow-2xl disabled:opacity-50 disabled:grayscale"
                     >

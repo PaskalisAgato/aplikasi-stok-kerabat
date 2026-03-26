@@ -270,7 +270,7 @@ export const todos = pgTable('todos', {
     id: serial('id').primaryKey(),
     title: text('title').notNull(),
     description: text('description'),
-    category: text('category').notNull(), // 'Opening', 'Closing', 'Request'
+    category: text('category').notNull(), // 'Opening', 'Closing', 'Request', 'RUTIN'
     assignedTo: text('assigned_to').references(() => users.id), // Optional: individual assignment
     status: text('status').default('Pending').notNull(), // 'Pending', 'Completed'
     photoProof: text('photo_proof'), // Base64 or URL
@@ -279,6 +279,9 @@ export const todos = pgTable('todos', {
     completedBy: text('completed_by').references(() => users.id),
     createdBy: text('created_by').notNull().references(() => users.id),
     isRecurring: boolean('is_recurring').default(false).notNull(),
+    intervalType: text('interval_type'), // 'daily', 'weekly', 'monthly', 'custom'
+    intervalValue: integer('interval_value'), // e.g., 1 (day), 2 (weeks)
+    nextRunAt: timestamp('next_run_at'),
     deadline: timestamp('deadline'),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });

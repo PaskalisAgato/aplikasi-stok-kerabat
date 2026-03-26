@@ -10,9 +10,13 @@ export class TodoService {
         
         // Fetch all relevant todos
         const allTodos = await db.query.todos.findMany({
-            where: role === 'Admin' ? undefined : or(
-                isNull(todos.assignedTo),
-                eq(todos.assignedTo, userId || '')
+            where: and(
+                eq(todos.status, 'Pending'),
+                or(isNull(todos.nextRunAt), sql`${todos.nextRunAt} <= ${now}`),
+                role === 'Admin' ? undefined : or(
+                    isNull(todos.assignedTo),
+                    eq(todos.assignedTo, userId || '')
+                )
             ),
             orderBy: [desc(todos.createdAt)]
         });
@@ -96,9 +100,11 @@ export class TodoService {
         const todo = await db.query.todos.findFirst({ where: eq(todos.id, id) });
         if (!todo) throw new Error('Task not found');
 
-        if (todo.isRecurring) {
-            // Check if already completed today
-            const now = new Date();
+        // Capture completion time
+        const now = new Date();
+
+        if (todo.category === 'RUTIN' || todo.isRecurring) {
+            // Check if already completed today (for legacy isRecurring logic)
             const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const existing = await db.query.todoCompletions.findFirst({
                 where: and(
@@ -109,12 +115,41 @@ export class TodoService {
 
             if (existing) return existing;
 
+            // 1. Record completion in todoCompletions (for history)
             const [completion] = await db.insert(todoCompletions).values({
                 todoId: id,
                 completedBy: userId,
                 photoProof,
-                completionTime: new Date()
+                completionTime: now
             }).returning();
+
+            // 2. If it's the new 'RUTIN' category, generate the NEXT task instance
+            if (todo.category === 'RUTIN' && todo.intervalType) {
+                const nextRun = this.calculateNextRun(
+                    todo.nextRunAt || now, 
+                    todo.intervalType as any, 
+                    todo.intervalValue || 1
+                );
+
+                await db.insert(todos).values({
+                    title: todo.title,
+                    description: todo.description,
+                    category: 'RUTIN',
+                    assignedTo: todo.assignedTo,
+                    createdBy: todo.createdBy,
+                    intervalType: todo.intervalType,
+                    intervalValue: todo.intervalValue,
+                    nextRunAt: nextRun,
+                    status: 'Pending',
+                    createdAt: now
+                });
+
+                // Also update the current task to 'Completed' so it leaves the active list
+                await db.update(todos)
+                    .set({ status: 'Completed', completionTime: now, completedBy: userId, photoProof })
+                    .where(eq(todos.id, id));
+            }
+
             return completion;
         } else {
             const [completedTodo] = await db.update(todos)
@@ -122,12 +157,31 @@ export class TodoService {
                     status: 'Completed',
                     photoProof,
                     completedBy: userId,
-                    completionTime: new Date()
+                    completionTime: now
                 })
                 .where(eq(todos.id, id))
                 .returning();
             return completedTodo;
         }
+    }
+
+    static calculateNextRun(current: Date, type: 'daily' | 'weekly' | 'monthly' | 'custom', value: number): Date {
+        const next = new Date(current);
+        switch (type) {
+            case 'daily':
+                next.setDate(next.getDate() + value);
+                break;
+            case 'weekly':
+                next.setDate(next.getDate() + (value * 7));
+                break;
+            case 'monthly':
+                next.setMonth(next.getMonth() + value);
+                break;
+            case 'custom':
+                next.setDate(next.getDate() + value); // Assume custom uses days as default value
+                break;
+        }
+        return next;
     }
 
     static async deleteTodo(id: number) {
