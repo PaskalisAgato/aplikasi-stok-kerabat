@@ -6,8 +6,9 @@
 
 /* Standardize properties to avoid browser warnings */
 html {
-  text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  -moz-text-size-adjust: none;
 }
 
 /* Fix for Material Symbols injection */

@@ -38,6 +38,17 @@ const limiter = rateLimit({
 });
 
 const app = express();
+app.use(cors({
+    origin: [
+        'https://aplikasi-stok-kerabat-pos.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:3000'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
+    exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
+}));
 
 // 1. Enterprise Monitoring & Guardrails
 app.use(limiter);
@@ -61,19 +72,6 @@ app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
 
 // 2. Background Tasks (Phase 3)
 setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
-
-// 1. Global Middlewares
-app.use(cors({
-    origin: [
-        'https://aplikasi-stok-kerabat-pos.vercel.app',
-        'http://localhost:5173',
-        'http://localhost:3000'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
-    exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
-}));
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
