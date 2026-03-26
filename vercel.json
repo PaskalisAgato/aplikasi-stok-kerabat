@@ -1,6 +1,5 @@
 {
   "outputDirectory": "dist-global",
-  "framework": null,
   "cleanUrls": true,
   "trailingSlash": true,
   "redirects": [
@@ -10,78 +9,22 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/inventory/:path*",
-      "destination": "/inventory/index.html"
-    },
-    {
-      "source": "/reports/:path*",
-      "destination": "/reports/index.html"
-    },
-    {
-      "source": "/dashboard/:path*",
-      "destination": "/dashboard/index.html"
-    },
-    {
-      "source": "/employees/:path*",
-      "destination": "/employees/index.html"
-    },
-    {
-      "source": "/expenses/:path*",
-      "destination": "/expenses/index.html"
-    },
-    {
-      "source": "/hpp/:path*",
-      "destination": "/hpp/index.html"
-    },
-    {
-      "source": "/opname/:path*",
-      "destination": "/opname/index.html"
-    },
-    {
-      "source": "/recipes/:path*",
-      "destination": "/recipes/index.html"
-    },
-    {
-      "source": "/waste/:path*",
-      "destination": "/waste/index.html"
-    },
-    {
-      "source": "/waste-detail/:path*",
-      "destination": "/waste-detail/index.html"
-    },
-    {
-      "source": "/cogs/:path*",
-      "destination": "/cogs/index.html"
-    },
-    {
-      "source": "/recipe-edit/:path*",
-      "destination": "/recipe-edit/index.html"
-    },
-    {
-      "source": "/shifts/:path*",
-      "destination": "/shifts/index.html"
-    },
-    {
-      "source": "/attendance/:path*",
-      "destination": "/attendance/index.html"
-    },
-    {
-      "source": "/attendance-history/:path*",
-      "destination": "/attendance-history/index.html"
-    },
-    {
-      "source": "/todo-list/:path*",
-      "destination": "/todo-list/index.html"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "experimentalServices": {
-  "frontend": {
-    "routePrefix": "/",
-    "framework": "vite"
-  }
+    { "source": "/inventory/:path*", "destination": "/inventory/index.html" },
+    { "source": "/reports/:path*", "destination": "/reports/index.html" },
+    { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
+    { "source": "/employees/:path*", "destination": "/employees/index.html" },
+    { "source": "/expenses/:path*", "destination": "/expenses/index.html" },
+    { "source": "/hpp/:path*", "destination": "/hpp/index.html" },
+    { "source": "/opname/:path*", "destination": "/opname/index.html" },
+    { "source": "/recipes/:path*", "destination": "/recipes/index.html" },
+    { "source": "/waste/:path*", "destination": "/waste/index.html" },
+    { "source": "/waste-detail/:path*", "destination": "/waste-detail/index.html" },
+    { "source": "/cogs/:path*", "destination": "/cogs/index.html" },
+    { "source": "/recipe-edit/:path*", "destination": "/recipe-edit/index.html" },
+    { "source": "/shifts/:path*", "destination": "/shifts/index.html" },
+    { "source": "/attendance/:path*", "destination": "/attendance/index.html" },
+    { "source": "/attendance-history/:path*", "destination": "/attendance-history/index.html" },
+    { "source": "/todo-list/:path*", "destination": "/todo-list/index.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
