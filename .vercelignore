@@ -1,0 +1,9 @@
+node_modules
+.git
+.turbo
+dist
+dist-global
+*.log
+tmp
+/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/backend/dist
+/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/apps/*/dist

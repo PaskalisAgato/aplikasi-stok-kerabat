@@ -7,3 +7,5 @@ backend/uploads
 backend/backups/
 dist-global/
 dist-pages/
+.vercel
+.env*.local

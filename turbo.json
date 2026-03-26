@@ -2,12 +2,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["src/**", "static/**", "index.html", "vite.config.ts", "package.json", "tsconfig.json", "../../apps/shared/**"],
       "outputs": ["dist/**"]
     },
     "type-check": {
       "dependsOn": ["^type-check"],
-      "outputs": [],
-      "cache": true
+      "inputs": ["src/**", "package.json", "tsconfig.json", "../../apps/shared/**"],
+      "outputs": [".tsbuildinfo"]
     }
   }
 }

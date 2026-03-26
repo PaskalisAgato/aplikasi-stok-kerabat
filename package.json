@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "turbo build && bash consolidate-dist.sh",
-    "build:vercel": "turbo type-check --concurrency=2 && turbo build --concurrency=2 && bash consolidate-dist.sh",
-    "type-check": "turbo type-check",
+    "build:vercel": "npm run type-check && turbo build --concurrency=2 ${APPS_FILTER:+\"--filter=$APPS_FILTER...\"} && bash consolidate-dist.sh",
+    "type-check": "tsc -b",
     "install-all": "npm install --include=dev",
     "postinstall": "npx -y turbo --version"
   },
@@ -57,7 +57,7 @@
     "vite": "^7.3.1"
   },
   "engines": {
-    "node": ">=20.x"
+    "node": "20.x"
   },
   "packageManager": "npm@10.8.2"
 }
