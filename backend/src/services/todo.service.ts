@@ -103,7 +103,7 @@ export class TodoService {
         // Capture completion time
         const now = new Date();
 
-        if (todo.category === 'RUTIN' || todo.isRecurring) {
+        if (todo.isRecurring) {
             // Check if already completed today (for legacy isRecurring logic)
             const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const existing = await db.query.todoCompletions.findFirst({
@@ -123,8 +123,8 @@ export class TodoService {
                 completionTime: now
             }).returning();
 
-            // 2. If it's the new 'RUTIN' category, generate the NEXT task instance
-            if (todo.category === 'RUTIN' && todo.intervalType) {
+            // 2. Generate the NEXT task instance
+            if (todo.isRecurring && todo.intervalType) {
                 const nextRun = this.calculateNextRun(
                     todo.nextRunAt || now, 
                     todo.intervalType as any, 
@@ -134,7 +134,7 @@ export class TodoService {
                 await db.insert(todos).values({
                     title: todo.title,
                     description: todo.description,
-                    category: 'RUTIN',
+                    category: todo.category,
                     assignedTo: todo.assignedTo,
                     createdBy: todo.createdBy,
                     intervalType: todo.intervalType,

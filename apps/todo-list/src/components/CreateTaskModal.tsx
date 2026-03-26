@@ -10,7 +10,7 @@ interface CreateTaskModalProps {
 export default function CreateTaskModal({ isOpen, onClose, onSave, task }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('RUTIN');
+    const [category, setCategory] = useState('Opening');
     const [assignedTo, setAssignedTo] = useState('');
     const [deadline, setDeadline] = useState('');
     const [intervalType, setIntervalType] = useState('daily');
@@ -20,7 +20,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
         if (task) {
             setTitle(task.title);
             setDescription(task.description);
-            setCategory(task.category || 'RUTIN');
+            setCategory(task.category || 'Opening');
             setAssignedTo(task.assignedTo || '');
             setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
             setIntervalType(task.intervalType || 'daily');
@@ -28,7 +28,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
         } else {
             setTitle('');
             setDescription('');
-            setCategory('RUTIN');
+            setCategory('Opening');
             setAssignedTo('');
             setDeadline('');
             setIntervalType('daily');
@@ -71,7 +71,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kategori</label>
                             <div className="grid grid-cols-2 gap-3">
-                                {['RUTIN', 'REQUEST'].map(cat => (
+                                {['Opening', 'Closing', 'Request'].map(cat => (
                                     <button
                                         key={cat}
                                         type="button"
@@ -86,8 +86,8 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             </div>
                         </div>
 
-                        {/* Interval Settings (Only for RUTIN) */}
-                        {category === 'RUTIN' && (
+                        {/* Interval Settings (Allow for all except REQUEST) */}
+                        {category !== 'Request' && (
                             <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
                                 <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-1">Pengaturan Perulangan</label>
                                 <div className="grid grid-cols-2 gap-3">
@@ -161,9 +161,10 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             category, 
                             assignedTo: assignedTo || null, 
                             deadline: deadline || null,
-                            intervalType: category === 'RUTIN' ? intervalType : null,
-                            intervalValue: category === 'RUTIN' ? intervalValue : null,
-                            nextRunAt: category === 'RUTIN' ? new Date() : null // Start immediately
+                            isRecurring: category !== 'Request',
+                            intervalType: category !== 'Request' ? intervalType : null,
+                            intervalValue: category !== 'Request' ? intervalValue : null,
+                            nextRunAt: category !== 'Request' ? new Date() : null // Start immediately
                         })}
                         disabled={!title}
                         className="w-full h-16 btn-primary shadow-2xl disabled:opacity-50 disabled:grayscale"
