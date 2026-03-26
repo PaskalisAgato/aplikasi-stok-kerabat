@@ -121,8 +121,12 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setValidationError('Nama bahan baku tidak boleh kosong!');
             return;
         }
-        if (p <= 0) {
-            setValidationError('Harga beli harus lebih besar dari 0');
+        if (p < 0) {
+            setValidationError('Harga beli tidak boleh negatif');
+            return;
+        }
+        if (d < 0) {
+            setValidationError('Harga diskon tidak boleh negatif');
             return;
         }
         if (d > p) {
