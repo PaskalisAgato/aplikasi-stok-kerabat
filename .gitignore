@@ -1,11 +1,27 @@
+# Dependencies
 node_modules
-**/dist/
-backend/uploads
-*.log
-.env
 
+# Build & cache
+.turbo
+.next
+dist
+dist-global
+dist-pages
+**/dist/
+
+# Temp & uploads
+tmp
+backend/uploads
 backend/backups/
-dist-global/
-dist-pages/
-.vercel
+
+# Logs & zip
+*.log
+*.zip
+build_errors*.txt
+
+# Env
+.env
 .env*.local
+
+# Vercel
+.vercel
