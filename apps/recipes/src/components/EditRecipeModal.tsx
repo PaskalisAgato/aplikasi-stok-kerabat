@@ -66,24 +66,17 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
         fetchInitialData();
     }, [recipe.ingredients]); // Only run if ingredients list changes
 
-    // Fetch inventory results based on search term
+    // Fetch inventory results based on search term or initial open
     useEffect(() => {
         const fetchSearchResults = async () => {
-            // Guard: Hanya hit API jika minimal 2 karakter
+            // If search is too short, but we want to show "initial" items when search is empty
             if (debouncedSearch && debouncedSearch.trim().length < 2) {
                 setInventoryData([]);
                 setSearchError(null);
                 return;
             }
 
-            // Edge case: empty search should show nothing in search results
-            if (!debouncedSearch) {
-                setInventoryData([]);
-                setSearchError(null);
-                return;
-            }
-
-            // Race Condition Guard: Batalkan request sebelumnya jika user masih mengetik
+            // Race Condition Guard
             abortControllerRef.current?.abort();
             const controller = new AbortController();
             abortControllerRef.current = controller;
@@ -92,13 +85,13 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
             setSearchError(null);
             
             try {
-                // limit cap 20 items
-                const res = await apiClient.getInventory(20, 0, debouncedSearch, '', '', controller.signal);
+                // If no search, fetch first 20 items as "default" list
+                const res = await apiClient.getInventory(20, 0, debouncedSearch || '', '', '', controller.signal);
                 setInventoryData(res.data || []);
             } catch (err: any) {
                 if (err.name === 'AbortError') return;
                 console.error("Search failed", err);
-                setSearchError("Gagal mencari bahan baku. SIlakan coba lagi.");
+                setSearchError("Gagal mencari bahan baku.");
                 setInventoryData([]);
             } finally {
                 if (abortControllerRef.current === controller) {
@@ -107,11 +100,13 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
             }
         };
 
-        fetchSearchResults();
+        // We fetch if searching OR if the modal/dropdown is shown and we have no data
+        if (showAddIngredient || debouncedSearch) {
+            fetchSearchResults();
+        }
 
-        // Cleanup: Batalkan request saat komponen unmount
         return () => abortControllerRef.current?.abort();
-    }, [debouncedSearch]);
+    }, [debouncedSearch, showAddIngredient]);
 
     // Inisialisasi data dari resep yang dipilih
     useEffect(() => {
@@ -223,6 +218,18 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const handleSaveAPI = async () => {
         try {
             if(!namaResep) return alert("Nama resep tidak boleh kosong");
+            
+            // Validasi: Tidak boleh tanpa bahan
+            if (ingredients.length === 0) {
+                return alert("Resep harus memiliki minimal satu bahan baku!");
+            }
+
+            // Validasi: Quantity > 0
+            const invalidIng = ingredients.find(ing => ing.qty <= 0);
+            if (invalidIng) {
+                return alert(`Jumlah untuk bahan "${invalidIng.name}" harus lebih dari 0!`);
+            }
+
             const prepIngredients = ingredients.map(ing => ({
                 ingredientId: ing.id,
                 qty: ing.qty
@@ -341,47 +348,63 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                 </button>
 
                                 {showAddIngredient && (
-                                    <div className="absolute right-0 top-full mt-2 w-72 bg-white  rounded-xl shadow-xl border border-slate-200  overflow-hidden transform origin-top-right transition-all">
-                                        <div className="p-2 border-b border-slate-100 ">
-                                            <input
-                                                type="text"
-                                                placeholder="Cari bahan..."
-                                                value={searchTerm}
-                                                onChange={e => setSearchTerm(e.target.value)}
-                                                className="w-full bg-slate-100  border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50 text-slate-900 "
-                                                autoFocus
-                                            />
+                                    <div className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-primary/20 overflow-hidden transform origin-top-right animate-in slide-in-from-top-4 fade-in duration-300 z-[60]">
+                                        <div className="p-4 border-b border-primary/5 bg-primary/5">
+                                            <div className="relative">
+                                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-lg">search</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Cari bahan baku..."
+                                                    value={searchTerm}
+                                                    onChange={e => setSearchTerm(e.target.value)}
+                                                    className="w-full bg-white border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-primary shadow-inner"
+                                                    autoFocus
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="max-h-60 overflow-y-auto">
+                                        <div className="max-h-[350px] overflow-y-auto scrollbar-none">
                                             {isSearching ? (
-                                                <div className="p-8 text-center">
-                                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary/30 border-t-primary mb-2"></div>
-                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mencari Bahan...</p>
+                                                <div className="p-10 text-center">
+                                                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-[3px] border-primary/20 border-t-primary mb-4"></div>
+                                                    <p className="text-[10px] font-black text-primary/50 uppercase tracking-[0.3em]">Menyelaraskan Data...</p>
                                                 </div>
                                             ) : searchError ? (
-                                                <div className="p-4 text-center">
-                                                    <p className="text-sm text-red-500 font-bold">{searchError}</p>
+                                                <div className="p-6 text-center">
+                                                    <span className="material-symbols-outlined text-red-500 text-4xl mb-2">error</span>
+                                                    <p className="text-xs text-red-500 font-black uppercase tracking-widest">{searchError}</p>
                                                 </div>
                                             ) : searchTerm && searchTerm.trim().length < 2 ? (
-                                                <p className="p-4 text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">Minimal 2 karakter...</p>
+                                                <div className="p-8 text-center opacity-40">
+                                                    <span className="material-symbols-outlined text-3xl mb-1">keyboard</span>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Ketik Minimal 2 Karakter</p>
+                                                </div>
                                             ) : searchTerm && availableIngredients.length === 0 ? (
-                                                <p className="p-4 text-center text-sm text-slate-500">Tidak ditemukan "{searchTerm}"</p>
-                                            ) : !searchTerm ? (
-                                                <p className="p-4 text-center text-sm text-slate-400 font-medium italic">Ketik untuk mencari bahan baku...</p>
+                                                <div className="p-10 text-center opacity-40">
+                                                    <span className="material-symbols-outlined text-3xl mb-1">sentiment_dissatisfied</span>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Bahan Tidak Ditemukan</p>
+                                                </div>
                                             ) : (
-                                                availableIngredients.map(item => (
-                                                    <button
-                                                        key={item.id}
-                                                        onClick={() => addIngredient(item)}
-                                                        className="w-full text-left px-4 py-3 hover:bg-slate-50  border-b border-slate-50  last:border-0 flex justify-between items-center group transition-colors"
-                                                    >
-                                                        <div>
-                                                            <p className="font-bold text-sm text-slate-900  group-hover:text-primary transition-colors">{item.name}</p>
-                                                            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{item.category} • Rp {parseFloat(item.pricePerUnit).toLocaleString('id-ID')}/{item.unit}</p>
+                                                <div className="py-2">
+                                                    {!searchTerm && (
+                                                        <div className="px-5 py-3 flex items-center justify-between bg-primary/5 mb-2">
+                                                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Rekomendasi Bahan</p>
+                                                            <span className="text-[8px] font-black text-primary/40 uppercase tracking-widest">Inventory List</span>
                                                         </div>
-                                                        <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors text-[20px]">add_circle</span>
-                                                    </button>
-                                                ))
+                                                    )}
+                                                    {availableIngredients.map(item => (
+                                                        <button
+                                                            key={item.id}
+                                                            onClick={() => addIngredient(item)}
+                                                            className="w-full text-left px-5 py-4 hover:bg-primary/5 border-b border-primary/5 last:border-0 flex justify-between items-center group transition-all active:bg-primary/10"
+                                                        >
+                                                            <div className="space-y-0.5">
+                                                                <p className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors">{item.name}</p>
+                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider opacity-60">{item.category} • {formatRp(parseFloat(item.pricePerUnit))}/{item.unit}</p>
+                                                            </div>
+                                                            <span className="material-symbols-outlined text-primary/30 group-hover:text-primary group-hover:scale-110 transition-all text-2xl font-black">add_circle</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
