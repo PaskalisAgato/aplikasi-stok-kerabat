@@ -43,7 +43,7 @@ export async function uploadFile(
     // BANDWIDTH OPTIMIZATION: Auto-compress if it's an image
     if (uploadData instanceof Blob && uploadData.type.startsWith('image/')) {
         try {
-            uploadData = await compressImage(uploadData, { maxWidth: 1200, maxHeight: 1200, initialQuality: 0.7 });
+            uploadData = await compressImage(uploadData, { maxWidth: 1200, maxHeight: 1200, initialQuality: 0.7, maxSizeKB: 300 });
         } catch (e) {
             console.warn('[Supabase] Compression failed, uploading original:', e);
         }
