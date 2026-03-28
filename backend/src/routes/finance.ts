@@ -23,7 +23,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             userId: schema.expenses.userId,
             expenseDate: schema.expenses.expenseDate,
             createdAt: schema.expenses.createdAt,
-            // receiptUrl is excluded to save bandwidth
+            receiptUrl: schema.expenses.receiptUrl,
             externalReceiptUrl: schema.expenses.externalReceiptUrl
         })
         .from(schema.expenses)
