@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { apiClient } from '@shared/apiClient';
-import { uploadFile } from '@shared/supabase';
+import { uploadFile, getOptimizedImageUrl } from '@shared/supabase';
 import { compressImage } from '@shared/utils/image';
 
 
@@ -53,7 +53,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setVendor(initialData.vendor || '');
             setAmount(initialData.amount?.toString() || '');
             setSelectedCategory(initialData.category || '');
-            setReceipt(initialData.imageUrl || null);
+            const existingReceipt = initialData.receiptUrl || initialData.imageUrl || null;
+            console.log('[ExpenseForm] Loading initial data, receipt:', existingReceipt);
+            setReceipt(existingReceipt);
             setExpenseDate(new Date(initialData.expenseDate || initialData.date).toISOString().split('T')[0]);
         } else if (isOpen && !initialData) {
             // Reset for new expense
@@ -140,6 +142,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 receiptUrl: finalReceiptUrl,
                 date: expenseDate
             };
+
+            console.log('[ExpenseForm] Final Payload:', expensePayload);
 
             if (initialData?.id) {
                 console.log(`[ExpenseForm] Updating expense ID: ${initialData.id}`);
@@ -404,11 +408,12 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 {receipt && (
                                     <div className="relative aspect-square rounded-lg overflow-hidden border border-primary/20 group">
                                         <img
-                                            src={receipt}
+                                            src={getOptimizedImageUrl(receipt)}
                                             alt="Receipt"
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Logo+POS';
+                                                console.error('[ExpenseForm] Preview load failed for URL:', getOptimizedImageUrl(receipt));
+                                                (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Gagal+Memuat+Bukti';
                                             }}
                                         />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

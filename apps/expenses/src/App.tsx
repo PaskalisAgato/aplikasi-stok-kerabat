@@ -12,7 +12,7 @@ interface ExpenseItem {
     category: string;
     date: string;
     amount: string;
-    imageUrl: string;
+    receiptUrl: string;
 }
 
 function App() {
@@ -50,7 +50,7 @@ function App() {
             category: exp.category || 'General',
             date: exp.expenseDate || exp.date || new Date().toISOString(),
             amount: exp.amount || '0',
-            imageUrl: exp.externalReceiptUrl || exp.receiptUrl || ''
+            receiptUrl: exp.externalReceiptUrl || exp.receiptUrl || ''
         }));
 
         if (isLoadMore) {
