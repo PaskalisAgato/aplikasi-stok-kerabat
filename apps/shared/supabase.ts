@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { compressImage } from './imageUtils';
+import { compressImage } from './utils/image';
 
 // Load environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
