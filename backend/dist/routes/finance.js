@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { desc, eq, gte, inArray, sql, and } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
+import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
 export const financeRouter = Router();
 // GET all expenses with pagination
@@ -195,7 +196,7 @@ financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req, res) 
     }
 });
 // POST new expense
-financeRouter.post('/expenses', requireAuth, async (req, res) => {
+financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), async (req, res) => {
     try {
         const { title, vendor, category, amount, date, receiptUrl } = req.body;
         // Better validation: amount can be 0, but must be defined and a number
@@ -252,7 +253,7 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req, res) => {
     }
 });
 // UPDATE expense
-financeRouter.put('/expenses/:id', requireAuth, async (req, res) => {
+financeRouter.put('/expenses/:id', requireAuth, validateBase64Image('receiptUrl'), async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {

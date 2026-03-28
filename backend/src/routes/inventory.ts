@@ -3,6 +3,7 @@ import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { eq, sql, and, gte, desc, ilike } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
+import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
 
 export const inventoryRouter = Router();
@@ -499,7 +500,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 });
 
 // POST new inventory item
-    inventoryRouter.post('/', async (req: Request, res: Response) => {
+    inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
         const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl } = req.body;
         
@@ -530,7 +531,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 });
 
 // PUT update inventory item master data (Hardened for Price & RBAC)
-inventoryRouter.put('/:id', requireAdmin, async (req: Request, res: Response) => {
+inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
         const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;

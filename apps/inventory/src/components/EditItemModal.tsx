@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { uploadFile } from '@shared/supabase';
+import { compressImage } from '@shared/utils/image';
 
 interface EditItemModalProps {
     isOpen: boolean;
@@ -88,8 +89,16 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImageBase64(reader.result as string);
+            reader.onloadend = async () => {
+                const originalBase64 = reader.result as string;
+                // Apply 300KB compression
+                const compressedBlob = await compressImage(originalBase64, { maxSizeKB: 300 });
+                const compressedBase64 = await new Promise<string>((resolve) => {
+                    const r = new FileReader();
+                    r.onloadend = () => resolve(r.result as string);
+                    r.readAsDataURL(compressedBlob);
+                });
+                setImageBase64(compressedBase64);
                 e.target.value = ''; // Reset
             };
             reader.readAsDataURL(file);

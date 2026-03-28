@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { uploadFile } from '@shared/supabase';
+import { compressImage } from '@shared/utils/image';
 
 
 interface AddExpenseModalProps {
@@ -67,48 +68,11 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
     if (!isOpen) return null;
 
-    const compressImage = (base64: string): Promise<string> => {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.src = base64;
-            img.onload = () => {
-                const maxWidth = 1024;
-                const maxHeight = 1024;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7)); 
-            };
-            img.onerror = () => resolve(base64); // Fallback to original if error
-        });
-    };
-
     const validateFile = (file: File): string | null => {
         console.log(`[ExpenseForm] Validating file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
         const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!validTypes.includes(file.type)) {
             return `Format [${file.type}] tidak valid. Hanya JPG, PNG, dan WEBP yang diperbolehkan.`;
-        }
-        const maxSize = 3 * 1024 * 1024; // 3MB (Architect adjusted)
-        if (file.size > maxSize) {
-            return `File terlalu besar (${(file.size / 1024 / 1024).toFixed(2)}MB). Maksimal 3MB.`;
         }
         return null;
     };
@@ -129,8 +93,13 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             const reader = new FileReader();
             reader.onloadend = async () => {
                 const originalBase64 = reader.result as string;
-                // Compress before saving to preview state
-                const compressedBase64 = await compressImage(originalBase64);
+                // Compress iteratively until below 300KB
+                const compressedBlob = await compressImage(originalBase64, { maxSizeKB: 300 });
+                const compressedBase64 = await new Promise<string>((resolve) => {
+                    const r = new FileReader();
+                    r.onloadend = () => resolve(r.result as string);
+                    r.readAsDataURL(compressedBlob);
+                });
                 setReceipt(compressedBase64);
                 e.target.value = ''; // Reset input
             };

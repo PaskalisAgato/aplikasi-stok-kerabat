@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 307200 } // 300KB limit
 });
 router.get('/today', requireAuth, AttendanceController.getTodayStatus);
 router.post('/check-in', requireAuth, upload.single('photo'), AttendanceController.checkIn);

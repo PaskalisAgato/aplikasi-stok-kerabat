@@ -61,7 +61,8 @@ export async function uploadFile(
         });
 
     if (error) {
-        throw new Error(`Upload storage gagal: ${error.message}`);
+        console.error(`[Supabase] Upload failed for bucket "${bucket}":`, error);
+        throw new Error(`Upload storage gagal: ${error.message} (Bucket: ${bucket})`);
     }
 
     return data.path;

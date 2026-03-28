@@ -6,6 +6,7 @@ import { useSession } from '@shared/authClient';
 import { getGeoLocation, type GeoLocation } from '@shared/utils/location';
 import CameraCapture from '@shared/components/CameraCapture';
 import type { CameraCaptureHandle } from '@shared/components/CameraCapture';
+import { compressImage } from '@shared/utils/image';
 import toast, { Toaster } from 'react-hot-toast';
 
 function AttendancePage() {
@@ -29,9 +30,12 @@ function AttendancePage() {
                 return;
             }
 
+            // Apply 300KB compression
+            const compressedPhoto = await compressImage(photo, { maxSizeKB: 300 });
+
             setPreviewPhoto({
-                blob: photo,
-                url: URL.createObjectURL(photo),
+                blob: compressedPhoto,
+                url: URL.createObjectURL(compressedPhoto),
                 type
             });
         } catch (error: any) {

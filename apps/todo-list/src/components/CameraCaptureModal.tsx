@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import CameraCapture from '@shared/components/CameraCapture';
 import type { CameraCaptureHandle } from '@shared/components/CameraCapture';
+import { compressImage } from '@shared/utils/image';
 
 interface CameraCaptureModalProps {
     isOpen: boolean;
@@ -36,11 +37,14 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
         try {
             const blob = await cameraRef.current?.capture();
             if (blob) {
+                // Apply 300KB compression
+                const compressedBlob = await compressImage(blob, { maxSizeKB: 300 });
+                
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setPreviewImage(reader.result as string);
                 };
-                reader.readAsDataURL(blob);
+                reader.readAsDataURL(compressedBlob);
             }
         } catch (err) {
             console.error('Capture failed', err);

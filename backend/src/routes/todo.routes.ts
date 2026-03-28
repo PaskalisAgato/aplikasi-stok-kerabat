@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { TodoController } from '../controllers/todo.controller.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { validateBase64Image } from '../middleware/validateImage.js';
 
 const router = Router();
 
@@ -15,6 +16,6 @@ router.get('/history', requireAdmin, TodoController.getHistory);
 router.delete('/history/clear', requireAdmin, TodoController.clearHistory);
 
 // Employee: Mark as completed
-router.post('/:id/complete', requireAuth, TodoController.completeTodo);
+router.post('/:id/complete', requireAuth, validateBase64Image('photoProof'), TodoController.completeTodo);
 
 export { router as todoRoutes };
