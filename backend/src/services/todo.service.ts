@@ -216,7 +216,7 @@ export class TodoService {
             .set({ status: 'Pending', photoProof: null, completionTime: null, completedBy: null })
             .where(eq(todos.status, 'Completed'));
 
-        // Clear recurring history
-        return await db.delete(todoCompletions).returning();
+        // Clear recurring history (No .returning() to avoid massive payload/memory issues)
+        await db.delete(todoCompletions);
     }
 }
