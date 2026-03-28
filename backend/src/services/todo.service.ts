@@ -8,7 +8,7 @@ export class TodoService {
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        // Fetch all relevant todos
+        // Fetch all relevant todos (Limit 100 for safety)
         const allTodos = await db.query.todos.findMany({
             where: and(
                 eq(todos.status, 'Pending'),
@@ -18,7 +18,8 @@ export class TodoService {
                     eq(todos.assignedTo, userId || '')
                 )
             ),
-            orderBy: [desc(todos.createdAt)]
+            orderBy: [desc(todos.createdAt)],
+            limit: 100
         });
 
         // Fetch today's completions
@@ -44,7 +45,7 @@ export class TodoService {
         });
     }
 
-    static async getHistory(limit = 20, offset = 0) {
+    static async getHistory(limit = 10, offset = 0) {
         // For history, we want all non-recurring completed tasks 
         // PLUS all entries from todoCompletions (for recurring tasks)
         
@@ -58,15 +59,7 @@ export class TodoService {
 
         const total = (onceOffCount?.count || 0) + (recurringCount?.count || 0);
 
-        // 2. Fetch data (since we're merging and sorting in memory, we might need to fetch a bit more or rethink)
-        // Actually, if we want true DB-level pagination for a merged set, it's harder with findMany.
-        // But given the scale, fetching a reasonable amount and sorting is okay, 
-        // OR we use a SQL UNION. Let's try to keep it simple but functional.
-        
-        // Fetching all for now but with a safety limit if not specified, 
-        // but wait, the goal IS pagination.
-        
-        // To do this properly with UNION in Drizzle:
+        // 2. Fetch data (UNION SQL approach but with corrected naming)
         const onceOffQuery = db.select({
             id: todos.id,
             title: todos.title,
@@ -110,9 +103,10 @@ export class TodoService {
         .innerJoin(todos, eq(todoCompletions.todoId, todos.id));
 
         // @ts-ignore - Drizzle union might have typing issues in some versions but works
+        // Note: unionAll results use the column names (aliases) from the Select objects.
         const allHistory = await db.select()
             .from(sql`(${onceOffQuery.unionAll(recurringQuery)}) AS combined`)
-            .orderBy(desc(sql`completion_time`))
+            .orderBy(desc(sql`combined."completionTime"`))
             .limit(limit)
             .offset(offset);
 

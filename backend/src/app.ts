@@ -58,9 +58,12 @@ app.use(compression()); // Reduce payload egress by ~75% (Phase 2)
 app.use((req: Request, res: Response, next: NextFunction) => {
     const originalSend = res.send;
     res.send = function (body: any): Response {
-        if (typeof body === 'string' && body.length > 2 * 1024 * 1024) {
+        if (typeof body === 'string' && body.length > 4 * 1024 * 1024) {
              console.error(`[Guardrail] Blocked massive response (${(body.length / 1024 / 1024).toFixed(2)}MB) from ${req.method} ${req.originalUrl}`);
-             return res.status(500).json({ success: false, message: 'Response payload too large. Please use pagination.' });
+             return res.status(500).json({ 
+                 success: false, 
+                 message: `Response payload too large (${(body.length / 1024 / 1024).toFixed(2)}MB). Mohon gunakan fitur pencarian atau klik 'Muat Lebih Banyak'.` 
+             });
         }
         return originalSend.call(this, body);
     };
