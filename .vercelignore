@@ -3,6 +3,4 @@ node_modules/
 .turbo/
 *.log
 *.zip
-dist/
-dist-global/
 tmp/
