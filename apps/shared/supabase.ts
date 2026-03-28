@@ -65,7 +65,7 @@ export async function uploadFile(
         throw new Error(`Upload storage gagal: ${error.message} (Bucket: ${bucket})`);
     }
 
-    return data.path;
+    return `${bucket}/${data.path}`;
 }
 
 /**
