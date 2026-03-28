@@ -57,61 +57,38 @@ export class TodoService {
         const [recurringCount] = await db.select({ count: sql<number>`count(*)` })
             .from(todoCompletions);
 
-        const total = (onceOffCount?.count || 0) + (recurringCount?.count || 0);
+        const total = (Number(onceOffCount?.count) || 0) + (Number(recurringCount?.count) || 0);
 
-        // 2. Fetch data (UNION SQL approach but with corrected naming)
-        const onceOffQuery = db.select({
-            id: todos.id,
-            title: todos.title,
-            description: todos.description,
-            category: todos.category,
-            status: todos.status,
-            assignedTo: todos.assignedTo,
-            createdBy: todos.createdBy,
-            isRecurring: todos.isRecurring,
-            intervalType: todos.intervalType,
-            intervalValue: todos.intervalValue,
-            nextRunAt: todos.nextRunAt,
-            deadline: todos.deadline,
-            photoProof: todos.photoProof,
-            completionTime: todos.completionTime,
-            completedBy: todos.completedBy,
-            createdAt: todos.createdAt
-        })
-        .from(todos)
-        .where(and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)));
+        // 2. Fetch data using robust RAW SQL to avoid Drizzle union mapping issues
+        const query = sql`
+            SELECT 
+                t.id, t.title, t.description, t.category, 
+                'Completed' as status, 
+                t.assigned_to as "assignedTo", 
+                t.created_by as "createdBy", 
+                t.is_recurring as "isRecurring", 
+                t.interval_type as "intervalType", 
+                t.interval_value as "intervalValue", 
+                t.next_run_at as "nextRunAt", 
+                t.deadline, 
+                COALESCE(tc.photo_proof, t.photo_proof) as "photoProof", 
+                COALESCE(tc.completion_time, t.completion_time) as "completionTime", 
+                COALESCE(tc.completed_by, t.completed_by) as "completedBy", 
+                t.created_at as "createdAt"
+            FROM ${todos} t
+            LEFT JOIN ${todoCompletions} tc ON t.id = tc.todo_id
+            WHERE (t.status = 'Completed' AND t.is_recurring = false)
+               OR (t.is_recurring = true AND tc.id IS NOT NULL)
+            ORDER BY "completionTime" DESC
+            LIMIT ${limit}
+            OFFSET ${offset}
+        `;
 
-        const recurringQuery = db.select({
-            id: todoCompletions.todoId,
-            title: todos.title,
-            description: todos.description,
-            category: todos.category,
-            status: sql<string>`'Completed'`,
-            assignedTo: todos.assignedTo,
-            createdBy: todos.createdBy,
-            isRecurring: todos.isRecurring,
-            intervalType: todos.intervalType,
-            intervalValue: todos.intervalValue,
-            nextRunAt: todos.nextRunAt,
-            deadline: todos.deadline,
-            photoProof: todoCompletions.photoProof,
-            completionTime: todoCompletions.completionTime,
-            completedBy: todoCompletions.completedBy,
-            createdAt: todos.createdAt
-        })
-        .from(todoCompletions)
-        .innerJoin(todos, eq(todoCompletions.todoId, todos.id));
-
-        // @ts-ignore - Drizzle union might have typing issues in some versions but works
-        // Note: unionAll results use the column names (aliases) from the Select objects.
-        const allHistory = await db.select()
-            .from(sql`(${onceOffQuery.unionAll(recurringQuery)}) AS combined`)
-            .orderBy(desc(sql`combined."completionTime"`))
-            .limit(limit)
-            .offset(offset);
+        const result = await db.execute(query);
+        const rows = (result as any).rows || result;
 
         return {
-            items: allHistory,
+            items: rows,
             total
         };
     }
