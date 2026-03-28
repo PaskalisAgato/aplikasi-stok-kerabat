@@ -124,7 +124,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             if (receipt && receipt.startsWith('data:')) {
                 console.log('[ExpenseForm] Stage 1/2: Uploading receipt to Supabase...');
                 const fileName = `${Date.now()}-${name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
-                finalReceiptUrl = await uploadFile('expense', fileName, receipt);
+                finalReceiptUrl = await uploadFile('expenses', fileName, receipt);
                 console.log('[ExpenseForm] Upload successful:', finalReceiptUrl);
             } else {
                 console.log('[ExpenseForm] Stage 1/2: Skipping upload (no new receipt)');
