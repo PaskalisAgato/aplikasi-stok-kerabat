@@ -30,15 +30,19 @@ function App() {
 
     const { overdueTasks, snoozeTask, stopTaskAlarm } = useTaskAlarm(todos);
 
+    const [historyPage, setHistoryPage] = useState(1);
+    const [hasMoreHistory, setHasMoreHistory] = useState(false);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
     const fetchTodos = async () => {
         try {
             setIsLoading(true);
             const response = await apiClient.getTodos();
             setTodos(response.data);
             
-            if (role === 'Admin') {
-                const historyResponse = await apiClient.getTodoHistory();
-                setHistory(historyResponse.data);
+            // Only fetch first page of history once or when explicitly needed
+            if (role === 'Admin' && history.length === 0) {
+                fetchHistory(1, true);
             }
         } catch (error) {
             console.error('Fetch failed', error);
@@ -48,9 +52,33 @@ function App() {
         }
     };
 
+    const fetchHistory = async (page: number, replace = false) => {
+        if (role !== 'Admin') return;
+        try {
+            setIsHistoryLoading(true);
+            const response = await apiClient.getTodoHistory(page, 20);
+            if (replace) {
+                setHistory(response.data);
+            } else {
+                setHistory(prev => [...prev, ...response.data]);
+            }
+            setHistoryPage(page);
+            setHasMoreHistory(response.data.length === 20 && (page * 20) < response.meta.total);
+        } catch (error) {
+            console.error('History fetch failed', error);
+            toast.error('Gagal memuat riwayat.');
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchTodos();
     }, [role]);
+
+    const handleLoadMore = () => {
+        fetchHistory(historyPage + 1);
+    };
 
     const handleCreateOrUpdate = async (data: any) => {
         try {
@@ -87,6 +115,8 @@ function App() {
             await apiClient.completeTodo(id, photo);
             toast.success('Tugas selesai! Kerja bagus ✨');
             fetchTodos();
+            // Refresh first page of history to show the new completion
+            if (role === 'Admin') fetchHistory(1, true);
         } catch (error) {
             toast.error('Gagal menyelesaikan tugas.');
         }
@@ -98,6 +128,8 @@ function App() {
             toast.success('Seluruh riwayat dibersihkan.');
             setIsClearHistoryOpen(false);
             setHistory([]);
+            setHistoryPage(1);
+            setHasMoreHistory(false);
         } catch (error) {
             toast.error('Gagal membersihkan riwayat.');
         }
@@ -177,6 +209,25 @@ function App() {
                                     onComplete={handleComplete}
                                 />
                             ))
+                        )}
+
+                        {activeTab === 'History' && hasMoreHistory && (
+                            <div className="col-span-full flex justify-center pt-8">
+                                <button
+                                    onClick={handleLoadMore}
+                                    disabled={isHistoryLoading}
+                                    className="glass px-12 py-4 rounded-full border border-white/10 hover:bg-white/5 active:scale-95 transition-all flex items-center gap-3 group disabled:opacity-50"
+                                >
+                                    {isHistoryLoading ? (
+                                        <div className="size-4 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
+                                    ) : (
+                                        <span className="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">refresh</span>
+                                    )}
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+                                        {isHistoryLoading ? 'Memuat...' : 'Muat Lebih Banyak'}
+                                    </span>
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}

@@ -18,8 +18,20 @@ export class TodoController {
 
     static async getHistory(req: Request, res: Response) {
         try {
-            const history = await TodoService.getHistory();
-            res.json(history);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const offset = (page - 1) * limit;
+
+            const { items, total } = await TodoService.getHistory(limit, offset);
+            res.json({
+                success: true,
+                data: items,
+                meta: {
+                    total,
+                    limit,
+                    page
+                }
+            });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

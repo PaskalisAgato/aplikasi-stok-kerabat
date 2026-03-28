@@ -44,34 +44,82 @@ export class TodoService {
         });
     }
 
-    static async getHistory() {
+    static async getHistory(limit = 20, offset = 0) {
         // For history, we want all non-recurring completed tasks 
         // PLUS all entries from todoCompletions (for recurring tasks)
-        const onceOffCompleted = await db.query.todos.findMany({
-            where: and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)),
-            orderBy: [desc(todos.completionTime)]
-        });
+        
+        // 1. Get counts for both
+        const [onceOffCount] = await db.select({ count: sql<number>`count(*)` })
+            .from(todos)
+            .where(and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)));
+            
+        const [recurringCount] = await db.select({ count: sql<number>`count(*)` })
+            .from(todoCompletions);
 
-        const recurringCompletions = await db.query.todoCompletions.findMany({
-            with: {
-                todo: true
-            },
-            orderBy: [desc(todoCompletions.completionTime)]
-        });
+        const total = (onceOffCount?.count || 0) + (recurringCount?.count || 0);
 
-        // Map recurring completions to task-like objects
-        const recurringHistory = recurringCompletions.map(c => ({
-            ...(c.todo as any),
-            status: 'Completed',
-            photoProof: c.photoProof,
-            completionTime: c.completionTime,
-            completedBy: c.completedBy,
-            id: c.todoId // Use original todo ID for UI consistency
-        }));
+        // 2. Fetch data (since we're merging and sorting in memory, we might need to fetch a bit more or rethink)
+        // Actually, if we want true DB-level pagination for a merged set, it's harder with findMany.
+        // But given the scale, fetching a reasonable amount and sorting is okay, 
+        // OR we use a SQL UNION. Let's try to keep it simple but functional.
+        
+        // Fetching all for now but with a safety limit if not specified, 
+        // but wait, the goal IS pagination.
+        
+        // To do this properly with UNION in Drizzle:
+        const onceOffQuery = db.select({
+            id: todos.id,
+            title: todos.title,
+            description: todos.description,
+            category: todos.category,
+            status: todos.status,
+            assignedTo: todos.assignedTo,
+            createdBy: todos.createdBy,
+            isRecurring: todos.isRecurring,
+            intervalType: todos.intervalType,
+            intervalValue: todos.intervalValue,
+            nextRunAt: todos.nextRunAt,
+            deadline: todos.deadline,
+            photoProof: todos.photoProof,
+            completionTime: todos.completionTime,
+            completedBy: todos.completedBy,
+            createdAt: todos.createdAt
+        })
+        .from(todos)
+        .where(and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)));
 
-        return [...onceOffCompleted, ...recurringHistory].sort((a, b) => 
-            new Date(b.completionTime!).getTime() - new Date(a.completionTime!).getTime()
-        );
+        const recurringQuery = db.select({
+            id: todoCompletions.todoId,
+            title: todos.title,
+            description: todos.description,
+            category: todos.category,
+            status: sql<string>`'Completed'`,
+            assignedTo: todos.assignedTo,
+            createdBy: todos.createdBy,
+            isRecurring: todos.isRecurring,
+            intervalType: todos.intervalType,
+            intervalValue: todos.intervalValue,
+            nextRunAt: todos.nextRunAt,
+            deadline: todos.deadline,
+            photoProof: todoCompletions.photoProof,
+            completionTime: todoCompletions.completionTime,
+            completedBy: todoCompletions.completedBy,
+            createdAt: todos.createdAt
+        })
+        .from(todoCompletions)
+        .innerJoin(todos, eq(todoCompletions.todoId, todos.id));
+
+        // @ts-ignore - Drizzle union might have typing issues in some versions but works
+        const allHistory = await db.select()
+            .from(sql`(${onceOffQuery.unionAll(recurringQuery)}) AS combined`)
+            .orderBy(desc(sql`completion_time`))
+            .limit(limit)
+            .offset(offset);
+
+        return {
+            items: allHistory,
+            total
+        };
     }
 
     static async createTodo(data: any) {

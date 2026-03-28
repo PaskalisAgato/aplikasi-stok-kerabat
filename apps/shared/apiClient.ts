@@ -306,7 +306,7 @@ export const apiClient = {
     updateTodo: (id: number, data: unknown) => apiFetch<any>(`/todo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteTodo: (id: number) => apiFetch<any>(`/todo/${id}`, { method: 'DELETE' }),
     completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
-    getTodoHistory: () => apiFetch<ApiResponse<any>>('/todo/history'),
+    getTodoHistory: (page = 1, limit = 20) => apiFetch<ApiResponse<any>>(`/todo/history?page=${page}&limit=${limit}`),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
 
     // ---- SYSTEM ADMIN & OBSERVABILITY ----
