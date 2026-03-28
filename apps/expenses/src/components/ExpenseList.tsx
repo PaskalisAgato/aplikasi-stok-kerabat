@@ -111,12 +111,23 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             >
                                 <div className="flex items-center gap-5 flex-1 min-w-0">
                                     <div
-                                        onClick={() => expense.receiptUrl && setPreviewImage(expense.receiptUrl)}
-                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in"
+                                        onClick={() => expense.receiptUrl && setPreviewImage(getOptimizedImageUrl(expense.receiptUrl!, { width: 800, height: 800 }))}
+                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in overflow-hidden"
                                     >
-                                        <span className="material-symbols-outlined text-3xl font-black">
-                                            {expense.receiptUrl ? 'receipt_long' : 'no_photography'}
-                                        </span>
+                                        {expense.receiptUrl ? (
+                                            <img 
+                                                src={getOptimizedImageUrl(expense.receiptUrl, { width: 200, height: 200 })} 
+                                                alt="Receipt" 
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-3xl font-black">receipt_long</span>';
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="material-symbols-outlined text-3xl font-black">
+                                                no_photography
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0 space-y-1.5">
                                         <div className="flex items-center gap-2">
@@ -131,23 +142,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                     <p className="text-xl font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
                                         Rp {Number(expense.amount).toLocaleString('id-ID')}
                                     </p>
-                                    {expense.receiptUrl && (
-                                        <div className="relative group/thumb">
-                                            <img 
-                                                src={getOptimizedImageUrl(expense.receiptUrl!, { width: 200, height: 200 })} 
-                                                alt="Receipt" 
-                                                loading="lazy"
-                                                className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/10 group-hover/thumb:scale-110 transition-transform cursor-zoom-in"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Error';
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setPreviewImage(getOptimizedImageUrl(expense.receiptUrl!, { width: 800, height: 800 }));
-                                                }}
-                                            />
-                                        </div>
-                                    )}
                                     <div className="flex gap-2">
                                         {onEdit && (
                                             <button 
