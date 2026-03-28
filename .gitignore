@@ -30,3 +30,9 @@ backend/.env
 # OS files
 .DS_Store
 Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+*.d.ts
+!apps/shared/imageUtils.d.ts
+!vite-env.d.ts

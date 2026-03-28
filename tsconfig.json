@@ -33,7 +33,6 @@
     { "path": "apps/pos" },
     { "path": "apps/inventory" },
     { "path": "apps/reports" },
-    { "path": "apps/dashboard" },
     { "path": "apps/employees" },
     { "path": "apps/expenses" },
     { "path": "apps/hpp" },
