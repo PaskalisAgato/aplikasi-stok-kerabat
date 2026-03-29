@@ -75,7 +75,7 @@ export function getOptimizedImageUrl(path: string, _options: { width?: number; h
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 
-    const projectUrl = (import.meta as any).env?.VITE_SUPABASE_URL || (globalThis as any).process?.env?.VITE_SUPABASE_URL;
+    const projectUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!projectUrl) {
         console.warn('[Supabase] getOptimizedImageUrl: VITE_SUPABASE_URL missing, returning raw path.');
         return path;

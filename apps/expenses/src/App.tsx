@@ -13,6 +13,7 @@ interface ExpenseItem {
     date: string;
     amount: string;
     receiptUrl: string;
+    hasReceipt?: boolean;
 }
 
 function App() {
@@ -50,7 +51,8 @@ function App() {
             category: exp.category || 'General',
             date: exp.expenseDate || exp.date || new Date().toISOString(),
             amount: exp.amount || '0',
-            receiptUrl: exp.externalReceiptUrl || exp.receiptUrl || ''
+            receiptUrl: exp.externalReceiptUrl || exp.receiptUrl || '',
+            hasReceipt: !!exp.hasReceipt
         }));
 
         if (isLoadMore) {
