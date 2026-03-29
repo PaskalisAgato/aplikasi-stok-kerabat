@@ -35,7 +35,7 @@ export class UserController {
             console.log(`[LOGIN_PIN_SUCCESS] User found: ${user.name} (${user.id})`);
 
             // 3. SET SESSION (WAJIB)
-            req.session.user = {
+            (req.session as any).user = {
                 id: user.id,
                 name: user.name,
                 role: user.role,
@@ -53,7 +53,7 @@ export class UserController {
 
             return res.status(200).json({ 
                 success: true, 
-                user: req.session.user,
+                user: (req.session as any).user,
                 sessionId: manualSession.id // Fallback for UUID based auth
             });
 
