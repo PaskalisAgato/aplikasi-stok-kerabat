@@ -13,6 +13,11 @@ export const validateBase64Image = (field: string, maxSizeKB: number = 300) => {
             return next();
         }
 
+        // If it's a URL or path (not Base64), bypass validation
+        if (typeof base64String === 'string' && !base64String.startsWith('data:image')) {
+            return next();
+        }
+
         // Base64 string format: "data:image/jpeg;base64,..."
         // We only care about the part after the comma
         const parts = base64String.split(',');

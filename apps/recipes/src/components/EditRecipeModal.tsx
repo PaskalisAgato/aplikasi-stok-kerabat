@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
+import { uploadFile, getOptimizedImageUrl } from '@shared/supabase';
 import type { Recipe } from '@shared/mockDatabase';
 
 interface Ingredient {
@@ -39,6 +40,8 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const [initialInventoryData, setInitialInventoryData] = useState<any[]>([]); // Data for current recipe ingredients
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(recipe.imageUrl || null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Debounce search term
@@ -214,6 +217,18 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const totalHPP = Math.round(totalBahan * (1 + overhead / 100));
     const laba = hargaJual - totalHPP;
     const margin = hargaJual > 0 ? ((laba / hargaJual) * 100).toFixed(1) : '0.0';
+    
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Iteratively compress and upload
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+             setImageUrl(reader.result as string); // Preview immediately
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleSaveAPI = async () => {
         try {
@@ -235,12 +250,23 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 qty: ing.qty
             }));
 
+            let finalImageUrl = imageUrl;
+            if (imageUrl && imageUrl.startsWith('data:image')) {
+                setIsUploadingImage(true);
+                try {
+                    const fileName = `recipe-${Date.now()}-${namaResep.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+                    finalImageUrl = await uploadFile('recipes', fileName, imageUrl);
+                } finally {
+                    setIsUploadingImage(false);
+                }
+            }
+
             const payload = {
                 name: namaResep,
                 category: category,
                 price: hargaJual,
                 margin: parseFloat(margin),
-                imageUrl: recipe.imageUrl,
+                imageUrl: finalImageUrl,
                 ingredients: prepIngredients
             };
 
@@ -313,6 +339,43 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                             placeholder="Masukkan nama resep..."
                             className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm "
                         />
+                    </div>
+
+                    {/* Image Upload UI */}
+                    <div className="px-4 pt-6">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Foto Menu</label>
+                        <div className="flex gap-4 items-center">
+                            <div 
+                                className="size-24 rounded-[1.5rem] bg-slate-100 border-2 border-dashed border-primary/20 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-primary/5 transition-colors group relative"
+                                onClick={() => document.getElementById('recipe-image-input')?.click()}
+                            >
+                                {imageUrl ? (
+                                    <>
+                                        <img src={getOptimizedImageUrl(imageUrl)} className="w-full h-full object-cover" alt="Recipe" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            <span className="material-symbols-outlined text-white">edit</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <span className="material-symbols-outlined text-3xl text-primary/40 group-hover:scale-110 transition-transform">add_a_photo</span>
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
+                                    {imageUrl ? 'Ubah Foto' : 'Tambah Foto'}
+                                </p>
+                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest opacity-60">
+                                    JPG/PNG Max 2MB. Akan di-optimize otomatis.
+                                </p>
+                                <input 
+                                    type="file" 
+                                    id="recipe-image-input" 
+                                    className="hidden" 
+                                    accept="image/*" 
+                                    onChange={handleImageUpload}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Category Selection */}
@@ -598,9 +661,12 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                         </button>
                         <button
                             onClick={handleSaveAPI}
-                            className="flex-[2.5] py-5 bg-gradient-to-r from-primary to-amber-600 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group">
-                            <span className="material-symbols-outlined text-[20px] font-black group-hover:rotate-12 transition-transform">save</span>
-                            Simpan Resep
+                            disabled={isUploadingImage}
+                            className={`flex-[2.5] py-5 ${isUploadingImage ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-600'} text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group`}>
+                            <span className={`material-symbols-outlined text-[20px] font-black ${isUploadingImage ? 'animate-spin' : 'group-hover:rotate-12'} transition-transform`}>
+                                {isUploadingImage ? 'progress_activity' : 'save'}
+                            </span>
+                            {isUploadingImage ? 'Mengunggah...' : 'Simpan Resep'}
                         </button>
                     </div>
                 </footer>

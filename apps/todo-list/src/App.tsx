@@ -9,6 +9,7 @@ import CameraCaptureModal from './components/CameraCaptureModal';
 import OverdueAlarmModal from './components/OverdueAlarmModal';
 import { toast } from 'react-hot-toast';
 import useTaskAlarm from './hooks/useTaskAlarm';
+import { uploadFile } from '@shared/supabase';
 
 function App() {
     const { data: session } = useSession();
@@ -112,12 +113,17 @@ function App() {
 
     const handleComplete = async (id: number, photo: string) => {
         try {
-            await apiClient.completeTodo(id, photo);
+            // OPTIMIZATION: Upload to Storage instead of DB Base64
+            const path = `todos/${Date.now()}-${id}.jpg`;
+            const storagePath = await uploadFile('todo-completions', path, photo);
+            
+            await apiClient.completeTodo(id, storagePath);
             toast.success('Tugas selesai! Kerja bagus ✨');
             fetchTodos();
             // Refresh first page of history to show the new completion
             if (role === 'Admin') fetchHistory(1, true);
         } catch (error) {
+            console.error('Complete todo failed', error);
             toast.error('Gagal menyelesaikan tugas.');
         }
     };

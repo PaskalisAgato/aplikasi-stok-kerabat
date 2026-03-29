@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
+import { getOptimizedImageUrl } from '@shared/supabase';
 import type { Recipe } from '@shared/mockDatabase';
 import Layout from '@shared/Layout';
 import EditRecipeModal from './components/EditRecipeModal';
@@ -244,7 +245,7 @@ const RecipeImage: React.FC<{
     return (
         <div
             className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3 flex items-center justify-center overflow-hidden"
-            style={{ backgroundImage: recipeUrl ? `url('${recipeUrl}')` : 'none' }}
+            style={{ backgroundImage: recipeUrl ? `url('${getOptimizedImageUrl(recipeUrl, { width: 400, height: 400 })}')` : 'none' }}
         >
             {isLoading && (
                 <div className="size-6 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>

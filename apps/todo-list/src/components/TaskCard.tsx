@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import CameraCaptureModal from './CameraCaptureModal';
 import { apiClient } from '@shared/apiClient';
+import { getOptimizedImageUrl } from '@shared/supabase';
 
 interface TaskCardProps {
     task: any;
@@ -174,7 +175,11 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                              </div>
                          ) : photoUrl ? (
                              <>
-                                 <img src={photoUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" alt="Bukti" />
+                                 <img 
+                                    src={getOptimizedImageUrl(photoUrl, { width: 400, height: 300 })} 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" 
+                                    alt="Bukti" 
+                                 />
                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-4">
                                      <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
                                          <span className="material-symbols-outlined text-sm">visibility</span>
