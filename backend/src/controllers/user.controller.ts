@@ -35,7 +35,6 @@ export class UserController {
             console.log(`[LOGIN_PIN_SUCCESS] User found: ${user.name} (${user.id})`);
 
             // 3. SET SESSION (WAJIB)
-            // @ts-ignore - session.user is dynamic
             req.session.user = {
                 id: user.id,
                 name: user.name,
