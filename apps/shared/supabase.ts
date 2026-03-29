@@ -71,19 +71,20 @@ export async function uploadFile(
 /**
  * Construct optimized public URL with Supabase Image Transformations
  */
-export function getOptimizedImageUrl(path: string, options: { width?: number; height?: number; resize?: 'cover' | 'contain' | 'fill' } = {}) {
+export function getOptimizedImageUrl(path: string, _options: { width?: number; height?: number; resize?: 'cover' | 'contain' | 'fill' } = {}) {
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 
-    const projectUrl = import.meta.env.VITE_SUPABASE_URL; // e.g. https://lvfqfynqzgxjbkotlccp.supabase.co
+    const projectUrl = (import.meta as any).env?.VITE_SUPABASE_URL || (globalThis as any).process?.env?.VITE_SUPABASE_URL;
     if (!projectUrl) {
         console.warn('[Supabase] getOptimizedImageUrl: VITE_SUPABASE_URL missing, returning raw path.');
         return path;
     }
-    const { width = 300, height = 300, resize = 'contain' } = options;
     
-    // Format: https://project-id.supabase.co/storage/v1/render/image/public/bucket/path?width=300&height=300&resize=contain
-    return `${projectUrl}/storage/v1/render/image/public/${path}?width=${width}&height=${height}&resize=${resize}`;
+    // NOTE: We switch from 'render/image/public' to 'object/public' 
+    // to support projects on the Supabase Free Plan while maintaining compatibility.
+    // Transformed URI would require Pro plan: /storage/v1/render/image/public/${path}
+    return `${projectUrl}/storage/v1/object/public/${path}`;
 }
 
 export function getPublicUrl(bucket: string, path: string) {
