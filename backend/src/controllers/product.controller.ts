@@ -12,6 +12,22 @@ export class ProductController {
         }
     }
 
+    static async getPhoto(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id as string);
+            if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
+
+            const photo = await ProductService.getProductPhoto(id);
+            if (!photo) {
+                return res.status(404).json({ error: 'Foto tidak ditemukan' });
+            }
+            res.json({ success: true, data: photo });
+        } catch (error) {
+            console.error('Error in ProductController.getPhoto:', error);
+            res.status(500).json({ error: 'Failed to fetch photo' });
+        }
+    }
+
     static async create(req: Request, res: Response) {
         try {
             const { name, category, price } = req.body;

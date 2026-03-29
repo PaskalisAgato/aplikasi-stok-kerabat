@@ -98,4 +98,29 @@ export class TodoController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async getPhoto(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id as any);
+            const { type } = req.query; // 'todo' or 'completion'
+            
+            let photo: string | null | undefined;
+            if (type === 'completion') {
+                photo = await TodoService.getCompletionPhoto(id);
+            } else {
+                photo = await TodoService.getTodoPhoto(id);
+            }
+
+            if (!photo) {
+                return res.status(404).json({ error: 'Foto tidak ditemukan.' });
+            }
+
+            res.json({
+                success: true,
+                data: photo
+            });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

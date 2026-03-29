@@ -48,12 +48,25 @@ export class ProductService {
 
             return {
                 ...recipe,
+                imageUrl: undefined, // Omit large Base64
+                hasImage: !!recipe.imageUrl,
                 price: parseFloat(recipe.price),
                 margin: parseFloat(recipe.margin),
                 hpp: currentHpp > 0 ? currentHpp : 0, 
                 ingredients
             };
         });
+    }
+
+    static async getProductPhoto(id: number) {
+        const [recipe] = await db.select({
+            imageUrl: schema.recipes.imageUrl
+        })
+        .from(schema.recipes)
+        .where(eq(schema.recipes.id, id))
+        .limit(1);
+
+        return recipe?.imageUrl || null;
     }
 
     static async createProduct(data: any) {

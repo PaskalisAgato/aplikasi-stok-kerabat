@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import CameraCaptureModal from './CameraCaptureModal';
+import { apiClient } from '@shared/apiClient';
 
 interface TaskCardProps {
     task: any;
@@ -14,7 +15,30 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
     const [isUploading, setIsUploading] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
     const [isOverdue, setIsOverdue] = useState(false);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
     
+    useEffect(() => {
+        if (task.status === 'Completed' && task.hasPhotoProof && !photoUrl && !isLoadingPhoto) {
+            const fetchPhoto = async () => {
+                setIsLoadingPhoto(true);
+                try {
+                    const id = task.isRecurring ? task.completionId : task.id;
+                    const type = task.isRecurring ? 'completion' : 'todo';
+                    const res = await apiClient.getTodoPhoto(id, type);
+                    if (res?.data) {
+                        setPhotoUrl(res.data);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch photo', error);
+                } finally {
+                    setIsLoadingPhoto(false);
+                }
+            };
+            fetchPhoto();
+        }
+    }, [task.status, task.hasPhotoProof, task.id, task.completionId, task.isRecurring]);
+
     useEffect(() => {
         if (!task.deadline || task.status === 'Completed') {
             setTimeLeft(null);
@@ -137,24 +161,38 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
             />
 
             {/* History Details (Admin/Completed) */}
-            {isCompleted && task.photoProof && (
+            {isCompleted && task.hasPhotoProof && (
                 <div className="pt-5 border-t border-white/5 space-y-4">
                      <div 
-                        className="w-full aspect-video rounded-[2rem] bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative" 
-                        onClick={() => window.open(task.photoProof, '_blank')}
+                        className="w-full aspect-video rounded-[2rem] bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative flex items-center justify-center" 
+                        onClick={() => photoUrl && window.open(photoUrl, '_blank')}
                      >
-                         <img src={task.photoProof} className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" alt="Bukti" />
-                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-4">
-                             <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
-                                 <span className="material-symbols-outlined text-sm">visibility</span>
-                                 Lihat Foto Full
-                             </span>
-                         </div>
+                         {isLoadingPhoto ? (
+                             <div className="flex flex-col items-center gap-2 opacity-40">
+                                 <div className="size-6 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
+                                 <span className="text-[8px] font-black uppercase tracking-widest">Memuat Foto...</span>
+                             </div>
+                         ) : photoUrl ? (
+                             <>
+                                 <img src={photoUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" alt="Bukti" />
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-4">
+                                     <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
+                                         <span className="material-symbols-outlined text-sm">visibility</span>
+                                         Lihat Foto Full
+                                     </span>
+                                 </div>
+                             </>
+                         ) : (
+                             <div className="flex flex-col items-center gap-2 opacity-40">
+                                 <span className="material-symbols-outlined text-2xl">image_not_supported</span>
+                                 <span className="text-[8px] font-black uppercase tracking-widest text-center px-4">Gagal memuat foto</span>
+                             </div>
+                         )}
                      </div>
                      <div className="flex justify-between items-end">
                          <div className="space-y-0.5">
                              <p className="text-[8px] font-black text-muted uppercase tracking-widest opacity-60">Selesai pada</p>
-                             <p className="text-[10px] font-black text-main uppercase tracking-tight">{new Date(task.completionTime).toLocaleString('id-ID')}</p>
+                             <p className="text-[10px] font-black text-main uppercase tracking-tight">{task.completionTime ? new Date(task.completionTime).toLocaleString('id-ID') : '-'}</p>
                          </div>
                          <div className="text-right space-y-0.5">
                              <p className="text-[8px] font-black text-muted uppercase tracking-widest opacity-60">Oleh</p>

@@ -13,6 +13,7 @@ router.post('/', requireAdmin, TodoController.createTodo);
 router.put('/:id', requireAdmin, TodoController.updateTodo);
 router.delete('/:id', requireAdmin, TodoController.deleteTodo);
 router.get('/history', requireAdmin, TodoController.getHistory);
+router.get('/:id/photo', requireAuth, TodoController.getPhoto);
 router.delete('/history/clear', requireAdmin, TodoController.clearHistory);
 
 // Employee: Mark as completed

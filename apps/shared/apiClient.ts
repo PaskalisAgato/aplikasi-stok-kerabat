@@ -278,6 +278,8 @@ export const apiClient = {
     addExpenseCategory: (data: unknown) => apiFetch<any>('/finance/expenses/categories', { method: 'POST', body: JSON.stringify(data) }),
     deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
     getHPPAnalysis: () => apiFetch<ApiResponse<any>>('/finance/hpp'),
+    getExpensePhoto: (id: number) => apiFetch<any>(`/finance/expenses/${id}/photo`),
+    getRecipePhoto: (id: number) => apiFetch<any>(`/products/${id}/photo`),
 
     // ---- SHIFTS ----
     getAllShifts: () => apiFetch<ApiResponse<any>>('/shifts'),
@@ -308,6 +310,7 @@ export const apiClient = {
     completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
     getTodoHistory: (page = 1, limit = 20) => apiFetch<ApiResponse<any>>(`/todo/history?page=${page}&limit=${limit}`),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
+    getTodoPhoto: (id: number, type: 'todo' | 'completion' = 'todo') => apiFetch<any>(`/todo/${id}/photo?type=${type}`),
 
     // ---- SYSTEM ADMIN & OBSERVABILITY ----
     getSystemStats: () => apiFetch<any>('/system/stats'),

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOptimizedImageUrl } from '@shared/supabase';
+import { apiClient } from '@shared/apiClient';
 
 interface Expense {
     id: number;
@@ -9,6 +10,7 @@ interface Expense {
     date: string;
     amount: string;
     receiptUrl?: string;
+    hasReceipt?: boolean;
 }
 
 interface ExpenseListProps {
@@ -111,23 +113,12 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             >
                                 <div className="flex items-center gap-5 flex-1 min-w-0">
                                     <div
-                                        onClick={() => expense.receiptUrl && setPreviewImage(getOptimizedImageUrl(expense.receiptUrl!, { width: 800, height: 800 }))}
-                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in overflow-hidden"
+                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in overflow-hidden relative"
                                     >
-                                        {expense.receiptUrl ? (
-                                            <img 
-                                                src={getOptimizedImageUrl(expense.receiptUrl, { width: 200, height: 200 })} 
-                                                alt="Receipt" 
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-3xl font-black">receipt_long</span>';
-                                                }}
-                                            />
-                                        ) : (
-                                            <span className="material-symbols-outlined text-3xl font-black">
-                                                no_photography
-                                            </span>
-                                        )}
+                                        <RecipeImage 
+                                            expense={expense} 
+                                            setPreviewImage={setPreviewImage}
+                                        />
                                     </div>
                                     <div className="flex-1 min-w-0 space-y-1.5">
                                         <div className="flex items-center gap-2">
@@ -202,6 +193,64 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                 )}
             </AnimatePresence>
         </div>
+    );
+};
+
+const RecipeImage: React.FC<{ 
+    expense: Expense;
+    setPreviewImage: (url: string | null) => void;
+}> = ({ expense, setPreviewImage }) => {
+    const [recipeUrl, setRecipeUrl] = useState<string | null>(expense.receiptUrl || null);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    useEffect(() => {
+        if (expense.hasReceipt && !recipeUrl && !isLoading) {
+            const fetchReceipt = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await apiClient.getExpensePhoto(expense.id);
+                    if (res.data) {
+                        setRecipeUrl(res.data);
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch receipt', e);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchReceipt();
+        }
+    }, [expense.id, expense.hasReceipt]);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center gap-1 opacity-40">
+                <div className="size-4 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
+            </div>
+        );
+    }
+
+    if (recipeUrl) {
+        return (
+            <img 
+                src={getOptimizedImageUrl(recipeUrl, { width: 200, height: 200 })} 
+                alt="Receipt" 
+                className="w-full h-full object-cover"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewImage(getOptimizedImageUrl(recipeUrl, { width: 800, height: 800 }));
+                }}
+                onError={(e) => {
+                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-3xl font-black">receipt_long</span>';
+                }}
+            />
+        );
+    }
+
+    return (
+        <span className="material-symbols-outlined text-3xl font-black">
+            {expense.hasReceipt ? 'sync' : 'no_photography'}
+        </span>
     );
 };
 

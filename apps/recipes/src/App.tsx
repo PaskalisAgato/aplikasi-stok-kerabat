@@ -136,10 +136,9 @@ function App() {
                         style={{ animationDelay: `${idx * 50}ms` }}
                         className="card group p-6 flex flex-col sm:flex-row gap-6 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] border-white/5 relative"
                     >
-                        <div
-                            className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3"
-                            style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
-                        ></div>
+                        <RecipeImage 
+                            recipe={recipe} 
+                        />
                         
                         <div className="flex-1 flex flex-col justify-between space-y-4 min-w-0">
                             <div className="space-y-1">
@@ -216,5 +215,45 @@ function App() {
         </Layout>
     );
 }
+
+const RecipeImage: React.FC<{
+    recipe: Recipe;
+}> = ({ recipe }) => {
+    const [recipeUrl, setRecipeUrl] = useState<string | null>(recipe.imageUrl || null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (recipe.hasImage && !recipeUrl && !isLoading) {
+            const fetchImage = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await apiClient.getRecipePhoto(recipe.id);
+                    if (res.data) {
+                        setRecipeUrl(res.data);
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch recipe image', e);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchImage();
+        }
+    }, [recipe.id, recipe.hasImage]);
+
+    return (
+        <div
+            className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3 flex items-center justify-center overflow-hidden"
+            style={{ backgroundImage: recipeUrl ? `url('${recipeUrl}')` : 'none' }}
+        >
+            {isLoading && (
+                <div className="size-6 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
+            )}
+            {!recipeUrl && !isLoading && (
+                <span className="material-symbols-outlined text-4xl opacity-20">restaurant_menu</span>
+            )}
+        </div>
+    );
+};
 
 export default App;

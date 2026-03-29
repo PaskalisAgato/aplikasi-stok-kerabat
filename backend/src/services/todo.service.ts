@@ -36,12 +36,16 @@ export class TodoService {
                 return {
                     ...todo,
                     status: completion ? 'Completed' : 'Pending',
-                    photoProof: completion?.photoProof || null,
+                    hasPhotoProof: !!completion?.photoProof,
+                    completionId: completion?.id || null,
                     completionTime: completion?.completionTime || null,
                     completedBy: completion?.completedBy || null
                 };
             }
-            return todo;
+            return {
+                ...todo,
+                hasPhotoProof: !!todo.photoProof
+            };
         });
     }
 
@@ -71,10 +75,11 @@ export class TodoService {
                 t.interval_value as "intervalValue", 
                 t.next_run_at as "nextRunAt", 
                 t.deadline, 
-                COALESCE(tc.photo_proof, t.photo_proof) as "photoProof", 
+                CASE WHEN (tc.photo_proof IS NOT NULL OR t.photo_proof IS NOT NULL) THEN true ELSE false END as "hasPhotoProof", 
                 COALESCE(tc.completion_time, t.completion_time) as "completionTime", 
                 COALESCE(tc.completed_by, t.completed_by) as "completedBy", 
-                t.created_at as "createdAt"
+                t.created_at as "createdAt",
+                tc.id as "completionId"
             FROM ${todos} t
             LEFT JOIN ${todoCompletions} tc ON t.id = tc.todo_id
             WHERE (t.status = 'Completed' AND t.is_recurring = false)
@@ -208,6 +213,22 @@ export class TodoService {
             .where(eq(todos.id, id))
             .returning();
         return deletedTodo;
+    }
+
+    static async getTodoPhoto(id: number) {
+        const todo = await db.query.todos.findFirst({
+            where: eq(todos.id, id),
+            columns: { photoProof: true }
+        });
+        return todo?.photoProof;
+    }
+
+    static async getCompletionPhoto(id: number) {
+        const completion = await db.query.todoCompletions.findFirst({
+            where: eq(todoCompletions.id, id),
+            columns: { photoProof: true }
+        });
+        return completion?.photoProof;
     }
 
     static async clearHistory() {
