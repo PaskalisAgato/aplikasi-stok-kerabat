@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import { getOptimizedImageUrl } from '@shared/supabase';
 import TransactionHistory from './TransactionHistory';
 
 interface Recipe {
@@ -221,10 +222,10 @@ function App() {
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div
                                         className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/10 group-hover:rotate-2 transition-transform"
-                                        style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
+                                        style={{ backgroundImage: `url('${getOptimizedImageUrl(recipe.imageUrl || "", { width: 200, height: 200 })}')` }}
                                     />
                                     <div className="flex-1 min-w-0 space-y-1">
-                                        <h3 className="font-black text-[var(--text-main)] text-lg md:text-xl font-display tracking-tight leading-tight truncate uppercase w-full max-w-[150px] md:max-w-none">{recipe.name}</h3>
+                                        <h3 className="font-black text-[var(--text-main)] text-base md:text-xl font-display tracking-tight leading-tight uppercase w-full break-words">{recipe.name}</h3>
                                         <p className="text-primary font-black text-sm tracking-wide">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                     </div>
                                 </div>
@@ -281,46 +282,67 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-2 space-y-4 md:space-y-6 pb-32 custom-scrollbar">
-                            {isLoading && (
-                                 <div className="flex flex-col justify-center items-center py-20 gap-6">
-                                     <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                                    <p className="text-[12px] font-black text-primary uppercase tracking-widest animate-pulse">Menghubungkan ke Dapur...</p>
-                                 </div>
-                            )}
+                        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-2 pb-32 custom-scrollbar">
                             {!isLoading && filteredRecipes.length === 0 ? (
                                 <div className="text-center py-20 glass rounded-[2rem] opacity-50 border-dashed border-2">
                                     <span className="material-symbols-outlined text-4xl md:text-6xl mb-4 block">sentiment_dissatisfied</span>
                                     <p className="text-sm font-black uppercase tracking-widest">Menu tidak ditemukan</p>
                                 </div>
-                            ) : filteredRecipes.map((recipe) => {
-                                const qty = sales[recipe.id] || 0;
-                                return (
-                                    <div key={`add-${recipe.id}`} className="card flex items-center justify-between gap-4 group hover:scale-[1.01] transition-all p-4 md:p-5">
-                                        <div className="flex items-center gap-4 min-w-0">
-                                            <div
-                                                className="size-16 md:size-20 rounded-2xl bg-cover bg-center shrink-0 shadow-lg border-2 border-white/5"
-                                                style={{ backgroundImage: `url('${recipe.imageUrl || ""}')` }}
-                                            />
-                                            <div className="flex-1 min-w-0 space-y-2">
-                                                <h3 className="font-black text-[var(--text-main)] text-base md:text-lg truncate font-display tracking-tight uppercase max-w-[130px] md:max-w-none">{recipe.name}</h3>
-                                                <p className="text-primary font-black text-sm">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                                    {filteredRecipes.map((recipe) => {
+                                        const qty = sales[recipe.id] || 0;
+                                        return (
+                                            <div 
+                                                key={`add-${recipe.id}`} 
+                                                className="card flex flex-col group hover:scale-[1.02] transition-all p-2 md:p-3 gap-3"
+                                            >
+                                                {/* Image Area */}
+                                                <div
+                                                    className="aspect-square w-full rounded-xl md:rounded-2xl bg-cover bg-center shrink-0 shadow-md border-2 border-white/5 relative overflow-hidden"
+                                                    style={{ backgroundImage: `url('${getOptimizedImageUrl(recipe.imageUrl || "", { width: 300, height: 300 })}')` }}
+                                                >
+                                                    {!recipe.imageUrl && (
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-white/5 text-white/20">
+                                                            <span className="material-symbols-outlined text-4xl">restaurant</span>
+                                                        </div>
+                                                    )}
+                                                    {qty > 0 && (
+                                                        <div className="absolute top-2 right-2 size-6 md:size-8 bg-primary text-slate-950 rounded-full flex items-center justify-center font-black text-[10px] md:text-xs shadow-lg animate-in zoom-in duration-300">
+                                                            {qty}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Content Area */}
+                                                <div className="flex-1 flex flex-col gap-1 min-w-0 px-1">
+                                                    <h3 className="font-black text-[var(--text-main)] text-[11px] sm:text-[13px] md:text-base font-display tracking-tight uppercase break-words w-full">
+                                                        {recipe.name}
+                                                    </h3>
+                                                    <p className="text-primary font-black text-[10px] sm:text-xs md:text-sm">
+                                                        Rp {recipe.price.toLocaleString('id-ID')}
+                                                    </p>
+                                                </div>
+
+                                                {/* Controls Area */}
+                                                <div className="flex items-center justify-between glass p-1 md:p-1.5 rounded-xl md:rounded-2xl shrink-0 mt-auto">
+                                                    <button
+                                                        onClick={() => updateQty(recipe.id, -1)}
+                                                        className="size-8 md:size-10 flex items-center justify-center rounded-lg md:rounded-xl bg-[var(--bg-app)] text-primary hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-sm md:text-xl active:scale-90"
+                                                    >-</button>
+                                                    <span className="flex-1 text-center font-black text-xs md:text-lg font-display text-[var(--text-main)]">
+                                                        {qty}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => updateQty(recipe.id, 1)}
+                                                        className="size-8 md:size-10 flex items-center justify-center rounded-lg md:rounded-xl bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-md font-black text-sm md:text-xl active:scale-90"
+                                                    >+</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 md:gap-4 glass p-2 md:p-3 rounded-full shrink-0">
-                                            <button
-                                                onClick={() => updateQty(recipe.id, -1)}
-                                                className="size-10 flex items-center justify-center rounded-full bg-[var(--bg-app)] text-primary hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-xl active:scale-95"
-                                            >-</button>
-                                            <span className="w-8 text-center font-black text-lg md:text-xl font-display text-[var(--text-main)]">{qty}</span>
-                                            <button
-                                                onClick={() => updateQty(recipe.id, 1)}
-                                                className="size-10 flex items-center justify-center rounded-full bg-primary text-slate-950 hover:bg-primary-dark transition-all shadow-md font-black text-xl active:scale-95"
-                                            >+</button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
