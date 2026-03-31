@@ -55,12 +55,15 @@ export class ProductController {
             await ProductService.updateProduct(id, req.body);
             res.json({ success: true, message: 'Produk berhasil diperbarui' });
         } catch (error: any) {
-            console.error("UPDATE ERROR:", error);
+            console.error(`[ProductController.update] Failed for ID ${req.params.id}:`, {
+                error: error.message,
+                body: req.body
+            });
             res.status(500).json({ 
                 success: false,
                 error: true,
                 message: 'Gagal memperbarui produk',
-                details: error.message 
+                details: error.message
             });
         }
     }

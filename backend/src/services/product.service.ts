@@ -72,73 +72,100 @@ export class ProductService {
     static async createProduct(data: any) {
         const { name, category, price, margin, imageUrl, ingredients } = data;
         
-        return await db.transaction(async (tx: any) => {
-            const [newRecipe] = await tx.insert(schema.recipes).values({
-                name,
-                category,
-                price: price.toString(),
-                margin: margin?.toString() || '0',
-                imageUrl,
-            }).returning();
+        // Validation helper
+        const toNumericString = (val: any) => {
+            if (val === undefined || val === null || val === '') return '0';
+            const num = Number(val);
+            return isNaN(num) ? '0' : num.toString();
+        };
 
-            if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients.map((ing: any) => ({
-                    recipeId: newRecipe.id,
-                    inventoryId: ing.ingredientId,
-                    quantity: ing.qty.toString()
-                }));
-                await tx.insert(schema.recipeIngredients).values(bomInserts);
+        return await db.transaction(async (tx: any) => {
+            try {
+                const [newRecipe] = await tx.insert(schema.recipes).values({
+                    name,
+                    category,
+                    price: toNumericString(price),
+                    margin: toNumericString(margin),
+                    imageUrl,
+                }).returning();
+
+                if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+                    const bomInserts = ingredients
+                        .filter((ing: any) => ing.ingredientId && ing.qty !== undefined)
+                        .map((ing: any) => ({
+                            recipeId: newRecipe.id,
+                            inventoryId: ing.ingredientId,
+                            quantity: toNumericString(ing.qty)
+                        }));
+                    
+                    if (bomInserts.length > 0) {
+                        await tx.insert(schema.recipeIngredients).values(bomInserts);
+                    }
+                }
+                
+                return newRecipe;
+            } catch (error) {
+                console.error("[ProductService.createProduct] Transaction failed:", error);
+                throw error;
             }
-            
-            return newRecipe;
         });
     }
 
     static async updateProduct(id: number, data: any) {
         const { name, category, price, margin, imageUrl, ingredients } = data;
 
+        // Validation helper
+        const toNumericString = (val: any) => {
+            if (val === undefined || val === null || val === '') return null;
+            const num = Number(val);
+            return isNaN(num) ? '0' : num.toString();
+        };
+
         return await db.transaction(async (tx: any) => {
-            // 1. Update main recipe data
-            const updatePayload: any = {
-                name,
-                category,
-                imageUrl,
-            };
+            try {
+                // 1. Update main recipe data
+                const updatePayload: any = {};
+                if (name) updatePayload.name = name;
+                if (category) updatePayload.category = category;
+                if (imageUrl !== undefined) updatePayload.imageUrl = imageUrl;
 
-            // Defensive check for mandatory numeric fields
-            if (price !== undefined && price !== null) {
-                updatePayload.price = price.toString();
-            }
-            
-            if (margin !== undefined && margin !== null) {
-                updatePayload.margin = margin.toString();
-            }
-
-            await tx.update(schema.recipes)
-                .set(updatePayload)
-                .where(eq(schema.recipes.id, id));
-
-            // 2. Refresh Ingredients (BOM)
-            // Delete existing ingredients for this recipe
-            await tx.delete(schema.recipeIngredients)
-                .where(eq(schema.recipeIngredients.recipeId, id));
-
-            // Insert new ingredients if provided
-            if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients
-                    .filter((ing: any) => ing.ingredientId && ing.qty !== undefined)
-                    .map((ing: any) => ({
-                        recipeId: id,
-                        inventoryId: ing.ingredientId,
-                        quantity: ing.qty.toString()
-                    }));
+                const priceStr = toNumericString(price);
+                if (priceStr !== null) updatePayload.price = priceStr;
                 
-                if (bomInserts.length > 0) {
-                    await tx.insert(schema.recipeIngredients).values(bomInserts);
+                const marginStr = toNumericString(margin);
+                if (marginStr !== null) updatePayload.margin = marginStr;
+
+                if (Object.keys(updatePayload).length > 0) {
+                    await tx.update(schema.recipes)
+                        .set(updatePayload)
+                        .where(eq(schema.recipes.id, id));
                 }
+
+                // 2. Refresh Ingredients (BOM)
+                // Delete existing ingredients for this recipe
+                await tx.delete(schema.recipeIngredients)
+                    .where(eq(schema.recipeIngredients.recipeId, id));
+
+                // Insert new ingredients if provided
+                if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+                    const bomInserts = ingredients
+                        .filter((ing: any) => ing.ingredientId && (ing.qty !== undefined && ing.qty !== null))
+                        .map((ing: any) => ({
+                            recipeId: id,
+                            inventoryId: ing.ingredientId,
+                            quantity: Number(ing.qty).toString() || '0'
+                        }));
+                    
+                    if (bomInserts.length > 0) {
+                        await tx.insert(schema.recipeIngredients).values(bomInserts);
+                    }
+                }
+                
+                return { success: true };
+            } catch (error) {
+                console.error(`[ProductService.updateProduct] Transaction failed for ID ${id}:`, error);
+                throw error;
             }
-            
-            return { success: true };
         });
     }
 
