@@ -3,6 +3,7 @@ import * as schema from '../db/schema.js';
 import { eq, and, between, desc, sql, like } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export class AttendanceService {
     static async getTodayAttendance(userId: string) {
@@ -160,13 +161,19 @@ export class AttendanceService {
             // 2. Delete photos if segments exist
             const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean) as string[];
             for (const photo of photos) {
-                const filePath = path.resolve(process.cwd(), 'uploads', photo);
-                if (fs.existsSync(filePath)) {
-                    try {
-                        fs.unlinkSync(filePath);
-                        console.log(`[DeleteRecord] Cleaned up file: ${photo}`);
-                    } catch (e) {
-                        console.error(`Failed to delete file ${photo}:`, e);
+                if (photo.startsWith('http')) {
+                    // Cloudinary
+                    await deleteFromCloudinary(photo);
+                } else {
+                    // Local File
+                    const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                    if (fs.existsSync(filePath)) {
+                        try {
+                            fs.unlinkSync(filePath);
+                            console.log(`[DeleteRecord] Cleaned up file: ${photo}`);
+                        } catch (e) {
+                            console.error(`Failed to delete file ${photo}:`, e);
+                        }
                     }
                 }
             }
@@ -192,13 +199,20 @@ export class AttendanceService {
         for (const record of records) {
             const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean) as string[];
             for (const photo of photos) {
-                const filePath = path.resolve(process.cwd(), 'uploads', photo);
-                if (fs.existsSync(filePath)) {
-                    try {
-                        fs.unlinkSync(filePath);
-                        deletedFiles++;
-                    } catch (e) {
-                        console.error(`Failed to delete file ${photo}:`, e);
+                if (photo.startsWith('http')) {
+                    // Cloudinary
+                    await deleteFromCloudinary(photo);
+                    deletedFiles++;
+                } else {
+                    // Local File
+                    const filePath = path.resolve(process.cwd(), 'uploads', photo);
+                    if (fs.existsSync(filePath)) {
+                        try {
+                            fs.unlinkSync(filePath);
+                            deletedFiles++;
+                        } catch (e) {
+                            console.error(`Failed to delete file ${photo}:`, e);
+                        }
                     }
                 }
             }
@@ -213,8 +227,8 @@ export class AttendanceService {
     }
 
     static async clearPhotoUrl(filename: string) {
-        // Find record by photo path
-        const photoPath = `attendance/${filename}`;
+        // Find record by photo path or URL
+        const photoPath = filename.startsWith('http') ? filename : `attendance/${filename}`;
         
         // Try checkInPhoto first
         await db.update(schema.attendance)

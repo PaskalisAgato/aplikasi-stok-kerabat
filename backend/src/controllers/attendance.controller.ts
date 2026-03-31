@@ -3,17 +3,27 @@ import { AttendanceService } from '../services/attendance.service.js';
 import fs from 'fs';
 import path from 'path';
 import { resizeImage } from '../utils/image.utils.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export class AttendanceController {
     static async upload(req: Request, res: Response) {
         try {
             if (!req.file) throw new Error('No file uploaded');
-            const filename = req.file.filename;
-
-            // Process image in background (optional, but here we do it before response for simplicity)
+            
+            // 1. Resize locally first
             await resizeImage(req.file.path, 1200, 70);
 
-            res.json({ success: true, filename });
+            // 2. Upload to Cloudinary
+            const cloudinaryUrl = await uploadToCloudinary(req.file.path, 'attendance');
+            
+            if (!cloudinaryUrl) {
+                throw new Error('Gagal mengunggah foto ke Cloudinary');
+            }
+
+            // 3. Cleanup local file (Multipart remains on disk until this)
+            try { fs.unlinkSync(req.file.path); } catch(e) {}
+
+            res.json({ success: true, filename: cloudinaryUrl });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }
@@ -37,8 +47,13 @@ export class AttendanceController {
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
             const { latitude, longitude, location } = req.body;
-            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
+            let photoPath = req.file ? (await uploadToCloudinary(req.file.path, 'attendance') || `attendance/${req.file.filename}`) : (req.body.photo || undefined);
             
+            // Cleanup local file if it was uploaded to Cloudinary
+            if (req.file && photoPath?.startsWith('http')) {
+                try { fs.unlinkSync(req.file.path); } catch(e) {}
+            }
+
             const record = await AttendanceService.checkIn(userId, photoPath, {
                 latitude: latitude ? parseFloat(latitude) : undefined,
                 longitude: longitude ? parseFloat(longitude) : undefined,
@@ -56,7 +71,12 @@ export class AttendanceController {
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
             const { latitude, longitude, location } = req.body;
-            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
+            let photoPath = req.file ? (await uploadToCloudinary(req.file.path, 'attendance') || `attendance/${req.file.filename}`) : (req.body.photo || undefined);
+
+            // Cleanup local file if it was uploaded to Cloudinary
+            if (req.file && photoPath?.startsWith('http')) {
+                try { fs.unlinkSync(req.file.path); } catch(e) {}
+            }
             
             const record = await AttendanceService.checkOut(userId, photoPath, {
                 latitude: latitude ? parseFloat(latitude) : undefined,
