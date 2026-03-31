@@ -54,7 +54,10 @@ export class UserController {
             return res.status(200).json({ 
                 success: true, 
                 user: (req.session as any).user,
-                sessionId: manualSession.id // Fallback for UUID based auth
+                session: {
+                    id: manualSession.id,
+                    user: (req.session as any).user
+                }
             });
 
         } catch (err: any) {

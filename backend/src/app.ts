@@ -156,6 +156,13 @@ app.get('/api/auth/session', async (req: Request, res: Response) => {
             session = await UserService.getSessionByHashedToken(cookieToken);
         }
 
+        if (!session && (req.session as any)?.user) {
+            session = {
+                id: 'express-session',
+                user: (req.session as any).user
+            };
+        }
+
         if (!session) {
             return res.status(200).json({ session: null });
         }

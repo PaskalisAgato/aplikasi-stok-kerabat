@@ -50,8 +50,9 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                 setError(data.error || 'Login gagal. Silakan cek PIN Anda.');
             } else {
                 // Success - save the token to localStorage as a fallback for iOS
-                if (data.session?.id) {
-                    localStorage.setItem('kerabat_auth_token', data.session.id);
+                const sessId = data.session?.id || data.sessionId;
+                if (sessId) {
+                    localStorage.setItem('kerabat_auth_token', sessId);
                 }
                 
                 setTimeout(() => {
