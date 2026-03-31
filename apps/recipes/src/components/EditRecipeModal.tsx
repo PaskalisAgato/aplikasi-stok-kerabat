@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
-import { uploadFile, getOptimizedImageUrl } from '@shared/supabase';
+import { getOptimizedImageUrl } from '@shared/supabase';
 import type { Recipe } from '@shared/mockDatabase';
 
 interface Ingredient {
@@ -250,32 +250,27 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 qty: ing.qty
             }));
 
-            let finalImageUrl = imageUrl;
-            if (imageUrl && imageUrl.startsWith('data:image')) {
-                setIsUploadingImage(true);
-                try {
-                    const fileName = `recipe-${Date.now()}-${namaResep.replace(/\s+/g, '-').toLowerCase()}.jpg`;
-                    finalImageUrl = await uploadFile('recipes', fileName, imageUrl);
-                } finally {
-                    setIsUploadingImage(false);
-                }
-            }
-
+            // Backend middleware validateBase64Image('imageUrl') will handle Cloudinary
             const payload = {
                 name: namaResep,
                 category: category,
                 price: hargaJual,
                 margin: parseFloat(margin),
-                imageUrl: finalImageUrl,
+                imageUrl: imageUrl, // Pass Base64 directly
                 ingredients: prepIngredients
             };
 
-            // If recipe.id is a real DB ID (positive integer from before ~2020 timestamp), update. Otherwise create.
-            const isExisting = recipe.id && recipe.id < 1_000_000_000;
-            if (isExisting) {
-                await apiClient.updateRecipe(recipe.id, payload);
-            } else {
-                await apiClient.createRecipe(payload);
+            setIsUploadingImage(true);
+            try {
+                // If recipe.id is a real DB ID (positive integer from before ~2020 timestamp), update. Otherwise create.
+                const isExisting = recipe.id && recipe.id < 1_000_000_000;
+                if (isExisting) {
+                    await apiClient.updateRecipe(recipe.id, payload);
+                } else {
+                    await apiClient.createRecipe(payload);
+                }
+            } finally {
+                setIsUploadingImage(false);
             }
 
             // Sync modified prices back to inventory

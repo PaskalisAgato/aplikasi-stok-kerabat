@@ -7,6 +7,7 @@ import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
+import session from 'express-session';
 // Route Imports
 import { productRoutes } from './routes/product.routes.js';
 import { transactionRoutes } from './routes/transaction.routes.js';
@@ -34,16 +35,29 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 const app = express();
+// DEBUG LOGGING (WAJIB)
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${new Date().toISOString()} | ${req.method} ${req.url}`);
+    next();
+});
+// STRICT CORS
 app.use(cors({
-    origin: [
-        'https://aplikasi-stok-kerabat-pos.vercel.app',
-        'http://localhost:5173',
-        'http://localhost:3000'
-    ],
+    origin: "https://aplikasi-stok-kerabat-pos.vercel.app",
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
     exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
+}));
+// SESSION MANAGEMENT (WAJIB)
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'kerabat-pos-secret-key-2024',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: true, // Render/Vercel are HTTPS
+        sameSite: 'none', // Needed for cross-domain
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
 }));
 // 1. Enterprise Monitoring & Guardrails
 app.use(limiter);
@@ -119,6 +133,12 @@ app.get('/api/auth/session', async (req, res) => {
         if (!session && cookieToken) {
             session = await UserService.getSessionByHashedToken(cookieToken);
         }
+        if (!session && req.session?.user) {
+            session = {
+                id: 'express-session',
+                user: req.session.user
+            };
+        }
         if (!session) {
             return res.status(200).json({ session: null });
         }
@@ -134,17 +154,20 @@ app.post('/api/auth/logout-manual', async (req, res) => {
     try {
         const cookieToken = req.cookies['better-auth.session_token'];
         const bearerToken = req.headers.authorization?.replace('Bearer ', '');
-        // Bearer token from localStorage = session UUID (primary key)
+        // 1. Destroy express-session (Wajib)
+        req.session.destroy((err) => {
+            if (err)
+                console.error("[LOGOUT_ERROR] Failed to destroy express-session:", err);
+        });
+        // 2. Clear Manual DB Sessions (Backward Compat)
         if (bearerToken) {
             await UserService.deleteSessionById(bearerToken);
         }
-        // Cookie token = hashed token stored in 'token' column
         if (cookieToken) {
             await UserService.deleteSessionByHashedToken(cookieToken);
-            // Also try as plaintext in case cookie format changed
             await UserService.deleteSessionByToken(cookieToken);
         }
-        // Clear cookies with EXACT same options as they were set during login
+        // 3. Clear cookies
         const cookieOptions = {
             httpOnly: true,
             secure: true,
@@ -152,8 +175,7 @@ app.post('/api/auth/logout-manual', async (req, res) => {
             path: '/'
         };
         res.clearCookie('better-auth.session_token', cookieOptions);
-        res.clearCookie('better-auth.session_token.sig', cookieOptions);
-        res.clearCookie('__Secure-better-auth.session_token', cookieOptions);
+        res.clearCookie('connect.sid', cookieOptions); // express-session default cookie
         res.status(200).json({ success: true, message: 'Logged out successfully' });
     }
     catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { apiClient } from '@shared/apiClient';
-import { uploadFile, getOptimizedImageUrl } from '@shared/supabase';
+import { getOptimizedImageUrl } from '@shared/supabase';
 import { compressImage } from '@shared/utils/image';
 
 
@@ -122,24 +122,14 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
         let finalReceiptUrl = receipt || '';
 
         try {
-            // Stage 1: File Upload (if new file selected)
-            if (receipt && receipt.startsWith('data:')) {
-                console.log('[ExpenseForm] Stage 1/2: Uploading receipt to Supabase...');
-                const fileName = `${Date.now()}-${name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
-                finalReceiptUrl = await uploadFile('expenses', fileName, receipt);
-                console.log('[ExpenseForm] Upload successful:', finalReceiptUrl);
-            } else {
-                console.log('[ExpenseForm] Stage 1/2: Skipping upload (no new receipt)');
-            }
-            
-            // Stage 2: Database Save
-            console.log('[ExpenseForm] Stage 2/2: Saving payload to Backend...');
+            // Stage 2: Database Save (Middleware validateBase64Image will handle Cloudinary upload)
+            console.log('[ExpenseForm] Saving payload to Backend...');
             const expensePayload = {
                 title: name,
                 vendor,
                 category: selectedCategory || 'Lainnya',
                 amount: Number(amount),
-                receiptUrl: finalReceiptUrl,
+                receiptUrl: receipt, // Pass Base64 string directly
                 date: expenseDate
             };
 

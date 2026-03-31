@@ -1,7 +1,21 @@
 import { AttendanceService } from '../services/attendance.service.js';
 import fs from 'fs';
 import path from 'path';
+import { resizeImage } from '../utils/image.utils.js';
 export class AttendanceController {
+    static async upload(req, res) {
+        try {
+            if (!req.file)
+                throw new Error('No file uploaded');
+            const filename = req.file.filename;
+            // Process image in background (optional, but here we do it before response for simplicity)
+            await resizeImage(req.file.path, 1200, 70);
+            res.json({ success: true, filename });
+        }
+        catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
     static async getTodayStatus(req, res) {
         try {
             const userId = req.user?.id;

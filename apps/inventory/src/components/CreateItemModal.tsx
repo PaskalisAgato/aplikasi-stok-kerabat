@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
-import { uploadFile } from '@shared/supabase';
 import { compressImage } from '@shared/utils/image';
 
 interface DraftItem {
@@ -118,12 +117,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
         try {
             for (const item of validDrafts) {
                 try {
-                    let imagePath = '';
-                    if (item.imageBase64 && item.imageBase64.startsWith('data:')) {
-                        const fileName = `${Date.now()}-${item.name.replace(/\s+/g, '-').toLowerCase()}.jpg`;
-                        imagePath = await uploadFile('inventory-images', fileName, item.imageBase64);
-                    }
-
+                    // Backend middleware validateBase64Image('imageUrl') will handle Cloudinary
                     await apiClient.addInventoryItem({
                         name: item.name,
                         category: item.category,
@@ -132,7 +126,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         pricePerUnit: item.price || '0',
                         discountPrice: item.discount || '0',
                         idealStock: item.idealStock || '0',
-                        imageUrl: imagePath || item.imageBase64 // This now stores the path or fallback
+                        imageUrl: item.imageBase64 // Pass Base64 directly
                     });
                     successCount++;
                 } catch (err: any) {

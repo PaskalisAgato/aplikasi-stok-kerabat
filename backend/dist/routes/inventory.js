@@ -289,6 +289,7 @@ inventoryRouter.get('/', async (req, res) => {
             pricePerUnit: schema.inventory.pricePerUnit,
             idealStock: schema.inventory.idealStock,
             externalImageUrl: schema.inventory.externalImageUrl,
+            hasImage: sql `CASE WHEN ${schema.inventory.imageUrl} IS NOT NULL THEN true ELSE false END`,
             version: schema.inventory.version,
         })
             .from(schema.inventory)

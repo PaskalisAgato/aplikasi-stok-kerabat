@@ -3,41 +3,58 @@ export class UserController {
     static async loginByPin(req, res) {
         try {
             const { role, pin } = req.body;
-            console.log(`[LoginRequest] Role: ${role}, PIN: ${pin ? '****' : 'EMPTY'}`);
+            // 1. INPUT VALIDATION (WAJIB)
             if (!role || !pin) {
+                console.warn("[LOGIN_PIN_WARNING] Missing role or pin in request body");
                 return res.status(400).json({ error: 'Role and PIN are required' });
             }
-            const user = await UserService.loginByPin(role, pin);
-            if (!user) {
-                console.warn(`[LoginFailed] No user found for Role: ${role} and PIN: ${pin}`);
-                return res.status(401).json({ error: 'PIN atau Role salah' });
-            }
-            // Create session manually using Drizzle fallback
-            const session = await UserService.createSessionManual(user.id);
-            console.log(`[SessionCreatedManual] Session ID: ${session.id}, Token: ${session.token.substring(0, 5)}...`);
-            // Set Better Auth compatible cookie
-            res.cookie('better-auth.session_token', session.token, {
-                httpOnly: true,
-                secure: true, // Render is always HTTPS
-                expires: session.expiresAt,
-                sameSite: 'none', // Needed for cross-domain Vercel -> Render
-                path: '/'
-            });
-            // Audit log for login
+            console.log(`[LOGIN_PIN_DEBUG] Attempting login for Role: ${role}`);
+            // 2. QUERY USER (WAJIB)
+            let user;
             try {
-                await UserService.logAction(user.id, `LOGIN_PIN: ${user.name} (${user.role})`, 'user');
+                user = await UserService.loginByPin(role, pin);
             }
-            catch (auditError) {
-                console.error('[AuditError] Failed to log login action:', auditError);
-                // Don't fail the whole login if audit log fails
+            catch (dbError) {
+                console.error("LOGIN_PIN_DB_ERROR:", dbError);
+                return res.status(500).json({
+                    message: "Internal Server Error (Database Connection)",
+                    error: dbError.message
+                });
             }
-            res.json({ session });
+            if (!user) {
+                console.warn(`[LOGIN_PIN_FAILED] Invalid credentials for Role: ${role}`);
+                return res.status(401).json({ message: "Invalid PIN or Role" });
+            }
+            console.log(`[LOGIN_PIN_SUCCESS] User found: ${user.name} (${user.id})`);
+            // 3. SET SESSION (WAJIB)
+            req.session.user = {
+                id: user.id,
+                name: user.name,
+                role: user.role,
+                email: user.email
+            };
+            // Also keep backward compatible manual session if possible
+            const manualSession = await UserService.createSessionManual(user.id);
+            console.log(`[SESSION_DEBUG] req.session.user set and Manual Session created: ${manualSession.id}`);
+            // Audit log
+            try {
+                await UserService.logAction(user.id, `LOGIN_PIN: ${user.name}`, 'user');
+            }
+            catch (e) { }
+            return res.status(200).json({
+                success: true,
+                user: req.session.user,
+                session: {
+                    id: manualSession.id,
+                    user: req.session.user
+                }
+            });
         }
-        catch (error) {
-            console.error('Error in UserController.loginByPin:', error);
-            res.status(500).json({
-                error: 'Gagal melakukan login',
-                details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        catch (err) {
+            console.error("LOGIN_PIN_ERROR:", err);
+            return res.status(500).json({
+                message: "Internal Server Error",
+                error: err.message
             });
         }
     }

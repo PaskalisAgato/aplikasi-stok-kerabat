@@ -20,7 +20,7 @@ financeRouter.get('/expenses', async (req, res) => {
             userId: schema.expenses.userId,
             expenseDate: schema.expenses.expenseDate,
             createdAt: schema.expenses.createdAt,
-            receiptUrl: schema.expenses.receiptUrl,
+            hasReceipt: sql `CASE WHEN ${schema.expenses.receiptUrl} IS NOT NULL THEN true ELSE false END`,
             externalReceiptUrl: schema.expenses.externalReceiptUrl
         })
             .from(schema.expenses)
@@ -32,7 +32,7 @@ financeRouter.get('/expenses', async (req, res) => {
             success: true,
             data: _expenses,
             meta: {
-                total: _expenses.length, // Note: This only reflects the count of the current page, not total available.
+                total: _expenses.length,
                 limit,
                 offset
             }
@@ -41,6 +41,25 @@ financeRouter.get('/expenses', async (req, res) => {
     catch (error) {
         console.error('Error fetching expenses:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data pengeluaran' });
+    }
+});
+// GET expense photo
+financeRouter.get('/expenses/:id/photo', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const [expense] = await db.select({
+            receiptUrl: schema.expenses.receiptUrl
+        })
+            .from(schema.expenses)
+            .where(eq(schema.expenses.id, id))
+            .limit(1);
+        if (!expense || !expense.receiptUrl) {
+            return res.status(404).json({ success: false, message: 'Foto bukti tidak ditemukan' });
+        }
+        res.json({ success: true, data: expense.receiptUrl });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil foto bukti' });
     }
 });
 // GET all expense categories
