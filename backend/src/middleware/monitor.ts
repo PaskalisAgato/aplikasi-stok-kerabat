@@ -18,11 +18,11 @@ export const monitorMiddleware = async (req: Request, res: Response, next: NextF
 
     // 1. Payload Size Guardrail (INBOUND)
     const contentLength = parseInt(req.get('content-length') || '0');
-    if (contentLength > 1024 * 1024) { // 1MB
-        console.warn(`[Enterprise Guardrail] Rejected large payload (${contentLength} bytes) from ${req.ip} for ${req.path}`);
+    if (contentLength > 5 * 1024 * 1024) { // 5MB
+        console.warn(`[Enterprise Guardrail] Rejected massive payload (${contentLength} bytes) from ${req.ip} for ${req.path}`);
         return res.status(413).json({
             success: false,
-            message: "Ukuran data terlalu besar (maksimal 1MB). Mohon kurangi ukuran data/gambar."
+            message: "Ukuran data terlalu besar (maksimal 5MB). Mohon kurangi ukuran data/gambar."
         });
     }
 

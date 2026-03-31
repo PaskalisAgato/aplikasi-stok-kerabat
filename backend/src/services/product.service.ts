@@ -153,7 +153,7 @@ export class ProductService {
                         .map((ing: any) => ({
                             recipeId: id,
                             inventoryId: ing.ingredientId,
-                            quantity: Number(ing.qty).toString() || '0'
+                            quantity: toNumericString(ing.qty) || '0'
                         }));
                     
                     if (bomInserts.length > 0) {
