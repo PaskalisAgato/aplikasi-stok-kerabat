@@ -79,7 +79,8 @@ export class TodoService {
                 COALESCE(tc.completion_time, t.completion_time) as "completionTime", 
                 COALESCE(tc.completed_by, t.completed_by) as "completedBy", 
                 t.created_at as "createdAt",
-                tc.id as "completionId"
+                tc.id as "completionId",
+                COALESCE(tc.photo_proof, t.photo_proof) as "photoProof"
             FROM ${todos} t
             LEFT JOIN ${todoCompletions} tc ON t.id = tc.todo_id
             WHERE (t.status = 'Completed' AND t.is_recurring = false)

@@ -23,6 +23,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             userId: schema.expenses.userId,
             expenseDate: schema.expenses.expenseDate,
             createdAt: schema.expenses.createdAt,
+            receiptUrl: schema.expenses.receiptUrl, // Added
             hasReceipt: sql`CASE WHEN ${schema.expenses.receiptUrl} IS NOT NULL THEN true ELSE false END`,
             externalReceiptUrl: schema.expenses.externalReceiptUrl
         })

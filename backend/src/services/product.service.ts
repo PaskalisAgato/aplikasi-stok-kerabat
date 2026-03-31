@@ -48,7 +48,7 @@ export class ProductService {
 
             return {
                 ...recipe,
-                imageUrl: recipe.imageUrl?.startsWith('http') ? recipe.imageUrl : undefined, // Include URL, omit large Base64
+                imageUrl: (recipe.imageUrl && !recipe.imageUrl.startsWith('data:')) ? recipe.imageUrl : undefined, // Include URL/path, omit large Base64
                 hasImage: !!recipe.imageUrl,
                 price: parseFloat(recipe.price),
                 margin: parseFloat(recipe.margin),

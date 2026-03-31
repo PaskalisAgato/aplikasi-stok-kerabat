@@ -16,7 +16,7 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
     const [isUploading, setIsUploading] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
     const [isOverdue, setIsOverdue] = useState(false);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(task.photoProof || null);
     const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
     
     useEffect(() => {
