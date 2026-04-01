@@ -164,7 +164,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             isRecurring: category !== 'Request',
                             intervalType: category !== 'Request' ? intervalType : null,
                             intervalValue: category !== 'Request' ? intervalValue : null,
-                            nextRunAt: category !== 'Request' ? new Date() : null // Start immediately
+                            nextRunAt: category !== 'Request' ? (task?.nextRunAt ? task.nextRunAt : new Date()) : null
                         })}
                         disabled={!title}
                         className="w-full h-16 btn-primary shadow-2xl disabled:opacity-50 disabled:grayscale"

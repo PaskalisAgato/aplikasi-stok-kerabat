@@ -113,6 +113,9 @@ export class TodoService {
         if (data.deadline) {
             updateData.deadline = new Date(data.deadline);
         }
+        if (data.nextRunAt) {
+            updateData.nextRunAt = new Date(data.nextRunAt);
+        }
 
         const [updatedTodo] = await db.update(todos)
             .set(updateData)
