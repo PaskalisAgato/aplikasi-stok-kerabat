@@ -63,6 +63,12 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
         const updateTime = () => {
             const now = new Date();
             const deadlineDate = new Date(task.deadline);
+            
+            if (task.isRecurring) {
+                // For recurring tasks, shift the deadline date to today, keeping only the time
+                deadlineDate.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+            }
+            
             const diff = deadlineDate.getTime() - now.getTime();
 
             if (diff <= 0) {
@@ -89,7 +95,7 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
         updateTime();
         const interval = setInterval(updateTime, 1000 * 30); // Update every 30s
         return () => clearInterval(interval);
-    }, [task.deadline, task.status]);
+    }, [task.deadline, task.status, task.isRecurring]);
 
     const handleCapture = async (base64: string) => {
         if (!onComplete) return;

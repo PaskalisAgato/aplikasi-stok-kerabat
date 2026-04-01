@@ -31,11 +31,16 @@ export default function useTaskAlarm(todos: any[]) {
     };
 
     const checkDeadlines = () => {
-        const now = new Date().getTime();
+        const nowDate = new Date();
+        const now = nowDate.getTime();
         const activeOverdue = todos.filter(task => {
             if (task.status === 'Completed' || !task.deadline) return false;
             
-            const deadlineTime = new Date(task.deadline).getTime();
+            const deadlineDate = new Date(task.deadline);
+            if (task.isRecurring) {
+                deadlineDate.setFullYear(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+            }
+            const deadlineTime = deadlineDate.getTime();
             const isLate = now > deadlineTime;
             
             if (!isLate) return false;
