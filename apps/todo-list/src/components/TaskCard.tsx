@@ -187,7 +187,7 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                 <div className="pt-5 border-t border-white/5 space-y-4">
                      <div 
                         className="w-full aspect-video rounded-[2rem] bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative flex items-center justify-center" 
-                        onClick={() => photoUrl && window.open(photoUrl, '_blank')}
+                        onClick={() => photoUrl && setIsImageFullscreen(true)}
                      >
                          {isLoadingPhoto ? (
                              <div className="flex flex-col items-center gap-2 opacity-40">
