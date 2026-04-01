@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import CameraCaptureModal from './CameraCaptureModal';
 import { apiClient } from '@shared/apiClient';
 import { getOptimizedImageUrl } from '@shared/supabase';
@@ -18,6 +19,18 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
     const [isOverdue, setIsOverdue] = useState(false);
     const [photoUrl, setPhotoUrl] = useState<string | null>(task.photoProof || null);
     const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+    const [isImageFullscreen, setIsImageFullscreen] = useState(false);
+
+    // Scroll Lock Logic for Fullscreen Image
+    useEffect(() => {
+        if (isImageFullscreen) {
+            const originalStyle = window.getComputedStyle(document.body).overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalStyle;
+            };
+        }
+    }, [isImageFullscreen]);
     
     useEffect(() => {
         if (task.status === 'Completed' && task.hasPhotoProof && !photoUrl && !isLoadingPhoto) {
@@ -213,6 +226,33 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                          </div>
                      </div>
                 </div>
+            )}
+
+            {/* Fullscreen Image Overlay */}
+            {isImageFullscreen && photoUrl && createPortal(
+                <div 
+                    className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300"
+                    onClick={() => setIsImageFullscreen(false)}
+                >
+                    <div className="absolute top-0 inset-x-0 p-6 flex justify-end items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setIsImageFullscreen(false); }}
+                            className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-75 transition-all shadow-2xl"
+                        >
+                            <span className="material-symbols-outlined text-2xl font-black">close</span>
+                        </button>
+                    </div>
+                    
+                    <div className="relative w-full h-full max-w-5xl mx-auto flex items-center justify-center p-4">
+                        <img 
+                            src={getOptimizedImageUrl(photoUrl)} 
+                            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300" 
+                            alt="Bukti Full" 
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );
