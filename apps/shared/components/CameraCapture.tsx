@@ -11,13 +11,15 @@ interface CameraCaptureProps {
     userName?: string;
     location?: string;
     facingMode?: 'user' | 'environment';
+    showWatermark?: boolean;
 }
 
 const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({ 
     className, 
     userName, 
     location,
-    facingMode = 'environment' 
+    facingMode = 'environment',
+    showWatermark = true
 }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -84,54 +86,56 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({
             if (facingMode === 'user') {
                 context.setTransform(1, 0, 0, 1, 0, 0); // reset
             }
+            
+            if (showWatermark) {
+                // Add Timestamp Overlay
+                const now = new Date();
+                const timestamp = now.toLocaleString('id-ID', { 
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                });
 
-            // Add Timestamp Overlay
-            const now = new Date();
-            const timestamp = now.toLocaleString('id-ID', { 
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit' 
-            });
+                const padding = canvas.width * 0.04;
+                const fontSize = Math.max(16, canvas.width * 0.04);
+                const lineHeight = fontSize + 8;
+                
+                // Draw Background Box for contrast
+                const locationText = location ? (location.length > 50 ? location.substring(0, 47) + '...' : location) : '';
+                
+                context.font = `bold ${fontSize}px sans-serif`;
+                const boxWidth = Math.max(
+                    context.measureText(timestamp).width,
+                    userName ? context.measureText(`USER: ${userName.toUpperCase()}`).width : 0,
+                    location ? context.measureText(locationText).width : 0
+                ) + (padding * 2);
+                
+                const lines = 1 + (userName ? 1 : 0) + (location ? 1 : 0);
+                const boxHeight = lines * lineHeight + padding;
 
-            const padding = canvas.width * 0.04;
-            const fontSize = Math.max(16, canvas.width * 0.04);
-            const lineHeight = fontSize + 8;
-            
-            // Draw Background Box for contrast
-            const locationText = location ? (location.length > 50 ? location.substring(0, 47) + '...' : location) : '';
-            
-            context.font = `bold ${fontSize}px sans-serif`;
-            const boxWidth = Math.max(
-                context.measureText(timestamp).width,
-                userName ? context.measureText(`USER: ${userName.toUpperCase()}`).width : 0,
-                location ? context.measureText(locationText).width : 0
-            ) + (padding * 2);
-            
-            const lines = 1 + (userName ? 1 : 0) + (location ? 1 : 0);
-            const boxHeight = lines * lineHeight + padding;
+                context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                context.fillRect(0, canvas.height - boxHeight, boxWidth, boxHeight);
 
-            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            context.fillRect(0, canvas.height - boxHeight, boxWidth, boxHeight);
+                context.fillStyle = 'white';
+                
+                // Draw lines from bottom up
+                let currentY = canvas.height - padding;
+                
+                // Row 1: Timestamp
+                context.fillText(timestamp, padding, currentY);
+                
+                // Row 2: User
+                if (userName) {
+                    currentY -= lineHeight;
+                    context.font = `bold ${fontSize - 4}px sans-serif`;
+                    context.fillText(`USER: ${userName.toUpperCase()}`, padding, currentY);
+                }
 
-            context.fillStyle = 'white';
-            
-            // Draw lines from bottom up
-            let currentY = canvas.height - padding;
-            
-            // Row 1: Timestamp
-            context.fillText(timestamp, padding, currentY);
-            
-            // Row 2: User
-            if (userName) {
-                currentY -= lineHeight;
-                context.font = `bold ${fontSize - 4}px sans-serif`;
-                context.fillText(`USER: ${userName.toUpperCase()}`, padding, currentY);
-            }
-
-            // Row 3: Location
-            if (location) {
-                currentY -= lineHeight;
-                context.font = `bold ${fontSize - 6}px sans-serif`;
-                context.fillText(locationText, padding, currentY);
+                // Row 3: Location
+                if (location) {
+                    currentY -= lineHeight;
+                    context.font = `bold ${fontSize - 6}px sans-serif`;
+                    context.fillText(locationText, padding, currentY);
+                }
             }
 
             // Convert to Blob

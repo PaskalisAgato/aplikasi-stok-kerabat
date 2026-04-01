@@ -57,12 +57,19 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                 setIsOverdue(true);
             } else {
                 setIsOverdue(false);
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 
-                if (hours > 24) setTimeLeft(`${Math.floor(hours / 24)}d left`);
-                else if (hours > 0) setTimeLeft(`${hours}h ${minutes}m left`);
-                else setTimeLeft(`${minutes}m left`);
+                if (task.isRecurring) {
+                    // For "Rutin", just show the time (JAM: HH:mm)
+                    const timeStr = deadlineDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    setTimeLeft(`JAM: ${timeStr}`);
+                } else {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    if (hours > 24) setTimeLeft(`${Math.floor(hours / 24)}d left`);
+                    else if (hours > 0) setTimeLeft(`${hours}h ${minutes}m left`);
+                    else setTimeLeft(`${minutes}m left`);
+                }
             }
         };
 
@@ -159,6 +166,7 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                 isOpen={isCameraOpen}
                 onClose={() => setIsCameraOpen(false)}
                 onCapture={handleCapture}
+                category={task.category}
             />
 
             {/* History Details (Admin/Completed) */}

@@ -72,7 +72,7 @@ export interface ApiResponse<T> {
 }
 
 // ── Resilience Config ────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 10_000; // Increased to 10s for Render cold starts
+const FETCH_TIMEOUT_MS = 30_000; // Increased to 30s for Render cold starts and large Cloudinary uploads
 const MAX_RETRIES = 1;         // 1 retry as per Enterprise Section 4
 const CACHE_TTL_MS = 30_000;   // 30 seconds as per Enterprise Section 6
 
@@ -217,7 +217,7 @@ export async function apiFetch<T = unknown>(
 
         if (err.name === 'AbortError') {
             if (retries > 0) return apiFetch<T>(path, init, asBlob, retries - 1);
-            throw new ApiError(408, 'Request Timeout', 'Koneksi lambat (5s). Periksa internet Anda.');
+            throw new ApiError(408, 'Request Timeout', `Koneksi lambat (${FETCH_TIMEOUT_MS/1000}s). Periksa internet Anda.`);
         }
 
         if (!(err instanceof ApiError) && retries > 0) {

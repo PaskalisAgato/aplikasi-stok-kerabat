@@ -279,6 +279,7 @@ function App() {
                     }
                 }}
                 userName={session?.user?.name || undefined}
+                category={alarmTask?.category}
             />
         </Layout>
     );

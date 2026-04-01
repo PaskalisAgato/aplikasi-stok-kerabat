@@ -97,6 +97,96 @@ export async function compressImage(
 }
 
 /**
+ * Adds a watermark overlay to an image.
+ */
+export async function addWatermarkToImage(
+    source: Blob | string,
+    userName?: string,
+    location?: string
+): Promise<Blob> {
+    // Convert string (base64) to Blob if necessary
+    let blob: Blob;
+    if (typeof source === 'string') {
+        blob = await base64ToBlob(source);
+    } else {
+        blob = source;
+    }
+
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const context = canvas.getContext('2d');
+                if (!context) return reject(new Error('Canvas context failed'));
+
+                context.drawImage(img, 0, 0);
+
+                // Add Timestamp Overlay
+                const now = new Date();
+                const timestamp = now.toLocaleString('id-ID', { 
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                });
+
+                const padding = canvas.width * 0.04;
+                const fontSize = Math.max(16, canvas.width * 0.04);
+                const lineHeight = fontSize + 8;
+                
+                const locationText = location ? (location.length > 50 ? location.substring(0, 47) + '...' : location) : '';
+                
+                context.font = `bold ${fontSize}px sans-serif`;
+                const boxWidth = Math.max(
+                    context.measureText(timestamp).width,
+                    userName ? context.measureText(`USER: ${userName.toUpperCase()}`).width : 0,
+                    location ? context.measureText(locationText).width : 0
+                ) + (padding * 2);
+                
+                const lines = 1 + (userName ? 1 : 0) + (location ? 1 : 0);
+                const boxHeight = lines * lineHeight + padding;
+
+                context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                context.fillRect(0, canvas.height - boxHeight, boxWidth, boxHeight);
+
+                context.fillStyle = 'white';
+                
+                // Draw lines from bottom up
+                let currentY = canvas.height - padding;
+                
+                // Row 1: Timestamp
+                context.fillText(timestamp, padding, currentY);
+                
+                // Row 2: User
+                if (userName) {
+                    currentY -= lineHeight;
+                    context.font = `bold ${fontSize - 4}px sans-serif`;
+                    context.fillText(`USER: ${userName.toUpperCase()}`, padding, currentY);
+                }
+
+                // Row 3: Location
+                if (location) {
+                    currentY -= lineHeight;
+                    context.font = `bold ${fontSize - 6}px sans-serif`;
+                    context.fillText(locationText, padding, currentY);
+                }
+
+                canvas.toBlob((resultBlob) => {
+                    if (resultBlob) resolve(resultBlob);
+                    else reject(new Error('Watermark blob creation failed'));
+                }, 'image/jpeg', 0.9);
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+        };
+        reader.onerror = () => reject(new Error('File read failed'));
+    });
+}
+
+/**
  * Helper to convert Base64 string to Blob
  */
 async function base64ToBlob(base64: string): Promise<Blob> {

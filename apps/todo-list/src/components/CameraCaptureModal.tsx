@@ -2,21 +2,26 @@ import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import CameraCapture from '@shared/components/CameraCapture';
 import type { CameraCaptureHandle } from '@shared/components/CameraCapture';
-import { compressImage } from '@shared/utils/image';
+import { compressImage, addWatermarkToImage } from '@shared/utils/image';
+import { getGeoLocation } from '@shared/utils/location';
+import { toast } from 'react-hot-toast';
 
 interface CameraCaptureModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCapture: (base64: string) => void;
     userName?: string;
+    category?: string;
 }
 
-export default function CameraCaptureModal({ isOpen, onClose, onCapture, userName }: CameraCaptureModalProps) {
+export default function CameraCaptureModal({ isOpen, onClose, onCapture, userName, category }: CameraCaptureModalProps) {
     const cameraRef = useRef<CameraCaptureHandle>(null);
     const [isCapturing, setIsCapturing] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
     const [isSwitching, setIsSwitching] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Scroll Lock Logic
     useEffect(() => {
@@ -32,13 +37,26 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
     if (!isOpen) return null;
 
     const handleCapture = async () => {
-        if (isCapturing) return;
+        if (isCapturing || isProcessing) return;
         setIsCapturing(true);
+        setIsProcessing(true);
         try {
             const blob = await cameraRef.current?.capture();
             if (blob) {
+                // Get location for watermark
+                let locationStr = '';
+                try {
+                    const loc = await getGeoLocation();
+                    locationStr = loc.address;
+                } catch (e) {
+                    console.warn('Could not get location', e);
+                }
+
+                // Add Watermark first
+                const watermarkedBlob = await addWatermarkToImage(blob, userName, locationStr);
+
                 // Apply 300KB compression
-                const compressedBlob = await compressImage(blob, { maxSizeKB: 300 });
+                const compressedBlob = await compressImage(watermarkedBlob, { maxSizeKB: 300 });
                 
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -48,8 +66,45 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
             }
         } catch (err) {
             console.error('Capture failed', err);
+            toast.error('Gagal mengambil foto');
         } finally {
             setIsCapturing(false);
+            setIsProcessing(false);
+        }
+    };
+
+    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || isProcessing) return;
+
+        setIsProcessing(true);
+        try {
+            // Get location for watermark
+            let locationStr = '';
+            try {
+                const loc = await getGeoLocation();
+                locationStr = loc.address;
+            } catch (e) {
+                console.warn('Could not get location', e);
+            }
+
+            // Convert file to blob/base64 then watermark
+            const watermarkedBlob = await addWatermarkToImage(file, userName, locationStr);
+
+            // Apply 300KB compression
+            const compressedBlob = await compressImage(watermarkedBlob, { maxSizeKB: 300 });
+            
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+            };
+            reader.readAsDataURL(compressedBlob);
+        } catch (err) {
+            console.error('Gallery upload failed', err);
+            toast.error('Gagal memproses gambar dari galeri');
+        } finally {
+            setIsProcessing(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -86,6 +141,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         className="w-full h-full"
                         userName={userName}
                         facingMode={facingMode}
+                        showWatermark={false}
                     />
                 )}
             </div>
@@ -139,12 +195,30 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         >
                             <div className="absolute inset-0 rounded-full bg-white/20 animate-pulse scale-110" />
                             <div className="absolute inset-2 rounded-full bg-white shadow-2xl transition-all group-hover:scale-95" />
-                            {isCapturing && (
+                            {(isCapturing || isProcessing) && (
                                 <div className="absolute inset-0 flex items-center justify-center z-10">
                                     <div className="size-8 border-4 border-slate-950 border-t-transparent rounded-full animate-spin" />
                                 </div>
                             )}
                         </button>
+
+                        {/* Gallery Button - Show only for Request category */}
+                        {category === 'Request' && (
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isProcessing}
+                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
+                            >
+                                <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">photo_library</span>
+                            </button>
+                        )}
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleGalleryUpload} 
+                            accept="image/*" 
+                            className="hidden" 
+                        />
 
                         {/* Switch Camera Button */}
                         <button 

@@ -25,34 +25,32 @@ export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 /**
  * Uploads a file (File, Blob, or base64 string) to a Supabase bucket.
- * Returns the path of the uploaded file.
+ * Returns the path/URL of the uploaded file.
+ * 
+ * NOTE: We are migrating to Cloudinary. This function now bypasses Supabase
+ * and returns the Base64 string directly so the backend middleware can handle it.
  */
 export async function uploadFile(
     bucket: string,
     path: string,
     file: File | Blob | string
 ): Promise<string> {
-    let uploadData: File | Blob | ArrayBuffer = file as any;
-
-    // If it's a base64 string (common in this app), convert to Blob
-    if (typeof file === 'string' && file.startsWith('data:')) {
-        const res = await fetch(file);
-        uploadData = await res.blob();
+    // If it's already a base64 string, just return it.
+    // The backend middleware validateBase64Image will detect this and upload to Cloudinary.
+    if (typeof file === 'string' && file.startsWith('data:image')) {
+        console.log(`[StorageRedirect] Bypassing Supabase for bucket "${bucket}". Returning Base64 for backend processing.`);
+        return file;
     }
 
-    // BANDWIDTH OPTIMIZATION: Auto-compress if it's an image
-    if (uploadData instanceof Blob && uploadData.type.startsWith('image/')) {
-        try {
-            uploadData = await compressImage(uploadData, { maxWidth: 1200, maxHeight: 1200, initialQuality: 0.7, maxSizeKB: 300 });
-        } catch (e) {
-            console.warn('[Supabase] Compression failed, uploading original:', e);
-        }
-    }
-
+    // For non-base64 files, we attempt a minimal bypass or throw a helpful error
+    // since the user wants to get away from Supabase entirely.
     if (!supabase) {
-        throw new Error('Supabase not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to environment variables.');
+        throw new Error('Supabase not configured and direct upload failed.');
     }
 
+    console.warn(`[StorageLegacy] Attempting legacy upload to Supabase bucket "${bucket}". This may fail due to quota limits.`);
+    
+    let uploadData: File | Blob | ArrayBuffer = file as any;
     const { data, error } = await supabase.storage
         .from(bucket)
         .upload(path, uploadData, {
@@ -62,6 +60,8 @@ export async function uploadFile(
 
     if (error) {
         console.error(`[Supabase] Upload failed for bucket "${bucket}":`, error);
+        // If it's a base64 that wasn't caught above, return it anyway as a last resort
+        if (typeof file === 'string') return file;
         throw new Error(`Upload storage gagal: ${error.message} (Bucket: ${bucket})`);
     }
 
@@ -69,21 +69,20 @@ export async function uploadFile(
 }
 
 /**
- * Construct optimized public URL with Supabase Image Transformations
+ * Construct optimized public URL. 
+ * Prioritizes absolute URLs (Cloudinary) and fallbacks to Supabase public URLs.
  */
 export function getOptimizedImageUrl(path: string, _options: { width?: number; height?: number; resize?: 'cover' | 'contain' | 'fill' } = {}) {
     if (!path) return '';
+    
+    // 1. If it's already a full URL or Base64, return as-is
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 
+    // 2. Handle Supabase paths (e.g. "products/image.jpg")
     const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!projectUrl) {
-        console.warn('[Supabase] getOptimizedImageUrl: VITE_SUPABASE_URL missing, returning raw path.');
-        return path;
-    }
-    
-    // NOTE: We switch from 'render/image/public' to 'object/public' 
-    // to support projects on the Supabase Free Plan while maintaining compatibility.
-    // Transformed URI would require Pro plan: /storage/v1/render/image/public/${path}
+    if (!projectUrl) return path;
+
+    // Use standard object/public instead of render/image to avoid Pro Plan requirements
     return `${projectUrl}/storage/v1/object/public/${path}`;
 }
 
