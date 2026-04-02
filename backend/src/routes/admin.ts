@@ -87,3 +87,75 @@ adminRouter.post('/backups/trigger', requireAdmin, async (req: Request, res: Res
 });
 
 import { and } from 'drizzle-orm';
+import { like } from 'drizzle-orm';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
+
+// Migrate Base64 images to Cloudinary
+adminRouter.post('/migrate-images', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        console.log('[Migration] Starting Base64 → Cloudinary migration...');
+
+        const targets = [
+            { table: schema.inventory, idField: schema.inventory.id, imageField: schema.inventory.imageUrl, fieldName: 'imageUrl', folder: 'products' },
+            { table: schema.expenses, idField: schema.expenses.id, imageField: schema.expenses.receiptUrl, fieldName: 'receiptUrl', folder: 'expenses' },
+            { table: schema.attendance, idField: schema.attendance.id, imageField: schema.attendance.checkInPhoto, fieldName: 'checkInPhoto', folder: 'attendance' },
+            { table: schema.attendance, idField: schema.attendance.id, imageField: schema.attendance.checkOutPhoto, fieldName: 'checkOutPhoto', folder: 'attendance' },
+            { table: schema.todos, idField: schema.todos.id, imageField: schema.todos.photoProof, fieldName: 'photoProof', folder: 'todos' },
+            { table: schema.todoCompletions, idField: schema.todoCompletions.id, imageField: schema.todoCompletions.photoProof, fieldName: 'photoProof', folder: 'todos' },
+        ];
+
+        let totalSuccess = 0;
+        let totalFailed = 0;
+        let totalRecords = 0;
+        const details: any[] = [];
+
+        for (const target of targets) {
+            const records = await db
+                .select({ id: target.idField, imageData: target.imageField })
+                .from(target.table)
+                .where(like(target.imageField, 'data:image%'));
+
+            totalRecords += records.length;
+            let success = 0;
+            let failed = 0;
+
+            for (const record of records) {
+                try {
+                    const base64 = record.imageData as string;
+                    if (!base64?.startsWith('data:image')) continue;
+
+                    const url = await uploadToCloudinary(base64, target.folder);
+                    if (url) {
+                        await db.update(target.table)
+                            .set({ [target.fieldName]: url } as any)
+                            .where(eq(target.idField, record.id as any));
+                        success++;
+                        totalSuccess++;
+                    } else {
+                        failed++;
+                        totalFailed++;
+                    }
+                } catch (err: any) {
+                    console.error(`[Migration] Error on ID ${record.id}:`, err.message);
+                    failed++;
+                    totalFailed++;
+                }
+            }
+
+            if (records.length > 0) {
+                details.push({ field: target.fieldName, found: records.length, migrated: success, failed });
+            }
+        }
+
+        console.log(`[Migration] Complete: ${totalSuccess}/${totalRecords} migrated, ${totalFailed} failed`);
+
+        res.json({
+            success: true,
+            message: `Migration complete: ${totalSuccess} migrated, ${totalFailed} failed`,
+            data: { totalRecords, totalSuccess, totalFailed, details }
+        });
+    } catch (error: any) {
+        console.error('[Migration] Fatal error:', error);
+        res.status(500).json({ success: false, message: 'Migration failed', error: error.message });
+    }
+});
