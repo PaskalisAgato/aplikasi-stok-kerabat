@@ -36,7 +36,13 @@ export const validateBase64Image = (field: string, maxSizeKB: number = 300) => {
 
         // 2. Automatic Cloudinary Upload
         try {
-            const cloudinaryUrl = await uploadToCloudinary(base64String, field === 'receiptUrl' ? 'expenses' : (field === 'imageUrl' ? 'products' : 'todos'));
+            const folderMap: Record<string, string> = {
+                receiptUrl: 'expenses',
+                imageUrl: 'products',
+                photoProof: 'todos',
+                photo: 'attendance',
+            };
+            const cloudinaryUrl = await uploadToCloudinary(base64String, folderMap[field] || 'general');
             if (cloudinaryUrl) {
                 console.log(`[Cloudinary] Automatic upload successful for ${field}: ${cloudinaryUrl}`);
                 req.body[field] = cloudinaryUrl;

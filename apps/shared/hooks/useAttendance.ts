@@ -17,13 +17,8 @@ export function useAttendance(filters: any = {}) {
     });
 
     const checkInMutation = useMutation({
-        mutationFn: (data: { photo?: File | Blob; latitude?: number; longitude?: number; location?: string }) => {
-            const formData = new FormData();
-            if (data.photo) formData.append('photo', data.photo);
-            if (data.latitude) formData.append('latitude', data.latitude.toString());
-            if (data.longitude) formData.append('longitude', data.longitude.toString());
-            if (data.location) formData.append('location', data.location);
-            return apiClient.checkIn(formData);
+        mutationFn: (data: { photo?: string; latitude?: number; longitude?: number; location?: string }) => {
+            return apiClient.checkIn(data);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['attendance'] });
@@ -31,13 +26,8 @@ export function useAttendance(filters: any = {}) {
     });
 
     const checkOutMutation = useMutation({
-        mutationFn: (data: { photo?: File | Blob; latitude?: number; longitude?: number; location?: string }) => {
-            const formData = new FormData();
-            if (data.photo) formData.append('photo', data.photo);
-            if (data.latitude) formData.append('latitude', data.latitude.toString());
-            if (data.longitude) formData.append('longitude', data.longitude.toString());
-            if (data.location) formData.append('location', data.location);
-            return apiClient.checkOut(formData);
+        mutationFn: (data: { photo?: string; latitude?: number; longitude?: number; location?: string }) => {
+            return apiClient.checkOut(data);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['attendance'] });

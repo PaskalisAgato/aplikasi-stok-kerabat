@@ -49,8 +49,16 @@ function AttendancePage() {
         if (!previewPhoto || !locationData) return;
 
         try {
+            // Convert Blob to base64 string for Cloudinary upload via backend middleware
+            const base64Photo = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(previewPhoto.blob);
+            });
+
             const payload = {
-                photo: previewPhoto.blob,
+                photo: base64Photo,
                 latitude: locationData.latitude,
                 longitude: locationData.longitude,
                 location: locationData.address

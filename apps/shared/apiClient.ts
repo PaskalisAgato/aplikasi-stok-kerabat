@@ -292,8 +292,8 @@ export const apiClient = {
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),
-    checkIn: (formData?: FormData) => apiFetch<any>('/attendance/check-in', { method: 'POST', body: formData }),
-    checkOut: (formData?: FormData) => apiFetch<any>('/attendance/check-out', { method: 'POST', body: formData }),
+    checkIn: (data?: any) => apiFetch<any>('/attendance/check-in', { method: 'POST', body: JSON.stringify(data) }),
+    checkOut: (data?: any) => apiFetch<any>('/attendance/check-out', { method: 'POST', body: JSON.stringify(data) }),
     getAttendanceHistory: (params: Record<string, string>) => {
         const query = new URLSearchParams(params).toString();
         return apiFetch<ApiResponse<any>>(`/attendance/history?${query}`);
