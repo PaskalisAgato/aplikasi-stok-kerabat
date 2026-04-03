@@ -90,10 +90,12 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
         const loadInitial = async () => {
             // Load global settings from DB first
             try {
-                const globalSettings = await apiFetch<any[]>('/shifts/settings');
-                if (globalSettings && globalSettings.length > 0) {
+                const result = await apiFetch<any>('/shifts/settings');
+                const globalSettings = Array.isArray(result) ? result : result?.data;
+                
+                if (globalSettings && Array.isArray(globalSettings) && globalSettings.length > 0) {
                     const mappedSettings: ShiftSettings = { ...shiftSettings };
-                    globalSettings.forEach(s => {
+                    globalSettings.forEach((s: any) => {
                         if (mappedSettings[s.code as keyof ShiftSettings]) {
                             mappedSettings[s.code as keyof ShiftSettings] = {
                                 start: s.startTime,
