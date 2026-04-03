@@ -28,21 +28,8 @@ function AttendanceHistoryPage() {
     });
 
     const handleViewPhoto = async (photoPath: string, label: string) => {
-        if (!window.confirm('Foto ini adalah bukti sah absensi karyawan. Buka?')) return;
-
-        const filename = photoPath.split('/').pop();
-        if (!filename) return;
-
-        setIsFetchingPhoto(true);
-        try {
-            const blob = await apiClient.getAttendancePhoto(filename);
-            const url = URL.createObjectURL(blob);
-            setViewingPhoto({ url, label });
-        } catch (error: any) {
-            toast.error(error.message || 'Error: Foto gagal dimuat atau telah dihapus oleh sistem.');
-        } finally {
-            setIsFetchingPhoto(false);
-        }
+        if (!photoPath) return;
+        setViewingPhoto({ url: photoPath, label });
     };
     const handleDelete = async (id: string | number) => {
         if (!window.confirm('Apakah Anda yakin ingin menghapus riwayat absen ini? Tindakan ini tidak dapat dibatalkan.')) return;
