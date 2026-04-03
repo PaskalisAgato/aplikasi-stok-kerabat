@@ -377,24 +377,40 @@ export default function ShiftTemplate({ employees: initialEmployees, allShifts: 
 
             {/* My Schedule (Karyawan View) */}
             {!isAdmin && myShifts && (
-                <div className="glass p-6 rounded-[2.5rem] border-primary/20 bg-primary/5">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="size-12 rounded-2xl bg-primary flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
-                            <span className="material-symbols-outlined text-2xl">person_pin</span>
+                <div className="space-y-6">
+                    <div className="glass p-6 rounded-[2.5rem] border-primary/20 bg-primary/5">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="size-12 rounded-2xl bg-primary flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
+                                <span className="material-symbols-outlined text-2xl">person_pin</span>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black uppercase tracking-widest text-primary">Jadwal Saya</h3>
+                                <p className="text-xs font-bold text-gray-500 dark:text-slate-400">Periode Aktif • {startDate} - {endDate}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-primary">Jadwal Saya</h3>
-                            <p className="text-xs font-bold text-gray-500 dark:text-slate-400">Periode Aktif • {startDate} - {endDate}</p>
+                        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                            {dates.map(date => (
+                                <div key={date} className={`min-w-[110px] p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary text-slate-950 border-primary scale-105 shadow-xl shadow-primary/20' : 'bg-gray-100/50 dark:bg-white/5 border-gray-200 dark:border-white/5 opacity-40'}`}>
+                                    <p className="text-xs font-black uppercase opacity-60 text-gray-600 dark:text-slate-400">
+                                        {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                    </p>
+                                    <div className="text-xl font-black">{myShifts[date] || 'OFF'}</div>
+                                    <p className="text-[10px] font-bold opacity-60">{date.split('-')[2]}/{date.split('-')[1]}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                        {dates.map(date => (
-                            <div key={date} className={`min-w-[110px] p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${myShifts[date] && myShifts[date] !== 'OFF' ? 'bg-primary text-slate-950 border-primary scale-105 shadow-xl shadow-primary/20' : 'bg-gray-100/50 dark:bg-white/5 border-gray-200 dark:border-white/5 opacity-40'}`}>
-                                <p className="text-xs font-black uppercase opacity-60 text-gray-600 dark:text-slate-400">
-                                    {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
-                                </p>
-                                <div className="text-xl font-black">{myShifts[date] || 'OFF'}</div>
-                                <p className="text-[10px] font-bold opacity-60">{date.split('-')[2]}/{date.split('-')[1]}</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(['P', 'S', 'M'] as const).map(code => (
+                            <div key={code} className={`glass p-5 rounded-3xl border border-white/5 flex items-center gap-4 transition-all ${shiftSettings[code].active ? '' : 'opacity-40 grayscale'}`}>
+                                <div className={`size-12 min-w-[3rem] rounded-xl flex items-center justify-center font-black ${code === 'P' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : code === 'S' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-slate-500/20 text-slate-600 dark:text-slate-400'}`}>
+                                    {code}
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-slate-100 mb-1">Shift {code === 'P' ? 'Pagi' : code === 'S' ? 'Sore' : 'Malam'}</h4>
+                                    <p className="text-xs font-bold text-gray-500 dark:text-slate-400">{shiftSettings[code].start} - {shiftSettings[code].end}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
