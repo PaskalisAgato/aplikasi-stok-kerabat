@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { todos, users, todoCompletions } from '../db/schema.js';
+import { todos, users, todoCompletions, todoSettings } from '../db/schema.js';
 import { eq, and, or, isNull, desc, gte, sql } from 'drizzle-orm';
 
 export class TodoService {
@@ -243,5 +243,32 @@ export class TodoService {
 
         // Clear recurring history (No .returning() to avoid massive payload/memory issues)
         await db.delete(todoCompletions);
+    }
+
+    static async getSettings() {
+        const settings = await db.select().from(todoSettings);
+        // Default values if empty
+        if (settings.length === 0) {
+            return [{ settingKey: 'photo_upload_mode', settingValue: 'both' }];
+        }
+        return settings;
+    }
+
+    static async updateSetting(key: string, value: string) {
+        const [setting] = await db.insert(todoSettings)
+            .values({
+                settingKey: key,
+                settingValue: value,
+                updatedAt: new Date()
+            })
+            .onConflictDoUpdate({
+                target: todoSettings.settingKey,
+                set: {
+                    settingValue: value,
+                    updatedAt: new Date()
+                }
+            })
+            .returning();
+        return setting;
     }
 }

@@ -311,6 +311,8 @@ export const apiClient = {
     getTodoHistory: (page = 1, limit = 20) => apiFetch<ApiResponse<any>>(`/todo/history?page=${page}&limit=${limit}`),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
     getTodoPhoto: (id: number, type: 'todo' | 'completion' = 'todo') => apiFetch<any>(`/todo/${id}/photo?type=${type}`),
+    getTodoSettings: () => apiFetch<any>('/todo/settings'),
+    updateTodoSetting: (key: string, value: string) => apiFetch<any>('/todo/settings', { method: 'PUT', body: JSON.stringify({ key, value }) }),
 
     // ---- SYSTEM ADMIN & OBSERVABILITY ----
     getSystemStats: () => apiFetch<any>('/system/stats'),

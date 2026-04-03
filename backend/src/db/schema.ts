@@ -335,6 +335,13 @@ export const todoCompletionsRelations = relations(todoCompletions, ({ one }) => 
     })
 }));
 
+export const todoSettings = pgTable('todo_settings', {
+    id: serial('id').primaryKey(),
+    settingKey: text('setting_key').notNull().unique(), // e.g., 'photo_upload_mode'
+    settingValue: text('setting_value').notNull(), // 'camera', 'gallery', 'both'
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 // -----------------------------------------------------------------------------
 // 9. AUDIT LOGS - PRICE & ECONOMY
 // -----------------------------------------------------------------------------

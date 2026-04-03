@@ -7,12 +7,13 @@ import { getOptimizedImageUrl } from '@shared/supabase';
 interface TaskCardProps {
     task: any;
     role: 'Admin' | 'Karyawan';
+    photoUploadMode?: 'camera' | 'gallery' | 'both';
     onComplete?: (id: number, photo: string) => void;
     onEdit?: (task: any) => void;
     onDelete?: (id: number) => void;
 }
 
-export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: TaskCardProps) {
+export default function TaskCard({ task, role, photoUploadMode = 'both', onComplete, onEdit, onDelete }: TaskCardProps) {
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
@@ -186,6 +187,7 @@ export default function TaskCard({ task, role, onComplete, onEdit, onDelete }: T
                 onClose={() => setIsCameraOpen(false)}
                 onCapture={handleCapture}
                 category={task.category}
+                photoUploadMode={photoUploadMode}
             />
 
             {/* History Details (Admin/Completed) */}

@@ -123,4 +123,32 @@ export class TodoController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async getSettings(req: Request, res: Response) {
+        try {
+            const settings = await TodoService.getSettings();
+            res.json({
+                success: true,
+                data: settings
+            });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async updateSetting(req: Request, res: Response) {
+        try {
+            const { key, value } = req.body;
+            if (!key || !value) {
+                return res.status(400).json({ error: 'Key dan value wajib ada.' });
+            }
+            const setting = await TodoService.updateSetting(key, value);
+            res.json({
+                success: true,
+                data: setting
+            });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

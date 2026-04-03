@@ -19,4 +19,8 @@ router.delete('/history/clear', requireAdmin, TodoController.clearHistory);
 // Employee: Mark as completed
 router.post('/:id/complete', requireAuth, validateBase64Image('photoProof'), TodoController.completeTodo);
 
+// Settings
+router.get('/settings', requireAuth, TodoController.getSettings);
+router.put('/settings', requireAdmin, TodoController.updateSetting);
+
 export { router as todoRoutes };

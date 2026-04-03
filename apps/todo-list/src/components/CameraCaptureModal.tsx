@@ -12,9 +12,10 @@ interface CameraCaptureModalProps {
     onCapture: (base64: string) => void;
     userName?: string;
     category?: string;
+    photoUploadMode?: 'camera' | 'gallery' | 'both';
 }
 
-export default function CameraCaptureModal({ isOpen, onClose, onCapture, userName, category }: CameraCaptureModalProps) {
+export default function CameraCaptureModal({ isOpen, onClose, onCapture, userName, category, photoUploadMode = 'both' }: CameraCaptureModalProps) {
     const cameraRef = useRef<CameraCaptureHandle>(null);
     const [isCapturing, setIsCapturing] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -184,26 +185,9 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
             <div className="absolute bottom-0 inset-x-0 h-48 flex justify-center items-center z-50 bg-gradient-to-t from-black/80 to-transparent px-8">
                 {!previewImage ? (
                     <div className="w-full max-w-md flex justify-between items-center relative gap-4">
-                        {/* Hidden placeholders for balance */}
-                        <div className="size-14 hidden md:block" />
-
-                        {/* Capture Button */}
-                        <button 
-                            onClick={handleCapture}
-                            disabled={isCapturing || isSwitching}
-                            className={`group relative size-24 md:size-28 rounded-full flex items-center justify-center transition-all active:scale-90 ${isCapturing ? 'opacity-50 grayscale' : ''}`}
-                        >
-                            <div className="absolute inset-0 rounded-full bg-white/20 animate-pulse scale-110" />
-                            <div className="absolute inset-2 rounded-full bg-white shadow-2xl transition-all group-hover:scale-95" />
-                            {(isCapturing || isProcessing) && (
-                                <div className="absolute inset-0 flex items-center justify-center z-10">
-                                    <div className="size-8 border-4 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            )}
-                        </button>
-
-                        {/* Gallery Button - Show only for Request category */}
-                        {category === 'Request' && (
+                        
+                        {/* Gallery Button - Show if mode is BOTH or GALLERY */}
+                        {(photoUploadMode === 'both' || photoUploadMode === 'gallery' || category === 'Request') ? (
                             <button 
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isProcessing}
@@ -211,7 +195,32 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                             >
                                 <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">photo_library</span>
                             </button>
+                        ) : (
+                            <div className="size-14" /> // Spacer
                         )}
+
+                        {/* Capture Button - Show if mode is BOTH or CAMERA */}
+                        {(photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                            <button 
+                                onClick={handleCapture}
+                                disabled={isCapturing || isSwitching}
+                                className={`group relative size-24 md:size-28 rounded-full flex items-center justify-center transition-all active:scale-90 ${isCapturing ? 'opacity-50 grayscale' : ''}`}
+                            >
+                                <div className="absolute inset-0 rounded-full bg-white/20 animate-pulse scale-110" />
+                                <div className="absolute inset-2 rounded-full bg-white shadow-2xl transition-all group-hover:scale-95" />
+                                {(isCapturing || isProcessing) && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                                        <div className="size-8 border-4 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                )}
+                            </button>
+                        ) : (
+                            <div className="flex flex-col items-center gap-2">
+                                <span className="material-symbols-outlined text-white/40 text-4xl">no_photography</span>
+                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest text-center">Kamera Dinonaktifkan</span>
+                            </div>
+                        )}
+
                         <input 
                             type="file" 
                             ref={fileInputRef} 
@@ -220,14 +229,18 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                             className="hidden" 
                         />
 
-                        {/* Switch Camera Button */}
-                        <button 
-                            onClick={toggleCamera}
-                            disabled={isSwitching}
-                            className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
-                        >
-                            <span className="material-symbols-outlined text-2xl group-hover:rotate-180 transition-transform duration-500">flip_camera_ios</span>
-                        </button>
+                        {/* Switch Camera Button - Only show if camera is enabled */}
+                        {(photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                            <button 
+                                onClick={toggleCamera}
+                                disabled={isSwitching}
+                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
+                            >
+                                <span className="material-symbols-outlined text-2xl group-hover:rotate-180 transition-transform duration-500">flip_camera_ios</span>
+                            </button>
+                        ) : (
+                            <div className="size-14" /> // Spacer
+                        )}
                     </div>
                 ) : (
                     <div className="flex w-full gap-4 max-w-sm animate-in slide-in-from-bottom-8 duration-500 mb-6">
