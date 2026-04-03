@@ -192,30 +192,50 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                             }
                         }}
                     />
-                    <button 
-                        onClick={() => {
-                            if (photoUploadMode === 'gallery') {
-                                document.getElementById(`gallery-${task.id}`)?.click();
-                            } else {
-                                setIsCameraOpen(true);
-                            }
-                        }}
-                        disabled={isUploading}
-                        className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
-                    >
-                        <span className="material-symbols-outlined text-primary text-xl font-black">
-                            {isUploading ? 'hourglass_empty' : 
-                             photoUploadMode === 'camera' ? 'photo_camera' : 
-                             photoUploadMode === 'gallery' ? 'photo_library' : 
-                             'add_a_photo'}
-                        </span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                            {isUploading ? 'Mengunggah...' : 
-                             photoUploadMode === 'camera' ? 'Ambil Foto Kamera' : 
-                             photoUploadMode === 'gallery' ? 'Pilih Dari Galeri' : 
-                             'Upload Bukti Foto'}
-                        </span>
-                    </button>
+                    
+                    {photoUploadMode === 'both' ? (
+                        <div className="grid grid-cols-2 gap-3">
+                            <button 
+                                onClick={() => setIsCameraOpen(true)}
+                                disabled={isUploading}
+                                className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                            >
+                                <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">Kamera</span>
+                            </button>
+                            <button 
+                                onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
+                                disabled={isUploading}
+                                className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
+                            >
+                                <span className="material-symbols-outlined text-emerald-500 text-xl font-black">photo_library</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">Galeri</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={() => {
+                                if (photoUploadMode === 'gallery') {
+                                    document.getElementById(`gallery-${task.id}`)?.click();
+                                } else {
+                                    setIsCameraOpen(true);
+                                }
+                            }}
+                            disabled={isUploading}
+                            className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                        >
+                            <span className="material-symbols-outlined text-primary text-xl font-black">
+                                {isUploading ? 'hourglass_empty' : 
+                                 photoUploadMode === 'camera' ? 'photo_camera' : 
+                                 'photo_library'}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                                {isUploading ? 'Mengunggah...' : 
+                                 photoUploadMode === 'camera' ? 'Ambil Foto Kamera' : 
+                                 'Pilih Dari Galeri'}
+                            </span>
+                        </button>
+                    )}
                 </div>
             )}
 

@@ -59,21 +59,40 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                                 reader.readAsDataURL(file);
                             }}
                         />
-                        <button 
-                            onClick={() => {
-                                if (currentTask.photoUploadMode === 'gallery') {
-                                    document.getElementById(`alarm-gallery-${currentTask.id}`)?.click();
-                                } else {
-                                    onComplete(currentTask);
-                                }
-                            }}
-                            className="h-20 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all active:scale-95 shadow-xl"
-                        >
-                            <span className="material-symbols-outlined text-3xl font-black">
-                                {currentTask.photoUploadMode === 'gallery' ? 'photo_library' : 'photo_camera'}
-                            </span>
-                            {currentTask.photoUploadMode === 'gallery' ? 'Upload Dari Galeri' : 'Ambil Foto Bukti'}
-                        </button>
+                        {currentTask.photoUploadMode === 'both' ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => onComplete(currentTask)}
+                                    className="h-20 bg-primary/20 hover:bg-primary/30 text-white rounded-[1.5rem] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-primary/20"
+                                >
+                                    <span className="material-symbols-outlined text-3xl font-black">photo_camera</span>
+                                    <span className="text-[10px]">Kamera</span>
+                                </button>
+                                <button 
+                                    onClick={() => document.getElementById(`alarm-gallery-${currentTask.id}`)?.click()}
+                                    className="h-20 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-500 rounded-[1.5rem] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-emerald-500/20"
+                                >
+                                    <span className="material-symbols-outlined text-3xl font-black">photo_library</span>
+                                    <span className="text-[10px]">Galeri</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={() => {
+                                    if (currentTask.photoUploadMode === 'gallery') {
+                                        document.getElementById(`alarm-gallery-${currentTask.id}`)?.click();
+                                    } else {
+                                        onComplete(currentTask);
+                                    }
+                                }}
+                                className="h-20 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all active:scale-95 shadow-xl"
+                            >
+                                <span className="material-symbols-outlined text-3xl font-black">
+                                    {currentTask.photoUploadMode === 'gallery' ? 'photo_library' : 'photo_camera'}
+                                </span>
+                                {currentTask.photoUploadMode === 'gallery' ? 'Upload Dari Galeri' : 'Ambil Foto Bukti'}
+                            </button>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4">
                             <button 
