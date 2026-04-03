@@ -201,7 +201,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
                             >
                                 <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">KAMERA-TEST</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">Kamera</span>
                             </button>
                             <button 
                                 onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
@@ -209,7 +209,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
                             >
                                 <span className="material-symbols-outlined text-emerald-500 text-xl font-black">photo_library</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">GALERI-TEST</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">Galeri</span>
                             </button>
                         </div>
                     ) : (
@@ -231,8 +231,8 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">
                                 {isUploading ? 'Mengunggah...' : 
-                                 photoUploadMode === 'camera' ? 'KAMERA-ONLY-TEST' : 
-                                 'GALERI-ONLY-TEST'}
+                                 photoUploadMode === 'camera' ? 'Ambil Foto Kamera' : 
+                                 'Pilih Dari Galeri'}
                             </span>
                         </button>
                     )}
