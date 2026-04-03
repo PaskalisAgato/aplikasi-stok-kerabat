@@ -265,8 +265,13 @@ function App() {
                 onSnooze={snoozeTask}
                 onStop={stopTaskAlarm}
                 onComplete={(task) => {
-                    setAlarmTask(task);
-                    setIsAlarmCameraOpen(true);
+                    if (task.photoProof) {
+                        handleComplete(task.id, task.photoProof);
+                        stopTaskAlarm(task.id);
+                    } else {
+                        setAlarmTask(task);
+                        setIsAlarmCameraOpen(true);
+                    }
                 }}
             />
 

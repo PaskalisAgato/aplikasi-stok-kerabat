@@ -41,12 +41,38 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                     )}
 
                     <div className="grid grid-cols-1 w-full gap-4">
+                        <input 
+                            type="file" 
+                            id={`alarm-gallery-${currentTask.id}`}
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    // Use a temporary callback pattern or just call onComplete if it handles base64
+                                    // Actually, OverdueAlarmModal.onComplete expects the task object to open the camera modal
+                                    // I'll modify the prop to optionally handle direct completion
+                                    onComplete({ ...currentTask, photoProof: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                            }}
+                        />
                         <button 
-                            onClick={() => onComplete(currentTask)}
+                            onClick={() => {
+                                if (currentTask.photoUploadMode === 'gallery') {
+                                    document.getElementById(`alarm-gallery-${currentTask.id}`)?.click();
+                                } else {
+                                    onComplete(currentTask);
+                                }
+                            }}
                             className="h-20 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all active:scale-95 shadow-xl"
                         >
-                            <span className="material-symbols-outlined text-3xl font-black">check_circle</span>
-                            Selesaikan Tugas
+                            <span className="material-symbols-outlined text-3xl font-black">
+                                {currentTask.photoUploadMode === 'gallery' ? 'photo_library' : 'photo_camera'}
+                            </span>
+                            {currentTask.photoUploadMode === 'gallery' ? 'Upload Dari Galeri' : 'Ambil Foto Bukti'}
                         </button>
 
                         <div className="grid grid-cols-2 gap-4">

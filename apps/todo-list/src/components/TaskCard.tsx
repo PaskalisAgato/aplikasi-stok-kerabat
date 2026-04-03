@@ -171,13 +171,50 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             {/* Employee Action Area */}
             {!isCompleted && role === 'Karyawan' && (
                 <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
+                    <input 
+                        type="file" 
+                        id={`gallery-${task.id}`}
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !onComplete) return;
+                            setIsUploading(true);
+                            try {
+                                const reader = new FileReader();
+                                reader.onloadend = async () => {
+                                    await onComplete(task.id, reader.result as string);
+                                    setIsUploading(false);
+                                };
+                                reader.readAsDataURL(file);
+                            } catch (error) {
+                                setIsUploading(false);
+                            }
+                        }}
+                    />
                     <button 
-                        onClick={() => setIsCameraOpen(true)}
+                        onClick={() => {
+                            if (photoUploadMode === 'gallery') {
+                                document.getElementById(`gallery-${task.id}`)?.click();
+                            } else {
+                                setIsCameraOpen(true);
+                            }
+                        }}
                         disabled={isUploading}
                         className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
                     >
-                        <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">{isUploading ? 'Mengunggah...' : 'Ambil Foto Bukti'}</span>
+                        <span className="material-symbols-outlined text-primary text-xl font-black">
+                            {isUploading ? 'hourglass_empty' : 
+                             photoUploadMode === 'camera' ? 'photo_camera' : 
+                             photoUploadMode === 'gallery' ? 'photo_library' : 
+                             'add_a_photo'}
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                            {isUploading ? 'Mengunggah...' : 
+                             photoUploadMode === 'camera' ? 'Ambil Foto Kamera' : 
+                             photoUploadMode === 'gallery' ? 'Pilih Dari Galeri' : 
+                             'Upload Bukti Foto'}
+                        </span>
                     </button>
                 </div>
             )}

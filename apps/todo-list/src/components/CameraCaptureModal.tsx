@@ -197,6 +197,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                                 className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
                             >
                                 <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">photo_library</span>
+                                <span className="text-[8px] font-black uppercase tracking-tighter opacity-80">Galeri</span>
                             </button>
                         ) : (
                             <div className="size-14" /> // Spacer
