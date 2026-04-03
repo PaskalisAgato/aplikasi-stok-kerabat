@@ -285,9 +285,13 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                     priceToSave = ing.pricePerG * 1000;
                 }
                 
-                await apiClient.updateInventoryItem(ing.id, { 
-                    pricePerUnit: priceToSave 
-                });
+                try {
+                    await apiClient.updateInventoryItem(ing.id, { 
+                        pricePerUnit: priceToSave 
+                    });
+                } catch (err: any) {
+                    console.warn(`Failed to sync price for ingredient ${ing.id}:`, err);
+                }
             }
 
             alert('Resep berhasil disimpan dan harga bahan diperbarui!');
