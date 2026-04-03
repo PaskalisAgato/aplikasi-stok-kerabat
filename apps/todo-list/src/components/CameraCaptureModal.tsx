@@ -187,7 +187,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                     <div className="w-full max-w-md flex justify-between items-center relative gap-4">
                         
                         {/* Gallery Button - Show if mode is BOTH or GALLERY */}
-                        {(photoUploadMode === 'both' || photoUploadMode === 'gallery' || category === 'Request') ? (
+                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'gallery' || category === 'Request') ? (
                             <button 
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isProcessing}
@@ -200,7 +200,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         )}
 
                         {/* Capture Button - Show if mode is BOTH or CAMERA */}
-                        {(photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
                             <button 
                                 onClick={handleCapture}
                                 disabled={isCapturing || isSwitching}
@@ -230,7 +230,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         />
 
                         {/* Switch Camera Button - Only show if camera is enabled */}
-                        {(photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
                             <button 
                                 onClick={toggleCamera}
                                 disabled={isSwitching}
