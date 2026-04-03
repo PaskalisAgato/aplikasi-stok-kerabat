@@ -168,6 +168,7 @@ export class TodoService {
                     intervalType: todo.intervalType,
                     intervalValue: todo.intervalValue,
                     nextRunAt: nextRun,
+                    photoUploadMode: todo.photoUploadMode,
                     status: 'Pending',
                     createdAt: now
                 });

@@ -18,7 +18,6 @@ function App() {
     const [history, setHistory] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'Opening' | 'Closing' | 'Request' | 'History'>('Opening');
     const [isLoading, setIsLoading] = useState(true);
-    const [photoUploadMode, setPhotoUploadMode] = useState<'camera' | 'gallery' | 'both'>('both');
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -35,23 +34,11 @@ function App() {
     const [hasMoreHistory, setHasMoreHistory] = useState(false);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
-    const fetchSettings = async () => {
-        try {
-            const res = await apiClient.getTodoSettings();
-            const mode = res.data.find((s: any) => s.settingKey === 'photo_upload_mode');
-            if (mode) setPhotoUploadMode(mode.settingValue);
-        } catch (error) {
-            console.error('Failed to fetch settings', error);
-        }
-    };
-
     const fetchTodos = async () => {
         try {
             setIsLoading(true);
             const response = await apiClient.getTodos();
             setTodos(response.data);
-            
-            await fetchSettings();
             
             // Only fetch first page of history once or when explicitly needed
             if (role === 'Admin' && history.length === 0) {
@@ -150,16 +137,6 @@ function App() {
         }
     };
 
-    const handleUpdatePhotoMode = async (mode: 'camera' | 'gallery' | 'both') => {
-        try {
-            await apiClient.updateTodoSetting('photo_upload_mode', mode);
-            setPhotoUploadMode(mode);
-            toast.success(`Mode unggah diatur ke: ${mode.toUpperCase()}`);
-        } catch (error) {
-            toast.error('Gagal mengupdate pengaturan.');
-        }
-    };
-
     const filteredTasks = activeTab === 'History' 
         ? history 
         : todos.filter(t => t.category === activeTab && t.status !== 'Completed');
@@ -194,40 +171,6 @@ function App() {
             )}
         >
             <div className="space-y-8 pb-32">
-                {/* Admin Settings Section */}
-                {role === 'Admin' && (
-                    <div className="glass p-6 rounded-[2.5rem] border-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                        <div className="flex items-center gap-3 opacity-60">
-                            <span className="material-symbols-outlined text-xl">settings</span>
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em]">Pengaturan Mode Bukti Foto (Karyawan)</h4>
-                        </div>
-                        
-                        <div className="flex p-1.5 glass rounded-2xl border-white/5 items-stretch h-14">
-                            {[
-                                { id: 'camera', label: 'Kamera', icon: 'photo_camera' },
-                                { id: 'gallery', label: 'Galeri', icon: 'photo_library' },
-                                { id: 'both', label: 'Keduanya', icon: 'add_to_photos' }
-                            ].map(option => (
-                                <button
-                                    key={option.id}
-                                    onClick={() => handleUpdatePhotoMode(option.id as any)}
-                                    className={`flex-1 flex items-center justify-center gap-2 rounded-xl transition-all active:scale-95 ${
-                                        photoUploadMode === option.id 
-                                        ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20 font-black' 
-                                        : 'text-muted hover:bg-white/5 font-bold'
-                                    }`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">{option.icon}</span>
-                                    <span className="text-[9px] uppercase tracking-widest hidden sm:inline">{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <p className="text-[8px] italic opacity-40 px-2 tracking-wider">
-                            * Pengaturan ini menentukan bagaimana karyawan mengambil foto bukti saat menyelesaikan tugas.
-                        </p>
-                    </div>
-                )}
-
                 {/* Custom Tabs */}
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none sticky top-0 z-10 bg-[var(--bg-app)]/80 backdrop-blur-sm py-4">
                     {categories.map(cat => (
@@ -263,7 +206,7 @@ function App() {
                                     key={task.id} 
                                     task={task} 
                                     role={role}
-                                    photoUploadMode={photoUploadMode}
+                                    photoUploadMode={task.photoUploadMode}
                                     onEdit={(t) => { setSelectedTask(t); setIsCreateModalOpen(true); }}
                                     onDelete={(id) => { setTaskIdToDelete(id); setIsDeleteModalOpen(true); }}
                                     onComplete={handleComplete}
@@ -338,7 +281,7 @@ function App() {
                 }}
                 userName={session?.user?.name || undefined}
                 category={alarmTask?.category}
-                photoUploadMode={photoUploadMode}
+                photoUploadMode={alarmTask?.photoUploadMode}
             />
         </Layout>
     );

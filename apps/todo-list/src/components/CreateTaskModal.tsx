@@ -11,6 +11,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('Opening');
+    const [photoUploadMode, setPhotoUploadMode] = useState<'camera' | 'gallery' | 'both'>('both');
     const [assignedTo, setAssignedTo] = useState('');
     const [deadline, setDeadline] = useState('');
     const [intervalType, setIntervalType] = useState('daily');
@@ -21,6 +22,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setTitle(task.title);
             setDescription(task.description);
             setCategory(task.category || 'Opening');
+            setPhotoUploadMode(task.photoUploadMode || 'both');
             setAssignedTo(task.assignedTo || '');
             setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
             setIntervalType(task.intervalType || 'daily');
@@ -29,6 +31,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setTitle('');
             setDescription('');
             setCategory('Opening');
+            setPhotoUploadMode('both');
             setAssignedTo('');
             setDeadline('');
             setIntervalType('daily');
@@ -70,7 +73,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                         {/* Category */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kategori</label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 {['Opening', 'Closing', 'Request'].map(cat => (
                                     <button
                                         key={cat}
@@ -81,6 +84,35 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                         }`}
                                     >
                                         {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Photo Mode Selection */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[10px]">photo_library</span>
+                                Mode Bukti Foto
+                            </label>
+                            <div className="flex p-1.5 bg-white/5 border border-white/10 rounded-2xl items-stretch h-14">
+                                {[
+                                    { id: 'camera', label: 'Kamera', icon: 'photo_camera' },
+                                    { id: 'gallery', label: 'Galeri', icon: 'imagesmode' },
+                                    { id: 'both', label: 'Bebas', icon: 'add_to_photos' }
+                                ].map(option => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => setPhotoUploadMode(option.id as any)}
+                                        className={`flex-1 flex items-center justify-center gap-2 rounded-xl transition-all active:scale-95 ${
+                                            photoUploadMode === option.id 
+                                            ? 'bg-primary text-slate-950 font-black' 
+                                            : 'text-muted hover:bg-white/5 font-bold'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-lg">{option.icon}</span>
+                                        <span className="text-[8px] uppercase tracking-widest">{option.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -159,6 +191,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             title, 
                             description, 
                             category, 
+                            photoUploadMode,
                             assignedTo: assignedTo || null, 
                             deadline: deadline || null,
                             isRecurring: category !== 'Request',

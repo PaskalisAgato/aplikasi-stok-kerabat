@@ -304,6 +304,7 @@ export const todos = pgTable('todos', {
     intervalValue: integer('interval_value'), // e.g., 1 (day), 2 (weeks)
     nextRunAt: timestamp('next_run_at'),
     deadline: timestamp('deadline'),
+    photoUploadMode: text('photo_upload_mode').default('both'),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
