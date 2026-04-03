@@ -206,7 +206,7 @@ function App() {
                                     key={task.id} 
                                     task={task} 
                                     role={role}
-                                    photoUploadMode={task.photoUploadMode}
+                                    photoUploadMode={task.photoUploadMode || 'both'}
                                     onEdit={(t) => { setSelectedTask(t); setIsCreateModalOpen(true); }}
                                     onDelete={(id) => { setTaskIdToDelete(id); setIsDeleteModalOpen(true); }}
                                     onComplete={handleComplete}
@@ -281,7 +281,7 @@ function App() {
                 }}
                 userName={session?.user?.name || undefined}
                 category={alarmTask?.category}
-                photoUploadMode={alarmTask?.photoUploadMode}
+                photoUploadMode={alarmTask?.photoUploadMode || 'both'}
             />
         </Layout>
     );

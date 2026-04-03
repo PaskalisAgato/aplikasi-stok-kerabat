@@ -109,6 +109,9 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
         }
     };
 
+    const isGalleryAllowed = photoUploadMode !== 'camera' || category === 'Request';
+    const isCameraAllowed = photoUploadMode !== 'gallery';
+
     const handleConfirm = () => {
         if (previewImage) {
             onCapture(previewImage);
@@ -187,7 +190,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                     <div className="w-full max-w-md flex justify-between items-center relative gap-4">
                         
                         {/* Gallery Button - Show if mode is BOTH or GALLERY */}
-                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'gallery' || category === 'Request') ? (
+                        {isGalleryAllowed ? (
                             <button 
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isProcessing}
@@ -200,7 +203,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         )}
 
                         {/* Capture Button - Show if mode is BOTH or CAMERA */}
-                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                        {isCameraAllowed ? (
                             <button 
                                 onClick={handleCapture}
                                 disabled={isCapturing || isSwitching}
@@ -230,7 +233,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                         />
 
                         {/* Switch Camera Button - Only show if camera is enabled */}
-                        {(!photoUploadMode || photoUploadMode === 'both' || photoUploadMode === 'camera') ? (
+                        {isCameraAllowed ? (
                             <button 
                                 onClick={toggleCamera}
                                 disabled={isSwitching}
