@@ -4,7 +4,7 @@ import { openDB } from 'idb';
 const DB_NAME = 'kerabat-pos-pwa';
 const STORE_NAME = 'print-queue';
 const SETTINGS_STORE = 'print-settings';
-const BRIDGE_URL = 'http://localhost:3001';
+const BRIDGE_URL = 'http://127.0.0.1:3001';
 
 export interface PrinterConfig {
     id: string;
