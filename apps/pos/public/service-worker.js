@@ -41,6 +41,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // EXEMPT Local Print Bridge (localhost/3001) from interception
+  // By NOT calling respondWith, the browser handles the fetch normally outside the SW context
+  if (url.port === '3001' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return;
+  }
+
   // 2. Navigation Fallback: Serve offline.html if navigation fails
   if (event.request.mode === 'navigate') {
     event.respondWith(
