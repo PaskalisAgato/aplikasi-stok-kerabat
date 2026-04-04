@@ -72,7 +72,7 @@ export interface ApiResponse<T> {
 }
 
 // ── Resilience Config ────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS = 30_000; // Increased to 30s for Render cold starts and large Cloudinary uploads
+const FETCH_TIMEOUT_MS = 10_000; // Fail-fast: 10s timeout for better UX on poor connections
 const MAX_RETRIES = 1;         // 1 retry as per Enterprise Section 4
 const CACHE_TTL_MS = 30_000;   // 30 seconds as per Enterprise Section 6
 

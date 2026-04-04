@@ -27,7 +27,44 @@ const Layout: React.FC<LayoutProps> = ({
     maxWidth = '1600px'
 }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [isOffline, setIsOffline] = useState(typeof window !== 'undefined' ? !navigator.onLine : false);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const { data: session, isPending, refetch, error: sessionError } = useSession();
+
+    React.useEffect(() => {
+        const handleOnline = () => setIsOffline(false);
+        const handleOffline = () => setIsOffline(true);
+        const handleBeforeInstallPrompt = (e: any) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        const handleAppInstalled = () => {
+            setDeferredPrompt(null);
+            console.log('PWA was installed');
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', handleAppInstalled);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
+        };
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+        }
+    };
+
     if (sessionError) console.error("Session verification failed:", sessionError);
     const [retryCount, setRetryCount] = useState(0);
     const [isRetrying, setIsRetrying] = useState(false);
@@ -158,6 +195,14 @@ const Layout: React.FC<LayoutProps> = ({
         <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
             <Toaster position="top-right" reverseOrder={false} />
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
+
+            {/* Offline Mode Banner */}
+            {isOffline && (
+                <div className="fixed top-0 inset-x-0 z-[1000] bg-red-600 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
+                    <span className="material-symbols-outlined text-lg animate-pulse">signal_wifi_off</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Mode: Koneksi Terputus. Data mungkin tidak akurat.</span>
+                </div>
+            )}
             
             <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative w-full overflow-hidden`} style={{ maxWidth }}>
                 
@@ -213,7 +258,19 @@ const Layout: React.FC<LayoutProps> = ({
                                         {headerExtras}
                                     </div>
                                 )}
+                                
+                                {deferredPrompt && (
+                                    <button 
+                                        onClick={handleInstallClick}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shrink-0"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">install_mobile</span>
+                                        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
+                                    </button>
+                                )}
+
                                 <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
+
                                 <div className="shrink-0 scale-90 sm:scale-100">
                                     <ThemeToggle />
                                 </div>
