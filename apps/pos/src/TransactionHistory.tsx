@@ -19,6 +19,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     // Recipes list for edit modal dropdowns
     const [recipesList, setRecipesList] = useState<any[]>([]);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
     useEffect(() => {
         loadData();
@@ -45,15 +46,12 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const handleDelete = async (id: number) => {
-        console.log('🚀 Triggering deletion for Transaction ID:', id);
-        if (!window.confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok barang akan dikembalikan (restock).')) return;
         try {
             await apiClient.deleteTransaction(id);
-            console.log('✅ Deletion successful for ID:', id);
             alert('Transaksi berhasil dihapus.');
+            setDeleteConfirmId(null);
             loadData();
         } catch (error: any) {
-            console.error('❌ Deletion failed for ID:', id, error);
             alert(`Gagal menghapus: ${error.message}`);
         }
     };
@@ -221,31 +219,50 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                 {tx.paymentMethod}
                                             </span>
                                         </td>
-                                        <td className="p-5 flex justify-end gap-2">
-                                            <button 
-                                                onClick={() => setViewData(tx)}
-                                                className="size-8 rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                title="Lihat Detail"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">visibility</span>
-                                            </button>
-                                            
-                                             <button 
-                                                onClick={() => handleDelete(tx.id)}
-                                                className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                title="Hapus Transaksi"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                                            </button>
-                                            
-                                            {isAdmin && (
-                                                <button 
-                                                    onClick={() => openEdit(tx)}
-                                                    className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                    title="Edit Transaksi"
-                                                >
-                                                    <span className="material-symbols-outlined text-[18px]">edit_square</span>
-                                                </button>
+                                         <td className="p-5 flex justify-end gap-2">
+                                            {deleteConfirmId === tx.id ? (
+                                                <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
+                                                    <button 
+                                                        onClick={() => handleDelete(tx.id)}
+                                                        className="h-8 px-3 rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setDeleteConfirmId(null)}
+                                                        className="h-8 px-3 rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                                                    >
+                                                        Batal
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button 
+                                                        onClick={() => setViewData(tx)}
+                                                        className="size-8 rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                        title="Lihat Detail"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                    </button>
+                                                    
+                                                     <button 
+                                                        onClick={() => setDeleteConfirmId(tx.id)}
+                                                        className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                        title="Hapus Transaksi"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                    </button>
+                                                    
+                                                    {isAdmin && (
+                                                        <button 
+                                                            onClick={() => openEdit(tx)}
+                                                            className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                            title="Edit Transaksi"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[18px]">edit_square</span>
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                         </td>
                                     </tr>
