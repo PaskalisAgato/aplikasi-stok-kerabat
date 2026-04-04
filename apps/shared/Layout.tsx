@@ -223,7 +223,13 @@ const Layout: React.FC<LayoutProps> = ({
     return (
         <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
             <Toaster position="top-right" reverseOrder={false} />
-            <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
+            <NavDrawer 
+                open={drawerOpen} 
+                onClose={() => setDrawerOpen(false)} 
+                currentPort={currentPort}
+                deferredPrompt={deferredPrompt}
+                onInstall={handleInstallClick}
+            />
 
             {/* Offline Mode Banner */}
             {isOffline && (
