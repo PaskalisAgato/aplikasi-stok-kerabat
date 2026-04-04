@@ -158,27 +158,28 @@ function AttendanceHistoryPage() {
             title="Riwayat Absen"
             subtitle="Monitoring Kehadiran"
             headerExtras={
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-end">
                     <button 
                         onClick={handleExportExcel}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-500/20"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-emerald-500/20 shrink-0"
                     >
                         <span className="material-symbols-outlined text-sm">download_for_offline</span>
                         Excel
                     </button>
                     <button 
                         onClick={handleExportCSV}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/10"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-white/10 shrink-0"
                     >
                         <span className="material-symbols-outlined text-sm">csv</span>
                         CSV
                     </button>
                     <button 
                         onClick={() => setShowDeleteModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-red-500/20 ml-2"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-red-500/20 shrink-0"
                     >
                         <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                        Hapus Riwayat
+                        <span className="hidden sm:inline">Hapus Riwayat</span>
+                        <span className="sm:hidden">Hapus</span>
                     </button>
                 </div>
             }
