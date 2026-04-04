@@ -35,18 +35,25 @@ const Layout: React.FC<LayoutProps> = ({
         const handleOnline = () => setIsOffline(false);
         const handleOffline = () => setIsOffline(true);
         const handleBeforeInstallPrompt = (e: any) => {
+            console.log('✅ PWA beforeinstallprompt fired');
             e.preventDefault();
             setDeferredPrompt(e);
         };
         const handleAppInstalled = () => {
             setDeferredPrompt(null);
-            console.log('PWA was installed');
+            console.log('🎉 PWA was successfully installed');
         };
 
+        console.log('🔍 Initializing PWA listeners...');
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         window.addEventListener('appinstalled', handleAppInstalled);
+
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('📱 App is already running in standalone mode');
+        }
 
         return () => {
             window.removeEventListener('online', handleOnline);
