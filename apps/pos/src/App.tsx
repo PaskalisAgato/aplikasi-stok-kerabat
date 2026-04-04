@@ -37,6 +37,7 @@ function App() {
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     const fetchRecipes = async () => {
         try {
@@ -55,9 +56,11 @@ function App() {
         fetchRecipes();
     }, []);
 
-    const filteredRecipes = items.filter((r) =>
-        r.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredRecipes = items.filter((r) => {
+        const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = !selectedCategory || r.category?.toLowerCase() === selectedCategory.toLowerCase();
+        return matchesSearch && matchesCategory;
+    });
 
     const activeCartItems = items.filter((r) => sales[r.id] > 0);
 
@@ -269,15 +272,38 @@ function App() {
                             {/* Product List */}
                             <div className="flex-1 overflow-hidden flex flex-col border-r border-white/5">
                                 <div className="p-6 md:p-8 shrink-0">
-                                    <div className="relative group">
+                                    <div className="relative group mb-6">
                                         <span className="absolute left-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-[var(--text-muted)] opacity-40 group-focus-within:text-primary group-focus-within:opacity-100 transition-all font-black">search</span>
                                         <input 
                                             type="text" 
                                             placeholder="Cari Menu / Barcode..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="w-full bg-white/5 border-2 border-white/5 rounded-2xl md:rounded-3xl pl-16 pr-8 py-4 md:py-6 text-sm md:text-base text-white focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all font-bold placeholder:text-[var(--text-muted)] placeholder:opacity-30"
+                                            className="w-full bg-white/5 border-2 border-white/5 rounded-2xl md:rounded-[2rem] pl-16 pr-8 py-4 md:py-6 text-sm md:text-base text-[var(--text-main)] focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all font-bold placeholder:text-[var(--text-muted)] placeholder:opacity-30 shadow-inner"
                                         />
+                                    </div>
+
+                                    {/* Category Selector */}
+                                    <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar sticky top-0 z-10 py-2">
+                                        {[
+                                            { id: null, label: 'Semua', icon: 'apps' },
+                                            { id: 'makanan', label: 'Makanan', icon: 'lunch_dining' },
+                                            { id: 'minuman', label: 'Minuman', icon: 'local_cafe' },
+                                            { id: 'snack', label: 'Snack', icon: 'cookie' }
+                                        ].map((cat) => (
+                                            <button
+                                                key={cat.label}
+                                                onClick={() => setSelectedCategory(cat.id)}
+                                                className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl md:rounded-[1.5rem] whitespace-nowrap transition-all active:scale-95 border-2 font-black text-[10px] uppercase tracking-widest ${
+                                                    selectedCategory === cat.id 
+                                                        ? 'bg-primary border-primary text-slate-950 shadow-lg shadow-primary/20 scale-105' 
+                                                        : 'glass border-transparent text-[var(--text-muted)] hover:border-primary/30 hover:text-primary'
+                                                }`}
+                                            >
+                                                <span className="material-symbols-outlined text-lg">{cat.icon}</span>
+                                                {cat.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
