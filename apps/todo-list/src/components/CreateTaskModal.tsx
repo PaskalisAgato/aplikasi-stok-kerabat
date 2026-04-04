@@ -14,8 +14,11 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
     const [photoUploadMode, setPhotoUploadMode] = useState<'camera' | 'gallery' | 'both'>('both');
     const [assignedTo, setAssignedTo] = useState('');
     const [deadline, setDeadline] = useState('');
+    const [deadlineTime, setDeadlineTime] = useState('');
     const [intervalType, setIntervalType] = useState('daily');
     const [intervalValue, setIntervalValue] = useState(1);
+
+    const isRecurringDaily = category !== 'Request' && intervalType === 'daily';
 
     useEffect(() => {
         if (task) {
@@ -24,7 +27,9 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setCategory(task.category || 'Opening');
             setPhotoUploadMode(task.photoUploadMode || 'both');
             setAssignedTo(task.assignedTo || '');
-            setDeadline(task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '');
+            const taskDeadline = task.deadline ? new Date(task.deadline) : null;
+            setDeadline(taskDeadline ? taskDeadline.toISOString().slice(0, 16) : '');
+            setDeadlineTime(taskDeadline ? taskDeadline.toTimeString().slice(0, 5) : '');
             setIntervalType(task.intervalType || 'daily');
             setIntervalValue(task.intervalValue || 1);
         } else {
@@ -34,6 +39,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setPhotoUploadMode('both');
             setAssignedTo('');
             setDeadline('');
+            setDeadlineTime('');
             setIntervalType('daily');
             setIntervalValue(1);
         }
@@ -155,22 +161,31 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                              <div className="flex justify-between items-center ml-1">
                                 <label className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
                                     <span className="material-symbols-outlined text-[10px]">timer</span>
-                                    Tenggat Waktu
+                                    {isRecurringDaily ? 'Jam Deadline (24 Jam)' : 'Tenggat Waktu'}
                                 </label>
                                 <button 
                                     type="button" 
-                                    onClick={() => setDeadline('')}
+                                    onClick={() => { setDeadline(''); setDeadlineTime(''); }}
                                     className="text-[8px] font-black text-primary uppercase tracking-widest hover:underline"
                                 >
                                     Hapus
                                 </button>
                              </div>
-                             <input
-                                 type="datetime-local"
-                                 value={deadline}
-                                 onChange={(e) => setDeadline(e.target.value)}
-                                 className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                             />
+                             {isRecurringDaily ? (
+                                 <input
+                                     type="time"
+                                     value={deadlineTime}
+                                     onChange={(e) => setDeadlineTime(e.target.value)}
+                                     className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                 />
+                             ) : (
+                                 <input
+                                     type="datetime-local"
+                                     value={deadline}
+                                     onChange={(e) => setDeadline(e.target.value)}
+                                     className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                 />
+                             )}
                         </div>
 
                         {/* Description */}
@@ -187,18 +202,32 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                     </div>
 
                     <button
-                        onClick={() => onSave({ 
-                            title, 
-                            description, 
-                            category, 
-                            photoUploadMode,
-                            assignedTo: assignedTo || null, 
-                            deadline: deadline || null,
-                            isRecurring: category !== 'Request',
-                            intervalType: category !== 'Request' ? intervalType : null,
-                            intervalValue: category !== 'Request' ? intervalValue : null,
-                            nextRunAt: category !== 'Request' ? (task?.nextRunAt ? task.nextRunAt : new Date()) : null
-                        })}
+                        onClick={() => {
+                            // Build deadline based on mode
+                            let finalDeadline: string | null = null;
+                            if (isRecurringDaily && deadlineTime) {
+                                // For daily recurring: combine today's date + selected time
+                                const today = new Date();
+                                const [h, m] = deadlineTime.split(':').map(Number);
+                                today.setHours(h, m, 0, 0);
+                                finalDeadline = today.toISOString();
+                            } else if (deadline) {
+                                finalDeadline = deadline;
+                            }
+
+                            onSave({ 
+                                title, 
+                                description, 
+                                category, 
+                                photoUploadMode,
+                                assignedTo: assignedTo || null, 
+                                deadline: finalDeadline,
+                                isRecurring: category !== 'Request',
+                                intervalType: category !== 'Request' ? intervalType : null,
+                                intervalValue: category !== 'Request' ? intervalValue : null,
+                                nextRunAt: category !== 'Request' ? (task?.nextRunAt ? task.nextRunAt : new Date()) : null
+                            });
+                        }}
                         disabled={!title}
                         className="w-full h-16 btn-primary shadow-2xl disabled:opacity-50 disabled:grayscale"
                     >
