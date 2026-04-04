@@ -157,36 +157,33 @@ function AttendanceHistoryPage() {
             currentPort={5190}
             title="Riwayat Absen"
             subtitle="Monitoring Kehadiran"
-            headerExtras={
-                <div className="flex flex-wrap gap-2 justify-end">
+        >
+            <Toaster position="top-center" />
+            <div className="space-y-6">
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3">
                     <button 
                         onClick={handleExportExcel}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-emerald-500/20 shrink-0"
+                        className="flex items-center gap-2 px-5 py-3 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-emerald-500/20"
                     >
-                        <span className="material-symbols-outlined text-sm">download_for_offline</span>
+                        <span className="material-symbols-outlined text-base">download_for_offline</span>
                         Excel
                     </button>
                     <button 
                         onClick={handleExportCSV}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-white/10 shrink-0"
+                        className="flex items-center gap-2 px-5 py-3 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/10"
                     >
-                        <span className="material-symbols-outlined text-sm">csv</span>
+                        <span className="material-symbols-outlined text-base">csv</span>
                         CSV
                     </button>
                     <button 
                         onClick={() => setShowDeleteModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl transition-all font-black text-[9px] sm:text-[10px] uppercase tracking-widest border border-red-500/20 shrink-0"
+                        className="flex items-center gap-2 px-5 py-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-red-500/20"
                     >
-                        <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                        <span className="hidden sm:inline">Hapus Riwayat</span>
-                        <span className="sm:hidden">Hapus</span>
+                        <span className="material-symbols-outlined text-base">delete_sweep</span>
+                        Hapus Riwayat
                     </button>
                 </div>
-            }
-        >
-            <Toaster position="top-center" />
-            <div className="space-y-6">
-                {/* Filters */}
                 <div className="glass rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-center border-white/5 shadow-lg">
                     <div className="w-full md:flex-1 space-y-2">
                         <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Cari Karyawan</label>
