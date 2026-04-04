@@ -158,7 +158,7 @@ export class PrintService {
                 .line('--------------------------------')
                 .align('center')
                 .line('Scan untuk Cek Transaksi:')
-                .qrcode(`https://kerabatpos.com/check/${data.id}`, 2, 4, 'H')
+                .qrcode(`https://kerabatpos.com/check/${data.id}`, 2, 4, 'h')
                 .newline()
                 .line('Terima Kasih!')
                 .line('Selamat Menikmati');
