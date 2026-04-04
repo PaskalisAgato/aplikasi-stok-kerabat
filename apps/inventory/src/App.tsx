@@ -311,10 +311,10 @@ function App() {
                             />
                         </div>
                         <div className="min-w-0 space-y-1">
-                            <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors truncate">{item.name}</h3>
+                            <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors text-auto-fit">{item.name}</h3>
                             <div className="flex items-center gap-2 opacity-60">
                                 <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
-                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate">{item.supplier || 'Pemasok Umum'}</p>
+                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-auto-fit-sm">{item.supplier || 'Pemasok Umum'}</p>
                             </div>
                         </div>
                     </div>
@@ -350,7 +350,7 @@ function App() {
                 </div>
 
                 {/* Stock Values */}
-                <div className="flex items-end justify-between mt-auto mb-6 relative z-10">
+                <div className="flex items-end justify-between mt-auto mb-6 relative z-10 gap-4">
                     <div className="space-y-1">
                         <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
                         <p className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter">

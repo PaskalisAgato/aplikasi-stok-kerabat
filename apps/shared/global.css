@@ -90,5 +90,74 @@ html {
   .accent-glow {
     filter: drop-shadow(0 0 15px var(--primary-glow));
   }
+
+  /* ===== Responsive Auto-Scaling Text Utilities ===== */
+
+  /* Single-line auto-fit: scales between 10px and 16px, truncates with ellipsis */
+  .text-auto-fit {
+    font-size: clamp(0.625rem, 1.8vw, 1rem);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* Large auto-fit for titles/headings */
+  .text-auto-fit-lg {
+    font-size: clamp(0.875rem, 2.5vw, 1.5rem);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* Small auto-fit for labels/metadata */
+  .text-auto-fit-sm {
+    font-size: clamp(0.5rem, 1.4vw, 0.75rem);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* Multi-line auto-wrap: clamps to 2 lines with ellipsis */
+  .text-auto-wrap {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .text-auto-wrap-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Flex child that can shrink properly (critical for text inside flex) */
+  .text-fit-container {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* Price text: never wraps, scales responsively */
+  .text-price {
+    font-size: clamp(0.625rem, 2vw, 1rem);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Card content layout: prevents text collision */
+  .card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+  }
 }
 

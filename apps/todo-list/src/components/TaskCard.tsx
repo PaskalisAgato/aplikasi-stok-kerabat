@@ -162,7 +162,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                              </span>
                          )}
                     </div>
-                    <h3 className="text-lg font-black font-display tracking-tight text-main uppercase leading-tight truncate">{task.title}</h3>
+                    <h3 className="text-lg font-black font-display tracking-tight text-main uppercase leading-tight text-auto-fit">{task.title}</h3>
                     <p className="text-[10px] text-muted font-bold uppercase tracking-widest opacity-60 line-clamp-2">{task.description}</p>
                 </div>
 

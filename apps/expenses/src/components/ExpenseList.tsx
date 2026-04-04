@@ -125,7 +125,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                             <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{expense.category}</span>
                                             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
                                         </div>
-                                        <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase truncate">{expense.title}</h4>
+                                        <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase text-auto-fit">{expense.title}</h4>
                                     </div>
                                 </div>
 

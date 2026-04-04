@@ -292,7 +292,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                     return (
                                         <div key={idx} className="flex items-center gap-4 glass p-3 rounded-2xl relative group">
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-black text-[var(--text-main)] truncate uppercase">{item.recipeName}</p>
+                                                <p className="font-black text-[var(--text-main)] text-auto-fit uppercase">{item.recipeName}</p>
                                                 <p className="text-xs text-primary font-bold">Rp {price.toLocaleString('id-ID')}</p>
                                             </div>
                                             <div className="flex items-center gap-3 bg-[var(--bg-app)] p-1.5 rounded-xl shrink-0 border border-white/5">
