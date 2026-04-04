@@ -169,8 +169,8 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                 )}
             </div>
 
-            {/* Employee Action Area */}
-            {!isCompleted && role === 'Karyawan' && (
+            {/* Gallery Upload - Always visible for Karyawan */}
+            {role === 'Karyawan' && (
                 <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
                     <input 
                         type="file" 
@@ -210,7 +210,6 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 console.error(error);
                             }
                             
-                            // Reset input
                             e.target.value = '';
                         }}
                     />
@@ -230,48 +229,65 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                             ))}
                         </div>
                     )}
-                    
-                    {photoUploadMode === 'both' ? (
-                        <div className="grid grid-cols-2 gap-3">
-                            <button 
-                                onClick={() => setIsCameraOpen(true)}
-                                disabled={isUploading}
-                                className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
-                            >
-                                <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">KAMERA</span>
-                            </button>
-                            <button 
-                                onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
-                                disabled={isUploading}
-                                className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
-                            >
-                                <span className="material-symbols-outlined text-emerald-500 text-xl font-black">photo_library</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">GALERI</span>
-                            </button>
-                        </div>
-                    ) : (
+
+                    {/* Camera / Gallery mode buttons — only when task is not yet completed */}
+                    {!isCompleted && (
+                        <>
+                            {photoUploadMode === 'both' ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button 
+                                        onClick={() => setIsCameraOpen(true)}
+                                        disabled={isUploading}
+                                        className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
+                                        <span className="text-[9px] font-black uppercase tracking-tight text-primary">KAMERA</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
+                                        disabled={isUploading}
+                                        className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-emerald-500 text-xl font-black">photo_library</span>
+                                        <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">GALERI</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={() => {
+                                        if (photoUploadMode === 'gallery') {
+                                            document.getElementById(`gallery-${task.id}`)?.click();
+                                        } else {
+                                            setIsCameraOpen(true);
+                                        }
+                                    }}
+                                    disabled={isUploading}
+                                    className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                                >
+                                    <span className="material-symbols-outlined text-primary text-xl font-black">
+                                        {isUploading ? 'hourglass_empty' : 
+                                         photoUploadMode === 'camera' ? 'photo_camera' : 
+                                         'photo_library'}
+                                    </span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                                        {isUploading ? 'Mengunggah...' : 
+                                         photoUploadMode === 'camera' ? 'AMBIL KAMERA' : 
+                                         'PILIH GALERI'}
+                                    </span>
+                                </button>
+                            )}
+                        </>
+                    )}
+
+                    {/* Always show gallery button when task is completed (for re-upload or additional proof) */}
+                    {isCompleted && (
                         <button 
-                            onClick={() => {
-                                if (photoUploadMode === 'gallery') {
-                                    document.getElementById(`gallery-${task.id}`)?.click();
-                                } else {
-                                    setIsCameraOpen(true);
-                                }
-                            }}
+                            onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
                             disabled={isUploading}
-                            className={`w-full h-12 rounded-xl flex items-center justify-center gap-3 transition-all border-2 border-dashed ${isUploading ? 'bg-primary/5 border-primary/40 animate-pulse' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
+                            className="w-full h-10 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5"
                         >
-                            <span className="material-symbols-outlined text-primary text-xl font-black">
-                                {isUploading ? 'hourglass_empty' : 
-                                 photoUploadMode === 'camera' ? 'photo_camera' : 
-                                 'photo_library'}
-                            </span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                                {isUploading ? 'Mengunggah...' : 
-                                 photoUploadMode === 'camera' ? 'AMBIL KAMERA' : 
-                                 'PILIH GALERI'}
-                            </span>
+                            <span className="material-symbols-outlined text-emerald-500 text-lg font-black">photo_library</span>
+                            <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">UPLOAD GALERI</span>
                         </button>
                     )}
 
@@ -290,7 +306,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 }
                             }}
                             disabled={isUploading}
-                            className={`w-full h-12 ${isUploading ? 'bg-primary/50' : 'bg-primary'} text-slate-950 font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20 mt-2`}
+                            className={`w-full h-12 ${isUploading ? 'bg-primary/50' : 'bg-primary'} text-slate-950 font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20`}
                         >
                             {isUploading ? (
                                 <>
