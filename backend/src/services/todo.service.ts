@@ -103,6 +103,7 @@ export class TodoService {
         const [newTodo] = await db.insert(todos).values({
             ...data,
             deadline: data.deadline ? new Date(data.deadline) : null,
+            nextRunAt: data.nextRunAt ? new Date(data.nextRunAt) : null,
             createdAt: new Date()
         }).returning();
         return newTodo;
