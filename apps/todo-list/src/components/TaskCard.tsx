@@ -74,8 +74,13 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             if (task.isRecurring) {
                 // For recurring tasks, shift the deadline to today's date with the stored time
                 deadlineDate.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
-                // If deadline time already passed today, show next occurrence (tomorrow)
-                if (deadlineDate.getTime() <= now.getTime()) {
+                
+                // Grace period: if deadline passed MORE than 4 hours ago, shift to tomorrow
+                // This prevents old closing tasks (01:00) from alarming at 10:00 AM
+                // But keeps recent deadlines (10:15) as overdue at 10:16
+                const elapsed = now.getTime() - deadlineDate.getTime();
+                const GRACE_PERIOD = 4 * 60 * 60 * 1000; // 4 hours
+                if (elapsed > GRACE_PERIOD) {
                     deadlineDate.setDate(deadlineDate.getDate() + 1);
                 }
             }

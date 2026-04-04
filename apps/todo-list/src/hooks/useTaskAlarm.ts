@@ -39,8 +39,10 @@ export default function useTaskAlarm(todos: any[]) {
             const deadlineDate = new Date(task.deadline);
             if (task.isRecurring) {
                 deadlineDate.setFullYear(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
-                // If deadline time already passed today, shift to tomorrow (next occurrence)
-                if (deadlineDate.getTime() <= now) {
+                // Grace period: only shift to tomorrow if deadline passed MORE than 4 hours ago
+                const elapsed = now - deadlineDate.getTime();
+                const GRACE_PERIOD = 4 * 60 * 60 * 1000; // 4 hours
+                if (elapsed > GRACE_PERIOD) {
                     deadlineDate.setDate(deadlineDate.getDate() + 1);
                 }
             }
