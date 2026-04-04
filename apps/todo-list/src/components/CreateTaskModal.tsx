@@ -17,6 +17,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
     const [deadlineTime, setDeadlineTime] = useState('');
     const [intervalType, setIntervalType] = useState('daily');
     const [intervalValue, setIntervalValue] = useState(1);
+    const [startMode, setStartMode] = useState<'today' | 'tomorrow'>('today');
 
     const isRecurringDaily = category !== 'Request' && intervalType === 'daily';
 
@@ -41,6 +42,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
             setDeadline('');
             setDeadlineTime('');
             setIntervalType('daily');
+            setStartMode('today');
             setIntervalValue(1);
         }
     }, [task, isOpen]);
@@ -156,6 +158,38 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             </div>
                         )}
 
+                        {/* Start Mode - only for recurring tasks */}
+                        {category !== 'Request' && (
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[10px]">event_available</span>
+                                    Mulai Berlaku
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setStartMode('today')}
+                                        className={`h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                                            startMode === 'today' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'bg-white/5 border-white/10 text-muted'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-lg">today</span>
+                                        Hari Ini
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStartMode('tomorrow')}
+                                        className={`h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                                            startMode === 'tomorrow' ? 'bg-sky-500/20 border-sky-500 text-sky-500' : 'bg-white/5 border-white/10 text-muted'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-lg">event</span>
+                                        Besok
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Deadline */}
                         <div className="space-y-3">
                              <div className="flex justify-between items-center ml-1">
@@ -246,7 +280,16 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                 isRecurring: category !== 'Request',
                                 intervalType: category !== 'Request' ? intervalType : null,
                                 intervalValue: category !== 'Request' ? intervalValue : null,
-                                nextRunAt: category !== 'Request' ? (task?.nextRunAt ? task.nextRunAt : new Date()) : null
+                                nextRunAt: category !== 'Request' ? (() => {
+                                    if (task?.nextRunAt) return task.nextRunAt;
+                                    if (startMode === 'tomorrow') {
+                                        const tomorrow = new Date();
+                                        tomorrow.setDate(tomorrow.getDate() + 1);
+                                        tomorrow.setHours(0, 0, 0, 0);
+                                        return tomorrow;
+                                    }
+                                    return new Date();
+                                })() : null
                             });
                         }}
                         disabled={!title}
