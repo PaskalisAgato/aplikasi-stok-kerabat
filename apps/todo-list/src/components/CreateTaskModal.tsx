@@ -172,12 +172,33 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                 </button>
                              </div>
                              {isRecurringDaily ? (
-                                 <input
-                                     type="time"
-                                     value={deadlineTime}
-                                     onChange={(e) => setDeadlineTime(e.target.value)}
-                                     className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                 />
+                                 <div className="flex gap-3 items-center">
+                                     <select
+                                         value={deadlineTime.split(':')[0] || '08'}
+                                         onChange={(e) => {
+                                             const mins = deadlineTime.split(':')[1] || '00';
+                                             setDeadlineTime(`${e.target.value}:${mins}`);
+                                         }}
+                                         className="flex-1 h-14 bg-white/5 border border-white/10 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
+                                     >
+                                         {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')).map(h => (
+                                             <option key={h} value={h}>{h}</option>
+                                         ))}
+                                     </select>
+                                     <span className="text-3xl font-black text-primary">:</span>
+                                     <select
+                                         value={deadlineTime.split(':')[1] || '00'}
+                                         onChange={(e) => {
+                                             const hrs = deadlineTime.split(':')[0] || '08';
+                                             setDeadlineTime(`${hrs}:${e.target.value}`);
+                                         }}
+                                         className="flex-1 h-14 bg-white/5 border border-white/10 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
+                                     >
+                                         {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(m => (
+                                             <option key={m} value={m}>{m}</option>
+                                         ))}
+                                     </select>
+                                 </div>
                              ) : (
                                  <input
                                      type="datetime-local"
