@@ -93,30 +93,27 @@ html {
 
   /* ===== Responsive Auto-Scaling Text Utilities ===== */
 
-  /* Single-line auto-fit: scales between 10px and 16px, truncates with ellipsis */
+  /* Auto-fit: scales between 10px and 16px, wraps to next line if needed */
   .text-auto-fit {
     font-size: clamp(0.625rem, 1.8vw, 1rem);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    word-break: break-word;
     min-width: 0;
   }
 
   /* Large auto-fit for titles/headings */
   .text-auto-fit-lg {
     font-size: clamp(0.875rem, 2.5vw, 1.5rem);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    word-break: break-word;
     min-width: 0;
   }
 
   /* Small auto-fit for labels/metadata */
   .text-auto-fit-sm {
     font-size: clamp(0.5rem, 1.4vw, 0.75rem);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    word-break: break-word;
     min-width: 0;
   }
 
