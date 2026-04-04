@@ -72,8 +72,12 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             const deadlineDate = new Date(task.deadline);
             
             if (task.isRecurring) {
-                // For recurring tasks, shift the deadline date to today, keeping only the time
+                // For recurring tasks, shift the deadline to today's date with the stored time
                 deadlineDate.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+                // If deadline time already passed today, show next occurrence (tomorrow)
+                if (deadlineDate.getTime() <= now.getTime()) {
+                    deadlineDate.setDate(deadlineDate.getDate() + 1);
+                }
             }
             
             const diff = deadlineDate.getTime() - now.getTime();

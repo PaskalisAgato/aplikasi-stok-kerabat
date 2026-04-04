@@ -39,6 +39,10 @@ export default function useTaskAlarm(todos: any[]) {
             const deadlineDate = new Date(task.deadline);
             if (task.isRecurring) {
                 deadlineDate.setFullYear(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+                // If deadline time already passed today, shift to tomorrow (next occurrence)
+                if (deadlineDate.getTime() <= now) {
+                    deadlineDate.setDate(deadlineDate.getDate() + 1);
+                }
             }
             const deadlineTime = deadlineDate.getTime();
             const isLate = now > deadlineTime;
