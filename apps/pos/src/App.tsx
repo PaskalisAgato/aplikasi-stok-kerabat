@@ -152,7 +152,7 @@ function App() {
                             className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all active:scale-95 ${
                                 paymentMethod === method.id 
                                     ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary/20' 
-                                    : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:bg-white/10'
+                                    : 'bg-[var(--border-dim)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-black/5'
                             }`}
                         >
                             <span className="material-symbols-outlined text-2xl font-black">{method.icon}</span>
@@ -162,16 +162,16 @@ function App() {
                 </div>
             </div>
 
-            <div className="space-y-4 md:space-y-6 text-white">
+            <div className="space-y-4 md:space-y-6 text-[var(--text-main)]">
                 <div className="flex items-end justify-between px-2">
                     <div className="space-y-1">
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Total Bayar</p>
-                        <p className="text-3xl md:text-5xl font-black tracking-tighter">
+                        <p className="text-3xl md:text-5xl font-black tracking-tighter text-[var(--text-main)]">
                             <span className="text-primary mr-1">Rp</span>
                             {totalSalesValue.toLocaleString('id-ID')}
                         </p>
                     </div>
-                    <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                    <div className="bg-[var(--border-dim)] px-4 py-2 rounded-xl border border-[var(--border-dim)]">
                         <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
                             {totalItems} Items
                         </p>
@@ -181,11 +181,11 @@ function App() {
                 <button 
                     onClick={() => handleCheckout(true)}
                     disabled={isCheckingOut || totalItems === 0}
-                    className="w-full h-16 md:h-24 bg-primary text-[#0b1220] rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-4"
+                    className="w-full h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-4"
                 >
                     {isCheckingOut ? (
                         <>
-                            <div className="size-6 border-4 border-[#0b1220]/20 border-t-[#0b1220] rounded-full animate-spin"></div>
+                            <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
                             <span>Memproses...</span>
                         </>
                     ) : (
