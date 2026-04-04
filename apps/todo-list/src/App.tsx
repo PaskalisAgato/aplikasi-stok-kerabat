@@ -110,7 +110,7 @@ function App() {
         }
     };
 
-    const handleComplete = async (id: number, photo: string) => {
+    const handleComplete = async (id: number, photo: string | string[]) => {
         try {
             // Backend middleware validateBase64Image('photoProof') will handle Cloudinary
             await apiClient.completeTodo(id, photo);

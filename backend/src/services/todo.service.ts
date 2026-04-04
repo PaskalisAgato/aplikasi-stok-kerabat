@@ -124,9 +124,11 @@ export class TodoService {
         return updatedTodo;
     }
 
-    static async completeTodo(id: number, userId: string, photoProof: string) {
+    static async completeTodo(id: number, userId: string, photoProof: string | string[]) {
         const todo = await db.query.todos.findFirst({ where: eq(todos.id, id) });
         if (!todo) throw new Error('Task not found');
+
+        const serializedPhotoProof = (Array.isArray(photoProof) ? JSON.stringify(photoProof) : photoProof) as string;
 
         // Capture completion time
         const now = new Date();
@@ -147,7 +149,7 @@ export class TodoService {
             const [completion] = await db.insert(todoCompletions).values({
                 todoId: id,
                 completedBy: userId,
-                photoProof,
+                photoProof: serializedPhotoProof,
                 completionTime: now
             }).returning();
 
@@ -175,7 +177,7 @@ export class TodoService {
 
                 // Also update the current task to 'Completed' so it leaves the active list
                 await db.update(todos)
-                    .set({ status: 'Completed', completionTime: now, completedBy: userId, photoProof })
+                    .set({ status: 'Completed', completionTime: now, completedBy: userId, photoProof: serializedPhotoProof })
                     .where(eq(todos.id, id));
             }
 
@@ -184,7 +186,7 @@ export class TodoService {
             const [completedTodo] = await db.update(todos)
                 .set({
                     status: 'Completed',
-                    photoProof,
+                    photoProof: serializedPhotoProof,
                     completedBy: userId,
                     completionTime: now
                 })

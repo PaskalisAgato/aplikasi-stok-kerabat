@@ -307,7 +307,7 @@ export const apiClient = {
     createTodo: (data: unknown) => apiFetch<any>('/todo', { method: 'POST', body: JSON.stringify(data) }),
     updateTodo: (id: number, data: unknown) => apiFetch<any>(`/todo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteTodo: (id: number) => apiFetch<any>(`/todo/${id}`, { method: 'DELETE' }),
-    completeTodo: (id: number, photoProof: string) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
+    completeTodo: (id: number, photoProof: string | string[]) => apiFetch<any>(`/todo/${id}/complete`, { method: 'POST', body: JSON.stringify({ photoProof }) }),
     getTodoHistory: (page = 1, limit = 20) => apiFetch<ApiResponse<any>>(`/todo/history?page=${page}&limit=${limit}`),
     clearTodoHistory: () => apiFetch<any>('/todo/history/clear', { method: 'DELETE' }),
     getTodoPhoto: (id: number, type: 'todo' | 'completion' = 'todo') => apiFetch<any>(`/todo/${id}/photo?type=${type}`),

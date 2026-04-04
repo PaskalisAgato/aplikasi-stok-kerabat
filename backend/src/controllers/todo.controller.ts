@@ -115,9 +115,18 @@ export class TodoController {
                 return res.status(404).json({ error: 'Foto tidak ditemukan.' });
             }
 
+            let parsedPhoto = photo;
+            try {
+                if (photo.startsWith('[')) {
+                    parsedPhoto = JSON.parse(photo);
+                }
+            } catch (e) {
+                // If parse fails, assume it's just a single string URL
+            }
+
             res.json({
                 success: true,
-                data: photo
+                data: parsedPhoto
             });
         } catch (error: any) {
             res.status(500).json({ error: error.message });

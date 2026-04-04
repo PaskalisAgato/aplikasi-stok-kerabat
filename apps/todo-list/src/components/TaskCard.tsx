@@ -8,7 +8,7 @@ interface TaskCardProps {
     task: any;
     role: 'Admin' | 'Karyawan';
     photoUploadMode?: 'camera' | 'gallery' | 'both';
-    onComplete?: (id: number, photo: string) => void;
+    onComplete?: (id: number, photo: string | string[]) => void;
     onEdit?: (task: any) => void;
     onDelete?: (id: number) => void;
 }
@@ -18,23 +18,24 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
     const [isUploading, setIsUploading] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
     const [isOverdue, setIsOverdue] = useState(false);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(task.photoProof || null);
+    const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
+    const [photoUrls, setPhotoUrls] = useState<string[]>([]);
     const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
-    const [isImageFullscreen, setIsImageFullscreen] = useState(false);
+    const [imageFullscreenIndex, setImageFullscreenIndex] = useState<number | null>(null);
 
     // Scroll Lock Logic for Fullscreen Image
     useEffect(() => {
-        if (isImageFullscreen) {
+        if (imageFullscreenIndex !== null) {
             const originalStyle = window.getComputedStyle(document.body).overflow;
             document.body.style.overflow = 'hidden';
             return () => {
                 document.body.style.overflow = originalStyle;
             };
         }
-    }, [isImageFullscreen]);
+    }, [imageFullscreenIndex]);
     
     useEffect(() => {
-        if (task.status === 'Completed' && task.hasPhotoProof && !photoUrl && !isLoadingPhoto) {
+        if (task.status === 'Completed' && task.hasPhotoProof && photoUrls.length === 0 && !isLoadingPhoto) {
             const fetchPhoto = async () => {
                 setIsLoadingPhoto(true);
                 try {
@@ -42,7 +43,12 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                     const type = task.isRecurring ? 'completion' : 'todo';
                     const res = await apiClient.getTodoPhoto(id, type);
                     if (res?.data) {
-                        setPhotoUrl(res.data);
+                        const data = res.data;
+                        if (Array.isArray(data)) {
+                            setPhotoUrls(data);
+                        } else if (typeof data === 'string') {
+                            setPhotoUrls([data]);
+                        }
                     }
                 } catch (error) {
                     console.error('Failed to fetch photo', error);
@@ -52,7 +58,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             };
             fetchPhoto();
         }
-    }, [task.status, task.hasPhotoProof, task.id, task.completionId, task.isRecurring]);
+    }, [task.status, task.hasPhotoProof, task.id, task.completionId, task.isRecurring, photoUrls.length]);
 
     useEffect(() => {
         if (!task.deadline || task.status === 'Completed') {
@@ -99,13 +105,8 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
     }, [task.deadline, task.status, task.isRecurring]);
 
     const handleCapture = async (base64: string) => {
-        if (!onComplete) return;
-        setIsUploading(true);
-        try {
-            await onComplete(task.id, base64);
-        } finally {
-            setIsUploading(false);
-        }
+        setIsCameraOpen(false);
+        setSelectedPhotos(prev => [...prev, base64]);
     };
 
     const isCompleted = task.status === 'Completed';
@@ -175,23 +176,60 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                         type="file" 
                         id={`gallery-${task.id}`}
                         className="hidden" 
-                        accept="image/*"
+                        accept="image/jpeg, image/png, image/jpg"
+                        multiple
                         onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file || !onComplete) return;
-                            setIsUploading(true);
+                            const files = Array.from(e.target.files || []);
+                            if (files.length === 0) return;
+
+                            const validFiles = files.filter(file => {
+                                if (file.size > 2 * 1024 * 1024) {
+                                    alert(`Ukuran file ${file.name} melebihi 2MB.`);
+                                    return false;
+                                }
+                                if (!file.type.match(/image\/(jpeg|png|jpg)/)) {
+                                    alert(`Format file ${file.name} tidak didukung. Gunakan JPG atau PNG.`);
+                                    return false;
+                                }
+                                return true;
+                            });
+
+                            const base64Promises = validFiles.map(file => {
+                                return new Promise<string>((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => resolve(reader.result as string);
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                });
+                            });
+
                             try {
-                                const reader = new FileReader();
-                                reader.onloadend = async () => {
-                                    await onComplete(task.id, reader.result as string);
-                                    setIsUploading(false);
-                                };
-                                reader.readAsDataURL(file);
+                                const base64s = await Promise.all(base64Promises);
+                                setSelectedPhotos(prev => [...prev, ...base64s]);
                             } catch (error) {
-                                setIsUploading(false);
+                                console.error(error);
                             }
+                            
+                            // Reset input
+                            e.target.value = '';
                         }}
                     />
+
+                    {selectedPhotos.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                            {selectedPhotos.map((photo, index) => (
+                                <div key={index} className="relative aspect-square rounded-xl bg-slate-900 border border-white/10 overflow-hidden group">
+                                    <img src={photo} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                                    <button 
+                                        onClick={() => setSelectedPhotos(prev => prev.filter((_, i) => i !== index))}
+                                        className="absolute top-1 right-1 size-6 bg-black/60 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100"
+                                    >
+                                        <span className="material-symbols-outlined text-[10px] font-black">close</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     
                     {photoUploadMode === 'both' ? (
                         <div className="grid grid-cols-2 gap-3">
@@ -201,7 +239,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-primary/40 hover:bg-primary/5'}`}
                             >
                                 <span className="material-symbols-outlined text-primary text-xl font-black">photo_camera</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">Kamera</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-primary">KAMERA</span>
                             </button>
                             <button 
                                 onClick={() => document.getElementById(`gallery-${task.id}`)?.click()}
@@ -209,7 +247,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                 className={`h-12 rounded-xl flex items-center justify-center gap-2 transition-all border-2 border-dashed ${isUploading ? 'opacity-50 grayscale' : 'bg-white/5 border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
                             >
                                 <span className="material-symbols-outlined text-emerald-500 text-xl font-black">photo_library</span>
-                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">Galeri</span>
+                                <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500">GALERI</span>
                             </button>
                         </div>
                     ) : (
@@ -231,9 +269,40 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">
                                 {isUploading ? 'Mengunggah...' : 
-                                 photoUploadMode === 'camera' ? 'Ambil Foto Kamera' : 
-                                 'Pilih Dari Galeri'}
+                                 photoUploadMode === 'camera' ? 'AMBIL KAMERA' : 
+                                 'PILIH GALERI'}
                             </span>
+                        </button>
+                    )}
+
+                    {selectedPhotos.length > 0 && (
+                        <button 
+                            onClick={async () => {
+                                if (!onComplete) return;
+                                setIsUploading(true);
+                                try {
+                                    await onComplete(task.id, selectedPhotos);
+                                    setSelectedPhotos([]);
+                                } catch (e) {
+                                    // error handled by parent
+                                } finally {
+                                    setIsUploading(false);
+                                }
+                            }}
+                            disabled={isUploading}
+                            className={`w-full h-12 ${isUploading ? 'bg-primary/50' : 'bg-primary'} text-slate-950 font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20 mt-2`}
+                        >
+                            {isUploading ? (
+                                <>
+                                    <span className="material-symbols-outlined animate-spin text-lg">sync</span>
+                                    MENGUNGGAH...
+                                </>
+                            ) : (
+                                <>
+                                    <span className="material-symbols-outlined text-lg">check_circle</span>
+                                    SIMPAN & SELESAI
+                                </>
+                            )}
                         </button>
                     )}
                 </div>
@@ -250,31 +319,34 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             {/* History Details (Admin/Completed) */}
             {isCompleted && task.hasPhotoProof && (
                 <div className="pt-5 border-t border-white/5 space-y-4">
-                     <div 
-                        className="w-full aspect-video rounded-[2rem] bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative flex items-center justify-center" 
-                        onClick={() => photoUrl && setIsImageFullscreen(true)}
-                     >
+                     <div className="grid grid-cols-2 gap-2">
                          {isLoadingPhoto ? (
-                             <div className="flex flex-col items-center gap-2 opacity-40">
+                             <div className="col-span-full flex flex-col items-center gap-2 opacity-40 p-4">
                                  <div className="size-6 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
                                  <span className="text-[8px] font-black uppercase tracking-widest">Memuat Foto...</span>
                              </div>
-                         ) : photoUrl ? (
-                             <>
-                                 <img 
-                                    src={getOptimizedImageUrl(photoUrl, { width: 400, height: 300 })} 
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" 
-                                    alt="Bukti" 
-                                 />
-                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-4">
-                                     <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
-                                         <span className="material-symbols-outlined text-sm">visibility</span>
-                                         Lihat Foto Full
-                                     </span>
+                         ) : photoUrls.length > 0 ? (
+                             photoUrls.map((url, idx) => (
+                                 <div 
+                                    key={idx}
+                                    onClick={() => setImageFullscreenIndex(idx)}
+                                    className="w-full aspect-video rounded-xl bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative flex items-center justify-center" 
+                                 >
+                                     <img 
+                                        src={getOptimizedImageUrl(url, { width: 400, height: 300 })} 
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110" 
+                                        alt={`Bukti ${idx + 1}`} 
+                                     />
+                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-2">
+                                         <span className="text-[8px] text-white font-black uppercase tracking-widest flex items-center gap-1">
+                                             <span className="material-symbols-outlined text-[10px]">visibility</span>
+                                             Lihat
+                                         </span>
+                                     </div>
                                  </div>
-                             </>
+                             ))
                          ) : (
-                             <div className="flex flex-col items-center gap-2 opacity-40">
+                             <div className="col-span-full flex flex-col items-center gap-2 opacity-40 p-4">
                                  <span className="material-symbols-outlined text-2xl">image_not_supported</span>
                                  <span className="text-[8px] font-black uppercase tracking-widest text-center px-4">Gagal memuat foto</span>
                              </div>
@@ -294,14 +366,14 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             )}
 
             {/* Fullscreen Image Overlay */}
-            {isImageFullscreen && photoUrl && createPortal(
+            {imageFullscreenIndex !== null && photoUrls[imageFullscreenIndex] && createPortal(
                 <div 
                     className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300"
-                    onClick={() => setIsImageFullscreen(false)}
+                    onClick={() => setImageFullscreenIndex(null)}
                 >
                     <div className="absolute top-0 inset-x-0 p-6 flex justify-end items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
                         <button 
-                            onClick={(e) => { e.stopPropagation(); setIsImageFullscreen(false); }}
+                            onClick={(e) => { e.stopPropagation(); setImageFullscreenIndex(null); }}
                             className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-75 transition-all shadow-2xl"
                         >
                             <span className="material-symbols-outlined text-2xl font-black">close</span>
@@ -310,7 +382,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                     
                     <div className="relative w-full h-full max-w-5xl mx-auto flex items-center justify-center p-4">
                         <img 
-                            src={getOptimizedImageUrl(photoUrl)} 
+                            src={getOptimizedImageUrl(photoUrls[imageFullscreenIndex])} 
                             className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300" 
                             alt="Bukti Full" 
                             onClick={(e) => e.stopPropagation()}
