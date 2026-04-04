@@ -73,16 +73,16 @@ function App() {
 
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
-    const handleCheckout = async () => {
-        console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod });
+    const handleCheckout = async (skipConfirm = false) => {
+        console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod, skipConfirm });
         if (totalSalesValue === 0) {
             console.warn('⚠️ Checkout aborted: totalSalesValue is 0');
             return;
         }
         
-        const confirmCheckout = confirm(`Selesaikan pesanan senilai Rp ${totalSalesValue.toLocaleString('id-ID')}?`);
-        console.log('📝 Confirm result:', confirmCheckout);
-        if (!confirmCheckout) return;
+        if (!skipConfirm) {
+            if (!confirm(`Selesaikan pesanan senilai Rp ${totalSalesValue.toLocaleString('id-ID')}?`)) return;
+        }
 
         setIsCheckingOut(true);
         try {
@@ -174,7 +174,7 @@ function App() {
                 </div>
 
                 <button 
-                    onClick={handleCheckout}
+                    onClick={() => handleCheckout(true)}
                     disabled={isCheckingOut || totalItems === 0}
                     className="w-full h-16 md:h-24 bg-primary text-[#0b1220] rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-4"
                 >
