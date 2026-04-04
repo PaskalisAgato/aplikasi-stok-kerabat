@@ -14,6 +14,11 @@ interface LayoutProps {
     headerExtras?: React.ReactNode;
     footer?: React.ReactNode;
     maxWidth?: string;
+    hideHeader?: boolean;
+    hideTitle?: boolean;
+    onDrawerOpen?: () => void;
+    drawerOpen?: boolean;
+    onDrawerClose?: () => void;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
@@ -24,9 +29,23 @@ const Layout: React.FC<LayoutProps> = ({
     sidebar, 
     headerExtras,
     footer,
-    maxWidth = '1600px'
+    maxWidth = '1600px',
+    hideHeader = false,
+    hideTitle = false,
+    onDrawerOpen,
+    drawerOpen: externalDrawerOpen,
+    onDrawerClose: onExternalDrawerClose
 }) => {
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
+    const drawerOpen = externalDrawerOpen !== undefined ? externalDrawerOpen : internalDrawerOpen;
+    const setDrawerOpen = (val: boolean) => {
+        if (externalDrawerOpen !== undefined) {
+            if (val && onDrawerOpen) onDrawerOpen();
+            if (!val && onExternalDrawerClose) onExternalDrawerClose();
+        } else {
+            setInternalDrawerOpen(val);
+        }
+    };
     const [isOffline, setIsOffline] = useState(typeof window !== 'undefined' ? !navigator.onLine : false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const { data: session, isPending, refetch, error: sessionError } = useSession();
@@ -235,65 +254,69 @@ const Layout: React.FC<LayoutProps> = ({
                 {/* Main Viewport */}
                 <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                     {/* Shell Header (Glass) */}
-                    <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
-                        <div className="glass rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm">
-                            
-                            {/* Kiri: Hamburger + Logo */}
-                            <div className="flex items-center gap-3 shrink-0 flex-1 justify-start">
-                                <button 
-                                    onClick={() => setDrawerOpen(true)} 
-                                    className="size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
-                                    style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
-                                >
-                                    <span className="material-symbols-outlined text-[20px] font-black">menu</span>
-                                </button>
+                    {!hideHeader && (
+                        <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
+                            <div className="glass rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm">
                                 
-                                {!sidebar && (
-                                     <div className="size-10 hidden sm:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
-                                        <span className="material-symbols-outlined text-[20px]">coffee</span>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Tengah: Kosong atau Navigasi Tambahan */}
-                            <div className="flex-1 min-w-0"></div>
-
-                            {/* Kanan: Header Extras & Theme Toggle */}
-                            <div className="flex items-center gap-1 sm:gap-4 shrink-0 flex-1 justify-end min-w-0">
-                                {headerExtras && (
-                                    <div className="flex items-center gap-1 sm:gap-2 shrink min-w-0 overflow-hidden">
-                                        {headerExtras}
-                                    </div>
-                                )}
-                                
-                                {deferredPrompt && (
+                                {/* Kiri: Hamburger + Logo */}
+                                <div className="flex items-center gap-3 shrink-0 flex-1 justify-start">
                                     <button 
-                                        onClick={handleInstallClick}
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shrink-0"
+                                        onClick={() => setDrawerOpen(true)} 
+                                        className="size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
+                                        style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
                                     >
-                                        <span className="material-symbols-outlined text-lg">install_mobile</span>
-                                        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
+                                        <span className="material-symbols-outlined text-[20px] font-black">menu</span>
                                     </button>
-                                )}
-
-                                <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
-
-                                <div className="shrink-0 scale-90 sm:scale-100">
-                                    <ThemeToggle />
+                                    
+                                    {!sidebar && (
+                                         <div className="size-10 hidden sm:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
+                                            <span className="material-symbols-outlined text-[20px]">coffee</span>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
+                                
+                                {/* Tengah: Kosong atau Navigasi Tambahan */}
+                                <div className="flex-1 min-w-0"></div>
 
-                        </div>
-                    </header>
+                                {/* Kanan: Header Extras & Theme Toggle */}
+                                <div className="flex items-center gap-1 sm:gap-4 shrink-0 flex-1 justify-end min-w-0">
+                                    {headerExtras && (
+                                        <div className="flex items-center gap-1 sm:gap-2 shrink min-w-0 overflow-hidden">
+                                            {headerExtras}
+                                        </div>
+                                    )}
+                                    
+                                    {deferredPrompt && (
+                                        <button 
+                                            onClick={handleInstallClick}
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shrink-0"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">install_mobile</span>
+                                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
+                                        </button>
+                                    )}
+
+                                    <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
+
+                                    <div className="shrink-0 scale-90 sm:scale-100">
+                                        <ThemeToggle />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </header>
+                    )}
 
                     {/* Content Area */}
                     <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             {/* Page Header (New Location) */}
-                            <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
-                                <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
-                                <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
-                            </div>
+                            {!hideTitle && (
+                                <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
+                                    <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
+                                    <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                                </div>
+                            )}
                             {children}
                         </div>
                     </main>

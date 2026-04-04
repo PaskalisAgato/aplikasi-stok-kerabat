@@ -3,6 +3,7 @@ import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { useSession } from '@shared/authClient';
+import ThemeToggle from '@shared/ThemeToggle';
 
 export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const { data: session } = useSession();
@@ -20,6 +21,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -155,44 +157,64 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             currentPort={5186} 
             title="Jejak Transaksi" 
             subtitle="Audit Trail & Riwayat"
-            headerExtras={
-                <div className="flex gap-2 items-center">
-                    {isAdmin && transactions.length > 0 && (
-                        showClearConfirm ? (
-                            <div className="flex gap-1 animate-in zoom-in duration-300">
-                                <button 
-                                    onClick={handleClearHistory}
-                                    className="h-10 px-4 rounded-xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all"
-                                >
-                                    Yakin Hapus Semua?
-                                </button>
-                                <button 
-                                    onClick={() => setShowClearConfirm(false)}
-                                    className="h-10 px-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
-                                >
-                                    Batal
-                                </button>
-                            </div>
-                        ) : (
-                            <button 
-                                onClick={() => setShowClearConfirm(true)}
-                                className="h-10 px-4 flex items-center gap-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-md font-black text-xs uppercase tracking-widest border border-red-500/20"
-                            >
-                                <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-                                Hapus Semua
-                            </button>
-                        )
-                    )}
+            hideHeader={true}
+            hideTitle={true}
+            drawerOpen={drawerOpen}
+            onDrawerOpen={() => setDrawerOpen(true)}
+            onDrawerClose={() => setDrawerOpen(false)}
+        >
+            {/* Consolidated Header Bar */}
+            <div className="flex justify-between items-center mb-8 px-2">
+                <div className="flex gap-4 items-center">
                     <button 
-                        onClick={onBack} 
-                        className="h-10 px-4 flex items-center gap-2 rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md font-black text-xs uppercase tracking-widest text-[var(--text-main)]"
+                        onClick={() => setDrawerOpen(true)}
+                        className="size-12 rounded-2xl glass hover:bg-primary/20 text-primary transition-all flex items-center justify-center active:scale-95 shadow-lg border border-white/5"
                     >
-                        <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                        <span className="material-symbols-outlined text-2xl font-black">menu</span>
+                    </button>
+                    <ThemeToggle />
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    {isAdmin && transactions.length > 0 && (
+                        <div className="rounded-2xl glass p-1 border border-white/5 flex gap-1">
+                            {!showClearConfirm ? (
+                                <button 
+                                    onClick={() => setShowClearConfirm(true)}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined text-sm font-black">delete_sweep</span>
+                                    Hapus Semua
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-1 animate-in zoom-in duration-300">
+                                    <button 
+                                        onClick={() => setShowClearConfirm(false)}
+                                        className="px-4 py-2.5 rounded-xl hover:bg-white/10 text-[var(--text-muted)] transition-all font-black text-[10px] uppercase tracking-widest"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button 
+                                        onClick={handleClearHistory}
+                                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
+                                    >
+                                        <span className="material-symbols-outlined text-sm font-black">check</span>
+                                        Yakin Hapus Semua?
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    <button 
+                        onClick={onBack}
+                        className="flex items-center gap-3 px-6 py-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-white/5"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                         Kembali
                     </button>
                 </div>
-            }
-        >
+            </div>
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 {/* Header Stats */}
