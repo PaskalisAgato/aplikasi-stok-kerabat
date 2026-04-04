@@ -1,7 +1,7 @@
 {
-  "name": "Kerabat Kopi Tiam",
-  "short_name": "Kerabat",
-  "description": "Premium Coffee Shop POS & Dashboard",
+  "name": "Kasir Kerabat",
+  "short_name": "Kasir",
+  "description": "Sistem Transaksi Kasir Kerabat Kopi Tiam",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1220",
@@ -19,6 +19,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot1.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tampilan Kasir Kerabat"
     }
   ]
 }
