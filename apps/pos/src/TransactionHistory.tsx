@@ -45,12 +45,15 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok barang akan dikembalikan (restock).')) return;
+        console.log('🚀 Triggering deletion for Transaction ID:', id);
+        if (!window.confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok barang akan dikembalikan (restock).')) return;
         try {
             await apiClient.deleteTransaction(id);
+            console.log('✅ Deletion successful for ID:', id);
             alert('Transaksi berhasil dihapus.');
             loadData();
         } catch (error: any) {
+            console.error('❌ Deletion failed for ID:', id, error);
             alert(`Gagal menghapus: ${error.message}`);
         }
     };
