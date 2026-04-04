@@ -380,6 +380,27 @@ export class TransactionService {
                 createdAt: new Date()
             });
 
+        });
+    }
+
+    // 6. CLEAR ALL TRANSACTIONS
+    static async clearAllTransactions(adminId: string) {
+        return await db.transaction(async (tx: any) => {
+            // SOFT DELETE ALL SALES
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.isDeleted, false));
+
+            // Log Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: adminId,
+                action: 'CLEAR_ALL_TRANSACTIONS',
+                tableName: 'sales',
+                oldData: 'BATCH_CLEAR',
+                newData: JSON.stringify({ isDeleted: true }),
+                createdAt: new Date()
+            });
+
             return { success: true };
         });
     }

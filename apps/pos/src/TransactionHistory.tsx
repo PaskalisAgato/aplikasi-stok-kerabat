@@ -55,6 +55,17 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         }
     };
 
+    const handleClearHistory = async () => {
+        if (!confirm('PERINGATAN: Anda akan menghapus SELURUH riwayat transaksi. Tindakan ini tidak dapat dibatalkan. Lanjutkan?')) return;
+        try {
+            await apiClient.clearTransactions();
+            alert('Seluruh riwayat transaksi berhasil dihapus.');
+            loadData();
+        } catch (error: any) {
+            alert(`Gagal menghapus riwayat: ${error.message}`);
+        }
+    };
+
     const openEdit = (tx: any) => {
         // Deep copy items for editing
         setEditData({
@@ -144,13 +155,24 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             title="Jejak Transaksi" 
             subtitle="Audit Trail & Riwayat"
             headerExtras={
-                <button 
-                    onClick={onBack} 
-                    className="h-10 px-4 flex items-center gap-2 rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md font-black text-xs uppercase tracking-widest text-[var(--text-main)]"
-                >
-                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                    Kembali
-                </button>
+                <div className="flex gap-2">
+                    {isAdmin && transactions.length > 0 && (
+                        <button 
+                            onClick={handleClearHistory}
+                            className="h-10 px-4 flex items-center gap-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-md font-black text-xs uppercase tracking-widest border border-red-500/20"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+                            Hapus Semua
+                        </button>
+                    )}
+                    <button 
+                        onClick={onBack} 
+                        className="h-10 px-4 flex items-center gap-2 rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md font-black text-xs uppercase tracking-widest text-[var(--text-main)]"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Kembali
+                    </button>
+                </div>
             }
         >
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -205,23 +227,22 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                 <span className="material-symbols-outlined text-[18px]">visibility</span>
                                             </button>
                                             
+                                             <button 
+                                                onClick={() => handleDelete(tx.id)}
+                                                className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                title="Hapus Transaksi"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                            
                                             {isAdmin && (
-                                                <>
-                                                    <button 
-                                                        onClick={() => openEdit(tx)}
-                                                        className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                        title="Edit Transaksi (Audit Trail logged)"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">edit_square</span>
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleDelete(tx.id)}
-                                                        className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                        title="Hapus Transaksi (Audit Trail logged)"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                    </button>
-                                                </>
+                                                <button 
+                                                    onClick={() => openEdit(tx)}
+                                                    className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                    title="Edit Transaksi"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">edit_square</span>
+                                                </button>
                                             )}
                                         </td>
                                     </tr>

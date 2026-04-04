@@ -75,4 +75,15 @@ export class TransactionController {
             res.status(500).json({ success: false, message: 'Gagal menghapus transaksi' });
         }
     }
+
+    static async clearAll(req: Request, res: Response) {
+        try {
+            const adminId = (req as any).user?.id || 'admin';
+            await TransactionService.clearAllTransactions(adminId);
+            res.json({ success: true, message: 'Seluruh riwayat transaksi berhasil dihapus' });
+        } catch (error: any) {
+            console.error('--- TransactionController.clearAll ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal menghapus riwayat transaksi' });
+        }
+    }
 }
