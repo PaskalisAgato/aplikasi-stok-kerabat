@@ -74,9 +74,14 @@ function App() {
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
     const handleCheckout = async () => {
-        if (totalSalesValue === 0) return;
+        console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod });
+        if (totalSalesValue === 0) {
+            console.warn('⚠️ Checkout aborted: totalSalesValue is 0');
+            return;
+        }
         
         const confirmCheckout = confirm(`Selesaikan pesanan senilai Rp ${totalSalesValue.toLocaleString('id-ID')}?`);
+        console.log('📝 Confirm result:', confirmCheckout);
         if (!confirmCheckout) return;
 
         setIsCheckingOut(true);
@@ -194,6 +199,7 @@ function App() {
             currentPort={5186}
             title="Kerabat POS"
             subtitle="Premium Sales Entry"
+            footer={PosFooter}
         >
             <div className="flex flex-col h-full overflow-hidden bg-[#0b1220] text-white">
                 {/* Header Section */}
@@ -360,7 +366,6 @@ function App() {
                                         ))
                                     )}
                                 </div>
-                                {PosFooter}
                             </div>
                         </div>
                     ) : (
