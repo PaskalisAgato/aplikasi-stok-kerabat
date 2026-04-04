@@ -45,18 +45,40 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                             type="file" 
                             id={`alarm-gallery-${currentTask.id}`}
                             className="hidden" 
-                            accept="image/*"
+                            accept="image/jpeg, image/png, image/jpg"
+                            multiple
                             onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                    // Use a temporary callback pattern or just call onComplete if it handles base64
-                                    // Actually, OverdueAlarmModal.onComplete expects the task object to open the camera modal
-                                    // I'll modify the prop to optionally handle direct completion
-                                    onComplete({ ...currentTask, photoProof: reader.result as string });
-                                };
-                                reader.readAsDataURL(file);
+                                const files = Array.from(e.target.files || []);
+                                if (files.length === 0) return;
+
+                                const validFiles = files.filter(file => {
+                                    if (file.size > 2 * 1024 * 1024) {
+                                        alert(`Ukuran file ${file.name} melebihi 2MB.`);
+                                        return false;
+                                    }
+                                    if (!file.type.match(/image\/(jpeg|png|jpg)/)) {
+                                        alert(`Format file ${file.name} tidak didukung. Gunakan JPG atau PNG.`);
+                                        return false;
+                                    }
+                                    return true;
+                                });
+
+                                const base64Promises = validFiles.map(file => {
+                                    return new Promise<string>((resolve, reject) => {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => resolve(reader.result as string);
+                                        reader.onerror = reject;
+                                        reader.readAsDataURL(file);
+                                    });
+                                });
+
+                                try {
+                                    const base64s = await Promise.all(base64Promises);
+                                    onComplete({ ...currentTask, photoProof: base64s.length === 1 ? base64s[0] : base64s });
+                                } catch (error) {
+                                    console.error(error);
+                                }
+                                e.target.value = '';
                             }}
                         />
                         {currentTask.photoUploadMode === 'both' ? (
@@ -66,31 +88,31 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                                     className="h-20 bg-primary/20 hover:bg-primary/30 text-white rounded-[1.5rem] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-primary/20"
                                 >
                                     <span className="material-symbols-outlined text-3xl font-black">photo_camera</span>
-                                    <span className="text-[10px]">Kamera</span>
+                                    <span className="text-[10px]">KAMERA</span>
                                 </button>
                                 <button 
                                     onClick={() => document.getElementById(`alarm-gallery-${currentTask.id}`)?.click()}
                                     className="h-20 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-500 rounded-[1.5rem] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-emerald-500/20"
                                 >
                                     <span className="material-symbols-outlined text-3xl font-black">photo_library</span>
-                                    <span className="text-[10px]">Galeri</span>
+                                    <span className="text-[10px]">GALERI</span>
                                 </button>
                             </div>
-                        ) : (
+                        ) : currentTask.photoUploadMode === 'gallery' ? (
                             <button 
-                                onClick={() => {
-                                    if (currentTask.photoUploadMode === 'gallery') {
-                                        document.getElementById(`alarm-gallery-${currentTask.id}`)?.click();
-                                    } else {
-                                        onComplete(currentTask);
-                                    }
-                                }}
+                                onClick={() => document.getElementById(`alarm-gallery-${currentTask.id}`)?.click()}
                                 className="h-20 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all active:scale-95 shadow-xl"
                             >
-                                <span className="material-symbols-outlined text-3xl font-black">
-                                    {currentTask.photoUploadMode === 'gallery' ? 'photo_library' : 'photo_camera'}
-                                </span>
-                                {currentTask.photoUploadMode === 'gallery' ? 'Upload Dari Galeri' : 'Ambil Foto Bukti'}
+                                <span className="material-symbols-outlined text-3xl font-black">photo_library</span>
+                                PILIH DARI GALERI
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => onComplete(currentTask)}
+                                className="h-20 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all active:scale-95 shadow-xl"
+                            >
+                                <span className="material-symbols-outlined text-3xl font-black">photo_camera</span>
+                                AMBIL FOTO KAMERA
                             </button>
                         )}
 
