@@ -67,12 +67,21 @@ export class PrintService {
             .line(`Bayar: ${data.paymentMethod}`)
             .line('--------------------------------')
             .align('center')
+            .line('Scan untuk Cek Transaksi:')
+            .qrcode(`https://kerabatpos.com/check/${data.id}`, 2, 4, 'H') // Model 2, Size 4, Level H
+            .newline()
             .line('Terima Kasih!')
             .line('Selamat Menikmati')
             .newline()
-            .newline()
-            .cut();
+            .newline();
 
+        // Cash Drawer Kick if Cash
+        if (data.paymentMethod === 'CASH') {
+            // Standard ESC p command for drawer kick
+            encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+        }
+
+        encoder.cut();
         return encoder.encode();
     }
 
