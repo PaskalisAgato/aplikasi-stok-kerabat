@@ -190,7 +190,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                 <div className="flex items-center gap-1 animate-in zoom-in duration-300">
                                     <button 
                                         onClick={() => setShowClearConfirm(false)}
-                                        className="px-4 py-2.5 rounded-xl hover:bg-white/10 text-[var(--text-muted)] transition-all font-black text-[10px] uppercase tracking-widest"
+                                        className="px-4 py-2.5 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[10px] uppercase tracking-widest"
                                     >
                                         Batal
                                     </button>
@@ -208,7 +208,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     
                     <button 
                         onClick={onBack}
-                        className="flex items-center gap-3 px-6 py-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-white/5"
+                        className="flex items-center gap-3 px-6 py-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-[var(--border-dim)]"
                     >
                         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                         Kembali

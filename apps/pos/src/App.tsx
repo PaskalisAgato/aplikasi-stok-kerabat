@@ -208,14 +208,14 @@ function App() {
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
         >
-            <div className="flex flex-col h-full overflow-hidden bg-[#0b1220] text-white">
+            <div className="flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-500">
                 {/* Header Section */}
                 <header className="glass border-b border-white/5 p-6 md:p-8 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4 md:gap-8">
                         {/* Hamburger Menu (New Location) */}
                         <button 
                             onClick={() => setDrawerOpen(true)}
-                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all text-white border border-white/5"
+                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all text-[var(--text-main)] border border-[var(--border-dim)]"
                         >
                             <span className="material-symbols-outlined text-xl md:text-2xl font-black">menu</span>
                         </button>
@@ -224,7 +224,7 @@ function App() {
                             <span className="material-symbols-outlined text-white text-2xl md:text-4xl font-black">coffee</span>
                         </div>
                         <div className="hidden sm:block">
-                            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-white">KERABAT POS</h1>
+                            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-[var(--text-main)]">KERABAT POS</h1>
                             <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-primary opacity-80">Premium Brew</p>
                         </div>
                     </div>
@@ -256,9 +256,9 @@ function App() {
 
                         <button 
                             onClick={() => setIsPrinterSettingsOpen(true)}
-                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all group border border-white/5"
+                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
                         >
-                            <span className="material-symbols-outlined text-xl md:text-2xl text-white opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
+                            <span className="material-symbols-outlined text-xl md:text-2xl text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
                         </button>
                     </div>
                 </header>
@@ -306,18 +306,18 @@ function App() {
                                                                 <span className="material-symbols-outlined text-4xl text-white/10">image</span>
                                                             </div>
                                                         )}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220]/80 via-transparent to-transparent opacity-60"></div>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-app)]/80 via-transparent to-transparent opacity-60"></div>
                                                         
                                                         {sales[item.id] > 0 && (
-                                                            <div className="absolute top-4 right-4 size-10 bg-primary text-[#0b1220] rounded-2xl flex items-center justify-center font-black animate-in zoom-in duration-300 shadow-xl shadow-primary/20">
+                                                            <div className="absolute top-4 right-4 size-10 bg-primary text-slate-950 rounded-2xl flex items-center justify-center font-black animate-in zoom-in duration-300 shadow-xl shadow-primary/20">
                                                                 {sales[item.id]}
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div className="w-full px-4 pb-4 text-center">
                                                         <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1 opacity-60">{item.category}</p>
-                                                        <h3 className="text-sm font-bold text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors uppercase">{item.name}</h3>
-                                                        <p className="text-lg font-black text-white/90">
+                                                        <h3 className="text-sm font-bold text-[var(--text-main)] mb-2 line-clamp-1 group-hover:text-primary transition-colors uppercase">{item.name}</h3>
+                                                        <p className="text-lg font-black text-[var(--text-main)]/90">
                                                             <span className="text-[10px] text-primary mr-0.5">Rp</span>
                                                             {item.price.toLocaleString('id-ID')}
                                                         </p>
@@ -333,7 +333,7 @@ function App() {
                             <div className="w-full md:w-[400px] lg:w-[480px] xl:w-[540px] flex flex-col glass overflow-hidden animate-in slide-in-from-right duration-500">
                                 <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
                                     <div>
-                                        <h2 className="text-2xl font-black tracking-tighter text-white">Keranjang</h2>
+                                        <h2 className="text-2xl font-black tracking-tighter text-[var(--text-main)]">Keranjang</h2>
                                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Review Order</p>
                                     </div>
                                     <button 
@@ -364,18 +364,18 @@ function App() {
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm md:text-base font-bold text-white mb-1 truncate uppercase">{item.name}</h4>
+                                                    <h4 className="text-sm md:text-base font-bold text-[var(--text-main)] mb-1 truncate uppercase">{item.name}</h4>
                                                     <p className="text-xs md:text-sm font-black text-primary">
                                                         <span>Rp</span>
                                                         {(item.price * sales[item.id]).toLocaleString('id-ID')}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
-                                                    <button onClick={() => updateQty(item.id, -1)} className="size-8 md:size-10 rounded-xl hover:bg-white/10 flex items-center justify-center transition-all text-white/40 hover:text-white">
+                                                <div className="flex items-center bg-[var(--border-dim)] p-1.5 rounded-2xl border border-[var(--border-dim)] backdrop-blur-md">
+                                                    <button onClick={() => updateQty(item.id, -1)} className="size-8 md:size-10 rounded-xl hover:bg-black/5 flex items-center justify-center transition-all text-[var(--text-muted)] hover:text-[var(--text-main)]">
                                                         <span className="material-symbols-outlined text-lg font-black">remove</span>
                                                     </button>
-                                                    <span className="w-8 md:w-12 text-center text-sm md:text-base font-black text-white">{sales[item.id]}</span>
-                                                    <button onClick={() => updateQty(item.id, 1)} className="size-8 md:size-10 rounded-xl bg-primary text-[#0b1220] flex items-center justify-center transition-all shadow-lg shadow-primary/20 active:scale-90">
+                                                    <span className="w-8 md:w-12 text-center text-sm md:text-base font-black text-[var(--text-main)]">{sales[item.id]}</span>
+                                                    <button onClick={() => updateQty(item.id, 1)} className="size-8 md:size-10 rounded-xl bg-primary text-slate-950 flex items-center justify-center transition-all shadow-lg shadow-primary/20 active:scale-90">
                                                         <span className="material-symbols-outlined text-lg font-black">add</span>
                                                     </button>
                                                 </div>

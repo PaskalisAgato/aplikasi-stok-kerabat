@@ -62,7 +62,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-[#0b1220] border border-white/10 w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="bg-[var(--bg-app)] border border-[var(--border-dim)] w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
                     <div>
