@@ -159,7 +159,7 @@ const Layout: React.FC<LayoutProps> = ({
             <Toaster position="top-right" reverseOrder={false} />
             <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} currentPort={currentPort} />
             
-            <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative`} style={{ maxWidth }}>
+            <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative w-full overflow-hidden`} style={{ maxWidth }}>
                 
                 {/* Desktop Sidebar (Floating Glass Effect) */}
                 {sidebar && (
@@ -207,14 +207,16 @@ const Layout: React.FC<LayoutProps> = ({
                             <div className="flex-1 min-w-0"></div>
 
                             {/* Kanan: Header Extras & Theme Toggle */}
-                            <div className="flex items-center gap-2 md:gap-4 shrink-0 flex-1 justify-end">
+                            <div className="flex items-center gap-1 sm:gap-4 shrink-0 flex-1 justify-end min-w-0">
                                 {headerExtras && (
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex items-center gap-1 sm:gap-2 shrink min-w-0 overflow-hidden">
                                         {headerExtras}
                                     </div>
                                 )}
                                 <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
-                                <ThemeToggle />
+                                <div className="shrink-0 scale-90 sm:scale-100">
+                                    <ThemeToggle />
+                                </div>
                             </div>
 
                         </div>

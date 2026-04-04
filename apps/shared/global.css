@@ -5,10 +5,19 @@
 @tailwind utilities;
 
 /* Standardize properties to avoid browser warnings */
-html {
+html, body {
   -webkit-text-size-adjust: none;
   text-size-adjust: none;
   -moz-text-size-adjust: none;
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 /* Fix for Material Symbols injection */
@@ -150,11 +159,33 @@ html {
 
   /* Card content layout: prevents text collision */
   .card-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-width: 0;
+    @apply flex items-center justify-between gap-2 min-w-0;
+  }
+
+  /* Flex Stability Utilities */
+  .flex-stable {
+    @apply flex gap-2 min-w-0 shrink;
+  }
+
+  .flex-stable > * {
+    @apply min-w-0 shrink;
+  }
+
+  /* Responsive Media */
+  img, video, canvas, svg {
+    @apply max-w-full h-auto block;
+  }
+
+  /* Mobile-First Container */
+  .responsive-container {
+    @apply w-full max-w-[480px] mx-auto px-3 sm:px-4 md:max-w-none md:mx-0 md:px-0;
+  }
+}
+
+/* Touch optimization for mobile */
+@media (pointer: coarse) {
+  button, a, input, select {
+    touch-action: manipulation;
   }
 }
 

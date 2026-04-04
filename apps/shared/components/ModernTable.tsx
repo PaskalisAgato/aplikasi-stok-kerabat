@@ -40,7 +40,7 @@ export function ModernTable<T extends { id: any }>({ columns, data, isLoading, e
                     <thead>
                         <tr className="bg-white/5">
                             {columns.map((col, i) => (
-                                <th key={i} className={`px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b border-white/5 ${col.className || ''}`}>
+                                <th key={i} className={`px-4 sm:px-8 py-4 sm:py-6 text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b border-white/5 ${col.className || ''}`}>
                                     {col.header}
                                 </th>
                             ))}
@@ -50,7 +50,7 @@ export function ModernTable<T extends { id: any }>({ columns, data, isLoading, e
                         {data.map((item, rowIdx) => (
                             <tr key={item.id || rowIdx} className="hover:bg-white/5 transition-all group">
                                 {columns.map((col, colIdx) => (
-                                    <td key={colIdx} className={`px-8 py-5 text-sm font-bold text-[var(--text-main)] transition-all group-hover:translate-x-1 ${col.className || ''}`}>
+                                    <td key={colIdx} className={`px-4 sm:px-8 py-3 sm:py-5 text-sm font-bold text-[var(--text-main)] transition-all group-hover:translate-x-1 ${col.className || ''}`}>
                                         {col.render ? col.render(item) : (col.key ? String(item[col.key]) : '')}
                                     </td>
                                 ))}
