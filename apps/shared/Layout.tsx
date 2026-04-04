@@ -19,6 +19,7 @@ interface LayoutProps {
     onDrawerOpen?: () => void;
     drawerOpen?: boolean;
     onDrawerClose?: () => void;
+    onInstallPromptAvailable?: (prompt: any) => void;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
@@ -34,7 +35,8 @@ const Layout: React.FC<LayoutProps> = ({
     hideTitle = false,
     onDrawerOpen,
     drawerOpen: externalDrawerOpen,
-    onDrawerClose: onExternalDrawerClose
+    onDrawerClose: onExternalDrawerClose,
+    onInstallPromptAvailable
 }) => {
     const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
     const drawerOpen = externalDrawerOpen !== undefined ? externalDrawerOpen : internalDrawerOpen;
@@ -57,6 +59,7 @@ const Layout: React.FC<LayoutProps> = ({
             console.log('✅ PWA beforeinstallprompt fired');
             e.preventDefault();
             setDeferredPrompt(e);
+            if (onInstallPromptAvailable) onInstallPromptAvailable(e);
         };
         const handleAppInstalled = () => {
             setDeferredPrompt(null);
