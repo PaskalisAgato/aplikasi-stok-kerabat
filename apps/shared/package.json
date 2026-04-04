@@ -9,6 +9,8 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "@tanstack/react-query": "^5.91.0"
+    "@tanstack/react-query": "^5.91.0",
+    "esc-pos-encoder": "^3.0.0",
+    "idb": "^8.0.2"
   }
 }

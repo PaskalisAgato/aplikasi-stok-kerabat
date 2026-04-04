@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
+import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 
 interface Recipe {
@@ -32,6 +33,7 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
+    const [printerIp, setPrinterIp] = useState<string>(localStorage.getItem('pos_printer_ip') || '192.168.1.100');
 
     const fetchRecipes = async () => {
         try {
@@ -125,6 +127,27 @@ function App() {
                         };
 
                         await apiClient.checkoutCart(checkoutData);
+                        
+                        // Printing Logic
+                        const receiptData: PrintData = {
+                            id: Date.now(), // Fallback if API doesn't return ID immediately
+                            date: new Date().toISOString(),
+                            items: checkoutData.items.map(item => ({
+                                name: items.find(r => r.id === item.recipeId)?.name || 'Unknown',
+                                quantity: item.quantity,
+                                price: item.price,
+                                subtotal: item.subtotal
+                            })),
+                            total: checkoutData.totalAmount,
+                            paymentMethod: checkoutData.paymentMethod
+                        };
+
+                        try {
+                            await PrintService.print(receiptData, printerIp);
+                        } catch (err) {
+                            console.error('Printing trigger failed', err);
+                        }
+
                         alert('Berhasil! Pembelian telah divalidasi sistem.');
                         setSales({});
                         setPaymentMethod('CASH'); // Reset after success
@@ -159,14 +182,30 @@ function App() {
             subtitle="Premium Sales Entry"
             footer={PosFooter}
             headerExtras={
-                <button 
-                    onClick={() => setView('history')} 
-                    className="size-10 flex items-center justify-center rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md"
-                    title="Riwayat Transaksi"
-                >
-                    <span className="material-symbols-outlined text-[18px]">history</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => {
+                            const newIp = prompt('Masukkan IP Printer:', printerIp);
+                            if (newIp) {
+                                setPrinterIp(newIp);
+                                localStorage.setItem('pos_printer_ip', newIp);
+                            }
+                        }}
+                        className="size-10 flex items-center justify-center rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md"
+                        title="Pengaturan Printer"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">print</span>
+                    </button>
+                    <button 
+                        onClick={() => setView('history')} 
+                        className="size-10 flex items-center justify-center rounded-xl glass hover:bg-primary/20 hover:text-primary transition-all shadow-md"
+                        title="Riwayat Transaksi"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">history</span>
+                    </button>
+                </div>
             }
+
         >
             <div className="space-y-10">
                 {/* Sales Summary Bar (Premium Glass) */}
