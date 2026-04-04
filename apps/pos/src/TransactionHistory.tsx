@@ -17,9 +17,9 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const [viewData, setViewData] = useState<any>(null); // Details modal
     const [editData, setEditData] = useState<any>(null); // Edit modal
 
-    // Recipes list for edit modal dropdowns
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -57,10 +57,10 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const handleClearHistory = async () => {
-        if (!confirm('PERINGATAN: Anda akan menghapus SELURUH riwayat transaksi. Tindakan ini tidak dapat dibatalkan. Lanjutkan?')) return;
         try {
             await apiClient.clearTransactions();
             alert('Seluruh riwayat transaksi berhasil dihapus.');
+            setShowClearConfirm(false);
             loadData();
         } catch (error: any) {
             alert(`Gagal menghapus riwayat: ${error.message}`);
@@ -156,15 +156,32 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             title="Jejak Transaksi" 
             subtitle="Audit Trail & Riwayat"
             headerExtras={
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                     {isAdmin && transactions.length > 0 && (
-                        <button 
-                            onClick={handleClearHistory}
-                            className="h-10 px-4 flex items-center gap-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-md font-black text-xs uppercase tracking-widest border border-red-500/20"
-                        >
-                            <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-                            Hapus Semua
-                        </button>
+                        showClearConfirm ? (
+                            <div className="flex gap-1 animate-in zoom-in duration-300">
+                                <button 
+                                    onClick={handleClearHistory}
+                                    className="h-10 px-4 rounded-xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                                >
+                                    Yakin Hapus Semua?
+                                </button>
+                                <button 
+                                    onClick={() => setShowClearConfirm(false)}
+                                    className="h-10 px-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                                >
+                                    Batal
+                                </button>
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={() => setShowClearConfirm(true)}
+                                className="h-10 px-4 flex items-center gap-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-md font-black text-xs uppercase tracking-widest border border-red-500/20"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+                                Hapus Semua
+                            </button>
+                        )
                     )}
                     <button 
                         onClick={onBack} 
