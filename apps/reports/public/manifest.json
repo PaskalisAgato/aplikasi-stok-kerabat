@@ -5,7 +5,10 @@
   "scope": "/",
   "start_url": "./",
   "display": "standalone",
-  "display_override": ["standalone", "window-controls-overlay"],
+  "display_override": [
+    "standalone",
+    "window-controls-overlay"
+  ],
   "background_color": "#0b1220",
   "theme_color": "#0b1220",
   "orientation": "portrait",
@@ -31,5 +34,6 @@
       "form_factor": "narrow",
       "label": "Tampilan Kerabat POS"
     }
-  ]
+  ],
+  "id": "/"
 }
