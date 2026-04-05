@@ -71,14 +71,36 @@ export class PrintService {
     /**
      * Connects to a Bluetooth printer. Must be called from a user gesture.
      */
-    public static async connectBluetooth(): Promise<string | null> {
+    public static async connectBluetooth(forcePopup = false): Promise<string | null> {
         const nav = navigator as any;
         if (!nav.bluetooth) {
             throw new Error('Bluetooth is not supported in this browser.');
         }
 
         try {
-            console.log('Requesting Bluetooth device...');
+            // 1. Try silent reconnect first if not forcing popup
+            if (!forcePopup && nav.bluetooth.getDevices) {
+                const devices = await nav.bluetooth.getDevices();
+                if (devices.length > 0) {
+                    // Try to find a device that looks like a printer
+                    const printer = devices.find(d => 
+                        d.name?.toLowerCase().includes('printer') || 
+                        d.name?.toLowerCase().includes('mpt') ||
+                        d.name?.toLowerCase().includes('bt-') ||
+                        d.name?.toLowerCase().includes('rp')
+                    ) || devices[0];
+
+                    if (printer) {
+                        console.log('Attempting silent reconnect to:', printer.name);
+                        this.bluetoothDevice = printer;
+                        const ok = await this.setupGATT(printer);
+                        if (ok) return printer.name || 'Bluetooth Printer';
+                    }
+                }
+            }
+
+            // 2. Fallback to popup if silent failed or forced
+            console.log('Requesting new Bluetooth device via popup...');
             this.bluetoothDevice = await nav.bluetooth.requestDevice({
                 filters: [
                     { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
@@ -99,10 +121,20 @@ export class PrintService {
                 ]
             });
 
+            const ok = await this.setupGATT(this.bluetoothDevice);
+            return ok ? (this.bluetoothDevice.name || 'Bluetooth Printer') : null;
+        } catch (error) {
+            console.error('Bluetooth connection failed:', error);
+            return null;
+        }
+    }
+
+    private static async setupGATT(device: any): Promise<boolean> {
+        try {
             console.log('Connecting to GATT server...');
-            const server = await this.bluetoothDevice.gatt?.connect();
+            const server = await device.gatt?.connect();
             
-            // Try common printing services in order of popularity
+            // Try common printing services
             const serviceUUIDs = [
                 '000018f0-0000-1000-8000-00805f9b34fb',
                 '0000ff00-0000-1000-8000-00805f9b34fb',
@@ -116,9 +148,9 @@ export class PrintService {
                         const chars = await service.getCharacteristics();
                         for (const char of chars) {
                             if (char.properties.write || char.properties.writeWithoutResponse) {
-                                console.log(`Found writable characteristic: ${char.uuid} in service: ${uuid}`);
+                                console.log(`GATT Setup: Found writable characteristic: ${char.uuid}`);
                                 this.bluetoothCharacteristic = char;
-                                return this.bluetoothDevice.name || 'Bluetooth Printer';
+                                return true;
                             }
                         }
                     }
@@ -126,26 +158,10 @@ export class PrintService {
                     continue;
                 }
             }
-
-            // Fallback: search all services
-            const services = await server?.getPrimaryServices();
-            if (services) {
-                for (const service of services) {
-                    const chars = await service.getCharacteristics();
-                    for (const char of chars) {
-                        if (char.properties.write || char.properties.writeWithoutResponse) {
-                            console.log(`Fallback: Found writable characteristic: ${char.uuid}`);
-                            this.bluetoothCharacteristic = char;
-                            return this.bluetoothDevice.name || 'Bluetooth Printer';
-                        }
-                    }
-                }
-            }
-
-            return null;
-        } catch (error) {
-            console.error('Bluetooth connection failed:', error);
-            return null;
+            return false;
+        } catch (err) {
+            console.error('GATT setup failed:', err);
+            return false;
         }
     }
 

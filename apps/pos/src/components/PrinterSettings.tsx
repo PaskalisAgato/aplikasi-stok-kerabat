@@ -127,7 +127,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
                                             <button 
                                                 onClick={async () => {
                                                     try {
-                                                        const name = await PrintService.connectBluetooth();
+                                                        const name = await PrintService.connectBluetooth(true);
                                                         if (name) {
                                                             updatePrinter(printer.id, { bluetoothDeviceName: name });
                                                         } else {
