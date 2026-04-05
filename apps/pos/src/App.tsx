@@ -149,14 +149,14 @@ function App() {
                         <button
                             key={method.id}
                             onClick={() => setPaymentMethod(method.id as any)}
-                            className={`flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all active:scale-95 ${
+                            className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-2xl border-2 transition-all active:scale-95 ${
                                 paymentMethod === method.id 
                                     ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary/20' 
                                     : 'bg-[var(--border-dim)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-black/5'
                             }`}
                         >
-                            <span className="material-symbols-outlined text-2xl font-black">{method.icon}</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest">{method.label}</span>
+                            <span className="material-symbols-outlined text-xl font-black">{method.icon}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">{method.label}</span>
                         </button>
                     ))}
                 </div>
