@@ -304,17 +304,17 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-md flex justify-center items-center sm:p-4 animate-in fade-in duration-300">
-            <div className="relative flex h-full max-h-screen sm:max-h-[90vh] sm:min-h-[500px] w-full flex-col max-w-md mx-auto shadow-2xl bg-background-app sm:rounded-[2.5rem] border-x sm:border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative flex h-full max-h-screen sm:max-h-[90vh] sm:min-h-[500px] w-full flex-col max-w-md mx-auto shadow-2xl bg-[var(--bg-app)] sm:rounded-[2.5rem] border-x sm:border border-[var(--border-dim)] overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Top App Bar */}
-                <header className="sticky top-0 z-50 bg-background-app border-b border-primary/10 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-95">
+                <header className="sticky top-0 z-50 bg-[var(--bg-app)] border-b border-white/5 px-4 py-4 flex items-center gap-2 backdrop-blur-md bg-opacity-95">
                     <div className="flex-1 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={onClose}
                                 className="flex items-center justify-center p-2 hover:bg-primary/10 rounded-full transition-colors active:scale-95">
-                                <span className="material-symbols-outlined text-slate-900 ">arrow_back</span>
+                                <span className="material-symbols-outlined text-[var(--text-main)]">arrow_back</span>
                             </button>
-                            <h1 className="text-lg font-bold tracking-tight text-slate-900  truncate w-[200px]">
+                            <h1 className="text-lg font-bold tracking-tight text-[var(--text-main)] truncate w-[200px]">
                                 {recipe.name ? `Edit: ${recipe.name}` : 'Tambah Resep'}
                             </h1>
                         </div>
@@ -330,22 +330,22 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 <main className="flex-1 overflow-y-auto custom-scrollbar">
                     {/* Recipe Name Input */}
                     <div className="px-4 pt-6">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Nama Resep</label>
+                        <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1">Nama Resep</label>
                         <input
                             type="text"
                             value={namaResep}
                             onChange={(e) => setNamaResep(e.target.value)}
                             placeholder="Masukkan nama resep..."
-                            className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm "
+                            className="w-full glass border-white/5 rounded-2xl py-4 px-5 text-lg font-extrabold focus:ring-4 focus:ring-primary/10 transition-all shadow-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)]"
                         />
                     </div>
 
                     {/* Image Upload UI */}
                     <div className="px-4 pt-6">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Foto Menu</label>
+                        <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1">Foto Menu</label>
                         <div className="flex gap-4 items-center">
                             <div 
-                                className="size-24 rounded-[1.5rem] bg-slate-100 border-2 border-dashed border-primary/20 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-primary/5 transition-colors group relative"
+                                className="size-24 rounded-[1.5rem] bg-white/5 border-2 border-dashed border-primary/20 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-primary/5 transition-colors group relative"
                                 onClick={() => document.getElementById('recipe-image-input')?.click()}
                             >
                                 {imageUrl ? (
@@ -360,10 +360,10 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                 )}
                             </div>
                             <div className="flex-1 space-y-1">
-                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
+                                <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest">
                                     {imageUrl ? 'Ubah Foto' : 'Tambah Foto'}
                                 </p>
-                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest opacity-60">
+                                <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">
                                     JPG/PNG Max 2MB. Akan di-optimize otomatis.
                                 </p>
                                 <input 
@@ -379,7 +379,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
                     {/* Category Selection */}
                     <div className="px-4 pt-6">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1 text-center">Kategori Menu</label>
+                        <label className="block text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 ml-1 text-center">Kategori Menu</label>
                         <div className="flex gap-2 justify-center">
                             {['Minuman', 'Makanan', 'Snack'].map(cat => (
                                 <button
@@ -387,8 +387,8 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                     onClick={() => setCategory(cat as 'Minuman' | 'Makanan' | 'Snack')}
                                     className={`px-6 py-2.5 rounded-full text-xs font-black transition-all active:scale-90 border-2 ${
                                         category === cat 
-                                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
-                                        : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                                        ? 'bg-primary text-slate-950 border-primary shadow-lg shadow-primary/20' 
+                                        : 'glass text-[var(--text-muted)] border-white/5 hover:border-primary/30'
                                     }`}
                                 >
                                     {cat}
@@ -410,8 +410,8 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                 </button>
 
                                 {showAddIngredient && (
-                                    <div className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-primary/20 overflow-hidden transform origin-top-right animate-in slide-in-from-top-4 fade-in duration-300 z-[60]">
-                                        <div className="p-4 border-b border-primary/5 bg-primary/5">
+                                    <div className="absolute right-0 top-full mt-3 w-80 glass rounded-[2rem] shadow-2xl border-white/10 overflow-hidden transform origin-top-right animate-in slide-in-from-top-4 fade-in duration-300 z-[60]">
+                                        <div className="p-4 border-b border-white/5 bg-white/5">
                                             <div className="relative">
                                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-lg">search</span>
                                                 <input
@@ -419,7 +419,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                     placeholder="Cari bahan baku..."
                                                     value={searchTerm}
                                                     onChange={e => setSearchTerm(e.target.value)}
-                                                    className="w-full bg-white border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-primary shadow-inner"
+                                                    className="w-full bg-white/5 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-primary shadow-inner text-[var(--text-main)] placeholder:text-[var(--text-muted)]"
                                                     autoFocus
                                                 />
                                             </div>
@@ -437,13 +437,13 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                 </div>
                                             ) : searchTerm && searchTerm.trim().length < 2 ? (
                                                 <div className="p-8 text-center opacity-40">
-                                                    <span className="material-symbols-outlined text-3xl mb-1">keyboard</span>
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Ketik Minimal 2 Karakter</p>
+                                                    <span className="material-symbols-outlined text-3xl mb-1 text-[var(--text-muted)]">keyboard</span>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Ketik Minimal 2 Karakter</p>
                                                 </div>
                                             ) : searchTerm && availableIngredients.length === 0 ? (
                                                 <div className="p-10 text-center opacity-40">
-                                                    <span className="material-symbols-outlined text-3xl mb-1">sentiment_dissatisfied</span>
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Bahan Tidak Ditemukan</p>
+                                                    <span className="material-symbols-outlined text-3xl mb-1 text-[var(--text-muted)]">sentiment_dissatisfied</span>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Bahan Tidak Ditemukan</p>
                                                 </div>
                                             ) : (
                                                 <div className="py-2">
@@ -457,11 +457,11 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                         <button
                                                             key={item.id}
                                                             onClick={() => addIngredient(item)}
-                                                            className="w-full text-left px-5 py-4 hover:bg-primary/5 border-b border-primary/5 last:border-0 flex justify-between items-center group transition-all active:bg-primary/10"
+                                                            className="w-full text-left px-5 py-4 hover:bg-primary/5 border-b border-white/5 last:border-0 flex justify-between items-center group transition-all active:bg-primary/10"
                                                         >
                                                             <div className="space-y-0.5">
-                                                                <p className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors">{item.name}</p>
-                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider opacity-60">{item.category} • {formatRp(parseFloat(item.pricePerUnit))}/{item.unit}</p>
+                                                                <p className="font-black text-sm text-[var(--text-main)] group-hover:text-primary transition-colors">{item.name}</p>
+                                                                <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider opacity-60">{item.category} • {formatRp(parseFloat(item.pricePerUnit))}/{item.unit}</p>
                                                             </div>
                                                             <span className="material-symbols-outlined text-primary/30 group-hover:text-primary group-hover:scale-110 transition-all text-2xl font-black">add_circle</span>
                                                         </button>
@@ -469,6 +469,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                 </div>
                                             )}
                                         </div>
+
                                     </div>
                                 )}
                             </div>
@@ -476,12 +477,12 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
                         <div className="space-y-3 relative z-10">
                             {ingredients.map(ing => (
-                                <div key={ing.id} className="bg-white  border border-slate-200  rounded-2xl p-4 shadow-sm">
+                                <div key={ing.id} className="glass rounded-2xl p-4 shadow-sm border-white/5">
                                     <div className="flex justify-between items-start mb-3.5">
                                         <div>
-                                            <p className="font-bold text-[15px] text-slate-900  tracking-tight">{ing.name}</p>
+                                            <p className="font-bold text-[15px] text-[var(--text-main)] tracking-tight">{ing.name}</p>
                                             <div className="flex items-center gap-1 mt-1">
-                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Harga Unit: Rp </p>
+                                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">Harga Unit: Rp </p>
                                                 <input 
                                                     type="number"
                                                     value={ing.pricePerG === 0 ? '' : ing.pricePerG}
@@ -490,25 +491,26 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                         const newPrice = val === '' ? 0 : parseFloat(val) || 0;
                                                         setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, pricePerG: newPrice, isPriceModified: true } : i));
                                                     }}
-                                                    className="w-16 bg-primary/5 border-none focus:ring-0 p-0 text-[10px] font-bold text-primary underline decoration-dotted"
+                                                    className="w-16 bg-primary/10 border-none focus:ring-0 p-0 text-[10px] font-bold text-primary underline decoration-dotted rounded"
                                                 />
-                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider"> / {ing.unit}</p>
+                                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider"> / {ing.unit}</p>
                                             </div>
                                         </div>
                                         <button
-                                            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10 active:scale-90"
+                                            className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10 active:scale-90"
                                             onClick={() => deleteIng(ing.id)}
                                         >
                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                         </button>
                                     </div>
 
+
                                     {/* Price Calculator Section */}
-                                    <div className="mb-4 p-3 bg-slate-50  rounded-xl border border-primary/10">
+                                    <div className="mb-4 p-3 bg-white/5 rounded-xl border border-primary/10">
                                         <p className="text-[9px] font-black text-primary uppercase tracking-[0.1em] mb-2">Kalkulator Konversi Harga Beli</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] text-slate-500 font-bold ml-1">Harga Beli (Rp)</label>
+                                                <label className="text-[10px] text-[var(--text-muted)] font-bold ml-1">Harga Beli (Rp)</label>
                                                 <input
                                                     type="number"
                                                     value={ing.purchasePrice || ''}
@@ -517,11 +519,11 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                         updateCalculatedPrice(ing.id, val === '' ? 0 : parseFloat(val) || 0, ing.purchaseQty || 1000);
                                                     }}
                                                     placeholder="Contoh: 250000"
-                                                    className="w-full bg-white  border border-slate-200  rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900  focus:ring-1 focus:ring-primary"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 px-3 text-sm font-bold text-[var(--text-main)] focus:ring-1 focus:ring-primary"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] text-slate-500 font-bold ml-1">Total Berat/Vol ({ing.unit})</label>
+                                                <label className="text-[10px] text-[var(--text-muted)] font-bold ml-1">Total Berat/Vol ({ing.unit})</label>
                                                 <input
                                                     type="number"
                                                     value={ing.purchaseQty || ''}
@@ -530,22 +532,22 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                         updateCalculatedPrice(ing.id, ing.purchasePrice || 0, val === '' ? 0 : parseFloat(val) || 0);
                                                     }}
                                                     placeholder="Contoh: 1000"
-                                                    className="w-full bg-white  border border-slate-200  rounded-lg py-1.5 px-3 text-sm font-bold text-slate-900  focus:ring-1 focus:ring-primary"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 px-3 text-sm font-bold text-[var(--text-main)] focus:ring-1 focus:ring-primary"
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-[9px] text-slate-400 mt-2 italic">* Input 1000 jika beli per 1kg/1L untuk mendapatkan harga per g/ml</p>
+                                        <p className="text-[9px] text-[var(--text-muted)] mt-2 italic">* Input 1000 jika beli per 1kg/1L untuk mendapatkan harga per g/ml</p>
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 bg-slate-50  rounded-xl p-1 border border-primary/15 shadow-inner">
+                                        <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1 border border-white/5 shadow-inner">
                                             <button
                                                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-lg hover:bg-primary/20 transition-colors active:scale-90"
                                                 onClick={() => changeQty(ing.id, -1)}
                                             >-</button>
                                             <div className="flex items-center gap-1">
                                                 <input
-                                                    className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-extrabold text-base text-slate-900 "
+                                                    className="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-extrabold text-base text-[var(--text-main)]"
                                                     type="number"
                                                     value={ing.qty === 0 ? '' : ing.qty}
                                                     onChange={e => {
@@ -556,19 +558,19 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                                 />
                                                 <button
                                                     onClick={() => toggleUnit(ing.id)}
-                                                    className="text-xs bg-slate-200  hover:bg-primary hover:text-white px-2 py-1 rounded font-bold transition-colors uppercase"
+                                                    className="text-xs bg-white/10 text-[var(--text-muted)] hover:bg-primary hover:text-slate-950 px-2 py-1 rounded font-bold transition-colors uppercase"
                                                 >
                                                     {ing.unit}
                                                 </button>
                                             </div>
                                             <button
-                                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white font-bold text-lg hover:bg-primary/90 transition-colors active:scale-90 shadow-sm"
+                                                className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-slate-950 font-bold text-lg hover:bg-primary/90 transition-colors active:scale-90 shadow-sm"
                                                 onClick={() => changeQty(ing.id, 1)}
                                             >+</button>
                                         </div>
 
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Subtotal</p>
+                                            <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">Subtotal</p>
                                             <p className="font-extrabold text-primary text-base tracking-tight">
                                                 {formatRp(ing.pricePerG * ing.qty)}
                                             </p>
@@ -579,26 +581,26 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                         </div>
 
                         {/* Overhead & Buffer */}
-                        <div className="mt-6 border-t border-primary/10 pt-5">
+                        <div className="mt-6 border-t border-white/10 pt-5">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                                    <h2 className="text-sm font-bold tracking-tight text-slate-900 ">Overhead & Buffer (%)</h2>
+                                    <h2 className="text-sm font-bold tracking-tight text-[var(--text-main)]">Overhead & Buffer (%)</h2>
                                 </div>
                                 <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20 uppercase tracking-wider">Opsional</span>
                             </div>
                             <div className="relative">
                                 <input
-                                    className="w-full bg-white  border border-primary/20 rounded-xl py-3.5 px-4 focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors pr-10 font-bold text-slate-900  shadow-sm"
+                                    className="w-full glass border-white/5 rounded-xl py-3.5 px-4 focus:ring-2 focus:ring-primary/40 transition-colors pr-10 font-bold text-[var(--text-main)] shadow-sm"
                                     placeholder="Biaya tambahan"
                                     type="number"
                                     value={overhead}
                                     onChange={e => setOverhead(Math.max(0, parseFloat(e.target.value) || 0))}
                                     min={0}
                                 />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-lg">%</span>
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-extrabold text-lg">%</span>
                             </div>
-                            <p className="text-[10px] text-slate-500 mt-2 px-1 font-medium leading-relaxed">
+                            <p className="text-[10px] text-[var(--text-muted)] mt-2 px-1 font-medium leading-relaxed">
                                 Biasanya digunakan untuk biaya listrik, kemasan, atau penyusutan alat (estimasi).
                             </p>
                         </div>
@@ -606,18 +608,17 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
                     {/* Margin Analysis Section */}
                     <section className="p-4 mt-2 mb-10">
-                        <h2 className="text-base font-bold mb-4 border-l-4 border-primary pl-3 text-slate-900  tracking-tight">Analisa Margin</h2>
+                        <h2 className="text-base font-bold mb-4 border-l-4 border-primary pl-3 text-[var(--text-main)] tracking-tight text-shadow">Analisa Margin</h2>
 
-                        <div className="bg-white  rounded-2xl p-5 shadow-sm border border-slate-200 ">
+                        <div className="glass rounded-2xl p-5 shadow-sm border-white/5">
                             <div className="space-y-4">
-
                                 {/* Selling Price */}
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-slate-500 ">Harga Jual per Cup</span>
+                                    <span className="text-sm font-medium text-[var(--text-muted)]">Harga Jual per Cup</span>
                                     <div className="flex items-center gap-1.5 border-b-2 border-primary/30 pb-1">
-                                        <span className="text-xs font-extrabold text-slate-700 ">Rp</span>
+                                        <span className="text-xs font-extrabold text-[var(--text-muted)]">Rp</span>
                                         <input
-                                            className="bg-transparent border-none p-0 text-right font-extrabold text-lg focus:ring-0 w-24 text-slate-900 "
+                                            className="bg-transparent border-none p-0 text-right font-extrabold text-lg focus:ring-0 w-24 text-[var(--text-main)]"
                                             type="text"
                                             value={hargaJual.toLocaleString('id-ID')}
                                             onChange={e => setHargaJual(parseInt(e.target.value.replace(/\./g, '')) || 0)}
@@ -627,41 +628,39 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
 
                                 {/* Total HPP */}
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium text-slate-500 ">Total HPP (Bahan + Overhead)</span>
-                                    <span className="font-bold text-slate-900 ">{formatRp(totalHPP)}</span>
+                                    <span className="font-medium text-[var(--text-muted)]">Total HPP (Bahan + Overhead)</span>
+                                    <span className="font-bold text-[var(--text-main)]">{formatRp(totalHPP)}</span>
                                 </div>
-
-                                <hr className="border-dashed border-primary/20" />
+                                <hr className="border-dashed border-white/10" />
 
                                 {/* Margin Result */}
-                                <div className="flex justify-between items-center py-2.5 px-4 bg-primary/5  rounded-xl border border-primary/10">
+                                <div className="flex justify-between items-center py-2.5 px-4 bg-primary/10 rounded-xl border border-primary/20">
                                     <div>
-                                        <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Gross Profit Margin</p>
+                                        <p className="text-[9px] text-primary uppercase font-extrabold tracking-widest mb-0.5">Gross Profit Margin</p>
                                         <p className="text-3xl font-black text-primary tracking-tight">{margin}%</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest mb-0.5">Laba bersih</p>
-                                        <p className="text-xl font-extrabold text-slate-900  tracking-tight">{formatRp(laba)}</p>
+                                        <p className="text-[9px] text-[var(--text-muted)] uppercase font-extrabold tracking-widest mb-0.5">Laba bersih</p>
+                                        <p className="text-xl font-extrabold text-[var(--text-main)] tracking-tight">{formatRp(laba)}</p>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </section>
                 </main>
 
-                {/* Bottom Actions (Non-fixed, always at bottom of flex container) */}
-                <footer className="bg-white border-t border-primary/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.05)] w-full">
+                {/* Bottom Actions */}
+                <footer className="glass border-t border-white/10 p-5 pb-10 z-50 max-w-md mx-auto shadow-[0_-15px_40px_rgba(0,0,0,0.1)] w-full">
                     <div className="flex gap-4">
                         <button
                             onClick={onClose}
-                            className="flex-[1] py-5 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] transition-all active:scale-95 border border-slate-200">
+                            className="flex-[1] py-5 glass hover:bg-white/10 text-[var(--text-muted)] font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] transition-all active:scale-95 border-white/5">
                             Batal
                         </button>
                         <button
                             onClick={handleSaveAPI}
                             disabled={isUploadingImage}
-                            className={`flex-[2.5] py-5 ${isUploadingImage ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-600'} text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group`}>
+                            className={`flex-[2.5] py-5 ${isUploadingImage ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-600'} text-slate-950 font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group`}>
                             <span className={`material-symbols-outlined text-[20px] font-black ${isUploadingImage ? 'animate-spin' : 'group-hover:rotate-12'} transition-transform`}>
                                 {isUploadingImage ? 'progress_activity' : 'save'}
                             </span>
