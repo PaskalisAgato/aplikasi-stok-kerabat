@@ -199,30 +199,30 @@ function App() {
     );
 
     const PosHeaderExtras = (
-        <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 scale-90 sm:scale-100">
+        <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
+            <div className="flex bg-white/5 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
                 <button 
                     onClick={() => setView('pos')}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all flex items-center gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
-                    <span className="material-symbols-outlined text-[14px]">point_of_sale</span>
-                    <span className="hidden min-[400px]:inline text-[9px] uppercase tracking-widest">POS</span>
+                    <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
+                    <span className="hidden min-[380px]:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
                 </button>
                 <button 
                     onClick={() => setView('history')}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
-                    <span className="material-symbols-outlined text-[14px]">history</span>
-                    <span className="hidden min-[400px]:inline text-[9px] uppercase tracking-widest">History</span>
+                    <span className="material-symbols-outlined text-[12px] sm:text-[14px]">history</span>
+                    <span className="hidden min-[380px]:inline text-[8px] sm:text-[9px] uppercase tracking-widest">History</span>
                 </button>
             </div>
 
             <button 
                 onClick={() => setIsPrinterSettingsOpen(true)}
-                className="size-9 sm:size-10 glass rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
+                className="size-8 sm:size-10 glass rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
                 title="Printer Settings"
             >
-                <span className="material-symbols-outlined text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
+                <span className="material-symbols-outlined text-base sm:text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
             </button>
         </div>
     );
