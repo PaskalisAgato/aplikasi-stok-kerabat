@@ -16,6 +16,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
     // session shape: { id, userId, expiresAt, user: { id, name, email, role } }
     // NEVER fallback to 'Karyawan' if we have a session — that hides bugs
     const userRole = session?.user?.role || (session ? 'Unknown' : 'Karyawan');
+    const [isStandalone, setIsStandalone] = React.useState(false);
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -154,13 +161,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between group flex-wrap gap-2">
                                     <div className="flex items-center gap-3">
                                         <span className="material-symbols-outlined text-sm text-[var(--text-muted)] group-hover:text-primary transition-colors">
-                                            {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'pwa_notes' : 'public'}
+                                            {isStandalone ? 'pwa_notes' : 'public'}
                                         </span>
                                         <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-                                            {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'PWA Aktif' : 'Running via Browser'}
+                                            {isStandalone ? 'PWA Aktif' : 'Running via Browser'}
                                         </span>
                                     </div>
-                                    <div className={`size-1.5 rounded-full ${typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+                                    <div className={`size-1.5 rounded-full ${isStandalone ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
                                 </div>
                             </div>
                             

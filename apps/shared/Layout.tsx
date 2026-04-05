@@ -47,11 +47,12 @@ const Layout: React.FC<LayoutProps> = ({
             setInternalDrawerOpen(val);
         }
     };
-    const [isOffline, setIsOffline] = useState(typeof window !== 'undefined' ? !navigator.onLine : false);
+    const [isOffline, setIsOffline] = useState(false);
     const { isInstallable, handleInstall } = usePWAInstall();
     const { data: session, isPending, refetch, error: sessionError } = useSession();
 
     React.useEffect(() => {
+        setIsOffline(typeof window !== 'undefined' ? !navigator.onLine : false);
         const handleOnline = () => setIsOffline(false);
         const handleOffline = () => setIsOffline(true);
 

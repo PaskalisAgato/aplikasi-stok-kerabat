@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react';
 
 const ThemeToggle = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        return savedTheme === 'dark';
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
+    // Initial check moved to useEffect to avoid layout forcing in first render
+    const savedTheme = localStorage.getItem('theme');
+    const shouldUseDark = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(shouldUseDark);
+  }, []);
+
+  useEffect(() => {
+    // We only apply changes AFTER the initial mount has happened and isDarkMode is set
     const root = window.document.documentElement;
     if (isDarkMode) {
       root.classList.add('dark');

@@ -181,6 +181,11 @@ html, body {
   }
 }
 
+/* Force standard text scaling to satisfy modern CSS parsers and avoid warnings */
+html {
+  text-size-adjust: 100%;
+}
+
 /* Touch optimization for mobile */
 @media (pointer: coarse) {
   button, a, input, select {
