@@ -3,7 +3,7 @@ import NavDrawer from './NavDrawer';
 import ThemeToggle from './ThemeToggle';
 import { useSession } from './authClient';
 import AuthPage from './AuthPage';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -50,6 +50,7 @@ const Layout: React.FC<LayoutProps> = ({
     };
     const [isOffline, setIsOffline] = useState(typeof window !== 'undefined' ? !navigator.onLine : false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isInstallable] = useState(true); // Always show download button
     const { data: session, isPending, refetch, error: sessionError } = useSession();
 
     React.useEffect(() => {
@@ -66,16 +67,10 @@ const Layout: React.FC<LayoutProps> = ({
             console.log('🎉 PWA was successfully installed');
         };
 
-        console.log('🔍 Initializing PWA listeners...');
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         window.addEventListener('appinstalled', handleAppInstalled);
-
-        // Check if already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('📱 App is already running in standalone mode');
-        }
 
         return () => {
             window.removeEventListener('online', handleOnline);
@@ -83,14 +78,43 @@ const Layout: React.FC<LayoutProps> = ({
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
             window.removeEventListener('appinstalled', handleAppInstalled);
         };
-    }, []);
+    }, [onInstallPromptAvailable]);
 
-    const handleInstallClick = async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            setDeferredPrompt(null);
+    const handleInstall = async () => {
+        // 1. Check if already installed (standalone mode)
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            toast.error('Aplikasi sudah terinstal di HP ini!', {
+                icon: '📱',
+                style: {
+                    borderRadius: '16px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-main)',
+                    border: '1px solid var(--border-dim)'
+                }
+            });
+            return;
+        }
+
+        // 2. Try to use the PWA prompt if available
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            if (outcome === 'accepted') {
+                setDeferredPrompt(null);
+            }
+        } else {
+            // 3. Fallback for iOS/Other browsers that don't support beforeinstallprompt
+            toast('Instalasi Manual: Klik ikon "Share" (panah atas) lalu pilih "Add to Home Screen"', {
+                duration: 6000,
+                icon: '💡',
+                style: {
+                    borderRadius: '16px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-main)',
+                    border: '1px solid var(--border-dim)'
+                }
+            });
         }
     };
 
@@ -228,7 +252,7 @@ const Layout: React.FC<LayoutProps> = ({
                 onClose={() => setDrawerOpen(false)} 
                 currentPort={currentPort}
                 deferredPrompt={deferredPrompt}
-                onInstall={handleInstallClick}
+                onInstall={handleInstall}
             />
 
             {/* Offline Mode Banner */}
@@ -295,10 +319,11 @@ const Layout: React.FC<LayoutProps> = ({
                                         </div>
                                     )}
                                     
-                                    {deferredPrompt && (
+                                    {isInstallable && (
                                         <button 
-                                            onClick={handleInstallClick}
+                                            onClick={handleInstall}
                                             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shrink-0"
+                                            title="Download Aplikasi"
                                         >
                                             <span className="material-symbols-outlined text-lg">install_mobile</span>
                                             <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
