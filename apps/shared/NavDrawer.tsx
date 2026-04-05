@@ -136,31 +136,33 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                     </div>
 
                     <div className="glass rounded-[2rem] p-4 flex flex-col gap-2 shadow-2xl border-white/10">
-                        <p className="px-4 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80 mb-1">Aplikasi & Sistem</p>
+                        <p className="px-4 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80 mb-2">Aplikasi & Sistem</p>
                         
-                        {isInstallable && (
-                            <button 
-                                onClick={() => {
-                                    handleInstall();
-                                    onClose();
-                                }}
-                                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all font-black text-xs uppercase tracking-widest group"
-                            >
-                                <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">{deferredPrompt ? 'download_for_offline' : 'install_mobile'}</span>
-                                <span>Download App</span>
-                            </button>
-                        )}
+                        <div className="flex flex-col gap-3">
+                            {isInstallable && (
+                                <button 
+                                    onClick={() => {
+                                        handleInstall();
+                                        onClose();
+                                    }}
+                                    className="w-full h-14 flex items-center gap-4 px-5 rounded-2xl bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all font-black text-[10px] uppercase tracking-widest group border border-primary/10 active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">{deferredPrompt ? 'download_for_offline' : 'install_mobile'}</span>
+                                    <span>Download App</span>
+                                </button>
+                            )}
 
-                        <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-sm text-[var(--text-muted)]">
-                                    {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'pwa_notes' : 'google_plus_rescale'}
-                                </span>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-                                    {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'PWA Aktif (Standalone)' : 'Running via Browser'}
-                                </span>
+                            <div className="px-5 py-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between group flex-wrap gap-2">
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-sm text-[var(--text-muted)] group-hover:text-primary transition-colors">
+                                        {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'pwa_notes' : 'public'}
+                                    </span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                                        {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'PWA Aktif' : 'Running via Browser'}
+                                    </span>
+                                </div>
+                                <div className={`size-2 rounded-full ${typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
                             </div>
-                            <div className={`size-2 rounded-full ${typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
                         </div>
 
                         <div className="h-px bg-[var(--border-dim)] my-1"></div>

@@ -258,10 +258,10 @@ function App() {
                         {isInstallable && (
                             <button 
                                 onClick={handleInstall}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl md:rounded-[1.5rem] bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all border border-primary/20 shadow-lg shadow-primary/10 animate-in zoom-in duration-300 active:scale-90 group"
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl md:rounded-[1.5rem] bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all border border-primary/20 shadow-lg shadow-primary/10 animate-in zoom-in duration-300 active:scale-90 group flex-shrink-0"
                             >
                                 <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">{deferredPrompt ? 'download_for_offline' : 'install_mobile'}</span>
-                                <span className="hidden xs:inline text-[10px] font-black uppercase tracking-widest">Download App</span>
+                                <span className="hidden min-[450px]:inline text-[10px] font-black uppercase tracking-widest">Download App</span>
                             </button>
                         )}
 

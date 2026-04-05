@@ -270,7 +270,7 @@ const Layout: React.FC<LayoutProps> = ({
                                             title="Download Aplikasi"
                                         >
                                             <span className="material-symbols-outlined text-lg">install_mobile</span>
-                                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
+                                            <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
                                         </button>
                                     )}
 
