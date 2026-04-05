@@ -273,7 +273,7 @@ export class PrintService {
             if (!response.ok) throw new Error('Bridge error');
             return true;
         } catch (error) {
-            console.error('Printing failed, queuing job...', error);
+            console.error('Printing failed. If using Local Bridge, ensure the bridge app is running on this machine and supports CORS. For mobile/PWA, please use the Bluetooth connection type in Printer Settings.', error);
             if (originalData) {
                 await this.queueJob({ ...originalData, printerIp });
             }
