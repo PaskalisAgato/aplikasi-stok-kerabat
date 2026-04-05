@@ -31,6 +31,8 @@ export interface PrintData {
     items: PrintItem[];
     total: number;
     paymentMethod: string;
+    amountPaid?: number;
+    changeDue?: number;
 }
 
 export class PrintService {
@@ -302,6 +304,8 @@ export class PrintService {
                 .bold(false)
                 .align('left')
                 .line(`Bayar: ${data.paymentMethod}`)
+                .line(`Cash:  Rp ${data.amountPaid?.toLocaleString('id-ID') || 0}`)
+                .line(`Laba:  Rp ${data.changeDue?.toLocaleString('id-ID') || 0}`)
                 .line('--------------------------------')
                 .align('center')
                 .line('Scan untuk Cek Transaksi:')

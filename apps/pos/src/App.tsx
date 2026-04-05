@@ -37,6 +37,7 @@ function App() {
     const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [amountPaid, setAmountPaid] = useState<number>(0);
 
     const fetchRecipes = async () => {
         try {
@@ -77,6 +78,8 @@ function App() {
 
     const totalItems = Object.values(sales).reduce((a, b) => a + b, 0);
 
+    const changeDue = Math.max(0, amountPaid - totalSalesValue);
+
     const handleCheckout = async (skipConfirm = false) => {
         console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod, skipConfirm });
         if (totalSalesValue === 0) {
@@ -111,6 +114,8 @@ function App() {
                 date: response.data?.createdAt || new Date().toISOString(),
                 paymentMethod,
                 total: totalSalesValue,
+                amountPaid: paymentMethod === 'CASH' ? amountPaid : totalSalesValue,
+                changeDue: paymentMethod === 'CASH' ? changeDue : 0,
                 items: activeCartItems.map(item => ({
                     name: item.name,
                     quantity: sales[item.id],
@@ -125,7 +130,8 @@ function App() {
 
             setSales({});
             setPaymentMethod('CASH');
-            alert('Transaksi Berhasil & Struk Dicetak!');
+            setAmountPaid(0);
+            alert(`Transaksi Berhasil! Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
         } catch (error) {
             console.error('Checkout failed', error);
             alert('Transaksi Gagal. Pastikan koneksi internet stabil.');
@@ -160,6 +166,45 @@ function App() {
                     ))}
                 </div>
             </div>
+
+            {/* Cash Payment Section */}
+            {paymentMethod === 'CASH' && (
+                <div className="space-y-4 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center justify-between px-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Uang Bayar (Cash)</p>
+                        <div className="flex gap-2">
+                            {[20000, 50000, 100000].map(amount => (
+                                <button 
+                                    key={amount}
+                                    onClick={() => setAmountPaid(amount)}
+                                    className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-[9px] font-black hover:bg-primary/20 hover:text-primary transition-all"
+                                >
+                                    {amount / 1000}k
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="flex-1 relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-xs md:text-sm">Rp</span>
+                            <input 
+                                type="number" 
+                                value={amountPaid || ''}
+                                onChange={(e) => setAmountPaid(parseInt(e.target.value) || 0)}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 md:pl-12 pr-4 py-3 md:py-4 text-sm md:text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-30"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div className="flex-1 bg-primary/5 border border-primary/20 rounded-2xl px-6 py-3 flex flex-col justify-center">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60">Kembalian</p>
+                            <p className="text-sm md:text-xl font-black text-primary">
+                                <span className="text-[10px] mr-1">Rp</span>
+                                {changeDue.toLocaleString('id-ID')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-4 md:space-y-6 text-[var(--text-main)]">
                 <div className="flex items-end justify-between px-2">
