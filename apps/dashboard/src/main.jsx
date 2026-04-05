@@ -12,20 +12,4 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Register Service Worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => {
-        console.log('Service Worker registered', reg);
-        
-        // Auto-reload when new version takes control
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
-      })
-      .catch(err => console.error('Service Worker registration failed', err));
-  });
-}
-
 
