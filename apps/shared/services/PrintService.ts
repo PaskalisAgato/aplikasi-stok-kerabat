@@ -76,37 +76,66 @@ export class PrintService {
         }
 
         try {
+            console.log('Requesting Bluetooth device...');
             this.bluetoothDevice = await nav.bluetooth.requestDevice({
                 filters: [
                     { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
-                    { services: ['49535441-522d-4745-4e45-52494350524e'] }, // Star Micronics
-                    { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] }, // Generic Chinese
+                    { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] },
+                    { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
                     { namePrefix: 'Printer' },
                     { namePrefix: 'RP' },
                     { namePrefix: 'MPT' },
                     { namePrefix: 'BT-' },
-                    { namePrefix: 'MTP' },
+                    { namePrefix: 'MP' },
                     { namePrefix: 'Inner' }
                 ],
                 optionalServices: [
                     '000018f0-0000-1000-8000-00805f9b34fb', 
                     '00001101-0000-1000-8000-00805f9b34fb',
-                    '0000ff00-0000-1000-8000-00805f9b34fb'
+                    '0000ff00-0000-1000-8000-00805f9b34fb',
+                    '0000ffe0-0000-1000-8000-00805f9b34fb'
                 ]
             });
 
+            console.log('Connecting to GATT server...');
             const server = await this.bluetoothDevice.gatt?.connect();
             
-            // Try common printing services
-            const services = await server?.getPrimaryServices();
-            if (!services) return null;
+            // Try common printing services in order of popularity
+            const serviceUUIDs = [
+                '000018f0-0000-1000-8000-00805f9b34fb',
+                '0000ff00-0000-1000-8000-00805f9b34fb',
+                '0000ffe0-0000-1000-8000-00805f9b34fb'
+            ];
 
-            for (const service of services) {
-                const chars = await service.getCharacteristics();
-                for (const char of chars) {
-                    if (char.properties.write || char.properties.writeWithoutResponse) {
-                        this.bluetoothCharacteristic = char;
-                        return this.bluetoothDevice.name || 'Bluetooth Printer';
+            for (const uuid of serviceUUIDs) {
+                try {
+                    const service = await server?.getPrimaryService(uuid);
+                    if (service) {
+                        const chars = await service.getCharacteristics();
+                        for (const char of chars) {
+                            if (char.properties.write || char.properties.writeWithoutResponse) {
+                                console.log(`Found writable characteristic: ${char.uuid} in service: ${uuid}`);
+                                this.bluetoothCharacteristic = char;
+                                return this.bluetoothDevice.name || 'Bluetooth Printer';
+                            }
+                        }
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+
+            // Fallback: search all services
+            const services = await server?.getPrimaryServices();
+            if (services) {
+                for (const service of services) {
+                    const chars = await service.getCharacteristics();
+                    for (const char of chars) {
+                        if (char.properties.write || char.properties.writeWithoutResponse) {
+                            console.log(`Fallback: Found writable characteristic: ${char.uuid}`);
+                            this.bluetoothCharacteristic = char;
+                            return this.bluetoothDevice.name || 'Bluetooth Printer';
+                        }
                     }
                 }
             }
@@ -132,6 +161,12 @@ export class PrintService {
             // Standard Bluetooth characteristic write limit is often 20 bytes
             // Sending too fast can overwhelm the printer's buffer
             const chunkSize = 20;
+            
+            // Add a "Wake Up" sequence: some printers ignore the first few bytes
+            const initBuffer = new Uint8Array([0x1b, 0x40, 0x0a]); // Init + LF
+            await this.bluetoothCharacteristic.writeValue(initBuffer);
+            await this.delay(100);
+
             for (let i = 0; i < buffer.length; i += chunkSize) {
                 const chunk = buffer.slice(i, i + chunkSize);
                 
@@ -141,9 +176,13 @@ export class PrintService {
                     await this.bluetoothCharacteristic.writeValue(chunk);
                 }
                 
-                // Small delay to allow the printer to process the chunk
-                await this.delay(25);
+                // Increased delay to allow the printer to process the chunk (50ms)
+                await this.delay(50);
             }
+
+            // Final flush: ensure data is printed and paper moved
+            const flushBuffer = new Uint8Array([0x0a, 0x0a, 0x0a, 0x1d, 0x56, 0x00]); // 3 LF + Cut
+            await this.bluetoothCharacteristic.writeValue(flushBuffer);
 
             return true;
         } catch (error) {
@@ -160,12 +199,17 @@ export class PrintService {
         const encoder = new EscPosEncoder();
         encoder.initialize()
             .align('center')
-            .line('TEST PRINT')
-            .line(config.name)
-            .line(`Width: ${config.width} chars`)
+            .line('==========================')
+            .line('      KERABAT POS       ')
+            .line('==========================')
+            .newline()
+            .line('TEST PRINT BERHASIL!')
+            .line(`Printer: ${config.name}`)
             .line(`Mode: ${config.connectionType.toUpperCase()}`)
             .newline()
-            .line('Bluetooth Receipt System')
+            .line('--------------------------')
+            .line(new Date().toLocaleString('id-ID'))
+            .newline()
             .newline()
             .cut();
         
