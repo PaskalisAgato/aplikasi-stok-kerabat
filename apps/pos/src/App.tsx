@@ -5,7 +5,6 @@ import { getOptimizedImageUrl } from '@shared/supabase';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from './components/PrinterSettings';
-import ThemeToggle from '@shared/ThemeToggle';
 
 interface Recipe {
     id: number;
@@ -199,73 +198,47 @@ function App() {
         </footer>
     );
 
+    const PosHeaderExtras = (
+        <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 scale-90 sm:scale-100">
+                <button 
+                    onClick={() => setView('pos')}
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all flex items-center gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                >
+                    <span className="material-symbols-outlined text-[14px]">point_of_sale</span>
+                    <span className="hidden min-[400px]:inline text-[9px] uppercase tracking-widest">POS</span>
+                </button>
+                <button 
+                    onClick={() => setView('history')}
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                >
+                    <span className="material-symbols-outlined text-[14px]">history</span>
+                    <span className="hidden min-[400px]:inline text-[9px] uppercase tracking-widest">History</span>
+                </button>
+            </div>
+
+            <button 
+                onClick={() => setIsPrinterSettingsOpen(true)}
+                className="size-9 sm:size-10 glass rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
+                title="Printer Settings"
+            >
+                <span className="material-symbols-outlined text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
+            </button>
+        </div>
+    );
+
     return (
         <Layout 
             currentPort={5186} 
             title="Kerabat POS"
             subtitle="Premium Sales Entry"
             footer={PosFooter}
-            hideHeader={true}
-            hideTitle={true}
+            headerExtras={PosHeaderExtras}
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
         >
             <div className="flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-500">
-                {/* Header Section */}
-                <header className="glass border-b border-white/5 p-6 md:p-8 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-4 md:gap-8">
-                        {/* Hamburger Menu (New Location) */}
-                        <button 
-                            onClick={() => setDrawerOpen(true)}
-                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all text-[var(--text-main)] border border-[var(--border-dim)]"
-                        >
-                            <span className="material-symbols-outlined text-xl md:text-2xl font-black">menu</span>
-                        </button>
-
-                        <div className="size-10 md:size-14 bg-primary rounded-2xl md:rounded-3xl flex items-center justify-center rotate-3 shadow-lg shadow-primary/20">
-                            <span className="material-symbols-outlined text-white text-2xl md:text-4xl font-black">coffee</span>
-                        </div>
-                        <div className="hidden sm:block">
-                            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-[var(--text-main)]">KERABAT POS</h1>
-                            <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-primary opacity-80">Premium Brew</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 md:gap-4">
-                        <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                            <button 
-                                onClick={() => setView('pos')}
-                                className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl transition-all flex items-center gap-2 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20 scale-105' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                            >
-                                <span className="material-symbols-outlined text-xs md:text-lg">point_of_sale</span>
-                                <span className="hidden xs:inline text-[10px] md:text-xs uppercase tracking-widest">POS</span>
-                            </button>
-                            <button 
-                                onClick={() => setView('history')}
-                                className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl transition-all flex items-center gap-2 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20 scale-105' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                            >
-                                <span className="material-symbols-outlined text-xs md:text-lg">history</span>
-                                <span className="hidden xs:inline text-[10px] md:text-xs uppercase tracking-widest">History</span>
-                            </button>
-                        </div>
-
-                        <div className="h-10 w-px border-r border-[var(--border-dim)] mx-1 hidden sm:block"></div>
-
-
-                        {/* Theme Toggle (New Location) */}
-                        <div className="scale-90 md:scale-100">
-                            <ThemeToggle />
-                        </div>
-
-                        <button 
-                            onClick={() => setIsPrinterSettingsOpen(true)}
-                            className="size-10 md:size-14 glass rounded-2xl md:rounded-3xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
-                        >
-                            <span className="material-symbols-outlined text-xl md:text-2xl text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
-                        </button>
-                    </div>
-                </header>
 
                 <main className="flex-1 overflow-hidden">
                     {view === 'pos' ? (
