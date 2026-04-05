@@ -123,19 +123,29 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
                                         <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)]">
                                             {printer.bluetoothDeviceName || 'Not Paired'}
                                         </div>
-                                        <button 
-                                            onClick={async () => {
-                                                const name = await PrintService.connectBluetooth();
-                                                if (name) {
-                                                    updatePrinter(printer.id, { bluetoothDeviceName: name });
-                                                } else {
-                                                    alert('Pairing gagal atau dibatalkan');
-                                                }
-                                            }}
-                                            className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-slate-950 transition-all"
-                                        >
-                                            Pair Now
-                                        </button>
+                                        {PrintService.isBluetoothSupported() ? (
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        const name = await PrintService.connectBluetooth();
+                                                        if (name) {
+                                                            updatePrinter(printer.id, { bluetoothDeviceName: name });
+                                                        } else {
+                                                            alert('Pairing gagal atau dibatalkan');
+                                                        }
+                                                    } catch (err: any) {
+                                                        alert(err.message || 'Bluetooth tidak didukung di browser ini.');
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-slate-950 transition-all font-black"
+                                            >
+                                                Pair Now
+                                            </button>
+                                        ) : (
+                                            <div className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase flex items-center">
+                                                Unsupported
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ) : (

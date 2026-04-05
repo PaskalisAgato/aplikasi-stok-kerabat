@@ -62,6 +62,10 @@ export class PrintService {
         return db.getAll(SETTINGS_STORE);
     }
 
+    public static isBluetoothSupported(): boolean {
+        return typeof window !== 'undefined' && 'bluetooth' in navigator;
+    }
+
     /**
      * Connects to a Bluetooth printer. Must be called from a user gesture.
      */
