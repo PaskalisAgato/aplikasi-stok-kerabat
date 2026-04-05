@@ -4,7 +4,6 @@ import ThemeToggle from './ThemeToggle';
 import { useSession } from './authClient';
 import AuthPage from './AuthPage';
 import { Toaster } from 'react-hot-toast';
-import { usePWAInstall } from './hooks/usePWAInstall';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -48,7 +47,6 @@ const Layout: React.FC<LayoutProps> = ({
         }
     };
     const [isOffline, setIsOffline] = useState(false);
-    const { isInstallable, handleInstall } = usePWAInstall();
     const { data: session, isPending, refetch, error: sessionError } = useSession();
 
     React.useEffect(() => {
@@ -264,16 +262,6 @@ const Layout: React.FC<LayoutProps> = ({
                                         </div>
                                     )}
                                     
-                                    {isInstallable && (
-                                        <button 
-                                            onClick={handleInstall}
-                                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 shrink-0"
-                                            title="Download Aplikasi"
-                                        >
-                                            <span className="material-symbols-outlined text-lg">install_mobile</span>
-                                            <span className="hidden min-[400px]:inline text-[10px] font-black uppercase tracking-wider">Install App</span>
-                                        </button>
-                                    )}
 
                                     <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden sm:block"></div>
 

@@ -6,7 +6,6 @@ import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from './components/PrinterSettings';
 import ThemeToggle from '@shared/ThemeToggle';
-import { usePWAInstall } from '@shared/hooks/usePWAInstall';
 
 interface Recipe {
     id: number;
@@ -39,7 +38,6 @@ function App() {
     const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const { isInstallable, deferredPrompt, handleInstall } = usePWAInstall();
 
     const fetchRecipes = async () => {
         try {
@@ -254,16 +252,6 @@ function App() {
 
                         <div className="h-10 w-px border-r border-[var(--border-dim)] mx-1 hidden sm:block"></div>
 
-                        {/* PWA Install Button (Universal Download Button) */}
-                        {isInstallable && (
-                            <button 
-                                onClick={handleInstall}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl md:rounded-[1.5rem] bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all border border-primary/20 shadow-lg shadow-primary/10 animate-in zoom-in duration-300 active:scale-90 group flex-shrink-0"
-                            >
-                                <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">{deferredPrompt ? 'download_for_offline' : 'install_mobile'}</span>
-                                <span className="hidden min-[450px]:inline text-[10px] font-black uppercase tracking-widest">Download App</span>
-                            </button>
-                        )}
 
                         {/* Theme Toggle (New Location) */}
                         <div className="scale-90 md:scale-100">
