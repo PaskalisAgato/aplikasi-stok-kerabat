@@ -79,26 +79,47 @@ export class PrintService {
             this.bluetoothDevice = await nav.bluetooth.requestDevice({
                 filters: [
                     { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
-                    { services: ['00001101-0000-1000-8000-00805f9b34fb'] },
+                    { services: ['49535441-522d-4745-4e45-52494350524e'] }, // Star Micronics
+                    { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] }, // Generic Chinese
                     { namePrefix: 'Printer' },
                     { namePrefix: 'RP' },
                     { namePrefix: 'MPT' },
-                    { namePrefix: 'BT-' }
+                    { namePrefix: 'BT-' },
+                    { namePrefix: 'MTP' },
+                    { namePrefix: 'Inner' }
                 ],
-                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '00001101-0000-1000-8000-00805f9b34fb']
+                optionalServices: [
+                    '000018f0-0000-1000-8000-00805f9b34fb', 
+                    '00001101-0000-1000-8000-00805f9b34fb',
+                    '0000ff00-0000-1000-8000-00805f9b34fb'
+                ]
             });
 
             const server = await this.bluetoothDevice.gatt?.connect();
-            const service = await server?.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            const characters = await service?.getCharacteristics();
             
-            this.bluetoothCharacteristic = characters?.[0] || null;
+            // Try common printing services
+            const services = await server?.getPrimaryServices();
+            if (!services) return null;
 
-            return this.bluetoothDevice.name || 'Bluetooth Printer';
+            for (const service of services) {
+                const chars = await service.getCharacteristics();
+                for (const char of chars) {
+                    if (char.properties.write || char.properties.writeWithoutResponse) {
+                        this.bluetoothCharacteristic = char;
+                        return this.bluetoothDevice.name || 'Bluetooth Printer';
+                    }
+                }
+            }
+
+            return null;
         } catch (error) {
             console.error('Bluetooth connection failed:', error);
             return null;
         }
+    }
+
+    private static async delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     private static async sendToBluetooth(buffer: Uint8Array): Promise<boolean> {
@@ -109,11 +130,19 @@ export class PrintService {
             }
 
             // Standard Bluetooth characteristic write limit is often 20 bytes
-            // We'll chunk the buffer to be safe
+            // Sending too fast can overwhelm the printer's buffer
             const chunkSize = 20;
             for (let i = 0; i < buffer.length; i += chunkSize) {
                 const chunk = buffer.slice(i, i + chunkSize);
-                await this.bluetoothCharacteristic?.writeValue(chunk);
+                
+                if (this.bluetoothCharacteristic.properties.writeWithoutResponse) {
+                    await this.bluetoothCharacteristic.writeValueWithoutResponse(chunk);
+                } else {
+                    await this.bluetoothCharacteristic.writeValue(chunk);
+                }
+                
+                // Small delay to allow the printer to process the chunk
+                await this.delay(25);
             }
 
             return true;
