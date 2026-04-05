@@ -17,10 +17,12 @@
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
   </style>
-</head>
+    <link rel="manifest" href="./manifest.json" />
+  </head>
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
-</body>
+    <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered', reg)).catch(err => console.log('SW Failed', err)); }); }</script>
+  </body>
 </html>
 

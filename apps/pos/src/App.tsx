@@ -6,6 +6,7 @@ import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from './components/PrinterSettings';
 import ThemeToggle from '@shared/ThemeToggle';
+import { usePWAInstall } from '@shared/hooks/usePWAInstall';
 
 interface Recipe {
     id: number;
@@ -38,7 +39,7 @@ function App() {
     const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [installPrompt, setInstallPrompt] = useState<any>(null);
+    const { isInstallable, deferredPrompt, handleInstall } = usePWAInstall();
 
     const fetchRecipes = async () => {
         try {
@@ -211,7 +212,6 @@ function App() {
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
-            onInstallPromptAvailable={(p) => setInstallPrompt(p)}
         >
             <div className="flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-500">
                 {/* Header Section */}
@@ -254,18 +254,13 @@ function App() {
 
                         <div className="h-10 w-px border-r border-[var(--border-dim)] mx-1 hidden sm:block"></div>
 
-                        {/* PWA Install Button (Permanent Download Logo Concept) */}
-                        {installPrompt && (
+                        {/* PWA Install Button (Universal Download Button) */}
+                        {isInstallable && (
                             <button 
-                                onClick={() => {
-                                    installPrompt.prompt();
-                                    installPrompt.userChoice.then((choice: any) => {
-                                        if (choice.outcome === 'accepted') setInstallPrompt(null);
-                                    });
-                                }}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl md:rounded-[1.5rem] bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all border border-primary/20 shadow-lg shadow-primary/10 animate-in zoom-in duration-300 active:scale-95 group"
+                                onClick={handleInstall}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl md:rounded-[1.5rem] bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 transition-all border border-primary/20 shadow-lg shadow-primary/10 animate-in zoom-in duration-300 active:scale-90 group"
                             >
-                                <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">download_for_offline</span>
+                                <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">{deferredPrompt ? 'download_for_offline' : 'install_mobile'}</span>
                                 <span className="hidden xs:inline text-[10px] font-black uppercase tracking-widest">Download App</span>
                             </button>
                         )}
