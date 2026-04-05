@@ -31,7 +31,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [namaResep, setNamaResep] = useState(recipe.name || '');
     const [category, setCategory] = useState(recipe.category || 'Minuman');
-    const [overhead, setOverhead] = useState(10); // Default overhead
+    const [overhead, setOverhead] = useState(recipe.overhead ?? 10); // Use explicit overhead from DB
     const [hargaJual, setHargaJual] = useState(recipe.price);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -144,15 +144,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
         });
         setIngredients(initialIngredients);
         setHargaJual(recipe.price);
-
-        // Coba estimasi overhead berdasarkan HPP
-        const rawMaterialsCost = initialIngredients.reduce((sum, ing) => sum + (ing.pricePerG * ing.qty), 0);
-        if (rawMaterialsCost > 0) {
-            const calculatedOverhead = Math.round(((recipe.hpp / rawMaterialsCost) - 1) * 100);
-            setOverhead(Math.max(0, calculatedOverhead));
-        } else {
-            setOverhead(10);
-        }
+        // We no longer estimate overhead from HPP because it is now stored in the DB
     }, [recipe, initialInventoryData]); // Removed inventoryData to avoid unwanted resets during search
 
     const changeQty = (id: number, delta: number) => {
@@ -256,6 +248,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 category: category,
                 price: hargaJual,
                 margin: parseFloat(margin),
+                overhead: overhead, // Include overhead in payload
                 imageUrl: imageUrl, // Pass Base64 directly
                 ingredients: prepIngredients
             };

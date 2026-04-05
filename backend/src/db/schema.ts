@@ -109,6 +109,7 @@ export const recipes = pgTable('recipes', {
     category: text('category').notNull(),
     price: decimal('price', { precision: 12, scale: 2 }).notNull().default('0'),
     margin: decimal('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
+    overhead: decimal('overhead', { precision: 5, scale: 2 }).notNull().default('10'), // Percentage 0-100
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),

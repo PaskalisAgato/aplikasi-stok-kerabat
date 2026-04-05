@@ -53,6 +53,7 @@ export interface Recipe {
     hpp: number;
     price: number;
     margin: number;
+    overhead: number;
     ingredients: RecipeIngredient[];
     imageUrl?: string;
     hasImage?: boolean;
@@ -182,6 +183,7 @@ export const RECIPES: Recipe[] = [
         hpp: 4500,
         price: 12000,
         margin: 62,
+        overhead: 10,
         ingredients: [
             { ingredientId: 4, name: 'Bubuk Kopi Robusta', qty: 20, unit: 'g' },
             { ingredientId: 5, name: 'Gula Pasir', qty: 10, unit: 'g' }
@@ -196,6 +198,7 @@ export const RECIPES: Recipe[] = [
         hpp: 6200,
         price: 15000,
         margin: 58,
+        overhead: 12,
         ingredients: [
             { ingredientId: 6, name: 'Teh Bubuk', qty: 15, unit: 'g' },
             { ingredientId: 3, name: 'Susu UHT', qty: 100, unit: 'mL' }

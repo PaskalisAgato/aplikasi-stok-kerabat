@@ -42,7 +42,10 @@ export class ProductService {
             ingredients.forEach(ing => {
                 const inv = inventoryItems[ing.ingredientId];
                 if(inv && parseFloat(inv.pricePerUnit) > 0) {
-                    currentHpp += (ing.qty * parseFloat(inv.pricePerUnit));
+                    const price = parseFloat(inv.pricePerUnit);
+                    const isBulk = inv.unit === 'Kg' || inv.unit === 'L';
+                    const pricePerGram = isBulk ? price / 1000 : price;
+                    currentHpp += (ing.qty * pricePerGram);
                 }
             });
 
@@ -52,6 +55,7 @@ export class ProductService {
                 hasImage: !!recipe.imageUrl,
                 price: parseFloat(recipe.price),
                 margin: parseFloat(recipe.margin),
+                overhead: parseFloat(recipe.overhead),
                 hpp: currentHpp > 0 ? currentHpp : 0, 
                 ingredients
             };
@@ -70,9 +74,6 @@ export class ProductService {
     }
 
     static async createProduct(data: any) {
-        const { name, category, price, margin, imageUrl, ingredients } = data;
-        
-        // Validation helper
         const toNumericString = (val: any) => {
             if (val === undefined || val === null || val === '') return '0';
             const num = Number(val);
@@ -81,11 +82,13 @@ export class ProductService {
 
         return await db.transaction(async (tx: any) => {
             try {
+                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
                 const [newRecipe] = await tx.insert(schema.recipes).values({
                     name,
                     category,
                     price: toNumericString(price),
                     margin: toNumericString(margin),
+                    overhead: toNumericString(overhead || 10),
                     imageUrl,
                 }).returning();
 
@@ -112,9 +115,6 @@ export class ProductService {
     }
 
     static async updateProduct(id: number, data: any) {
-        const { name, category, price, margin, imageUrl, ingredients } = data;
-
-        // Validation helper
         const toNumericString = (val: any) => {
             if (val === undefined || val === null || val === '') return null;
             const num = Number(val);
@@ -123,6 +123,8 @@ export class ProductService {
 
         return await db.transaction(async (tx: any) => {
             try {
+                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
+
                 // 1. Update main recipe data
                 const updatePayload: any = {};
                 if (name) updatePayload.name = name;
@@ -134,6 +136,9 @@ export class ProductService {
                 
                 const marginStr = toNumericString(margin);
                 if (marginStr !== null) updatePayload.margin = marginStr;
+
+                const overheadStr = toNumericString(overhead);
+                if (overheadStr !== null) updatePayload.overhead = overheadStr;
 
                 if (Object.keys(updatePayload).length > 0) {
                     await tx.update(schema.recipes)

@@ -90,6 +90,7 @@ function App() {
                             hpp: 0,
                             price: 0,
                             margin: 0,
+                            overhead: 10,
                             ingredients: []
                         })}
                         className="w-full flex items-center justify-center gap-4 accent-gradient text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
