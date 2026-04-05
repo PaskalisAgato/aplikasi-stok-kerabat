@@ -9,10 +9,12 @@ const BRIDGE_URL = 'http://127.0.0.1:3001';
 export interface PrinterConfig {
     id: string;
     name: string;
-    ip: string;
+    ip?: string; // Optional for Bluetooth
     port: number;
     width: 32 | 48;
     categories: string[]; // empty means "Main/All"
+    connectionType: 'bridge' | 'bluetooth';
+    bluetoothDeviceName?: string;
 }
 
 export interface PrintItem {
@@ -32,6 +34,8 @@ export interface PrintData {
 }
 
 export class PrintService {
+    private static bluetoothDevice: any = null;
+    private static bluetoothCharacteristic: any = null;
     private static async getDB() {
         return openDB(DB_NAME, 1, {
             upgrade(db) {
@@ -59,6 +63,64 @@ export class PrintService {
     }
 
     /**
+     * Connects to a Bluetooth printer. Must be called from a user gesture.
+     */
+    public static async connectBluetooth(): Promise<string | null> {
+        const nav = navigator as any;
+        if (!nav.bluetooth) {
+            throw new Error('Bluetooth is not supported in this browser.');
+        }
+
+        try {
+            this.bluetoothDevice = await nav.bluetooth.requestDevice({
+                filters: [
+                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
+                    { services: ['00001101-0000-1000-8000-00805f9b34fb'] },
+                    { namePrefix: 'Printer' },
+                    { namePrefix: 'RP' },
+                    { namePrefix: 'MPT' },
+                    { namePrefix: 'BT-' }
+                ],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '00001101-0000-1000-8000-00805f9b34fb']
+            });
+
+            const server = await this.bluetoothDevice.gatt?.connect();
+            const service = await server?.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            const characters = await service?.getCharacteristics();
+            
+            this.bluetoothCharacteristic = characters?.[0] || null;
+
+            return this.bluetoothDevice.name || 'Bluetooth Printer';
+        } catch (error) {
+            console.error('Bluetooth connection failed:', error);
+            return null;
+        }
+    }
+
+    private static async sendToBluetooth(buffer: Uint8Array): Promise<boolean> {
+        try {
+            if (!this.bluetoothCharacteristic) {
+                const name = await this.connectBluetooth();
+                if (!name) return false;
+            }
+
+            // Standard Bluetooth characteristic write limit is often 20 bytes
+            // We'll chunk the buffer to be safe
+            const chunkSize = 20;
+            for (let i = 0; i < buffer.length; i += chunkSize) {
+                const chunk = buffer.slice(i, i + chunkSize);
+                await this.bluetoothCharacteristic?.writeValue(chunk);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Bluetooth print failed:', error);
+            this.bluetoothCharacteristic = null;
+            return false;
+        }
+    }
+
+    /**
      * Test print for a specific configuration
      */
     public static async testPrint(config: PrinterConfig): Promise<boolean> {
@@ -68,14 +130,17 @@ export class PrintService {
             .line('TEST PRINT')
             .line(config.name)
             .line(`Width: ${config.width} chars`)
-            .line(`IP: ${config.ip}`)
+            .line(`Mode: ${config.connectionType.toUpperCase()}`)
             .newline()
-            .line('Cash Drawer Test...')
-            .raw([0x1b, 0x70, 0x00, 0x19, 0xfa])
+            .line('Bluetooth Receipt System')
             .newline()
             .cut();
         
-        return this.sendToBridge(encoder.encode(), config.ip);
+        const buffer = encoder.encode();
+        if (config.connectionType === 'bluetooth') {
+            return this.sendToBluetooth(buffer);
+        }
+        return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
     /**
@@ -84,7 +149,7 @@ export class PrintService {
     public static async printOrder(data: PrintData) {
         const settings = await this.getSettings();
         
-        // If no printers configured, try default bridge
+        // If no printers configured, try default bridge IP to avoid breaking changes
         if (settings.length === 0) {
             return this.print(data, '192.168.1.100');
         }
@@ -106,7 +171,12 @@ export class PrintService {
                     width: printer.width,
                     isPrepTicket 
                 });
-                await this.sendToBridge(buffer, printer.ip);
+                
+                if (printer.connectionType === 'bluetooth') {
+                    await this.sendToBluetooth(buffer);
+                } else {
+                    await this.sendToBridge(buffer, printer.ip || '127.0.0.1');
+                }
             }
         }
     }

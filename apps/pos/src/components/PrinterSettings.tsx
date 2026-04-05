@@ -37,7 +37,8 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
             ip: '192.168.1.100',
             port: 9100,
             width: 32,
-            categories: []
+            categories: [],
+            connectionType: 'bridge'
         }]);
     };
 
@@ -52,9 +53,10 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
     const testPrint = async (printer: PrinterConfig) => {
         const success = await PrintService.testPrint(printer);
         if (success) {
-            alert('Test print berhasil dikirim ke ' + printer.ip);
+            const target = printer.connectionType === 'bluetooth' ? (printer.bluetoothDeviceName || 'Bluetooth') : printer.ip;
+            alert('Test print berhasil dikirim ke ' + target);
         } else {
-            alert('Test print gagal. Pastikan Bridge dan Printer menyala.');
+            alert('Test print gagal. Pastikan' + (printer.connectionType === 'bluetooth' ? ' Bluetooth menyala.' : ' Bridge dan Printer menyala.'));
         }
     };
 
@@ -89,16 +91,17 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
                                     <span className="material-symbols-outlined text-[20px]">delete</span>
                                 </button>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Alamat IP</label>
-                                    <input 
-                                        value={printer.ip}
-                                        onChange={(e) => updatePrinter(printer.id, { ip: e.target.value })}
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Tipe Koneksi</label>
+                                    <select 
+                                        value={printer.connectionType || 'bridge'}
+                                        onChange={(e) => updatePrinter(printer.id, { connectionType: e.target.value as 'bridge' | 'bluetooth' })}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
-                                        placeholder="192.168.1.100"
-                                    />
+                                    >
+                                        <option value="bridge">Local Bridge (IP)</option>
+                                        <option value="bluetooth">Bluetooth (Direct)</option>
+                                    </select>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paper Width</label>
@@ -112,6 +115,40 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose }) =>
                                     </select>
                                 </div>
                             </div>
+
+                            {printer.connectionType === 'bluetooth' ? (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paired Bluetooth Device</label>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)]">
+                                            {printer.bluetoothDeviceName || 'Not Paired'}
+                                        </div>
+                                        <button 
+                                            onClick={async () => {
+                                                const name = await PrintService.connectBluetooth();
+                                                if (name) {
+                                                    updatePrinter(printer.id, { bluetoothDeviceName: name });
+                                                } else {
+                                                    alert('Pairing gagal atau dibatalkan');
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-slate-950 transition-all"
+                                        >
+                                            Pair Now
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Alamat IP Printer</label>
+                                    <input 
+                                        value={printer.ip}
+                                        onChange={(e) => updatePrinter(printer.id, { ip: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
+                                        placeholder="192.168.1.100"
+                                    />
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Kategori Rute (Pisahkan koma)</label>
