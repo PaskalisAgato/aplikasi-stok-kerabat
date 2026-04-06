@@ -50,8 +50,23 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // STRICT CORS
+const ALLOWED_ORIGINS = [
+    "https://aplikasi-stok-kerabat-pos.vercel.app",
+    "https://paskalisagato.github.io",
+    "http://localhost:5186",
+    "http://localhost:5173"
+];
+
 app.use(cors({
-    origin: "https://aplikasi-stok-kerabat-pos.vercel.app",
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (ALLOWED_ORIGINS.indexOf(origin) !== -1 || origin.includes('localhost')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
