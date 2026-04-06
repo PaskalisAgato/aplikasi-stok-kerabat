@@ -410,13 +410,13 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
                             {/* Payment Method */}
                             <div className="pt-4 border-t border-[var(--border-dim)]">
-                                <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3">Metode Pembayaran</h4>
-                                <div className="flex gap-4">
+                                <h4 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Metode Pembayaran</h4>
+                                <div className="flex gap-3">
                                     {['CASH', 'QRIS', 'CARD'].map(method => (
                                         <button 
                                             key={method}
                                             onClick={() => setEditData({...editData, paymentMethod: method})}
-                                            className={`flex-1 py-3 rounded-xl font-black tracking-widest text-xs uppercase border-2 transition-all ${editData.paymentMethod === method ? 'border-primary text-primary bg-primary/10' : 'border-transparent glass text-[var(--text-muted)] hover:border-white/10'}`}
+                                            className={`flex-1 py-1.5 rounded-lg font-black tracking-widest text-[10px] uppercase border-2 transition-all ${editData.paymentMethod === method ? 'border-primary text-primary bg-primary/10' : 'border-transparent glass text-[var(--text-muted)] hover:border-white/10'}`}
                                         >
                                             {method}
                                         </button>
