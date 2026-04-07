@@ -89,7 +89,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
         controllerRef.current = controller;
 
         try {
-            const response: ApiResponse<InventoryItem> = await apiClient.getInventory(20, 0, searchTerm, '', '', controller.signal);
+            const response: ApiResponse<InventoryItem> = await apiClient.getInventory(20, 0, searchTerm, '', '', '', controller.signal);
             setInventory(response.data);
         } catch (error: any) {
             if (error.name !== 'AbortError') {
@@ -325,21 +325,21 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                                 <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Kalkulasi Berat (g)</span>
                                                 <span className="text-[10px] font-bold text-muted uppercase">Bersih = Kotor - {item.containerWeight}g</span>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                 <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-muted uppercase ml-2">Berat Kotor</p>
+                                                    <p className="text-[8px] font-black text-muted uppercase ml-2 opacity-60">Berat Kotor (Input)</p>
                                                     <input 
                                                         type="number"
                                                         value={item.grossWeight}
                                                         onChange={(e) => handleInputChange(item.id, 'grossWeight', e.target.value)}
-                                                        placeholder="Kotor"
-                                                        className="w-full h-11 rounded-2xl bg-surface border-2 border-emerald-500/20 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 text-center font-black text-emerald-600 text-sm transition-all"
+                                                        placeholder="Timbang Total..."
+                                                        className="w-full h-12 rounded-2xl bg-white border-2 border-emerald-500/20 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 text-center font-black text-emerald-600 text-sm transition-all shadow-sm"
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[8px] font-black text-muted uppercase ml-2 text-right">Hasil Bersih</p>
-                                                    <div className="w-full h-11 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-sm shadow-sm">
-                                                        {item.quantity}{item.unit}
+                                                    <p className="text-[8px] font-black text-muted uppercase ml-2 text-right opacity-60">Hasil Bersih (Auto)</p>
+                                                    <div className="w-full h-12 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-sm shadow-inner">
+                                                        {item.quantity} {item.unit}
                                                     </div>
                                                 </div>
                                             </div>

@@ -298,12 +298,12 @@ function App() {
         </div>
 
         {/* Mobile Category Filter Scroll */}
-        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-4 pb-2">
+        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-4 pb-4 px-2">
             {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase'].map(cat => (
             <button 
                 key={`mob-cat-filt-${cat}`}
                 onClick={() => setFilterCategory(cat)}
-                className={`whitespace-nowrap px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 ${filterCategory === cat ? 'accent-gradient text-slate-950 shadow-lg shadow-primary/20' : 'glass text-[var(--text-muted)] border-transparent'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterCategory === cat ? 'accent-gradient text-slate-950 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>
@@ -311,12 +311,12 @@ function App() {
         </div>
 
         {/* Mobile Filter Scroll */}
-        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-8 pb-2">
+        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-8 pb-4 px-2">
             {['Semua', 'Kritis', 'Normal'].map(cat => (
             <button 
                 key={`mob-cat-${cat}`}
                 onClick={() => setFilterType(cat)}
-                className={`whitespace-nowrap px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 ${filterType === cat ? 'accent-gradient text-slate-950 shadow-lg shadow-primary/20' : 'glass text-[var(--text-muted)] border-transparent'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterType === cat ? 'accent-gradient text-slate-950 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>
