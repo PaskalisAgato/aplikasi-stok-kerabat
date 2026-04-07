@@ -334,7 +334,7 @@ function App() {
             <div 
                 key={item.id} 
                 onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
-                className="card group cursor-pointer relative overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]"
+                className={`card group cursor-pointer relative overflow-hidden transition-all duration-500 ${Number(item.currentStock) === 0 ? 'bg-red-500/[0.02] animate-pulse-slow' : ''} hover:scale-[1.02] active:scale-[0.98]`}
             >
                 {/* Image and Info */}
                 <div className="flex justify-between items-start mb-6 relative z-10 gap-4">
@@ -361,7 +361,7 @@ function App() {
                 <div className="flex flex-col items-end gap-2">
                     <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
                         item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
-                        item.status === 'HABIS' ? 'text-slate-500 bg-slate-500/10 border-slate-500/20' :
+                        item.status === 'HABIS' ? 'text-red-500 bg-red-500/10 border-red-500/20' :
                         'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10'
                     }`}>
                         {item.status}
@@ -393,9 +393,9 @@ function App() {
                 <div className="flex items-end justify-between mt-auto mb-6 relative z-10 gap-4">
                     <div className="space-y-1">
                         <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
-                        <p className="text-3xl font-black text-[var(--text-main)] font-display tracking-tighter">
+                        <p className={`text-3xl font-black font-display tracking-tighter transition-colors duration-500 ${Number(item.currentStock) === 0 ? 'text-red-500' : 'text-[var(--text-main)]'}`}>
                             {Number(item.currentStock)}
-                            <span className="text-xs font-black text-[var(--text-muted)] ml-2 uppercase opacity-60 font-sans tracking-widest">{item.unit}</span>
+                            <span className={`text-xs font-black ml-2 uppercase opacity-60 font-sans tracking-widest ${Number(item.currentStock) === 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>{item.unit}</span>
                         </p>
                     </div>
                     <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5 flex flex-col justify-center">
@@ -411,7 +411,7 @@ function App() {
                 {/* Progress Bar */}
                 <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner relative z-10 border border-white/5">
                 <div className={`${item.status === 'KRITIS' ? 'bg-red-500 accent-glow shadow-red-500/40' :
-                    item.status === 'HABIS' ? 'bg-slate-500' :
+                    item.status === 'HABIS' ? 'bg-red-500 shadow-lg shadow-red-500/40' :
                     'bg-emerald-500 accent-glow shadow-emerald-500/40'
                     } h-full rounded-full transition-all duration-1000 ease-out`}
                     style={{ width: `${Math.max(5, Math.min(100, (parseFloat(item.currentStock) / (parseFloat(item.minStock) * 2 || 100)) * 100))}%` }}>

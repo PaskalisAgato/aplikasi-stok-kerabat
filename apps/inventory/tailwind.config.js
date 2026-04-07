@@ -28,6 +28,15 @@ export default {
         "xl": "1.5rem",
         "full": "9999px"
       },
+      keyframes: {
+        "pulse-slow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" }
+        }
+      },
+      animation: {
+        "pulse-slow": "pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+      }
     },
   },
   plugins: [
