@@ -328,6 +328,8 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             idealStock: schema.inventory.idealStock,
+            containerWeight: schema.inventory.containerWeight,
+            containerId: schema.inventory.containerId,
             imageUrl: sql`CASE WHEN ${schema.inventory.imageUrl} LIKE 'http%' THEN ${schema.inventory.imageUrl} ELSE NULL END`, // Prevent base64 from crashing the list view
             externalImageUrl: schema.inventory.externalImageUrl,
             hasImage: sql`CASE WHEN ${schema.inventory.imageUrl} IS NOT NULL THEN true ELSE false END`,
