@@ -9,8 +9,10 @@ interface SelectedItem {
     name: string;
     unit: string;
     stock: number;
+    containerWeight: number;
     image: string;
     quantity: number;
+    grossWeight: string;
     price: string;
     discount: string;
 }
@@ -121,8 +123,10 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
             name: item.name,
             unit: item.unit,
             stock: parseFloat(item.currentStock),
+            containerWeight: parseFloat(item.containerWeight || '0'),
             image: item.externalImageUrl || '',
             quantity: 1,
+            grossWeight: '',
             price: '',
             discount: ''
         };
@@ -144,10 +148,18 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
         ));
     };
 
-    const handleInputChange = (id: string, field: 'price' | 'discount', value: string) => {
-        setItems(prev => prev.map(item =>
-            item.id === id ? { ...item, [field]: value } : item
-        ));
+    const handleInputChange = (id: string, field: 'price' | 'discount' | 'grossWeight', value: string) => {
+        setItems(prev => prev.map(item => {
+            if (item.id === id) {
+                const updated = { ...item, [field]: value };
+                if (field === 'grossWeight' && value) {
+                    const gross = parseFloat(value) || 0;
+                    updated.quantity = Math.max(0, gross - item.containerWeight);
+                }
+                return updated;
+            }
+            return item;
+        }));
     };
 
     const handleRemoveItem = (id: string) => {
@@ -178,6 +190,8 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                     await apiClient.recordStockMovement(item.inventoryId, {
                         type: 'IN',
                         quantity: item.quantity,
+                        grossWeight: item.grossWeight || undefined,
+                        tareWeight: item.containerWeight || undefined,
                         reason: `Manual Restock${item.price ? ` - Rp${item.price}` : ''}`,
                         supplierName: supplierName || undefined,
                         createdAt: customDate
@@ -285,7 +299,12 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                         />
                                         <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
                                             <h4 className="text-main text-base font-black leading-tight truncate">{item.name}</h4>
-                                            <p className="text-muted text-[10px] font-bold uppercase tracking-wider opacity-70">Stok: {item.stock} {item.unit}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-muted text-[10px] font-bold uppercase tracking-wider opacity-70">Stok: {item.stock} {item.unit}</p>
+                                                {item.containerWeight > 0 && (
+                                                    <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 text-[8px] font-black uppercase tracking-tight border border-rose-500/20 shadow-sm">WDH: {item.containerWeight}g</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -299,7 +318,35 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                     </button>
                                 </div>
 
-                                <div className="flex flex-col gap-6">
+                                    {/* Middle Section: Weight Calculation */}
+                                    {item.containerWeight > 0 && (
+                                        <div className="flex flex-col gap-3 p-4 bg-background-app/50 rounded-3xl border border-border-dim/50 shadow-inner">
+                                            <div className="flex justify-between items-center px-1">
+                                                <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Kalkulasi Berat (g)</span>
+                                                <span className="text-[10px] font-bold text-muted uppercase">Bersih = Kotor - {item.containerWeight}g</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-muted uppercase ml-2">Berat Kotor</p>
+                                                    <input 
+                                                        type="number"
+                                                        value={item.grossWeight}
+                                                        onChange={(e) => handleInputChange(item.id, 'grossWeight', e.target.value)}
+                                                        placeholder="Kotor"
+                                                        className="w-full h-11 rounded-2xl bg-surface border-2 border-emerald-500/20 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 text-center font-black text-emerald-600 text-sm transition-all"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[8px] font-black text-muted uppercase ml-2 text-right">Hasil Bersih</p>
+                                                    <div className="w-full h-11 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-sm shadow-sm">
+                                                        {item.quantity}{item.unit}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-6">
                                     {/* Middle Section: Qty */}
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div className="w-full sm:w-auto flex justify-center flex-1">
