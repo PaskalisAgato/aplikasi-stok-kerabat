@@ -338,7 +338,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Berat Kotor</label>
                                                     <input 
                                                         type="number" 
-                                                        value={((parseFloat(draft.currentStock) || 0) + (parseFloat(draft.containerWeight) || 0)).toString()} 
+                                                        value={Number(((parseFloat(draft.currentStock) || 0) + (parseFloat(draft.containerWeight) || 0)).toFixed(2)).toString()} 
                                                         onChange={(e) => {
                                                             const kotor = parseFloat(e.target.value) || 0;
                                                             const wadah = parseFloat(draft.containerWeight) || 0;

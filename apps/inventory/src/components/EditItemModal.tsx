@@ -26,8 +26,6 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [isDeleting, setIsDeleting] = useState(false);
     const [isConfirmDelete, setIsConfirmDelete] = useState(false);
     const [isConfirmSave, setIsConfirmSave] = useState(false);
-    const [margin, setMargin] = useState('0');
-    const [validationError, setValidationError] = useState('');
     const { data: containersList } = useContainers();
     const containers = (containersList || []) as unknown as Container[];
 
@@ -49,36 +47,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setIdealStock(item.idealStock?.toString() || '0');
             setPricePerUnit(item.pricePerUnit?.toString() || '0');
             setDiscountPrice(item.discountPrice?.toString() || '0');
-            setValidationError('');
             
-            // Calculate initial margin if possible
-            const price = parseFloat(item.pricePerUnit || '0');
-            if (price > 0) {
-                // This is a simple margin placeholder, real margin usually needs COGS
-                setMargin('0'); 
-            }
         }
     }, [isOpen, item]);
-
-    const formatIDR = (val: string | number) => {
-        const num = typeof val === 'string' ? parseInt(val.replace(/\D/g, '')) : val;
-        if (isNaN(num)) return '';
-        return new Intl.NumberFormat('id-ID').format(num);
-    };
-
-    const parseIDR = (val: string) => {
-        return val.replace(/\D/g, '');
-    };
-
-    const handleMarginChange = (m: string) => {
-        setMargin(m);
-        const marginVal = parseFloat(m) || 0;
-        const currentPrice = parseFloat(parseIDR(pricePerUnit)) || 0;
-        if (currentPrice > 0) {
-            const newPrice = Math.round(currentPrice * (1 + marginVal / 100));
-            setPricePerUnit(newPrice.toString());
-        }
-    };
 
     if (!isOpen || !item) return null;
 
@@ -129,23 +100,23 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     };
 
     const handleSave = async () => {
-        const p = parseFloat(parseIDR(pricePerUnit)) || 0;
-        const d = parseFloat(parseIDR(discountPrice)) || 0;
+        const p = parseFloat(pricePerUnit) || 0;
+        const d = parseFloat(discountPrice) || 0;
 
         if (!name.trim()) {
-            setValidationError('Nama bahan baku tidak boleh kosong!');
+            alert('Nama bahan baku tidak boleh kosong!');
             return;
         }
         if (p < 0) {
-            setValidationError('Harga beli tidak boleh negatif');
+            alert('Harga beli tidak boleh negatif');
             return;
         }
         if (d < 0) {
-            setValidationError('Harga diskon tidak boleh negatif');
+            alert('Harga diskon tidak boleh negatif');
             return;
         }
         if (d > p) {
-            setValidationError('Harga diskon tidak boleh melebihi harga beli');
+            alert('Harga diskon tidak boleh melebihi harga beli');
             return;
         }
 
@@ -154,7 +125,6 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             return;
         }
 
-        setValidationError('');
         setIsSaving(true);
         try {
             const updateData: any = {
@@ -186,7 +156,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setIsConfirmSave(false);
         } catch (err: any) {
             console.error('Failed to update item', err);
-            setValidationError(err.message || 'Gagal memperbarui data. Cek koneksi Anda.');
+            alert(err.message || 'Gagal memperbarui data. Cek koneksi Anda.');
         } finally {
             setIsSaving(false);
         }
@@ -381,7 +351,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                                 {parseFloat(currentStock) > 0 && (
                                                     <div className="mt-2 ml-1">
                                                         <p className="text-[8px] font-black text-blue-600 uppercase tracking-tighter opacity-80">
-                                                            NET WEIGHT: {(parseFloat(currentStock)).toFixed(2)} {unit}
+                                                            NET WEIGHT: {Number(parseFloat(currentStock).toFixed(2))} {unit}
                                                         </p>
                                                     </div>
                                                 )}

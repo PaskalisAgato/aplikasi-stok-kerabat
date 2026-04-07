@@ -400,8 +400,8 @@ function App() {
                     </div>
                     <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5 flex flex-col justify-center">
                         <div className="flex flex-col items-end gap-0.5">
-                            <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-tight">KOTOR: {(parseFloat(item.currentStock) + parseFloat(item.containerWeight || '0')).toFixed(0)}{item.unit}</p>
-                            <p className="text-[8px] font-bold text-rose-500 uppercase tracking-tight">WADAH: {parseFloat(item.containerWeight || '0').toFixed(0)}{item.unit}</p>
+                            <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-tight">KOTOR: {Number((parseFloat(item.currentStock) + parseFloat(item.containerWeight || '0')).toFixed(2))}{item.unit}</p>
+                            <p className="text-[8px] font-bold text-rose-500 uppercase tracking-tight">WADAH: {Number(parseFloat(item.containerWeight || '0').toFixed(2))}{item.unit}</p>
                             <div className="h-[1px] w-8 bg-white/10 my-0.5" />
                             <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">IDEAL: {Number(item.idealStock || 0)}</p>
                         </div>
