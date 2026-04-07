@@ -52,6 +52,7 @@ function App() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [lowStockItems, setLowStockItems] = useState<BahanBaku[]>([]);
   const PAGE_SIZE = 20;
 
   const fetchInventory = async (isLoadMore = false) => {
@@ -99,6 +100,18 @@ function App() {
       setIsLoading(false);
     }
   };
+  
+  const fetchLowStockAlerts = async () => {
+    try {
+      // Fetch up to 100 items flagged as 'Kritis' (includes HABIS) from the backend
+      const response = await apiClient.getInventory(100, 0, '', 'Kritis');
+      if (response && Array.isArray(response.data)) {
+        setLowStockItems(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch low stock alerts', error);
+    }
+  };
 
   // Persist successful inventory data to localStorage as a cache
   useEffect(() => {
@@ -113,6 +126,7 @@ function App() {
 
   useEffect(() => {
     fetchInventory(false);
+    fetchLowStockAlerts();
   }, [filterType, searchQuery, filterCategory]);
 
   const filteredInventory = inventoryList;
@@ -234,9 +248,9 @@ function App() {
         <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
             <div className="relative">
                 <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
-                {inventoryList.filter(i => (parseFloat(i.currentStock) <= parseFloat(i.minStock))).length > 0 && (
+                {lowStockItems.length > 0 && (
                     <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[var(--bg-surface)] animate-pulse">
-                        {inventoryList.filter(i => (parseFloat(i.currentStock) <= parseFloat(i.minStock))).length}
+                        {lowStockItems.length}
                     </span>
                 )}
             </div>
@@ -491,7 +505,7 @@ function App() {
       />
       <CreateItemModal isOpen={isCreateItemModalOpen} onClose={() => { setIsCreateItemModalOpen(false); fetchInventory() }} />
       <EditItemModal isOpen={isEditItemModalOpen} onClose={() => setIsEditItemModalOpen(false)} onUpdated={() => fetchInventory()} item={selectedStock} />
-      <NotificationModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} inventory={inventoryList} />
+      <NotificationModal isOpen={isNotificationModalOpen} onClose={() => setIsNotificationModalOpen(false)} inventory={lowStockItems} />
       <StoreProfileModal isOpen={isStoreProfileModalOpen} onClose={() => setIsStoreProfileModalOpen(false)} />
       
       <DeleteConfirmationModal

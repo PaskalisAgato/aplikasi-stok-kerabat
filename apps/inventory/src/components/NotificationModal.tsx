@@ -69,7 +69,13 @@ interface NotificationModalProps {
 const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, inventory = [] }) => {
     if (!isOpen) return null;
 
-    const criticalItems = inventory.filter(item => item.status === 'KRITIS' || item.status === 'HABIS');
+    const criticalItems = inventory
+        .filter(item => item.status === 'KRITIS' || item.status === 'HABIS')
+        .sort((a, b) => {
+            if (a.status === 'HABIS' && b.status !== 'HABIS') return -1;
+            if (a.status !== 'HABIS' && b.status === 'HABIS') return 1;
+            return 0;
+        });
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden">
