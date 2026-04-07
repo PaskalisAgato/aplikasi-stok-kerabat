@@ -11,6 +11,7 @@ function App() {
             title="Pengaturan Printer"
             subtitle="Hardware & Koneksi"
             maxWidth="100%"
+            hideTitle={true}
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
