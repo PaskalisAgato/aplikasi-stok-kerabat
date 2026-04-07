@@ -25,7 +25,7 @@ APPS=(
   "shifts:apps/shifts"
   "attendance:apps/attendance"
   "attendance-history:apps/attendance-history"
-  "todo-list:apps/todo-list",
+  "todo-list:apps/todo-list"
   "printer-settings:apps/printer-settings"
 )
 
