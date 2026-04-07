@@ -243,7 +243,7 @@ export const apiClient = {
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
     getInventoryPriceLogs: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
-    addInventoryItem: (data: { name: string, category: string, unit: string, minStock: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, imageUrl?: string }) => 
+    addInventoryItem: (data: { name: string, category: string, unit: string, minStock: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string }) => 
         apiFetch<ApiResponse<any>>('/inventory', {
             method: 'POST',
             body: JSON.stringify(data)

@@ -510,17 +510,25 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 // POST new inventory item
     inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl, currentStock, physicalStock } = req.body;
         
         if (!name || !category || !unit) {
              return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
+        }
+
+        const wadah = parseFloat(containerWeight?.toString() || '0');
+        let initialStock = '0';
+        if (physicalStock !== undefined) {
+            initialStock = (parseFloat(physicalStock.toString()) - wadah).toString();
+        } else if (currentStock !== undefined) {
+            initialStock = currentStock.toString();
         }
 
         const [newItem] = await db.insert(schema.inventory).values({
             name,
             category,
             unit,
-            currentStock: '0',
+            currentStock: initialStock,
             minStock: minStock?.toString() || '0',
             idealStock: idealStock?.toString() || '0',
             pricePerUnit: pricePerUnit?.toString() || '0',

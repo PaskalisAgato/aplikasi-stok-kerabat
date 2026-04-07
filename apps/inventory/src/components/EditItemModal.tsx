@@ -166,7 +166,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
 
             // Deduction logic: If user changed currentStock, we treat it as Physical (Gross) Stock
             // and the backend will subtract the container weight.
-            const newStockVal = parseFloat(currentStock);
+            const newStockVal = Math.max(0, parseFloat(currentStock));
             const oldStockVal = parseFloat(item.currentStock || '0');
             if (newStockVal !== oldStockVal) {
                 updateData.physicalStock = newStockVal;
@@ -185,6 +185,18 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setIsSaving(false);
         }
     };
+
+    const handleKotorChange = (val: string) => {
+        const kotor = parseFloat(val) || 0;
+        const wadah = parseFloat(containerWeight) || 0;
+        setCurrentStock(Math.max(0, kotor - wadah).toString());
+    };
+
+    const handleBersihChange = (val: string) => {
+        setCurrentStock(val);
+    };
+
+    const kotorDisplay = (parseFloat(currentStock) || 0) + (parseFloat(containerWeight) || 0);
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
@@ -310,21 +322,31 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             value={containerWeight} 
                                             onChange={(e) => setContainerWeight(e.target.value)}
                                             placeholder="Wadah"
-                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all"
+                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all font-display"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Stok Fisik (Kotor)</label>
+                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block font-display">Berat Kotor</label>
+                                        <input 
+                                            type="number" 
+                                            value={kotorDisplay.toString()} 
+                                            onChange={(e) => handleKotorChange(e.target.value)}
+                                            placeholder="Kotor"
+                                            className="w-full rounded-xl bg-emerald-500/5 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all font-display"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block font-display">Berat Bersih</label>
                                         <input 
                                             type="number" 
                                             value={currentStock} 
-                                            onChange={(e) => setCurrentStock(e.target.value)}
-                                            placeholder="Fisik"
-                                            className="w-full rounded-xl bg-emerald-500/10 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-black transition-all"
+                                            onChange={(e) => handleBersihChange(e.target.value)}
+                                            placeholder="Bersih"
+                                            className="w-full rounded-xl bg-blue-500/5 border-2 border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all font-display"
                                         />
                                         {parseFloat(currentStock) > 0 && (
-                                            <p className="text-[8px] font-bold text-emerald-600 mt-1 ml-1 uppercase transition-all animate-pulse">
-                                                Estimasi Bersih: {Math.max(0, parseFloat(currentStock) - parseFloat(containerWeight || '0')).toFixed(2)} {unit}
+                                            <p className="text-[8px] font-bold text-blue-600 mt-1 ml-1 uppercase transition-all">
+                                                Net Weight: {(parseFloat(currentStock)).toFixed(2)} {unit}
                                             </p>
                                         )}
                                     </div>

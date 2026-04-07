@@ -12,6 +12,7 @@ interface DraftItem {
     discount: string;
     idealStock: string;
     containerWeight: string;
+    currentStock: string;
     imageBase64: string;
 }
 
@@ -37,6 +38,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
             discount: '',
             idealStock: '',
             containerWeight: '',
+            currentStock: '',
             imageBase64: ''
         };
     }
@@ -129,6 +131,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         discountPrice: item.discount || '0',
                         idealStock: item.idealStock || '0',
                         containerWeight: item.containerWeight || '0',
+                        currentStock: item.currentStock || '0', 
                         imageUrl: item.imageBase64 // Pass Base64 directly
                     });
                     successCount++;
@@ -285,7 +288,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
                                                 />
                                             </div>
-                                            <div className="space-y-1.5">
+                                            <div className="space-y-1.5 col-span-2 sm:col-span-1">
                                                 <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah</label>
                                                 <input 
                                                     type="number" 
@@ -294,6 +297,32 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     placeholder="Ex: 100"
                                                     min="0"
                                                     className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Berat Kotor</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={((parseFloat(draft.currentStock) || 0) + (parseFloat(draft.containerWeight) || 0)).toString()} 
+                                                    onChange={(e) => {
+                                                        const kotor = parseFloat(e.target.value) || 0;
+                                                        const wadah = parseFloat(draft.containerWeight) || 0;
+                                                        handleFieldChange(draft.id, 'currentStock', Math.max(0, kotor - wadah).toString());
+                                                    }}
+                                                    placeholder="Kotor"
+                                                    min="0"
+                                                    className="w-full rounded-xl bg-emerald-500/5 border border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block">Berat Bersih</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={draft.currentStock} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'currentStock', e.target.value)}
+                                                    placeholder="Bersih"
+                                                    min="0"
+                                                    className="w-full rounded-xl bg-blue-500/5 border border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all"
                                                 />
                                             </div>
                                         </div>
