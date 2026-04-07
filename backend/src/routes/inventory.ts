@@ -388,6 +388,7 @@ inventoryRouter.get('/:id', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
+            containerWeight: schema.inventory.containerWeight,
             idealStock: schema.inventory.idealStock,
             imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
@@ -509,7 +510,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 // POST new inventory item
     inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl } = req.body;
         
         if (!name || !category || !unit) {
              return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
@@ -524,6 +525,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
             idealStock: idealStock?.toString() || '0',
             pricePerUnit: pricePerUnit?.toString() || '0',
             discountPrice: discountPrice?.toString() || '0',
+            containerWeight: containerWeight?.toString() || '0',
             imageUrl
         }).returning({
             id: schema.inventory.id,
@@ -541,7 +543,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl, currentStock, physicalStock, version } = req.body;
         const user = (req as any).user;
 
         // 1. Validation
@@ -561,6 +563,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 name: schema.inventory.name,
                 pricePerUnit: schema.inventory.pricePerUnit,
                 discountPrice: schema.inventory.discountPrice,
+                containerWeight: schema.inventory.containerWeight,
                 currentStock: schema.inventory.currentStock,
                 version: schema.inventory.version,
                 isDeleted: schema.inventory.isDeleted
@@ -591,7 +594,16 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
             }
 
             const oldStock = parseFloat(oldItem.currentStock);
-            const newStock = currentStock !== undefined ? parseFloat(currentStock.toString()) : oldStock;
+            const currentContainerWeight = containerWeight !== undefined ? parseFloat(containerWeight.toString()) : parseFloat(oldItem.containerWeight || '0');
+            
+            // Deduction logic: If physicalStock is provided, use it to calculate net stock.
+            // Otherwise, use currentStock (which is assumed to be net if unchanged).
+            let newStock = oldStock;
+            if (physicalStock !== undefined) {
+                newStock = parseFloat(physicalStock.toString()) - currentContainerWeight;
+            } else if (currentStock !== undefined) {
+                newStock = parseFloat(currentStock.toString());
+            }
             const delta = newStock - oldStock;
 
             // 3. Handle Stock Adjustment Log
@@ -614,8 +626,9 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                     ...(idealStock !== undefined && { idealStock: idealStock.toString() }),
                     ...(pricePerUnit !== undefined && { pricePerUnit: newPrice }),
                     ...(discountPrice !== undefined && { discountPrice: newDiscount }),
+                    ...(containerWeight !== undefined && { containerWeight: containerWeight.toString() }),
                     ...(imageUrl !== undefined && { imageUrl }),
-                    ...(currentStock !== undefined && { currentStock: newStock.toString() }),
+                    ...(newStock !== oldStock && { currentStock: newStock.toString() }),
                     version: new Date() // Update version on every change
                 })
                 .where(eq(schema.inventory.id, inventoryId))
@@ -628,6 +641,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                     minStock: schema.inventory.minStock,
                     pricePerUnit: schema.inventory.pricePerUnit,
                     discountPrice: schema.inventory.discountPrice,
+                    containerWeight: schema.inventory.containerWeight,
                     idealStock: schema.inventory.idealStock,
                     version: schema.inventory.version,
                     externalImageUrl: schema.inventory.externalImageUrl

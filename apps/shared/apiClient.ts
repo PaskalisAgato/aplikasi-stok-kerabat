@@ -243,9 +243,13 @@ export const apiClient = {
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
     getInventoryPriceLogs: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
-    getItemMovements: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/movements`),
-    addInventoryItem: (data: unknown) => apiFetch<any>('/inventory', { method: 'POST', body: JSON.stringify(data) }),
-    updateInventoryItem: (id: number, data: unknown) => apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    addInventoryItem: (data: { name: string, category: string, unit: string, minStock: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, imageUrl?: string }) => 
+        apiFetch<ApiResponse<any>>('/inventory', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+    updateInventoryItem: (id: number, data: { name?: string, category?: string, unit?: string, minStock?: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string, version?: string }) => 
+        apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     submitOpname: (adjustments: unknown[]) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
     getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),

@@ -11,6 +11,7 @@ interface DraftItem {
     price: string;
     discount: string;
     idealStock: string;
+    containerWeight: string;
     imageBase64: string;
 }
 
@@ -35,6 +36,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
             price: '',
             discount: '',
             idealStock: '',
+            containerWeight: '',
             imageBase64: ''
         };
     }
@@ -126,6 +128,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         pricePerUnit: item.price || '0',
                         discountPrice: item.discount || '0',
                         idealStock: item.idealStock || '0',
+                        containerWeight: item.containerWeight || '0',
                         imageUrl: item.imageBase64 // Pass Base64 directly
                     });
                     successCount++;
@@ -280,6 +283,17 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     placeholder="Target"
                                                     min="0"
                                                     className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={draft.containerWeight} 
+                                                    onChange={(e) => handleFieldChange(draft.id, 'containerWeight', e.target.value)}
+                                                    placeholder="Ex: 100"
+                                                    min="0"
+                                                    className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all"
                                                 />
                                             </div>
                                         </div>

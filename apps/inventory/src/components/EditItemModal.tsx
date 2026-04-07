@@ -17,6 +17,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [idealStock, setIdealStock] = useState('');
     const [imageBase64, setImageBase64] = useState('');
     const [currentStock, setCurrentStock] = useState('');
+    const [containerWeight, setContainerWeight] = useState('0');
     const [pricePerUnit, setPricePerUnit] = useState('');
     const [discountPrice, setDiscountPrice] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +40,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setMinStock(item.minStock?.toString() || '');
             setImageBase64(item.imageUrl || '');
             setCurrentStock(item.currentStock?.toString() || '0');
+            setContainerWeight(item.containerWeight?.toString() || '0');
             setIdealStock(item.idealStock?.toString() || '0');
             setPricePerUnit(item.pricePerUnit?.toString() || '0');
             setDiscountPrice(item.discountPrice?.toString() || '0');
@@ -150,18 +152,27 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
         setValidationError('');
         setIsSaving(true);
         try {
-            // Backend middleware validateBase64Image('imageUrl') will handle Cloudinary
-            await apiClient.updateInventoryItem(item.id, {
+            const updateData: any = {
                 name,
                 category,
                 unit,
                 minStock: minStock || '0',
                 idealStock: idealStock || '0',
                 imageUrl: imageBase64, // Pass Base64 directly
-                currentStock: parseFloat(currentStock) || 0,
+                containerWeight: containerWeight || '0',
                 pricePerUnit: p,
                 discountPrice: d
-            });
+            };
+
+            // Deduction logic: If user changed currentStock, we treat it as Physical (Gross) Stock
+            // and the backend will subtract the container weight.
+            const newStockVal = parseFloat(currentStock);
+            const oldStockVal = parseFloat(item.currentStock || '0');
+            if (newStockVal !== oldStockVal) {
+                updateData.physicalStock = newStockVal;
+            }
+
+            await apiClient.updateInventoryItem(item.id, updateData);
             // Show custom success Toast or Alert eventually, using alert for now
             alert('Berhasil memperbarui data!');
             if (onUpdated) onUpdated();
@@ -293,7 +304,17 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Stok Fisik</label>
+                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Berat Wadah</label>
+                                        <input 
+                                            type="number" 
+                                            value={containerWeight} 
+                                            onChange={(e) => setContainerWeight(e.target.value)}
+                                            placeholder="Wadah"
+                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Stok Fisik (Kotor)</label>
                                         <input 
                                             type="number" 
                                             value={currentStock} 
@@ -301,6 +322,11 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             placeholder="Fisik"
                                             className="w-full rounded-xl bg-emerald-500/10 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-black transition-all"
                                         />
+                                        {parseFloat(currentStock) > 0 && (
+                                            <p className="text-[8px] font-bold text-emerald-600 mt-1 ml-1 uppercase transition-all animate-pulse">
+                                                Estimasi Bersih: {Math.max(0, parseFloat(currentStock) - parseFloat(containerWeight || '0')).toFixed(2)} {unit}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 

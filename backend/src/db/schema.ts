@@ -73,6 +73,7 @@ export const inventory = pgTable('inventory', {
     idealStock: decimal('ideal_stock', { precision: 12, scale: 2 }).notNull().default('0'),
     pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
+    containerWeight: decimal('container_weight', { precision: 12, scale: 2 }).notNull().default('0'),
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
