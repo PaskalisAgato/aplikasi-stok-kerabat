@@ -10,10 +10,11 @@ export default {
     extend: {
       colors: {
         "primary": "var(--primary)",
+        "app": "var(--bg-app)",
         "background-app": "var(--bg-app)",
         "surface": "var(--bg-surface)",
-        "text-main": "var(--text-main)",
-        "text-muted": "var(--text-muted)",
+        "main": "var(--text-main)",
+        "muted": "var(--text-muted)",
         "border-dim": "var(--border-dim)",
         "success": "var(--success)",
         "danger": "var(--danger)",
@@ -34,6 +35,3 @@ export default {
     require('@tailwindcss/container-queries')
   ],
 }
-
-
-

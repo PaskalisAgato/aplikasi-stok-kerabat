@@ -80,7 +80,7 @@ const ContainerManagementModal: React.FC<ContainerManagementModalProps> = ({ isO
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-primary uppercase ml-1 block">Nama Wadah</label>
                                 <input 
-                                    className="w-full bg-background-app/50 border border-border-dim rounded-xl px-4 h-12 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none"
+                                    className="w-full bg-background-app/50 border border-border-dim rounded-xl px-4 h-12 text-sm font-bold text-main focus:ring-2 focus:ring-primary/50 outline-none"
                                     placeholder="Contoh: Botol Sirup A"
                                     value={formData.name}
                                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -91,7 +91,7 @@ const ContainerManagementModal: React.FC<ContainerManagementModalProps> = ({ isO
                                 <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah (Tara)</label>
                                 <input 
                                     type="number"
-                                    className="w-full bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 h-12 text-sm font-bold focus:ring-2 focus:ring-rose-500/50 outline-none"
+                                    className="w-full bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 h-12 text-sm font-bold text-main focus:ring-2 focus:ring-rose-500/50 outline-none"
                                     placeholder="Ex: 250"
                                     value={formData.tareWeight}
                                     onChange={e => setFormData({...formData, tareWeight: e.target.value})}
@@ -107,7 +107,7 @@ const ContainerManagementModal: React.FC<ContainerManagementModalProps> = ({ isO
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-muted uppercase ml-1 block">QR Code / RFID (Opsional)</label>
                                 <input 
-                                    className="w-full bg-background-app/50 border border-border-dim rounded-xl px-4 h-12 text-sm font-bold focus:ring-2 focus:ring-primary/50 outline-none"
+                                    className="w-full bg-background-app/50 border border-border-dim rounded-xl px-4 h-12 text-sm font-bold text-main focus:ring-2 focus:ring-primary/50 outline-none"
                                     placeholder="Scan container label..."
                                     value={formData.qrCode}
                                     onChange={e => setFormData({...formData, qrCode: e.target.value})}
@@ -129,7 +129,7 @@ const ContainerManagementModal: React.FC<ContainerManagementModalProps> = ({ isO
                         <div className="relative group">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-muted">search</span>
                             <input 
-                                className="w-full pl-12 pr-4 h-12 bg-surface border border-border-dim rounded-xl text-sm focus:ring-2 focus:ring-primary/50 outline-none"
+                                className="w-full pl-12 pr-4 h-12 bg-surface border border-border-dim rounded-xl text-sm text-main focus:ring-2 focus:ring-primary/50 outline-none"
                                 placeholder="Cari wadah..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
