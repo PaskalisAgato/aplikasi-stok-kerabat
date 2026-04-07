@@ -22,6 +22,7 @@ import { attendanceRoutes } from './routes/attendance.routes.js';
 import { todoRoutes } from './routes/todo.routes.js';
 import { adminRouter } from './routes/admin.js';
 import { migrationRouter } from './routes/migration.routes.js';
+import { containersRouter } from './routes/containers.js';
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
@@ -240,6 +241,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/todo', todoRoutes);
 app.use('/api/system', adminRouter);
 app.use('/api/admin', migrationRouter);
+app.use('/api/containers', containersRouter);
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards

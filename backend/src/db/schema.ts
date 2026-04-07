@@ -74,6 +74,7 @@ export const inventory = pgTable('inventory', {
     pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
     containerWeight: decimal('container_weight', { precision: 12, scale: 2 }).notNull().default('0'),
+    containerId: integer('container_id').references((): any => containers.id), // New: Link to container master
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
@@ -99,6 +100,29 @@ export const stockMovements = pgTable('stock_movements', {
     inventoryIdx: index('stock_movements_inventory_idx').on(t.inventoryId),
     supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId),
     createdIdx: index('stock_movements_created_at_idx').on(t.createdAt)
+}));
+
+export const containers = pgTable('containers', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    tareWeight: decimal('tare_weight', { precision: 12, scale: 2 }).notNull(),
+    isLocked: boolean('is_locked').default(false).notNull(),
+    qrCode: text('qr_code').unique(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const inventorySnapshots = pgTable('inventory_snapshots', {
+    id: serial('id').primaryKey(),
+    inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
+    grossWeight: decimal('gross_weight', { precision: 12, scale: 2 }).notNull(),
+    tareWeight: decimal('tare_weight', { precision: 12, scale: 2 }).notNull(),
+    netWeight: decimal('net_weight', { precision: 12, scale: 2 }).notNull(),
+    measuredBy: text('measured_by').notNull().references(() => users.id),
+    source: text('source').default('MANUAL').notNull(), // 'MANUAL', 'SCALE', 'QR'
+    timestamp: timestamp('timestamp').defaultNow().notNull()
+}, (t: any) => ({
+    inventoryIdx: index('snapshots_inventory_idx').on(t.inventoryId),
+    timeIdx: index('snapshots_timestamp_idx').on(t.timestamp)
 }));
 
 // -----------------------------------------------------------------------------

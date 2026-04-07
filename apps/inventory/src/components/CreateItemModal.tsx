@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { compressImage } from '@shared/utils/image';
+import { useContainers, type Container } from '@shared/hooks/useContainers';
 
 interface DraftItem {
     id: string; // Internal local ID for mapping
@@ -12,6 +13,7 @@ interface DraftItem {
     discount: string;
     idealStock: string;
     containerWeight: string;
+    containerId?: number;
     currentStock: string;
     imageBase64: string;
 }
@@ -22,6 +24,8 @@ interface CreateItemModalProps {
 }
 
 const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) => {
+    const { data: containersList } = useContainers();
+    const containers = (containersList || []) as unknown as Container[];
     const [drafts, setDrafts] = useState<DraftItem[]>([createEmptyDraft()]);
     const [isSaving, setIsSaving] = useState(false);
     
@@ -131,6 +135,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                         discountPrice: item.discount || '0',
                         idealStock: item.idealStock || '0',
                         containerWeight: item.containerWeight || '0',
+                        containerId: item.containerId,
                         currentStock: item.currentStock || '0', 
                         imageUrl: item.imageBase64 // Pass Base64 directly
                     });
@@ -288,15 +293,38 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
                                                 />
                                             </div>
-                                            <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah</label>
+                                            <div className="space-y-1.5 col-span-2">
+                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Wadah (Master Data)</label>
+                                                <select 
+                                                    value={draft.containerId || ''} 
+                                                    onChange={(e) => {
+                                                        const id = e.target.value ? parseInt(e.target.value) : undefined;
+                                                        const container = containers.find(c => c.id === id);
+                                                        setDrafts(prev => prev.map(d => 
+                                                            d.id === draft.id ? { 
+                                                                ...d, 
+                                                                containerId: id, 
+                                                                containerWeight: container ? container.tareWeight : d.containerWeight 
+                                                            } : d
+                                                        ));
+                                                    }}
+                                                    className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-10 px-4 text-main text-xs font-bold transition-all appearance-none"
+                                                >
+                                                    <option value="">-- Pilih Wadah (Opsional) --</option>
+                                                    {containers.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.name} ({c.tareWeight}g)</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah (g)</label>
                                                 <input 
                                                     type="number" 
                                                     value={draft.containerWeight} 
                                                     onChange={(e) => handleFieldChange(draft.id, 'containerWeight', e.target.value)}
                                                     placeholder="Ex: 100"
-                                                    min="0"
-                                                    className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all"
+                                                    disabled={!!draft.containerId}
+                                                    className={`w-full rounded-xl ${draft.containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/5'} border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all`}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">

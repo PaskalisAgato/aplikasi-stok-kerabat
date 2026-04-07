@@ -510,7 +510,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 // POST new inventory item
     inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl, currentStock, physicalStock } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock } = req.body;
         
         if (!name || !category || !unit) {
              return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
@@ -534,6 +534,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
             pricePerUnit: pricePerUnit?.toString() || '0',
             discountPrice: discountPrice?.toString() || '0',
             containerWeight: containerWeight?.toString() || '0',
+            containerId: containerId ? parseInt(containerId.toString()) : null,
             imageUrl
         }).returning({
             id: schema.inventory.id,
@@ -551,7 +552,7 @@ inventoryRouter.get('/:id/waste', async (req: Request, res: Response) => {
 inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
         const inventoryId = parseInt(req.params.id as string);
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, imageUrl, currentStock, physicalStock, version } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock, version } = req.body;
         const user = (req as any).user;
 
         // 1. Validation
@@ -607,8 +608,33 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
             // Deduction logic: If physicalStock is provided, use it to calculate net stock.
             // Otherwise, use currentStock (which is assumed to be net if unchanged).
             let newStock = oldStock;
+            let currentGross = 0;
+            let currentTare = currentContainerWeight;
+
             if (physicalStock !== undefined) {
-                newStock = parseFloat(physicalStock.toString()) - currentContainerWeight;
+                currentGross = parseFloat(physicalStock.toString());
+                
+                // If a containerId is provided, we should probably fetch it, but for speed, 
+                // we'll rely on the tare being passed if it's a "custom" one or the item's default.
+                // In a stricter system, we'd fetch the container by ID here.
+                
+                if (currentGross < currentTare) {
+                    return { error: `Berat kotor (${currentGross}) tidak boleh lebih kecil dari berat wadah (${currentTare})`, status: 400 };
+                }
+                
+                newStock = currentGross - currentTare;
+                
+                // Snapshot logging
+                await tx.insert(schema.inventorySnapshots).values({
+                    inventoryId,
+                    grossWeight: currentGross.toString(),
+                    tareWeight: currentTare.toString(),
+                    netWeight: newStock.toString(),
+                    measuredBy: user.id,
+                    source: 'MANUAL',
+                    timestamp: new Date()
+                });
+
             } else if (currentStock !== undefined) {
                 newStock = parseFloat(currentStock.toString());
             }
@@ -635,6 +661,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                     ...(pricePerUnit !== undefined && { pricePerUnit: newPrice }),
                     ...(discountPrice !== undefined && { discountPrice: newDiscount }),
                     ...(containerWeight !== undefined && { containerWeight: containerWeight.toString() }),
+                    ...(containerId !== undefined && { containerId: containerId ? parseInt(containerId.toString()) : null }),
                     ...(imageUrl !== undefined && { imageUrl }),
                     ...(newStock !== oldStock && { currentStock: newStock.toString() }),
                     version: new Date() // Update version on every change

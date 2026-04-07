@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { compressImage } from '@shared/utils/image';
+import { useContainers, type Container } from '@shared/hooks/useContainers';
 
 interface EditItemModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [imageBase64, setImageBase64] = useState('');
     const [currentStock, setCurrentStock] = useState('');
     const [containerWeight, setContainerWeight] = useState('0');
+    const [containerId, setContainerId] = useState<number | undefined>(undefined);
     const [pricePerUnit, setPricePerUnit] = useState('');
     const [discountPrice, setDiscountPrice] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -26,6 +28,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const [isConfirmSave, setIsConfirmSave] = useState(false);
     const [margin, setMargin] = useState('0');
     const [validationError, setValidationError] = useState('');
+    const { data: containersList } = useContainers();
+    const containers = (containersList || []) as unknown as Container[];
 
     // Image Picker State
     const [imageMenuOpen, setImageMenuOpen] = useState(false);
@@ -41,6 +45,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
             setImageBase64(item.imageUrl || '');
             setCurrentStock(item.currentStock?.toString() || '0');
             setContainerWeight(item.containerWeight?.toString() || '0');
+            setContainerId(item.containerId || undefined);
             setIdealStock(item.idealStock?.toString() || '0');
             setPricePerUnit(item.pricePerUnit?.toString() || '0');
             setDiscountPrice(item.discountPrice?.toString() || '0');
@@ -160,6 +165,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                 idealStock: idealStock || '0',
                 imageUrl: imageBase64, // Pass Base64 directly
                 containerWeight: containerWeight || '0',
+                containerId: containerId,
                 pricePerUnit: p,
                 discountPrice: d
             };
@@ -315,14 +321,33 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
                                         />
                                     </div>
+                                    <div className="space-y-1.5 col-span-2">
+                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Wadah (Master Data)</label>
+                                        <select 
+                                            value={containerId || ''} 
+                                            onChange={(e) => {
+                                                const id = e.target.value ? parseInt(e.target.value) : undefined;
+                                                const container = containers.find(c => c.id === id);
+                                                setContainerId(id);
+                                                if (container) setContainerWeight(container.tareWeight);
+                                            }}
+                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-10 px-4 text-main text-xs font-bold transition-all appearance-none"
+                                        >
+                                            <option value="">-- Manual / Tanpa Master --</option>
+                                            {containers.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name} ({c.tareWeight}g)</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Berat Wadah</label>
+                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Berat Wadah (g)</label>
                                         <input 
                                             type="number" 
                                             value={containerWeight} 
                                             onChange={(e) => setContainerWeight(e.target.value)}
                                             placeholder="Wadah"
-                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all font-display"
+                                            disabled={!!containerId}
+                                            className={`w-full rounded-xl ${containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/10 border-2 border-rose-500/20'} focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all font-display`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">

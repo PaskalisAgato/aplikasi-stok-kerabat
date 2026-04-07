@@ -11,6 +11,7 @@ import NotificationModal from './components/NotificationModal';
 import EditItemModal from './components/EditItemModal';
 import StoreProfileModal from './components/StoreProfileModal';
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
+import ContainerManagementModal from './components/ContainerManagementModal';
 
 export interface BahanBaku {
   id: number;
@@ -44,6 +45,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isContainerModalOpen, setIsContainerModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<BahanBaku | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(0);
@@ -113,7 +115,7 @@ function App() {
 
   const filteredInventory = inventoryList;
   
-  const criticalCount = inventoryList.filter(item => item.status === 'KRITIS' || item.status === 'HABIS').length;
+
 
   const handleExportExcel = async () => {
     try {
@@ -230,12 +232,16 @@ function App() {
         <button onClick={() => setIsNotificationModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
             <div className="relative">
                 <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">notifications</span>
-                {criticalCount > 0 && (
+                {inventoryList.filter(i => (parseFloat(i.currentStock) <= parseFloat(i.minStock))).length > 0 && (
                     <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[var(--bg-surface)] animate-pulse">
-                        {criticalCount}
+                        {inventoryList.filter(i => (parseFloat(i.currentStock) <= parseFloat(i.minStock))).length}
                     </span>
                 )}
             </div>
+        </button>
+
+        <button onClick={() => setIsContainerModalOpen(true)} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
+            <span className="material-symbols-outlined font-black group-hover:scale-110 transition-transform">database</span>
         </button>
 
         <a 
@@ -488,6 +494,11 @@ function App() {
         onConfirm={handleDeleteConfirm}
         itemName={itemToDelete?.name || ''}
         isDeleting={isDeleting}
+      />
+
+      <ContainerManagementModal 
+        isOpen={isContainerModalOpen}
+        onClose={() => setIsContainerModalOpen(false)}
       />
     </Layout>
   );

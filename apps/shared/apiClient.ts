@@ -243,19 +243,36 @@ export const apiClient = {
     getInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`),
     getInventoryPriceLogs: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/price-logs`),
     exportInventoryExcel: () => apiFetch<Blob>('/inventory/export', { method: 'GET' }, true),
-    addInventoryItem: (data: { name: string, category: string, unit: string, minStock: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string }) => 
+    addInventoryItem: (data: { name: string, category: string, unit: string, minStock: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, containerId?: number, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string }) => 
         apiFetch<ApiResponse<any>>('/inventory', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-    updateInventoryItem: (id: number, data: { name?: string, category?: string, unit?: string, minStock?: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string, version?: string }) => 
-        apiFetch<any>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    updateInventoryItem: (id: number, data: { name?: string, category?: string, unit?: string, minStock?: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, containerId?: number, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string, version?: string }) => 
+        apiFetch<ApiResponse<any>>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     submitOpname: (adjustments: unknown[]) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
     getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
     getStockInHistory: () => apiFetch<ApiResponse<any>>('/inventory/movements/in'),
     getItemWaste: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/waste`),
     deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
+
+    // Containers API
+    getContainers: () => apiFetch<ApiResponse<any>>('/containers'),
+    getContainer: (id: number) => apiFetch<ApiResponse<any>>(`/containers/${id}`),
+    createContainer: (data: { name: string, tareWeight: number|string, qrCode?: string }) => 
+        apiFetch<ApiResponse<any>>('/containers', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+    updateContainer: (id: number, data: { name?: string, tareWeight?: number|string, isLocked?: boolean, qrCode?: string }) => 
+        apiFetch<ApiResponse<any>>(`/containers/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        }),
+    deleteContainer: (id: number) => apiFetch<ApiResponse<any>>(`/containers/${id}`, {
+        method: 'DELETE'
+    }),
 
     // ---- PRODUCTS (Mappings to old names for frontend compatibility) ----
     getRecipes: () => apiFetch<ApiResponse<any>>('/products'),
