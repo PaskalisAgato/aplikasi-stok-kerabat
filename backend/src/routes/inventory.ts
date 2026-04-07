@@ -816,6 +816,19 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
                 ...(customDate && { createdAt: customDate })
             });
 
+            // Weight Snapshot Integration
+            if (req.body.grossWeight !== undefined && req.body.tareWeight !== undefined) {
+                await tx.insert(schema.inventorySnapshots).values({
+                    inventoryId,
+                    grossWeight: req.body.grossWeight.toString(),
+                    tareWeight: req.body.tareWeight.toString(),
+                    netWeight: quantity.toString(),
+                    measuredBy: user.id,
+                    source: 'MANUAL',
+                    timestamp: customDate || new Date()
+                });
+            }
+
             const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
                     currentStock: sql`${schema.inventory.currentStock} + ${adjustment}`
@@ -828,7 +841,7 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
                 userId: user.id,
                 action: `STOCK_MOVEMENT: ${type} ${quantity} for ${updatedInventory.name}`,
                 tableName: 'stock_movements',
-                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock }),
+                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock, grossWeight: req.body.grossWeight, tareWeight: req.body.tareWeight }),
                 createdAt: new Date()
             });
         });
