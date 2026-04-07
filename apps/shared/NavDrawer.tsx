@@ -8,10 +8,9 @@ interface NavDrawerProps {
     open: boolean;
     onClose: () => void;
     currentPort?: number;
-    currentView?: string;
 }
 
-const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort, currentView }) => {
+const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => {
     const { isInstallable, deferredPrompt, handleInstall } = usePWAInstall();
     const { data: session } = useSession();
     // session shape: { id, userId, expiresAt, user: { id, name, email, role } }
@@ -128,28 +127,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort, curre
                         );
                     })}
 
-                    {/* Printer Settings for POS app only */}
-                    {currentPort === 5186 && (
-                        <button 
-                            onClick={() => {
-                                window.dispatchEvent(new CustomEvent('open-printer-settings'));
-                                onClose();
-                            }}
-                            className={`
-                                w-full flex items-center gap-4 px-4 py-3 rounded-[1.25rem] transition-all duration-300 group
-                                ${currentView === 'printer-settings'
-                                    ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/30 accent-glow translate-x-1'
-                                    : 'text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-main)] hover:translate-x-1'}
-                            `}
-                        >
-                            <span className={`material-symbols-outlined text-xl ${currentView === 'printer-settings' ? 'font-black' : 'group-hover:text-primary transition-colors'}`}>
-                                print
-                            </span>
-                            <span className={`font-semibold tracking-wide text-xs ${currentView === 'printer-settings' ? 'text-slate-950 font-black' : ''}`}>
-                                Pengaturan Printer
-                            </span>
-                        </button>
-                    )}
+
                 </nav>
                     <div className="p-6 mt-auto space-y-4">
                         <div className="space-y-3">

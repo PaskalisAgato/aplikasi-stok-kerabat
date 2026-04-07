@@ -21,6 +21,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Absen Karyawan', icon: 'person_check', port: 5189, requiredRole: 'Karyawan' },
     { label: 'Riwayat Absen', icon: 'assignment_turned_in', port: 5190, requiredRole: 'Admin' },
     { label: 'Daftar Tugas', icon: 'checklist', port: 5191, requiredRole: 'Karyawan' },
+    { label: 'Pengaturan Printer', icon: 'print', port: 5192, requiredRole: 'Karyawan' },
 ];
 
 
@@ -42,6 +43,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5189: 'attendance',
     5190: 'attendance-history',
     5191: 'todo-list',
+    5192: 'printer-settings',
 };
 
 export const getBaseUrl = () => {

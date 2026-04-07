@@ -4,7 +4,7 @@ import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
-import PrinterSettings from './components/PrinterSettings';
+import PrinterSettings from '@shared/components/PrinterSettings';
 
 interface Recipe {
     id: number;
@@ -290,7 +290,6 @@ function App() {
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
-            currentView={view}
         >
             <div className="space-y-8">
                 {view === 'pos' && (

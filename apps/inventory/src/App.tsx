@@ -37,6 +37,7 @@ function App() {
   const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
   const [isStoreProfileModalOpen, setIsStoreProfileModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('Semua');
+  const [filterCategory, setFilterCategory] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStock, setSelectedStock] = useState<BahanBaku | null>(null);
   const [inventoryList, setInventoryList] = useState<BahanBaku[]>([]);
@@ -58,7 +59,7 @@ function App() {
       setIsError(false);
       
       const currentPage = isLoadMore ? page + 1 : 0;
-      const response: ApiResponse<BahanBaku> = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE, searchQuery, filterType);
+      const response: ApiResponse<BahanBaku> = await apiClient.getInventory(PAGE_SIZE, currentPage * PAGE_SIZE, searchQuery, filterType, filterCategory);
       const { data, meta } = response;
 
       if (Array.isArray(data)) {
@@ -108,7 +109,7 @@ function App() {
 
   useEffect(() => {
     fetchInventory(false);
-  }, [filterType, searchQuery]);
+  }, [filterType, searchQuery, filterCategory]);
 
   const filteredInventory = inventoryList;
   
@@ -169,6 +170,24 @@ function App() {
                         key={cat} 
                         onClick={() => setFilterType(cat)}
                         className={`w-full text-left px-5 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-[0.97] ${filterType === cat ? 'accent-gradient text-slate-950 shadow-xl shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-primary/5 hover:text-primary glass border-transparent'}`}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <div className="space-y-6">
+            <div className="flex items-center gap-2 px-2">
+                <span className="material-symbols-outlined text-primary text-sm font-black">category</span>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Kategori</p>
+            </div>
+            <div className="flex flex-wrap gap-2 px-2">
+                {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase'].map(cat => (
+                    <button 
+                        key={cat} 
+                        onClick={() => setFilterCategory(cat)}
+                        className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-[0.97] ${filterCategory === cat ? 'accent-gradient text-slate-950 shadow-lg shadow-primary/10' : 'text-[var(--text-muted)] hover:bg-primary/5 hover:text-primary glass border-transparent'}`}
                     >
                         {cat}
                     </button>
@@ -268,6 +287,19 @@ function App() {
                     className="w-full h-14 pl-14 pr-6 rounded-2xl glass focus:ring-4 focus:ring-primary/20 text-sm font-bold text-[var(--text-main)] shadow-inner border-none"
                 />
             </div>
+        </div>
+
+        {/* Mobile Category Filter Scroll */}
+        <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-4 pb-2">
+            {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase'].map(cat => (
+            <button 
+                key={`mob-cat-filt-${cat}`}
+                onClick={() => setFilterCategory(cat)}
+                className={`whitespace-nowrap px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 ${filterCategory === cat ? 'accent-gradient text-slate-950 shadow-lg shadow-primary/20' : 'glass text-[var(--text-muted)] border-transparent'}`}
+            >
+                {cat}
+            </button>
+            ))}
         </div>
 
         {/* Mobile Filter Scroll */}

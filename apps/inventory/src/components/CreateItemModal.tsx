@@ -29,7 +29,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
         return {
             id: Math.random().toString(36).substring(7),
             name: '',
-            category: 'Biji Kopi',
+            category: 'Bar',
             unit: 'g',
             minStock: '',
             price: '',
@@ -228,10 +228,10 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     onChange={(e) => handleFieldChange(draft.id, 'category', e.target.value)}
                                                     className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
                                                 >
-                                                    <option value="Biji Kopi">Biji Kopi</option>
-                                                    <option value="Susu & Krimer">Susu & Krimer</option>
-                                                    <option value="Sirup & Perasa">Sirup & Perasa</option>
-                                                    <option value="Packaging">Packaging</option>
+                                                    <option value="Bar">Bar</option>
+                                                    <option value="Dapur">Dapur</option>
+                                                    <option value="Frezer">Frezer</option>
+                                                    <option value="Showcase">Showcase</option>
                                                     <option value="Lainnya">Lainnya</option>
                                                 </select>
                                             </div>

@@ -19,7 +19,6 @@ interface LayoutProps {
     onDrawerOpen?: () => void;
     drawerOpen?: boolean;
     onDrawerClose?: () => void;
-    currentView?: string;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
@@ -36,7 +35,6 @@ const Layout: React.FC<LayoutProps> = ({
     onDrawerOpen,
     drawerOpen: externalDrawerOpen,
     onDrawerClose: onExternalDrawerClose,
-    currentView
 }) => {
     const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
     const drawerOpen = externalDrawerOpen !== undefined ? externalDrawerOpen : internalDrawerOpen;
@@ -198,7 +196,6 @@ const Layout: React.FC<LayoutProps> = ({
                 open={drawerOpen} 
                 onClose={() => setDrawerOpen(false)} 
                 currentPort={currentPort}
-                currentView={currentView}
             />
 
             {/* Offline Mode Banner */}

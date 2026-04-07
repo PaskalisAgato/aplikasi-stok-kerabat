@@ -261,6 +261,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
         const search = (req.query.search as string || '').trim();
         const statusFilter = req.query.status as string; // 'Normal', 'Kritis'
+        const categoryFilter = req.query.category as string;
         const idsParam = req.query.ids as string;
 
         // Hardened IDs parsing: numeric filter, uniqueness, and max limit of 50
@@ -273,7 +274,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             targetIds = [...new Set(parsedIds)].slice(0, 50);
         }
 
-        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${idsParam || ''}`;
+        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${categoryFilter || ''}_${idsParam || ''}`;
 
         // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
@@ -300,6 +301,10 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
             filters.push(sql`${schema.inventory.currentStock} > ${schema.inventory.minStock}`);
         } else if (statusFilter === 'Kritis') {
             filters.push(sql`${schema.inventory.currentStock} <= ${schema.inventory.minStock}`);
+        }
+
+        if (categoryFilter && categoryFilter !== 'Semua') {
+            filters.push(eq(schema.inventory.category, categoryFilter));
         }
 
         const whereClause = and(...filters);

@@ -11,7 +11,7 @@ interface EditItemModalProps {
 
 const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdated, item }) => {
     const [name, setName] = useState('');
-    const [category, setCategory] = useState('Biji Kopi');
+    const [category, setCategory] = useState('Bar');
     const [unit, setUnit] = useState('g');
     const [minStock, setMinStock] = useState('');
     const [idealStock, setIdealStock] = useState('');
@@ -34,7 +34,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     useEffect(() => {
         if (isOpen && item) {
             setName(item.name || '');
-            setCategory(item.category || 'Biji Kopi');
+            setCategory(item.category || 'Bar');
             setUnit(item.unit || 'g');
             setMinStock(item.minStock?.toString() || '');
             setImageBase64(item.imageUrl || '');
@@ -239,10 +239,10 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                             onChange={(e) => setCategory(e.target.value)}
                                             className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
                                         >
-                                            <option value="Biji Kopi">Biji Kopi</option>
-                                            <option value="Susu & Krimer">Susu & Krimer</option>
-                                            <option value="Sirup & Perasa">Sirup & Perasa</option>
-                                            <option value="Packaging">Packaging</option>
+                                            <option value="Bar">Bar</option>
+                                            <option value="Dapur">Dapur</option>
+                                            <option value="Frezer">Frezer</option>
+                                            <option value="Showcase">Showcase</option>
                                             <option value="Lainnya">Lainnya</option>
                                         </select>
                                     </div>
