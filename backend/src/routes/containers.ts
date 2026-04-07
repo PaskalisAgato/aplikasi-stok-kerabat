@@ -46,7 +46,7 @@ containersRouter.post('/', requireAdmin, async (req: Request, res: Response) => 
         const [newContainer] = await db.insert(schema.containers).values({
             name,
             tareWeight: tareWeight.toString(),
-            qrCode
+            qrCode: qrCode?.trim() || null
         }).returning();
 
         res.status(201).json({ success: true, data: newContainer });
@@ -77,7 +77,7 @@ containersRouter.put('/:id', requireAdmin, async (req: Request, res: Response) =
                 ...(name && { name }),
                 ...(tareWeight !== undefined && { tareWeight: tareWeight.toString() }),
                 ...(isLocked !== undefined && { isLocked }),
-                ...(qrCode !== undefined && { qrCode })
+                qrCode: qrCode?.trim() || null
             })
             .where(eq(schema.containers.id, id))
             .returning();
