@@ -250,12 +250,13 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                     </div>
 
                                     {/* Section: Pengaturan Stok */}
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         <div className="flex items-center gap-2 px-1">
                                             <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
                                             <p className="text-[9px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok</p>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
                                                 <select 
@@ -293,7 +294,11 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
                                                 />
                                             </div>
-                                            <div className="space-y-1.5 col-span-2">
+                                        </div>
+
+                                        {/* Weight Logic Box */}
+                                        <div className="p-4 bg-background-app sm:bg-muted/5 rounded-2xl border border-border-dim/50 space-y-6">
+                                            <div className="space-y-1.5">
                                                 <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Wadah (Master Data)</label>
                                                 <select 
                                                     value={draft.containerId || ''} 
@@ -308,7 +313,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                             } : d
                                                         ));
                                                     }}
-                                                    className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-10 px-4 text-main text-xs font-bold transition-all appearance-none"
+                                                    className="w-full rounded-xl bg-rose-500/5 border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-xs font-bold transition-all appearance-none"
                                                 >
                                                     <option value="">-- Pilih Wadah (Opsional) --</option>
                                                     {containers.map(c => (
@@ -316,42 +321,45 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                                     ))}
                                                 </select>
                                             </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah (g)</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={draft.containerWeight} 
-                                                    onChange={(e) => handleFieldChange(draft.id, 'containerWeight', e.target.value)}
-                                                    placeholder="Ex: 100"
-                                                    disabled={!!draft.containerId}
-                                                    className={`w-full rounded-xl ${draft.containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/5'} border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all`}
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Berat Kotor</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={((parseFloat(draft.currentStock) || 0) + (parseFloat(draft.containerWeight) || 0)).toString()} 
-                                                    onChange={(e) => {
-                                                        const kotor = parseFloat(e.target.value) || 0;
-                                                        const wadah = parseFloat(draft.containerWeight) || 0;
-                                                        handleFieldChange(draft.id, 'currentStock', Math.max(0, kotor - wadah).toString());
-                                                    }}
-                                                    placeholder="Kotor"
-                                                    min="0"
-                                                    className="w-full rounded-xl bg-emerald-500/5 border border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block">Berat Bersih</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={draft.currentStock} 
-                                                    onChange={(e) => handleFieldChange(draft.id, 'currentStock', e.target.value)}
-                                                    placeholder="Bersih"
-                                                    min="0"
-                                                    className="w-full rounded-xl bg-blue-500/5 border border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all"
-                                                />
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block">Berat Wadah (g)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        value={draft.containerWeight} 
+                                                        onChange={(e) => handleFieldChange(draft.id, 'containerWeight', e.target.value)}
+                                                        placeholder="Ex: 100"
+                                                        disabled={!!draft.containerId}
+                                                        className={`w-full rounded-xl ${draft.containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/5'} border border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all`}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block">Berat Kotor</label>
+                                                    <input 
+                                                        type="number" 
+                                                        value={((parseFloat(draft.currentStock) || 0) + (parseFloat(draft.containerWeight) || 0)).toString()} 
+                                                        onChange={(e) => {
+                                                            const kotor = parseFloat(e.target.value) || 0;
+                                                            const wadah = parseFloat(draft.containerWeight) || 0;
+                                                            handleFieldChange(draft.id, 'currentStock', Math.max(0, kotor - wadah).toString());
+                                                        }}
+                                                        placeholder="Kotor"
+                                                        min="0"
+                                                        className="w-full rounded-xl bg-emerald-500/5 border border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block">Berat Bersih</label>
+                                                    <input 
+                                                        type="number" 
+                                                        value={draft.currentStock} 
+                                                        onChange={(e) => handleFieldChange(draft.id, 'currentStock', e.target.value)}
+                                                        placeholder="Bersih"
+                                                        min="0"
+                                                        className="w-full rounded-xl bg-blue-500/5 border border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all shadow-sm"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

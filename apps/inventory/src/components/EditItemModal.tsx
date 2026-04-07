@@ -279,101 +279,114 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                             </div>
 
                             {/* Section: Pengaturan Stok */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 px-1">
-                                    <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
-                                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok & Satuan</p>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
-                                        <select 
-                                            value={unit} 
-                                            onChange={(e) => setUnit(e.target.value)}
-                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
-                                        >
-                                            <option value="g">Gram (g)</option>
-                                            <option value="Kg">Kilogram (Kg)</option>
-                                            <option value="L">Liter (lt/L)</option>
-                                            <option value="mL">MiliLiter (ml/mL)</option>
-                                            <option value="pcs">Pieces (pcs)</option>
-                                            <option value="pack">Pack (pack)</option>
-                                        </select>
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <span className="material-symbols-outlined text-primary text-xs font-black">settings</span>
+                                        <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pengaturan Stok & Satuan</p>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-muted uppercase ml-1 block">Min. Stok</label>
-                                        <input 
-                                            type="number" 
-                                            value={minStock} 
-                                            onChange={(e) => setMinStock(e.target.value)}
-                                            placeholder="Alarm"
-                                            min="0"
-                                            className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
-                                        />
+
+                                    {/* Primary Stock Fields */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Satuan</label>
+                                            <select 
+                                                value={unit} 
+                                                onChange={(e) => setUnit(e.target.value)}
+                                                className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
+                                            >
+                                                <option value="g">Gram (g)</option>
+                                                <option value="Kg">Kilogram (Kg)</option>
+                                                <option value="L">Liter (lt/L)</option>
+                                                <option value="mL">MiliLiter (ml/mL)</option>
+                                                <option value="pcs">Pieces (pcs)</option>
+                                                <option value="pack">Pack (pack)</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted uppercase ml-1 block">Min. Stok</label>
+                                            <input 
+                                                type="number" 
+                                                value={minStock} 
+                                                onChange={(e) => setMinStock(e.target.value)}
+                                                placeholder="Alarm"
+                                                min="0"
+                                                className="w-full rounded-xl bg-background-app border border-border-dim focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-bold transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-primary uppercase ml-1 block font-display">Ideal Prod</label>
+                                            <input 
+                                                type="number" 
+                                                value={idealStock} 
+                                                onChange={(e) => setIdealStock(e.target.value)}
+                                                placeholder="Target"
+                                                className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-primary uppercase ml-1 block font-display">Ideal Prod</label>
-                                        <input 
-                                            type="number" 
-                                            value={idealStock} 
-                                            onChange={(e) => setIdealStock(e.target.value)}
-                                            placeholder="Target"
-                                            className="w-full rounded-xl bg-primary/10 border-2 border-primary/20 focus:ring-4 focus:ring-primary/10 focus:border-primary h-12 px-4 text-main text-sm font-black transition-all"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5 col-span-2">
-                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Wadah (Master Data)</label>
-                                        <select 
-                                            value={containerId || ''} 
-                                            onChange={(e) => {
-                                                const id = e.target.value ? parseInt(e.target.value) : undefined;
-                                                const container = containers.find(c => c.id === id);
-                                                setContainerId(id);
-                                                if (container) setContainerWeight(container.tareWeight);
-                                            }}
-                                            className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-10 px-4 text-main text-xs font-bold transition-all appearance-none"
-                                        >
-                                            <option value="">-- Manual / Tanpa Master --</option>
-                                            {containers.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name} ({c.tareWeight}g)</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Berat Wadah (g)</label>
-                                        <input 
-                                            type="number" 
-                                            value={containerWeight} 
-                                            onChange={(e) => setContainerWeight(e.target.value)}
-                                            placeholder="Wadah"
-                                            disabled={!!containerId}
-                                            className={`w-full rounded-xl ${containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/10 border-2 border-rose-500/20'} focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all font-display`}
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block font-display">Berat Kotor</label>
-                                        <input 
-                                            type="number" 
-                                            value={kotorDisplay.toString()} 
-                                            onChange={(e) => handleKotorChange(e.target.value)}
-                                            placeholder="Kotor"
-                                            className="w-full rounded-xl bg-emerald-500/5 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all font-display"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block font-display">Berat Bersih</label>
-                                        <input 
-                                            type="number" 
-                                            value={currentStock} 
-                                            onChange={(e) => handleBersihChange(e.target.value)}
-                                            placeholder="Bersih"
-                                            className="w-full rounded-xl bg-blue-500/5 border-2 border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all font-display"
-                                        />
-                                        {parseFloat(currentStock) > 0 && (
-                                            <p className="text-[8px] font-bold text-blue-600 mt-1 ml-1 uppercase transition-all">
-                                                Net Weight: {(parseFloat(currentStock)).toFixed(2)} {unit}
-                                            </p>
-                                        )}
+
+                                    {/* Weight Calculation Section */}
+                                    <div className="p-4 bg-background-app sm:bg-surface rounded-2xl border border-border-dim/50 space-y-6 shadow-sm">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Wadah (Master Data)</label>
+                                            <select 
+                                                value={containerId || ''} 
+                                                onChange={(e) => {
+                                                    const id = e.target.value ? parseInt(e.target.value) : undefined;
+                                                    const container = containers.find(c => c.id === id);
+                                                    setContainerId(id);
+                                                    if (container) setContainerWeight(container.tareWeight);
+                                                }}
+                                                className="w-full rounded-xl bg-rose-500/10 border-2 border-rose-500/20 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-bold transition-all appearance-none"
+                                            >
+                                                <option value="">-- Manual / Tanpa Master --</option>
+                                                {containers.map(c => (
+                                                    <option key={c.id} value={c.id}>{c.name} ({c.tareWeight}g)</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-rose-500 uppercase ml-1 block font-display">Berat Wadah (g)</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={containerWeight} 
+                                                    onChange={(e) => setContainerWeight(e.target.value)}
+                                                    placeholder="Wadah"
+                                                    disabled={!!containerId}
+                                                    className={`w-full rounded-xl ${containerId ? 'bg-muted/10 opacity-50 cursor-not-allowed' : 'bg-rose-500/10 border-2 border-rose-500/20'} focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 h-12 px-4 text-main text-sm font-black transition-all font-display shadow-sm`}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-emerald-500 uppercase ml-1 block font-display">Berat Kotor</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={kotorDisplay.toString()} 
+                                                    onChange={(e) => handleKotorChange(e.target.value)}
+                                                    placeholder="Kotor"
+                                                    className="w-full rounded-xl bg-emerald-500/5 border-2 border-emerald-500/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 h-12 px-4 text-main text-sm font-bold transition-all font-display shadow-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-blue-500 uppercase ml-1 block font-display">Berat Bersih</label>
+                                                <div className="relative group">
+                                                    <input 
+                                                        type="number" 
+                                                        value={currentStock} 
+                                                        onChange={(e) => handleBersihChange(e.target.value)}
+                                                        placeholder="Bersih"
+                                                        className="w-full rounded-xl bg-blue-500/5 border-2 border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 h-12 px-4 text-main text-sm font-bold transition-all font-display shadow-sm"
+                                                    />
+                                                    {parseFloat(currentStock) > 0 && (
+                                                        <div className="mt-2 ml-1">
+                                                            <p className="text-[8px] font-black text-blue-600 uppercase tracking-tighter opacity-80">
+                                                                NET WEIGHT: {(parseFloat(currentStock)).toFixed(2)} {unit}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                     </div>
                                 </div>
                                 
