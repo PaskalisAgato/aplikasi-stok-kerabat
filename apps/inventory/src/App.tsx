@@ -187,7 +187,7 @@ function App() {
                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Kategori</p>
             </div>
             <div className="flex flex-wrap gap-2 px-2">
-                {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase'].map(cat => (
+                {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase', 'Lainnya'].map(cat => (
                     <button 
                         key={cat} 
                         onClick={() => setFilterCategory(cat)}
@@ -299,7 +299,7 @@ function App() {
 
         {/* Mobile Category Filter Scroll */}
         <div className="lg:hidden flex gap-3 overflow-x-auto hide-scrollbar mb-4 pb-4 px-2">
-            {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase'].map(cat => (
+            {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase', 'Lainnya'].map(cat => (
             <button 
                 key={`mob-cat-filt-${cat}`}
                 onClick={() => setFilterCategory(cat)}
