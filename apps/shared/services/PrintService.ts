@@ -15,6 +15,7 @@ export interface PrinterConfig {
     categories: string[]; // empty means "Main/All"
     connectionType: 'bridge' | 'bluetooth';
     bluetoothDeviceName?: string;
+    autoPrint?: boolean;
 }
 
 export interface PrintItem {
@@ -250,6 +251,8 @@ export class PrintService {
         }
 
         for (const printer of settings) {
+            if (printer.autoPrint === false) continue; // Skip if autoPrint is explicitly disabled
+
             let filteredItems = data.items;
             let isPrepTicket = false;
 

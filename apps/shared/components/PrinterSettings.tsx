@@ -42,7 +42,8 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
             port: 9100,
             width: 32,
             categories: [],
-            connectionType: 'bridge'
+            connectionType: 'bridge',
+            autoPrint: true
         }]);
     };
 
@@ -174,6 +175,22 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                 placeholder="Minuman, Kopi, dsb"
                             />
                             <p className="text-[10px] text-[var(--text-muted)] opacity-40 italic">Kosongkan jika ingin mencetak semua struk pembayaran di sini.</p>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 group-hover:border-primary/20 transition-all">
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-primary">Auto Cetak</label>
+                                <p className="text-[9px] text-[var(--text-muted)] opacity-60">Cetak struk otomatis saat checkout</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={printer.autoPrint !== false}
+                                    onChange={(e) => updatePrinter(printer.id, { autoPrint: e.target.checked })}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
                         </div>
 
                         <button 
