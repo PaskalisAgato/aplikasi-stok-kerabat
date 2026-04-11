@@ -193,13 +193,108 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                             </label>
                         </div>
 
-                        <button 
-                            onClick={() => testPrint(printer)}
-                            className="w-full py-3 rounded-xl border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">print_connect</span>
-                            Test Print & Cash Drawer
-                        </button>
+                        {/* Advanced Settings Section */}
+                        <details className="group/adv">
+                            <summary className="list-none cursor-pointer flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-40 hover:opacity-100 transition-opacity py-2">
+                                <span className="material-symbols-outlined text-[16px] group-open/adv:rotate-180 transition-transform">expand_more</span>
+                                Pengaturan Lanjutan (Drawer & Branding)
+                            </summary>
+                            
+                            <div className="space-y-6 pt-4 animate-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                                    <div className="space-y-0.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Buka Laci Otomatis</label>
+                                        <p className="text-[9px] text-[var(--text-muted)] opacity-60">Picu laci kasir saat pembayaran tunai</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={!!printer.openCashDrawer}
+                                            onChange={(e) => updatePrinter(printer.id, { openCashDrawer: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Judul Header (Nama Toko)</label>
+                                        <input 
+                                            value={printer.headerTitle || ''}
+                                            onChange={(e) => updatePrinter(printer.id, { headerTitle: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            placeholder="KERABAT KOPI TIAM"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Sub-judul Header</label>
+                                        <input 
+                                            value={printer.headerSubtitle || ''}
+                                            onChange={(e) => updatePrinter(printer.id, { headerSubtitle: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            placeholder="Premium Coffee & Toast"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Pesan Footer (Terima Kasih)</label>
+                                        <input 
+                                            value={printer.footerMessage || ''}
+                                            onChange={(e) => updatePrinter(printer.id, { footerMessage: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            placeholder="Terima Kasih! Selamat Menikmati"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <div className="flex-1 space-y-2">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Info Struk</label>
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" checked={printer.showDate !== false} onChange={(e) => updatePrinter(printer.id, { showDate: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
+                                                <span className="text-[10px] text-white/60">Tgl/Jam</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" checked={!!printer.showCashier} onChange={(e) => updatePrinter(printer.id, { showCashier: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
+                                                <span className="text-[10px] text-white/60">Nama Kasir</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => testPrint(printer)}
+                                className="flex-1 py-3 rounded-xl border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">receipt</span>
+                                Test Print
+                            </button>
+                            {printer.openCashDrawer && (
+                                <button 
+                                    onClick={async () => {
+                                        // Specific pulse test
+                                        const encoder = new (await import('esc-pos-encoder')).default();
+                                        encoder.initialize().raw([0x1b, 0x70, 0x00, 0x19, 0xfa]).encode();
+                                        const buffer = encoder.encode();
+                                        if (printer.connectionType === 'bluetooth') {
+                                            await PrintService.connectBluetooth();
+                                            (PrintService as any).sendToBluetooth(buffer);
+                                        } else {
+                                            (PrintService as any).sendToBridge(buffer, printer.ip);
+                                        }
+                                        alert('Pesan buka laci dikirim');
+                                    }}
+                                    className="px-4 py-3 rounded-xl border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:bg-emerald-500/5 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">sensor_door</span>
+                                    Test Laci
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
 

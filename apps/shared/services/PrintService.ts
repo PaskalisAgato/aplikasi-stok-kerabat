@@ -320,7 +320,7 @@ export class PrintService {
                 if (printer.connectionType === 'bluetooth') {
                     // Bluetooth requires active User Gesture. Cannot be queued asynchronously.
                     console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
-                    const buffer = this.encodeReceipt(data, { width: printer.width, isPrepTicket });
+                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
                     this.sendToBluetooth(buffer).catch(err => console.error('Immediate BT Print failed', err));
                 } else {
                     await this.enqueuePrintJob(data, printer, isPrepTicket);
@@ -358,7 +358,7 @@ export class PrintService {
         for (const job of pending) {
             const { data, config, isPrepTicket } = job.data as { data: _PrTrData, config: _PrTrConf, isPrepTicket: boolean };
             const buffer = this.encodeReceipt(data, { 
-                width: config.width,
+                config,
                 isPrepTicket 
             });
 
@@ -388,23 +388,30 @@ export class PrintService {
         this.isPrinting = false;
     }
 
-    public static encodeReceipt(data: _PrTrData, options: { width: 32 | 48, isPrepTicket?: boolean } = { width: 32 }): Uint8Array {
+    public static encodeReceipt(data: _PrTrData, options: { config: _PrTrConf, isPrepTicket?: boolean }): Uint8Array {
         const encoder = new EscPosEncoder();
-        const { width, isPrepTicket } = options;
+        const { config, isPrepTicket } = options;
+        const width = config.width || 32;
 
         encoder.initialize().align('center');
 
         if (isPrepTicket) {
             encoder.bold(true).line('ORDER PERSIAPAN').bold(false);
         } else {
-            encoder.line('KERABAT KOPI TIAM').line('Premium Coffee & Toast');
+            const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
+            const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
+            encoder.bold(true).line(hTitle).bold(false).line(hSub);
         }
 
         encoder
             .line('--------------------------------')
-            .align('left')
-            .line(`Order: #${data.id}`)
-            .line(`Date:  ${new Date(data.date).toLocaleString('id-ID')}`)
+            .align('left');
+        
+        if (config.showDate !== false) {
+            encoder.line(`Date:  ${new Date(data.date).toLocaleString('id-ID')}`);
+        }
+        
+        encoder.line(`Order: #${data.id}`)
             .line('--------------------------------');
 
         data.items.forEach((item: any) => {
@@ -427,17 +434,29 @@ export class PrintService {
                 .bold(true)
                 .line(`TOTAL: Rp ${data.total.toLocaleString('id-ID')}`)
                 .bold(false)
-                .align('left')
+                .align('left');
+            
+            if (config.showCashier) {
+                encoder.line(`Kasir: ${data.cashier_id || 'Staff'}`);
+            }
+
+            encoder
                 .line(`Bayar: ${data.paymentMethod}`)
                 .line(`Cash:  Rp ${data.amountPaid?.toLocaleString('id-ID') || 0}`)
                 .line(`Laba:  Rp ${data.change_due?.toLocaleString('id-ID') || 0}`)
                 .line('--------------------------------')
                 .align('center')
-                .line('Terima Kasih!')
+                .line(config.footerMessage || 'Terima Kasih!')
                 .line('Selamat Menikmati');
         }
 
         encoder.newline().newline();
+
+        if (config.openCashDrawer && !isPrepTicket && data.paymentMethod === 'CASH') {
+            // Pulse command for cash drawer
+            encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+        }
+
         encoder.cut();
         return encoder.encode();
     }

@@ -72,6 +72,13 @@ export interface PrinterConfig {
     connectionType: 'bridge' | 'bluetooth';
     bluetoothDeviceName?: string;
     autoPrint?: boolean;
+    openCashDrawer?: boolean;
+    headerTitle?: string;
+    headerSubtitle?: string;
+    footerMessage?: string;
+    showLogo?: boolean;
+    showDate?: boolean;
+    showCashier?: boolean;
 }
 
 export interface PrintItem {
@@ -90,6 +97,7 @@ export interface PrintData {
     paymentMethod: string;
     amountPaid?: number;
     change_due?: number; // synced with existing code
+    cashier_id?: string;
 }
 
 export class PosDatabase extends Dexie {
