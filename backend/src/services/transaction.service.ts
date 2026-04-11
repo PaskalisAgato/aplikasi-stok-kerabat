@@ -669,13 +669,14 @@ export class TransactionService {
                         .where(eq(schema.saleItems.id, item.saleItemId));
                 } else {
                     // Split the item entry
-                    const pricePerUnit = parseFloat(originalItem.price);
+                    // Since price isn't in saleItems, we need to calculate it from subtotal/quantity of the original item
+                    const pricePerUnit = parseFloat(originalItem.subtotal) / originalQty;
                     
                     // Update original
                     const remainingQty = originalQty - moveQty;
                     await tx.update(schema.saleItems)
                         .set({ 
-                            quantity: remainingQty.toString(),
+                            quantity: remainingQty,
                             subtotal: (remainingQty * pricePerUnit).toString()
                         })
                         .where(eq(schema.saleItems.id, item.saleItemId));
@@ -683,13 +684,9 @@ export class TransactionService {
                     // Create new in target
                     await tx.insert(schema.saleItems).values({
                         saleId: targetId,
-                        productId: originalItem.productId,
-                        productName: originalItem.productName,
-                        price: originalItem.price,
-                        quantity: moveQty.toString(),
-                        subtotal: (moveQty * pricePerUnit).toString(),
-                        notes: originalItem.notes,
-                        createdAt: new Date()
+                        recipeId: originalItem.recipeId,
+                        quantity: moveQty,
+                        subtotal: (moveQty * pricePerUnit).toString()
                     });
                 }
             }

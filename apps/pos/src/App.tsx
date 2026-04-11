@@ -564,7 +564,7 @@ function App() {
                     if (newBillRes && newBillRes.data) {
                         const salesData: any = {};
                         newBillRes.data.items.forEach((it: any) => {
-                            salesData[it.productId] = { ...it, quantity: parseInt(it.quantity) };
+                            salesData[it.recipeId] = { ...it, name: it.recipeName, price: parseFloat(it.recipePrice), quantity: parseInt(it.quantity) };
                         });
                         setSales(salesData);
                         setCustomerInfo(newBillRes.data.customerInfo);
@@ -579,7 +579,7 @@ function App() {
                         if (reloadRes && reloadRes.data) {
                             const salesData: any = {};
                             reloadRes.data.items.forEach((it: any) => {
-                                salesData[it.productId] = { ...it, quantity: parseInt(it.quantity) };
+                                salesData[it.recipeId] = { ...it, name: it.recipeName, price: parseFloat(it.recipePrice), quantity: parseInt(it.quantity) };
                             });
                             setSales(salesData);
                         }
@@ -1093,8 +1093,8 @@ function App() {
                                     return (
                                         <div key={item.id} className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl flex items-center justify-between">
                                             <div className="flex-1 min-w-0 mr-4">
-                                                <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{item.productName}</p>
-                                                <p className="text-[10px] font-black opacity-50">Rp {parseFloat(item.price).toLocaleString('id-ID')} x {maxQty}</p>
+                                                <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{item.recipeName}</p>
+                                                <p className="text-[10px] font-black opacity-50">Rp {parseFloat(item.recipePrice).toLocaleString('id-ID')} x {maxQty}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <button 
