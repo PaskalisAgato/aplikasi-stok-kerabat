@@ -541,7 +541,7 @@ function App() {
             title={pageTitle}
             subtitle={pageSubtitle}
             maxWidth="100%"
-            footer={view === 'pos' ? PosFooter : null}
+            footer={view === 'pos' ? <div className="md:hidden landscape:hidden">{PosFooter}</div> : null}
             headerExtras={PosHeaderExtras}
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
@@ -549,9 +549,9 @@ function App() {
         >
             <div className="space-y-8">
                 {view === 'pos' && (
-                    <div className="flex flex-col md:flex-row gap-6 md:gap-10">
+                    <div className="flex flex-col md:flex-row landscape:flex-row gap-6 md:gap-10 h-full">
                         {/* Left: Input & Menu */}
-                        <div className="w-full md:w-3/5 space-y-8">
+                        <div className="w-full md:w-3/5 landscape:w-3/5 space-y-8">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div className="flex flex-wrap gap-2">
                                     <button 
@@ -602,9 +602,9 @@ function App() {
                         </div>
 
                         {/* Right: Cart Review */}
-                        <div className="w-full md:w-2/5 flex flex-col gap-6">
-                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-8 border border-white/5 flex flex-col min-h-[400px] shadow-2xl relative overflow-hidden`}>
-                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <div className="w-full md:w-2/5 landscape:w-2/5 flex flex-col gap-4 lg:gap-6 md:max-h-[calc(100vh-200px)] landscape:max-h-[calc(100vh-200px)]">
+                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-6 lg:p-8 border border-white/5 flex flex-col flex-1 shadow-2xl relative overflow-hidden min-h-[300px]`}>
+                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5">
                                     <span className="material-symbols-outlined text-[120px] font-black tracking-tighter">shopping_basket</span>
                                 </div>
 
@@ -636,6 +636,10 @@ function App() {
                                         />
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="hidden md:block landscape:block shrink-0 mt-auto w-full">
+                                {view === 'pos' && PosFooter}
                             </div>
                         </div>
                     </div>
