@@ -7,6 +7,7 @@ import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
+import { PerformanceSettings } from '@shared/services/performance';
 
 interface Recipe {
     id: number;
