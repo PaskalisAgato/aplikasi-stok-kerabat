@@ -297,7 +297,29 @@ function App() {
                 taxAmount: 0
             };
 
-            // 1. Save to Offline DB immediately
+            // 1. Generate print data FIRST to retain Chrome User-Gesture token
+            const printData: PrintData = {
+                id: transactionId as any,
+                date: new Date().toISOString(),
+                paymentMethod,
+                total: totalSalesValue,
+                amountPaid: paymentMethod === 'CASH' ? amountPaid : totalSalesValue,
+                change_due: paymentMethod === 'CASH' ? changeDue : 0,
+                items: activeCartItems.map(item => ({
+                    name: item.name,
+                    quantity: sales[item.id],
+                    price: item.price,
+                    subtotal: item.price * sales[item.id],
+                    category: item.category
+                }))
+            };
+
+            // 2. Print (Background task) - Call IMMEDIATELY before yielding to DB
+            PrintService.printOrder(printData).catch(err => {
+                console.error('Printing failed', err);
+            });
+
+            // 3. Save to Offline DB
             await db.transactions.add({
                 id: transactionId,
                 receipt_number: `TRX-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -321,29 +343,6 @@ function App() {
                 timestamp: new Date().toISOString(),
                 userId: 'CASHIER-A',
                 deviceId: 'POS-01'
-            });
-            
-            // 2. Generate print data immediately
-            const printData: PrintData = {
-                id: transactionId as any,
-                date: new Date().toISOString(),
-                paymentMethod,
-                total: totalSalesValue,
-                amountPaid: paymentMethod === 'CASH' ? amountPaid : totalSalesValue,
-                change_due: paymentMethod === 'CASH' ? changeDue : 0,
-                items: activeCartItems.map(item => ({
-                    name: item.name,
-                    quantity: sales[item.id],
-                    price: item.price,
-                    subtotal: item.price * sales[item.id],
-                    category: item.category
-                }))
-            };
-
-            // 3. Print (Background task)
-            PrintService.printOrder(printData).catch(err => {
-                console.error('Printing failed', err);
-                // We don't block the UI for printing errors
             });
 
             // 4. Reset UI state immediately (Optimistic Response)
