@@ -140,6 +140,26 @@ export class TransactionService {
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
         if (isNaN(calculatedSubTotal)) calculatedSubTotal = 0;
 
+        // 0.5 Duplicate Open Bill Check
+        const status = data.status || 'PAID';
+        const customerInfo = data.customerInfo;
+        if (status === 'OPEN' && customerInfo) {
+            const existingOpen = await db.select({ id: schema.sales.id })
+                .from(schema.sales)
+                .where(
+                    and(
+                        eq(schema.sales.status, 'OPEN'),
+                        eq(schema.sales.customerInfo, customerInfo),
+                        eq(schema.sales.isDeleted, false)
+                    )
+                )
+                .limit(1);
+            
+            if (existingOpen.length > 0) {
+                throw new Error(`Tagihan untuk "${customerInfo}" sudah aktif. Gunakan fitur "Tambah Item" untuk memperbarui pesanan.`);
+            }
+        }
+
         if (calculatedSubTotal === 0) {
             calculatedSubTotal = items.reduce((acc: number, item: any) => {
                 const p = parseFloat(item.price?.toString() || '0');

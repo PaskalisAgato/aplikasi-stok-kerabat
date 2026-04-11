@@ -382,12 +382,20 @@ function App() {
     };
 
     const handleSaveBill = async () => {
-        if (!customerInfo) {
+        let info: string | null = customerInfo;
+        if (!info) {
             const table = prompt('Masukkan Nomor Meja / Nama Pelanggan:');
-            if (!table) return;
-            setCustomerInfo(table);
+            if (table === null || table === '') return;
+            info = table;
         }
 
+        // Duplicate Check for OPEN bills
+        if (openBills.some(b => b.customerInfo?.toLowerCase() === info.toLowerCase())) {
+            alert(`Tagihan untuk "${info}" sudah ada di Daftar Bill Aktif. Silakan pilih meja tersebut jika ingin menambahkan item.`);
+            return;
+        }
+
+        setCustomerInfo(info);
         setIsCheckingOut(true);
         try {
             const checkoutData = {
