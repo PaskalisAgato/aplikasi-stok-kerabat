@@ -118,14 +118,26 @@ export class TransactionController {
 
     static async merge(req: Request, res: Response) {
         try {
-            const { sourceId, targetId } = req.body;
+            const { sourceId, sourceIds, targetId } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
 
-            if (!sourceId || !targetId) {
-                return res.status(400).json({ success: false, message: 'Source ID and Target ID are required' });
+            if (!targetId) {
+                return res.status(400).json({ success: false, message: 'Target ID is required' });
             }
 
-            const result = await TransactionService.mergeBills(parseInt(sourceId), parseInt(targetId), userId);
+            // Support both array and single ID
+            let finalSourceIds: number[] = [];
+            if (Array.isArray(sourceIds)) {
+                finalSourceIds = sourceIds.map(id => parseInt(id));
+            } else if (sourceId) {
+                finalSourceIds = [parseInt(sourceId)];
+            }
+
+            if (finalSourceIds.length === 0) {
+                return res.status(400).json({ success: false, message: 'At least one Source ID is required' });
+            }
+
+            const result = await TransactionService.mergeBills(finalSourceIds, parseInt(targetId), userId);
             res.json({ success: true, message: 'Bill berhasil digabungkan', data: result });
         } catch (error: any) {
             console.error('--- TransactionController.merge ERROR ---', error);

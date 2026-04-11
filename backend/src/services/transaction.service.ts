@@ -567,49 +567,61 @@ export class TransactionService {
         });
     }
 
-    // 7. MERGE TWO BILLS (Gabung Meja)
-    static async mergeBills(sourceId: number, targetId: number, userId: string) {
+    // 7. MERGE TWO OR MORE BILLS (Gabung Meja Banyak)
+    static async mergeBills(sourceIds: number[], targetId: number, userId: string) {
+        if (!Array.isArray(sourceIds) || sourceIds.length === 0) {
+            throw new Error('ID bill sumber tidak valid');
+        }
+
         return await db.transaction(async (tx: any) => {
-            // 1. Fetch both bills
-            const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+            // 1. Fetch target bill
             const targetBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, targetId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
-
-            if (sourceBillArr.length === 0) throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
             if (targetBillArr.length === 0) throw new Error('Bill tujuan tidak ditemukan atau sudah dibayar');
-
-            const sourceBill = sourceBillArr[0];
             const targetBill = targetBillArr[0];
 
-            // 2. Move items from source to target
+            // 2. Fetch all source bills
+            const sourceBills = await tx.select().from(schema.sales).where(
+                and(
+                    inArray(schema.sales.id, sourceIds),
+                    eq(schema.sales.status, 'OPEN'),
+                    eq(schema.sales.isDeleted, false)
+                )
+            );
+
+            if (sourceBills.length === 0) throw new Error('Tidak ada bill sumber yang valid ditemukan');
+
+            // 3. Move items from all sources to target
             await tx.update(schema.saleItems)
                 .set({ saleId: targetId })
-                .where(eq(schema.saleItems.saleId, sourceId));
+                .where(inArray(schema.saleItems.saleId, sourceIds));
 
-            // 3. Recalculate totals for target bill
+            // 4. Recalculate totals for target bill
             const allItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, targetId));
             const newSubTotal = allItems.reduce((acc: number, item: any) => acc + parseFloat(item.subtotal), 0).toString();
             
-            // 4. Update Target Bill
-            const combinedInfo = `${targetBill.customerInfo}, ${sourceBill.customerInfo}`;
+            // 5. Update Target Bill Info
+            const sourceInfos = sourceBills.map((b: any) => b.customerInfo).join(', ');
+            const combinedInfo = `${targetBill.customerInfo}, ${sourceInfos}`;
+            
             await tx.update(schema.sales)
                 .set({
                     subTotal: newSubTotal,
-                    totalAmount: newSubTotal, // Assuming no tax for now as per schema defaults
+                    totalAmount: newSubTotal, 
                     customerInfo: combinedInfo,
                 })
                 .where(eq(schema.sales.id, targetId));
 
-            // 5. Soft Delete Source Bill
+            // 6. Soft Delete All Source Bills
             await tx.update(schema.sales)
                 .set({ isDeleted: true })
-                .where(eq(schema.sales.id, sourceId));
+                .where(inArray(schema.sales.id, sourceIds));
 
-            // 6. Log Audit
+            // 7. Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId,
-                action: 'MERGE_BILLS',
+                action: 'MERGE_BILLS_MULTI',
                 tableName: 'sales',
-                oldData: JSON.stringify({ sourceId, targetId, sourceInfo: sourceBill.customerInfo, targetInfo: targetBill.customerInfo }),
+                oldData: JSON.stringify({ sourceIds, targetId, targetInfo: targetBill.customerInfo }),
                 newData: JSON.stringify({ mergedId: targetId, newTotal: newSubTotal, newInfo: combinedInfo }),
                 createdAt: new Date()
             });

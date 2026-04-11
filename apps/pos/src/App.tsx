@@ -110,7 +110,8 @@ function App() {
     const [currentBillId, setCurrentBillId] = useState<string | number | null>(null);
     const [customerInfo, setCustomerInfo] = useState('');
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
-    const [sourceBillToMerge, setSourceBillToMerge] = useState<any>(null);
+    const [targetBillForMerge, setTargetBillForMerge] = useState<any>(null);
+    const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
 
     const fetchRecipes = async () => {
         try {
@@ -489,27 +490,41 @@ function App() {
     const handleMergeClick = (e: React.MouseEvent, bill: any) => {
         e.preventDefault();
         e.stopPropagation();
-        setSourceBillToMerge(bill);
+        setTargetBillForMerge(bill);
+        setSelectedSourceIds([]);
         setIsMergeModalOpen(true);
     };
 
-    const performMerge = async (targetBill: any) => {
-        if (!sourceBillToMerge) return;
-        if (!confirm(`Gabungkan bill "${sourceBillToMerge.customerInfo}" ke dalam bill "${targetBill.customerInfo}"?`)) return;
+    const toggleSourceSelection = (id: number) => {
+        setSelectedSourceIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const performMerge = async () => {
+        if (!targetBillForMerge || selectedSourceIds.length === 0) return;
+        
+        const sourceNames = openBills
+            .filter(b => selectedSourceIds.includes(b.id))
+            .map(b => b.customerInfo)
+            .join(', ');
+
+        if (!confirm(`Gabungkan bill "${sourceNames}" ke dalam bill "${targetBillForMerge.customerInfo}"?`)) return;
         
         setIsCheckingOut(true);
         try {
-            await apiClient.mergeBills(sourceBillToMerge.id, targetBill.id);
+            await apiClient.mergeBills(selectedSourceIds, targetBillForMerge.id);
             alert('Bill berhasil digabungkan!');
             setIsMergeModalOpen(false);
-            setSourceBillToMerge(null);
+            setTargetBillForMerge(null);
+            setSelectedSourceIds([]);
             
             // Refresh
             const response = await apiClient.get('/transactions/open-bills') as any;
             if (response && response.data) setOpenBills(response.data);
             
-            // If current bill was the source, clear it
-            if (currentBillId === sourceBillToMerge.id) {
+            // If any merged bill was currently loaded, clear it
+            if (selectedSourceIds.includes(currentBillId as number)) {
                 setCurrentBillId(null);
                 setCustomerInfo('');
                 setSales({});
@@ -893,14 +908,14 @@ function App() {
                 onClose={() => setIsPrinterSettingsOpen(false)}
             />
 
-            {/* MERGE MODAL */}
-            {isMergeModalOpen && sourceBillToMerge && (
+            {/* MERGE MODAL (Multi-Selection Ready) */}
+            {isMergeModalOpen && targetBillForMerge && (
                 <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
                     <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
                         <header className="glass p-6 flex justify-between items-center border-b border-white/5">
                             <div>
                                 <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">Gabung Meja</h3>
-                                <p className="text-xs text-primary font-bold mt-1">Pilih meja tujuan untuk: {sourceBillToMerge.customerInfo}</p>
+                                <p className="text-xs text-primary font-bold mt-1">Menggabungkan ke: {targetBillForMerge.customerInfo}</p>
                             </div>
                             <button onClick={() => setIsMergeModalOpen(false)} className="size-10 rounded-xl glass hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">
                                 <span className="material-symbols-outlined">close</span>
@@ -908,35 +923,55 @@ function App() {
                         </header>
                         
                         <div className="p-6 overflow-y-auto space-y-3 flex-1 custom-scrollbar">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2">Daftar Meja Aktif Lainnya</p>
-                            {openBills.filter(b => b.id !== sourceBillToMerge.id).length === 0 ? (
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2">Pilih Meja yang Akan Digabung</p>
+                            {openBills.filter(b => b.id !== targetBillForMerge.id).length === 0 ? (
                                 <div className="text-center py-10 opacity-30">
                                     <span className="material-symbols-outlined text-4xl mb-2">info</span>
                                     <p className="text-xs font-black uppercase tracking-widest">Tidak ada meja lain untuk digabung</p>
                                 </div>
                             ) : (
-                                openBills.filter(b => b.id !== sourceBillToMerge.id).map(bill => (
+                                openBills.filter(b => b.id !== targetBillForMerge.id).map(bill => (
                                     <div 
                                         key={bill.id}
-                                        onClick={() => performMerge(bill)}
-                                        className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary cursor-pointer transition-all group flex items-center justify-between"
+                                        onClick={() => toggleSourceSelection(bill.id)}
+                                        className={`p-4 rounded-2xl cursor-pointer transition-all group flex items-center justify-between border-2 ${
+                                            selectedSourceIds.includes(bill.id)
+                                                ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10'
+                                                : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-primary/50'
+                                        }`}
                                     >
                                         <div>
-                                            <p className="text-[11px] font-black text-[var(--text-main)] uppercase">{bill.customerInfo}</p>
-                                            <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                            <p className={`text-[11px] font-black uppercase ${selectedSourceIds.includes(bill.id) ? 'text-primary' : 'text-[var(--text-main)]'}`}>
+                                                {bill.customerInfo}
+                                            </p>
+                                            <p className="text-[10px] font-black opacity-60">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
                                         </div>
-                                        <span className="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-all font-black">login</span>
+                                        <div className={`size-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                            selectedSourceIds.includes(bill.id)
+                                                ? 'bg-primary border-primary text-slate-950'
+                                                : 'border-[var(--border-dim)]'
+                                        }`}>
+                                            {selectedSourceIds.includes(bill.id) && <span className="material-symbols-outlined font-black text-sm">check</span>}
+                                        </div>
                                     </div>
                                 ))
                             )}
                         </div>
                         
-                        <footer className="glass p-6 border-t border-white/5 flex justify-end shrink-0">
+                        <footer className="glass p-6 border-t border-white/5 flex gap-3 shrink-0">
                             <button 
                                 onClick={() => setIsMergeModalOpen(false)}
-                                className="px-6 py-3 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                className="flex-1 py-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
                             >
                                 Batal
+                            </button>
+                            <button 
+                                onClick={performMerge}
+                                disabled={selectedSourceIds.length === 0 || isCheckingOut}
+                                className="flex-[2] py-4 bg-primary text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-base">call_merge</span>
+                                {isCheckingOut ? 'Memproses...' : `Gabungkan ${selectedSourceIds.length} Meja`}
                             </button>
                         </footer>
                     </div>
