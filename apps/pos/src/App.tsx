@@ -404,10 +404,10 @@ function App() {
                     recipeId: item.id,
                     quantity: sales[item.id],
                     price: item.price,
-                    subtotal: item.price * sales[item.id]
+                    subtotal: (item.price || 0) * (sales[item.id] || 0)
                 })),
                 status: 'OPEN',
-                customerInfo: customerInfo || prompt('Nomor Meja?'),
+                customerInfo: info,
                 paymentMethod: 'CASH',
                 subTotal: totalSalesValue,
                 totalAmount: totalSalesValue
@@ -424,6 +424,29 @@ function App() {
             if (response && response.data) setOpenBills(response.data);
         } catch (error) {
             alert('Gagal menyimpan bill');
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
+
+    const handleUpdateBill = async () => {
+        if (!currentBillId) return;
+        setIsCheckingOut(true);
+        try {
+            const items = activeCartItems.map(item => ({
+                recipeId: item.id,
+                quantity: sales[item.id],
+                price: item.price
+            }));
+
+            await apiClient.addItemsToBill(currentBillId, items);
+            alert('Bill berhasil diperbarui!');
+            
+            // Refresh
+            const response = await apiClient.get('/transactions/open-bills') as any;
+            if (response && response.data) setOpenBills(response.data);
+        } catch (error) {
+            alert('Gagal memperbarui bill');
         } finally {
             setIsCheckingOut(false);
         }
@@ -570,13 +593,23 @@ function App() {
                     <span className="text-[10px] font-black opacity-50 hidden md:block">Atau tekan Ctrl + Enter</span>
                 </button>
 
+                {currentBillId && totalItems > 0 && (
+                    <button 
+                        onClick={handleUpdateBill}
+                        className="w-full py-4 bg-primary text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                    >
+                        <span className="material-symbols-outlined text-base">add_circle</span>
+                        Simpan Perubahan ke Bill
+                    </button>
+                )}
+
                 {!currentBillId && totalItems > 0 && (
                     <button 
                         onClick={handleSaveBill}
                         className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                     >
                         <span className="material-symbols-outlined text-base">save</span>
-                        Simpan Bill (Running Order)
+                        Simpan sebagai Bill Baru
                     </button>
                 )}
             </div>
