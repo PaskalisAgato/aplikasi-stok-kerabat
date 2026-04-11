@@ -643,7 +643,7 @@ export class TransactionService {
             const sourceBill = sourceBillArr[0];
 
             // 2. Create New Target Bill
-            const newBillResult = await tx.insert(schema.sales).values({
+            const [newBill] = await tx.insert(schema.sales).values({
                 userId: sourceBill.userId,
                 customerInfo: targetInfo || `${sourceBill.customerInfo} (Split)`,
                 status: 'OPEN',
@@ -651,8 +651,8 @@ export class TransactionService {
                 totalAmount: '0',
                 isDeleted: false,
                 createdAt: new Date()
-            });
-            const targetId = newBillResult[0].insertId;
+            }).returning({ id: schema.sales.id });
+            const targetId = newBill.id;
 
             // 3. Move/Split Items
             for (const item of itemsToMove) {
