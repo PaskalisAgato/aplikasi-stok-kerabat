@@ -131,23 +131,18 @@ export class PrintService {
 
             // 2. Fallback to popup if silent failed or forced
             console.log('Requesting new Bluetooth device via popup...');
+            
+            // Broadest possible search for printers
             this.bluetoothDevice = await nav.bluetooth.requestDevice({
-                filters: [
-                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
-                    { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] },
-                    { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] },
-                    { namePrefix: 'Printer' },
-                    { namePrefix: 'RP' },
-                    { namePrefix: 'MPT' },
-                    { namePrefix: 'BT-' },
-                    { namePrefix: 'MP' },
-                    { namePrefix: 'Inner' }
-                ],
+                acceptAllDevices: true,
                 optionalServices: [
-                    '000018f0-0000-1000-8000-00805f9b34fb', 
-                    '00001101-0000-1000-8000-00805f9b34fb',
-                    '0000ff00-0000-1000-8000-00805f9b34fb',
-                    '0000ffe0-0000-1000-8000-00805f9b34fb'
+                    '000018f0-0000-1000-8000-00805f9b34fb', // Common printer
+                    '0000ff00-0000-1000-8000-00805f9b34fb', // Generic
+                    '0000ffe0-0000-1000-8000-00805f9b34fb', // High speed
+                    '00001101-0000-1000-8000-00805f9b34fb', // SPP
+                    '0000180a-0000-1000-8000-00805f9b34fb', // Device Info
+                    '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Microchip
+                    'e7810a71-73ae-499d-8c15-faa9aef0c3f2'  // Low-cost generic
                 ]
             });
 
@@ -163,24 +158,20 @@ export class PrintService {
         try {
             console.log('Connecting to GATT server...');
             const server = await device.gatt?.connect();
-            
-            const serviceUUIDs = [
-                '000018f0-0000-1000-8000-00805f9b34fb',
-                '0000ff00-0000-1000-8000-00805f9b34fb',
-                '0000ffe0-0000-1000-8000-00805f9b34fb'
-            ];
+            if (!server) return false;
 
-            for (const uuid of serviceUUIDs) {
+            // Try to discover all primary services
+            const services = await server.getPrimaryServices();
+            console.log(`Found ${services.length} primary services`);
+
+            for (const service of services) {
                 try {
-                    const service = await server?.getPrimaryService(uuid);
-                    if (service) {
-                        const chars = await service.getCharacteristics();
-                        for (const char of chars) {
-                            if (char.properties.write || char.properties.writeWithoutResponse) {
-                                console.log(`GATT Setup: Found writable characteristic: ${char.uuid}`);
-                                this.bluetoothCharacteristic = char;
-                                return true;
-                            }
+                    const chars = await service.getCharacteristics();
+                    for (const char of chars) {
+                        if (char.properties.write || char.properties.writeWithoutResponse) {
+                            console.log(`GATT Setup: Found writable characteristic: ${char.uuid} in service ${service.uuid}`);
+                            this.bluetoothCharacteristic = char;
+                            return true;
                         }
                     }
                 } catch (e) {
