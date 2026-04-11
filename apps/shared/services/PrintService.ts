@@ -433,9 +433,6 @@ export class PrintService {
                 .line(`Laba:  Rp ${data.change_due?.toLocaleString('id-ID') || 0}`)
                 .line('--------------------------------')
                 .align('center')
-                .line('Scan untuk Cek Transaksi:')
-                .qrcode(`https://kerabatpos.com/check/${data.id}`, 2, 4, 'h')
-                .newline()
                 .line('Terima Kasih!')
                 .line('Selamat Menikmati');
         }
