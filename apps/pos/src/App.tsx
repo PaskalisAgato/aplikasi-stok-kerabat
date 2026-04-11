@@ -44,30 +44,22 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
     return (
         <div 
             onClick={() => onUpdateQty(item.id, 1)}
-            className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 border ${isHighlighted ? 'border-primary ring-4 ring-primary/50 scale-[1.03] shadow-xl shadow-primary/30 z-10' : 'border-white/5 hover:border-primary/30 hover:translate-y--2'}`}
+            className={`cursor-pointer transition-all border p-2.5 sm:p-3 flex flex-col justify-between ${isHighlighted ? 'border-primary ring-2 ring-primary/50 bg-primary/10 scale-[1.02] shadow-md z-10' : 'border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-0.5'} rounded-xl h-[72px]`}
         >
-            <div className="aspect-[4/5] relative">
-                <img 
-                    src={getOptimizedImageUrl(item.imageUrl || '', { width: 400 })} 
-                    alt={item.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-60"></div>
-                
-                <div className="absolute top-4 right-4 h-8 px-3 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{item.category}</p>
-                </div>
-
-                <div className="absolute inset-x-0 bottom-0 p-6 space-y-1 transform transition-transform duration-500 group-hover:translate-y--2">
-                    <h3 className="font-black text-sm uppercase tracking-tight text-white leading-tight">{item.name}</h3>
-                    <p className="text-primary font-black text-xs">Rp {item.price.toLocaleString('id-ID')}</p>
-                </div>
-
+            <div className="flex justify-between items-start gap-1">
+                <h3 className="font-black text-[10px] sm:text-[11px] leading-[1.1] text-white line-clamp-2 uppercase tracking-tight">{item.name}</h3>
                 {saleCount > 0 && (
-                    <div className="absolute top-4 left-4 size-10 rounded-2xl bg-primary text-slate-950 flex items-center justify-center font-black text-sm shadow-xl shadow-primary/40 animate-in zoom-in">
-                        {saleCount}
-                    </div>
+                    <span className="bg-primary text-slate-900 font-black text-[9px] px-1.5 py-0.5 rounded-md shadow-sm shrink-0">
+                        x{saleCount}
+                    </span>
                 )}
+            </div>
+            
+            <div className="flex items-end justify-between mt-1">
+                <p className="text-primary font-black text-[10px]">
+                    Rp {item.price.toLocaleString('id-ID')}
+                </p>
+                <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
             </div>
         </div>
     );
@@ -75,22 +67,22 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
 
 const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void }) => {
     return (
-        <div className="flex items-center justify-between group p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
-            <div className="flex-1 min-w-0">
-                <p className="font-black text-xs uppercase tracking-tight truncate text-white">{item.name}</p>
-                <p className="text-[10px] font-bold text-primary">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
+        <div className="flex items-center justify-between group py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-1 px-1 rounded-lg">
+            <div className="flex-1 min-w-0 pr-2">
+                <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate text-white leading-none mb-0.5">{item.name}</p>
+                <p className="text-[9px] font-bold text-primary leading-none">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
             </div>
-            <div className="flex items-center gap-4 bg-white/10 rounded-xl p-1.5 border border-white/10">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 rounded-lg p-0.5 sm:p-1 border border-white/10">
                 <button 
                     onClick={() => updateQty(item.id, -1)}
-                    className="size-7 rounded-lg flex items-center justify-center hover:bg-red-500/20 text-red-300 transition-all font-black"
+                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-300 transition-colors font-black text-[10px] sm:text-xs"
                 >
                     -
                 </button>
-                <span className="text-xs font-black w-4 text-center text-white">{salesCount}</span>
+                <span className="text-[9px] sm:text-[10px] font-black w-4 text-center text-white">{salesCount}</span>
                 <button 
                     onClick={() => updateQty(item.id, 1)}
-                    className="size-7 rounded-lg flex items-center justify-center hover:bg-emerald-500/20 text-emerald-300 transition-all font-black"
+                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-300 transition-colors font-black text-[10px] sm:text-xs"
                 >
                     +
                 </button>
@@ -584,10 +576,10 @@ function App() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                                 {isLoading ? (
-                                    Array.from({ length: 8 }).map((_, i) => (
-                                        <div key={i} className={`${PerformanceSettings.getGlassClass()} aspect-[4/5] rounded-[2rem] animate-pulse`}></div>
+                                    Array.from({ length: 15 }).map((_, i) => (
+                                        <div key={i} className="bg-white/5 border border-white/5 rounded-xl h-[72px] animate-pulse"></div>
                                     ))
                                 ) : filteredRecipes.map((item, index) => (
                                         <MemoizedProductCard 
@@ -621,7 +613,7 @@ function App() {
                                     </button>
                                 </div>
 
-                                <div className="flex-1 space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 relative">
+                                <div className="flex-1 space-y-0 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 relative">
                                     {activeCartItems.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full py-20 opacity-30">
                                             <span className="material-symbols-outlined text-6xl mb-4">inventory_2</span>
