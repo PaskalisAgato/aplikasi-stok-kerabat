@@ -562,9 +562,9 @@ function App() {
                     // Fetch details of new bill to load into POS
                     const newBillRes = await apiClient.get(`/transactions/${newBillId}`) as any;
                     if (newBillRes && newBillRes.data) {
-                        const salesData: any = {};
+                        const salesData: Record<number, number> = {};
                         newBillRes.data.items.forEach((it: any) => {
-                            salesData[it.recipeId] = { ...it, name: it.recipeName, price: parseFloat(it.recipePrice), quantity: parseInt(it.quantity) };
+                            salesData[it.recipeId] = parseInt(it.quantity);
                         });
                         setSales(salesData);
                         setCustomerInfo(newBillRes.data.customerInfo);
@@ -577,9 +577,9 @@ function App() {
                         // Reload current bill if it was the source
                         const reloadRes = await apiClient.get(`/transactions/${splitSourceBill.id}`) as any;
                         if (reloadRes && reloadRes.data) {
-                            const salesData: any = {};
+                            const salesData: Record<number, number> = {};
                             reloadRes.data.items.forEach((it: any) => {
-                                salesData[it.recipeId] = { ...it, name: it.recipeName, price: parseFloat(it.recipePrice), quantity: parseInt(it.quantity) };
+                                salesData[it.recipeId] = parseInt(it.quantity);
                             });
                             setSales(salesData);
                         }
