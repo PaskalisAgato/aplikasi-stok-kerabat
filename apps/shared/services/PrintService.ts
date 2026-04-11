@@ -408,11 +408,11 @@ export class PrintService {
         encoder.initialize().align('center');
 
         if (isPrepTicket) {
-            encoder.bold(true).line('ORDER PERSIAPAN').bold(false);
+            encoder.align('center').bold(true).line('ORDER PERSIAPAN').bold(false);
         } else {
             const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
             const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
-            encoder.bold(true).line(hTitle).bold(false).line(hSub);
+            encoder.align('center').bold(true).line(hTitle).bold(false).line(hSub).align('center');
         }
 
         encoder
@@ -427,24 +427,54 @@ export class PrintService {
             .line('--------------------------------');
 
         data.items.forEach((item: any) => {
-            const name = item.name.length > (width - 10) ? item.name.substring(0, width - 13) + '...' : item.name;
-            const qty = `${item.quantity}x`.padEnd(4);
+            const qty = `${item.quantity}x `.padEnd(4);
+            const priceStr = item.subtotal.toLocaleString('id-ID');
+            const availableWidthForName = width - 4; // Qty space
+
+            // Helper to wrap text
+            const wrapText = (text: string, space: number) => {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length < space) {
+                        currentLine += (currentLine ? ' ' : '') + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                });
+                if (currentLine) lines.push(currentLine);
+                return lines;
+            };
+
+            const nameLines = wrapText(item.name, availableWidthForName);
             
             if (isPrepTicket) {
-                encoder.bold(true).line(`${qty}${name}`).bold(false);
+                encoder.bold(true).line(`${qty}${nameLines[0]}`).bold(false);
+                for (let i = 1; i < nameLines.length; i++) {
+                    encoder.bold(true).line(`    ${nameLines[i]}`).bold(false);
+                }
             } else {
-                const price = item.subtotal.toLocaleString('id-ID').padStart(width - name.length - 4);
-                encoder.line(`${qty}${name}${price}`);
+                encoder.line(`${qty}${nameLines[0]}`);
+                for (let i = 1; i < nameLines.length; i++) {
+                    encoder.line(`    ${nameLines[i]}`);
+                }
+                encoder.align('right').line(priceStr).align('left');
             }
         });
 
         encoder.line('--------------------------------');
 
         if (!isPrepTicket) {
+            const totalLabel = 'TOTAL:';
+            const totalValue = `Rp ${data.total.toLocaleString('id-ID')}`;
+            const spaces = width - totalLabel.length - totalValue.length;
+            const spacer = spaces > 0 ? ' '.repeat(spaces) : ' ';
+            
             encoder
-                .align('right')
                 .bold(true)
-                .line(`TOTAL: Rp ${data.total.toLocaleString('id-ID')}`)
+                .line(`${totalLabel}${spacer}${totalValue}`)
                 .bold(false)
                 .align('left');
             
@@ -459,7 +489,8 @@ export class PrintService {
                 .line('--------------------------------')
                 .align('center')
                 .line(config.footerMessage || 'Terima Kasih!')
-                .line('Selamat Menikmati');
+                .line('Selamat Menikmati')
+                .align('center');
         }
 
         encoder.newline().newline();
