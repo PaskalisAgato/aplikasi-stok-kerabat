@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
@@ -27,6 +27,76 @@ interface ApiResponse<T> {
     data: T[];
     meta: ApiMeta;
 }
+
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debouncedValue;
+}
+
+const MemoizedProductCard = memo(({ item, saleCount, onUpdateQty }: { item: Recipe, saleCount: number, onUpdateQty: (id: number, delta: number) => void }) => {
+    return (
+        <div 
+            onClick={() => onUpdateQty(item.id, 1)}
+            className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer hover:translate-y--2 transition-all duration-500 border border-white/5 hover:border-primary/30`}
+        >
+            <div className="aspect-[4/5] relative">
+                <img 
+                    src={getOptimizedImageUrl(item.imageUrl || '', { width: 400 })} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-60"></div>
+                
+                <div className="absolute top-4 right-4 h-8 px-3 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{item.category}</p>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 p-6 space-y-1 transform transition-transform duration-500 group-hover:translate-y--2">
+                    <h3 className="font-black text-sm uppercase tracking-tight text-white leading-tight">{item.name}</h3>
+                    <p className="text-primary font-black text-xs">Rp {item.price.toLocaleString('id-ID')}</p>
+                </div>
+
+                {saleCount > 0 && (
+                    <div className="absolute top-4 left-4 size-10 rounded-2xl bg-primary text-slate-950 flex items-center justify-center font-black text-sm shadow-xl shadow-primary/40 animate-in zoom-in">
+                        {saleCount}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}, (prev, next) => prev.item.id === next.item.id && prev.saleCount === next.saleCount);
+
+const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void }) => {
+    return (
+        <div className="flex items-center justify-between group p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+            <div className="flex-1 min-w-0">
+                <p className="font-black text-xs uppercase tracking-tight truncate text-white">{item.name}</p>
+                <p className="text-[10px] font-bold text-primary">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
+            </div>
+            <div className="flex items-center gap-4 bg-white/10 rounded-xl p-1.5 border border-white/10">
+                <button 
+                    onClick={() => updateQty(item.id, -1)}
+                    className="size-7 rounded-lg flex items-center justify-center hover:bg-red-500/20 text-red-300 transition-all font-black"
+                >
+                    -
+                </button>
+                <span className="text-xs font-black w-4 text-center text-white">{salesCount}</span>
+                <button 
+                    onClick={() => updateQty(item.id, 1)}
+                    className="size-7 rounded-lg flex items-center justify-center hover:bg-emerald-500/20 text-emerald-300 transition-all font-black"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    );
+});
 
 function App() {
     const [view, setView] = useState<'pos' | 'history' | 'printer-settings'>('pos');
@@ -140,20 +210,22 @@ function App() {
         db.cart.put({ id: 'current_cart', items: cartItems, updatedAt: new Date().toISOString() });
     }, [sales]);
 
-    const filteredRecipes = items.filter((r) => {
-        const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+    const filteredRecipes = useMemo(() => items.filter((r) => {
+        const matchesSearch = r.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
         const matchesCategory = !selectedCategory || r.category?.toLowerCase() === selectedCategory.toLowerCase();
         return matchesSearch && matchesCategory;
-    });
+    }), [items, debouncedSearchTerm, selectedCategory]);
 
-    const activeCartItems = items.filter((r) => sales[r.id] > 0);
+    const activeCartItems = useMemo(() => items.filter((r) => sales[r.id] > 0), [items, sales]);
 
-    const updateQty = (id: number, delta: number) => {
+    const updateQty = useCallback((id: number, delta: number) => {
         setSales(prev => ({
             ...prev,
             [id]: Math.max(0, (prev[id] || 0) + delta)
         }));
-    };
+    }, []);
 
     const totalSalesValue = Object.entries(sales).reduce((total, [id, qty]) => {
         const recipe = items.find((r) => r.id === parseInt(id));
@@ -472,35 +544,12 @@ function App() {
                                         <div key={i} className={`${PerformanceSettings.getGlassClass()} aspect-[4/5] rounded-[2rem] animate-pulse`}></div>
                                     ))
                                 ) : filteredRecipes.map((item) => (
-                                    <div 
-                                        key={item.id} 
-                                        onClick={() => updateQty(item.id, 1)}
-                                        className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer hover:translate-y--2 transition-all duration-500 border border-white/5 hover:border-primary/30`}
-                                    >
-                                        <div className="aspect-[4/5] relative">
-                                            <img 
-                                                src={getOptimizedImageUrl(item.imageUrl || '', { width: 400 })} 
-                                                alt={item.name} 
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-60"></div>
-                                            
-                                            <div className="absolute top-4 right-4 h-8 px-3 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                                                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{item.category}</p>
-                                            </div>
-
-                                            <div className="absolute inset-x-0 bottom-0 p-6 space-y-1 transform transition-transform duration-500 group-hover:translate-y--2">
-                                                <h3 className="font-black text-sm uppercase tracking-tight text-white leading-tight">{item.name}</h3>
-                                                <p className="text-primary font-black text-xs">Rp {item.price.toLocaleString('id-ID')}</p>
-                                            </div>
-
-                                            {sales[item.id] > 0 && (
-                                                <div className="absolute top-4 left-4 size-10 rounded-2xl bg-primary text-slate-950 flex items-center justify-center font-black text-sm shadow-xl shadow-primary/40 animate-in zoom-in">
-                                                    {sales[item.id]}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                        <MemoizedProductCard 
+                                            key={item.id} 
+                                            item={item} 
+                                            saleCount={sales[item.id] || 0} 
+                                            onUpdateQty={updateQty} 
+                                        />
                                 ))}
                             </div>
                         </div>
@@ -532,27 +581,12 @@ function App() {
                                             <p className="text-xs font-black uppercase tracking-widest">Belum ada pesanan</p>
                                         </div>
                                     ) : activeCartItems.map((item) => (
-                                        <div key={item.id} className="flex items-center justify-between group p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-black text-xs uppercase tracking-tight truncate text-white">{item.name}</p>
-                                                <p className="text-[10px] font-bold text-primary">Rp {(item.price * sales[item.id]).toLocaleString('id-ID')}</p>
-                                            </div>
-                                            <div className="flex items-center gap-4 bg-white/10 rounded-xl p-1.5 border border-white/10">
-                                                <button 
-                                                    onClick={() => updateQty(item.id, -1)}
-                                                    className="size-7 rounded-lg flex items-center justify-center hover:bg-red-500/20 text-red-300 transition-all font-black"
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="text-xs font-black w-4 text-center text-white">{sales[item.id]}</span>
-                                                <button 
-                                                    onClick={() => updateQty(item.id, 1)}
-                                                    className="size-7 rounded-lg flex items-center justify-center hover:bg-emerald-500/20 text-emerald-300 transition-all font-black"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <MemoizedCartItem
+                                            key={item.id}
+                                            item={item}
+                                            salesCount={sales[item.id]}
+                                            updateQty={updateQty}
+                                        />
                                     ))}
                                 </div>
                             </div>
