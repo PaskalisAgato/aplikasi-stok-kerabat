@@ -629,4 +629,95 @@ export class TransactionService {
             return { success: true, targetId, newTotal: newSubTotal, newInfo: combinedInfo };
         });
     }
+
+    // 8. SPLIT BILL (Pisah Meja)
+    static async splitBill(sourceId: number, targetInfo: string, itemsToMove: { saleItemId: number, quantity: number }[], userId: string) {
+        if (!itemsToMove || itemsToMove.length === 0) {
+            throw new Error('Tidak ada item yang dipilih untuk dipisah');
+        }
+
+        return await db.transaction(async (tx: any) => {
+            // 1. Fetch source bill
+            const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+            if (sourceBillArr.length === 0) throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
+            const sourceBill = sourceBillArr[0];
+
+            // 2. Create New Target Bill
+            const newBillResult = await tx.insert(schema.sales).values({
+                customerInfo: targetInfo || `${sourceBill.customerInfo} (Split)`,
+                status: 'OPEN',
+                subTotal: '0',
+                totalAmount: '0',
+                isDeleted: false,
+                createdAt: new Date()
+            });
+            const targetId = newBillResult[0].insertId;
+
+            // 3. Move/Split Items
+            for (const item of itemsToMove) {
+                const originalItemArr = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.id, item.saleItemId)).limit(1);
+                if (originalItemArr.length === 0) continue;
+                const originalItem = originalItemArr[0];
+
+                const moveQty = parseInt(item.quantity.toString());
+                const originalQty = parseInt(originalItem.quantity.toString());
+
+                if (moveQty >= originalQty) {
+                    // Move the entire item entry
+                    await tx.update(schema.saleItems)
+                        .set({ saleId: targetId })
+                        .where(eq(schema.saleItems.id, item.saleItemId));
+                } else {
+                    // Split the item entry
+                    const pricePerUnit = parseFloat(originalItem.price);
+                    
+                    // Update original
+                    const remainingQty = originalQty - moveQty;
+                    await tx.update(schema.saleItems)
+                        .set({ 
+                            quantity: remainingQty.toString(),
+                            subtotal: (remainingQty * pricePerUnit).toString()
+                        })
+                        .where(eq(schema.saleItems.id, item.saleItemId));
+
+                    // Create new in target
+                    await tx.insert(schema.saleItems).values({
+                        saleId: targetId,
+                        productId: originalItem.productId,
+                        productName: originalItem.productName,
+                        price: originalItem.price,
+                        quantity: moveQty.toString(),
+                        subtotal: (moveQty * pricePerUnit).toString(),
+                        notes: originalItem.notes,
+                        createdAt: new Date()
+                    });
+                }
+            }
+
+            // 4. Recalculate totals for both bills
+            const recalculateBill = async (id: number) => {
+                const items = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
+                const subTotal = items.reduce((acc: number, it: any) => acc + parseFloat(it.subtotal), 0).toString();
+                await tx.update(schema.sales)
+                    .set({ subTotal, totalAmount: subTotal })
+                    .where(eq(schema.sales.id, id));
+                return subTotal;
+            };
+
+            const sourceTotal = await recalculateBill(sourceId);
+            const targetTotal = await recalculateBill(targetId);
+
+            // 5. Log Audit
+            await tx.insert(schema.auditLogs).values({
+                userId,
+                action: 'SPLIT_BILL',
+                tableName: 'sales',
+                oldData: JSON.stringify({ sourceId, itemsMoved: itemsToMove }),
+                newData: JSON.stringify({ sourceId, sourceNewTotal: sourceTotal, targetId, targetTotal }),
+                createdAt: new Date()
+            });
+
+            return { success: true, sourceId, sourceTotal, targetId, targetTotal };
+        });
+    }
 }

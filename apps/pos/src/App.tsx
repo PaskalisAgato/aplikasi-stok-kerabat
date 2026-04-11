@@ -112,6 +112,11 @@ function App() {
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
     const [targetBillForMerge, setTargetBillForMerge] = useState<any>(null);
     const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
+    const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
+    const [splitMode, setSplitMode] = useState<'table' | 'pay'>('table');
+    const [splitSourceBill, setSplitSourceBill] = useState<any>(null);
+    const [selectedSplitItems, setSelectedSplitItems] = useState<Record<number, number>>({});
+    const [splitTargetInfo, setSplitTargetInfo] = useState('');
 
     const fetchRecipes = async () => {
         try {
@@ -502,35 +507,87 @@ function App() {
     };
 
     const performMerge = async () => {
-        if (!targetBillForMerge || selectedSourceIds.length === 0) return;
-        
-        const sourceNames = openBills
-            .filter(b => selectedSourceIds.includes(b.id))
-            .map(b => b.customerInfo)
-            .join(', ');
+        // ... (previous code)
+    };
 
-        if (!confirm(`Gabungkan bill "${sourceNames}" ke dalam bill "${targetBillForMerge.customerInfo}"?`)) return;
+    const handleSplitClick = async (e: React.MouseEvent, bill: any, mode: 'table' | 'pay' = 'table') => {
+        e.preventDefault();
+        e.stopPropagation();
         
+        // Fetch full bill details to get items
+        try {
+            const response = await apiClient.get(`/transactions/${bill.id}`) as any;
+            if (response && response.data) {
+                setSplitSourceBill(response.data);
+                setSplitMode(mode);
+                setSelectedSplitItems({});
+                setSplitTargetInfo(mode === 'pay' ? `${bill.customerInfo} (Partial Pay)` : `${bill.customerInfo} (Split)`);
+                setIsSplitModalOpen(true);
+            }
+        } catch (error) {
+            alert('Gagal mengambil detail bill');
+        }
+    };
+
+    const performSplit = async () => {
+        if (!splitSourceBill) return;
+        const itemsToMove = Object.entries(selectedSplitItems)
+            .filter(([_, qty]) => qty > 0)
+            .map(([id, qty]) => ({ saleItemId: parseInt(id), quantity: qty }));
+
+        if (itemsToMove.length === 0) {
+            alert('Pilih minimal satu item untuk dipisah');
+            return;
+        }
+
         setIsCheckingOut(true);
         try {
-            await apiClient.mergeBills(selectedSourceIds, targetBillForMerge.id);
-            alert('Bill berhasil digabungkan!');
-            setIsMergeModalOpen(false);
-            setTargetBillForMerge(null);
-            setSelectedSourceIds([]);
-            
-            // Refresh
-            const response = await apiClient.get('/transactions/open-bills') as any;
-            if (response && response.data) setOpenBills(response.data);
-            
-            // If any merged bill was currently loaded, clear it
-            if (selectedSourceIds.includes(currentBillId as number)) {
-                setCurrentBillId(null);
-                setCustomerInfo('');
-                setSales({});
+            const result = await apiClient.splitBill({
+                sourceId: splitSourceBill.id,
+                targetInfo: splitTargetInfo,
+                items: itemsToMove
+            });
+
+            if (result.success) {
+                setIsSplitModalOpen(false);
+                
+                // Refresh open bills
+                const response = await apiClient.get('/transactions/open-bills') as any;
+                if (response && response.data) setOpenBills(response.data);
+
+                if (splitMode === 'pay') {
+                    // Start checkout for the NEW bill
+                    const newBillId = result.data.targetId;
+                    setCurrentBillId(newBillId);
+                    // Fetch details of new bill to load into POS
+                    const newBillRes = await apiClient.get(`/transactions/${newBillId}`) as any;
+                    if (newBillRes && newBillRes.data) {
+                        const salesData: any = {};
+                        newBillRes.data.items.forEach((it: any) => {
+                            salesData[it.productId] = { ...it, quantity: parseInt(it.quantity) };
+                        });
+                        setSales(salesData);
+                        setCustomerInfo(newBillRes.data.customerInfo);
+                        // The user can now click the big Checkout button for this partial bill
+                        alert('Item berhasil dipisah untuk pembayaran. Silakan klik Checkout.');
+                    }
+                } else {
+                    alert('Bill berhasil dipisah!');
+                    if (currentBillId === splitSourceBill.id) {
+                        // Reload current bill if it was the source
+                        const reloadRes = await apiClient.get(`/transactions/${splitSourceBill.id}`) as any;
+                        if (reloadRes && reloadRes.data) {
+                            const salesData: any = {};
+                            reloadRes.data.items.forEach((it: any) => {
+                                salesData[it.productId] = { ...it, quantity: parseInt(it.quantity) };
+                            });
+                            setSales(salesData);
+                        }
+                    }
+                }
             }
         } catch (error: any) {
-            alert('Gagal menggabungkan bill: ' + error.message);
+            alert('Gagal memisah bill: ' + error.message);
         } finally {
             setIsCheckingOut(false);
         }
@@ -618,12 +675,24 @@ function App() {
                     </div>
                 </div>
 
-                <button 
-                    id="btn-checkout"
-                    onClick={() => handleCheckout(true)}
-                    disabled={isCheckingOut || totalItems === 0 || isSyncing}
-                    className="w-full h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex flex-col items-center justify-center gap-1"
-                >
+                <div className="flex gap-4">
+                    <button 
+                        onClick={(e) => {
+                            const bill = openBills.find(b => b.id === currentBillId);
+                            if (bill) handleSplitClick(e, bill, 'pay');
+                        }}
+                        disabled={!currentBillId || Object.keys(sales).length === 0 || isCheckingOut || isSyncing}
+                        className="flex-1 h-16 md:h-24 bg-blue-600 text-white rounded-2xl md:rounded-[32px] font-black text-sm md:text-xl uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex flex-col items-center justify-center gap-1"
+                    >
+                        <span className="material-symbols-outlined text-2xl font-black">payments</span>
+                        <span>Bayar Sebagian</span>
+                    </button>
+                    <button 
+                        id="btn-checkout"
+                        onClick={() => handleCheckout(true)}
+                        disabled={isCheckingOut || totalItems === 0 || isSyncing}
+                        className="flex-[2] h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex flex-col items-center justify-center gap-1"
+                    >
                     <div className="flex items-center gap-4">
                         {isCheckingOut ? (
                             <>
@@ -644,6 +713,7 @@ function App() {
                     </div>
                     <span className="text-[10px] font-black opacity-50 hidden md:block">Atau tekan Ctrl + Enter</span>
                 </button>
+            </div>
 
                 {currentBillId && totalItems > 0 && (
                     <button 
@@ -763,6 +833,13 @@ function App() {
                                                 title="Gabung Meja"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">call_merge</span>
+                                            </button>
+                                            <button 
+                                                onClick={(e) => handleSplitClick(e, bill, 'table')}
+                                                className="absolute top-1 right-[68px] size-7 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-blue-500/10 z-30"
+                                                title="Pisah Meja"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">call_split</span>
                                             </button>
                                             <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-0.5">Meja / Nama</p>
                                             <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
@@ -972,6 +1049,88 @@ function App() {
                             >
                                 <span className="material-symbols-outlined text-base">call_merge</span>
                                 {isCheckingOut ? 'Memproses...' : `Gabungkan ${selectedSourceIds.length} Meja`}
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
+            {/* SPLIT MODAL (Pisah Meja / Pisah Bayar) */}
+            {isSplitModalOpen && splitSourceBill && (
+                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
+                        <header className="glass p-6 flex justify-between items-center border-b border-white/5">
+                            <div>
+                                <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">
+                                    {splitMode === 'pay' ? 'Pisah Bayar' : 'Pisah Meja'}
+                                </h3>
+                                <p className="text-xs text-primary font-bold mt-1">Sumber: {splitSourceBill.customerInfo}</p>
+                            </div>
+                            <button onClick={() => setIsSplitModalOpen(false)} className="size-10 rounded-xl glass hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </header>
+                        
+                        <div className="p-6 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
+                                    {splitMode === 'pay' ? 'Keterangan Pembayaran' : 'Nama Meja Baru'}
+                                </label>
+                                <input 
+                                    type="text"
+                                    value={splitTargetInfo}
+                                    onChange={(e) => setSplitTargetInfo(e.target.value)}
+                                    className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-xl text-sm font-bold focus:border-primary outline-none transition-all uppercase"
+                                    placeholder="Contoh: Meja 1A / Split"
+                                />
+                            </div>
+
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Pilih Item & Jumlah</p>
+                            <div className="space-y-2">
+                                {splitSourceBill.items && splitSourceBill.items.map((item: any) => {
+                                    const maxQty = parseInt(item.quantity);
+                                    const selectedQty = selectedSplitItems[item.id] || 0;
+                                    
+                                    return (
+                                        <div key={item.id} className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl flex items-center justify-between">
+                                            <div className="flex-1 min-w-0 mr-4">
+                                                <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{item.productName}</p>
+                                                <p className="text-[10px] font-black opacity-50">Rp {parseFloat(item.price).toLocaleString('id-ID')} x {maxQty}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button 
+                                                    onClick={() => setSelectedSplitItems(prev => ({ ...prev, [item.id]: Math.max(0, (prev[item.id] || 0) - 1) }))}
+                                                    className="size-8 rounded-lg glass flex items-center justify-center hover:bg-primary/20 transition-all font-black"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-8 text-center font-black text-sm">{selectedQty}</span>
+                                                <button 
+                                                    onClick={() => setSelectedSplitItems(prev => ({ ...prev, [item.id]: Math.min(maxQty, (prev[item.id] || 0) + 1) }))}
+                                                    className="size-8 rounded-lg glass flex items-center justify-center hover:bg-primary/20 transition-all font-black"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        
+                        <footer className="glass p-6 border-t border-white/5 flex gap-3 shrink-0">
+                            <button 
+                                onClick={() => setIsSplitModalOpen(false)}
+                                className="flex-1 py-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                onClick={performSplit}
+                                disabled={isCheckingOut || Object.values(selectedSplitItems).every(q => q === 0)}
+                                className="flex-[2] py-4 bg-primary text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-base">content_cut</span>
+                                {isCheckingOut ? 'Memproses...' : splitMode === 'pay' ? 'Pilih & Lanjut Bayar' : 'Pisah Meja'}
                             </button>
                         </footer>
                     </div>

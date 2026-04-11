@@ -144,4 +144,21 @@ export class TransactionController {
             res.status(500).json({ success: false, message: 'Gagal menggabungkan bill: ' + error.message });
         }
     }
+
+    static async split(req: Request, res: Response) {
+        try {
+            const { sourceId, targetInfo, items } = req.body;
+            const userId = (req as any).user?.id || 'anonymous';
+
+            if (!sourceId || !items || !Array.isArray(items)) {
+                return res.status(400).json({ success: false, message: 'Source ID and items array are required' });
+            }
+
+            const result = await TransactionService.splitBill(parseInt(sourceId), targetInfo, items, userId);
+            res.json({ success: true, message: 'Bill berhasil dipisah', data: result });
+        } catch (error: any) {
+            console.error('--- TransactionController.split ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal memisah bill: ' + error.message });
+        }
+    }
 }

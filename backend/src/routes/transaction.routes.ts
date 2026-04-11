@@ -11,6 +11,7 @@ router.post('/', requireAuth, TransactionController.checkout);
 router.post('/:id/add-items', requireAuth, TransactionController.addItems);
 router.put('/:id', requireAdmin, TransactionController.update);
 router.post('/merge', requireAuth, TransactionController.merge);
+router.post('/split', requireAuth, TransactionController.split);
 router.delete('/clear', requireAdmin, TransactionController.clearAll);
 router.delete('/:id', requireAuth, TransactionController.delete);
 

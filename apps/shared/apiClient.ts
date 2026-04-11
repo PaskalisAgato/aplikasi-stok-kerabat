@@ -291,6 +291,7 @@ export const apiClient = {
         const payload = Array.isArray(sourceIds) ? { sourceIds, targetId } : { sourceId: sourceIds, targetId };
         return apiFetch<any>('/transactions/merge', { method: 'POST', body: JSON.stringify(payload) });
     },
+    splitBill: (data: { sourceId: number | string, targetInfo?: string, items: { saleItemId: number, quantity: number }[] }) => apiFetch<any>('/transactions/split', { method: 'POST', body: JSON.stringify(data) }),
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     clearTransactions: () => apiFetch<any>('/transactions/clear', { method: 'DELETE' }),
     deleteTransaction: (id: number) => apiFetch<any>(`/transactions/${id}`, { method: 'DELETE' }),
