@@ -228,10 +228,6 @@ export class PrintService {
             }
 
             const chunkSize = 20;
-            const initBuffer = new Uint8Array([0x1b, 0x40, 0x0a]); // Init + LF
-            await this.bluetoothCharacteristic.writeValue(initBuffer);
-            await this.delay(100);
-
             for (let i = 0; i < buffer.length; i += chunkSize) {
                 const chunk = buffer.slice(i, i + chunkSize);
                 if (this.bluetoothCharacteristic.properties.writeWithoutResponse) {
@@ -241,9 +237,6 @@ export class PrintService {
                 }
                 await this.delay(50);
             }
-
-            const flushBuffer = new Uint8Array([0x0a, 0x0a, 0x0a, 0x1d, 0x56, 0x00]); // 3 LF + Cut
-            await this.bluetoothCharacteristic.writeValue(flushBuffer);
 
             return true;
         } catch (error) {
@@ -324,7 +317,14 @@ export class PrintService {
             }
 
             if (filteredItems.length > 0) {
-                await this.enqueuePrintJob(data, printer, isPrepTicket);
+                if (printer.connectionType === 'bluetooth') {
+                    // Bluetooth requires active User Gesture. Cannot be queued asynchronously.
+                    console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
+                    const buffer = this.encodeReceipt(data, { width: printer.width, isPrepTicket });
+                    this.sendToBluetooth(buffer).catch(err => console.error('Immediate BT Print failed', err));
+                } else {
+                    await this.enqueuePrintJob(data, printer, isPrepTicket);
+                }
             }
         }
         
@@ -438,11 +438,6 @@ export class PrintService {
         }
 
         encoder.newline().newline();
-
-        if (!isPrepTicket && data.paymentMethod === 'CASH') {
-            encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
-        }
-
         encoder.cut();
         return encoder.encode();
     }
