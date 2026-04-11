@@ -44,10 +44,10 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
     return (
         <div 
             onClick={() => onUpdateQty(item.id, 1)}
-            className={`cursor-pointer transition-all border p-2.5 sm:p-3 flex flex-col justify-between ${isHighlighted ? 'border-primary ring-2 ring-primary/50 bg-primary/10 scale-[1.02] shadow-md z-10' : 'border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-0.5'} rounded-xl h-[72px]`}
+            className={`cursor-pointer transition-all border p-2.5 sm:p-3 flex flex-col justify-between ${isHighlighted ? 'border-primary ring-2 ring-primary/50 bg-primary/10 scale-[1.02] shadow-md z-10' : 'border-[var(--border-dim)] bg-[var(--bg-app)] hover:bg-[var(--glass-bg)] shadow-sm hover:shadow-md hover:-translate-y-0.5'} rounded-xl h-[72px]`}
         >
             <div className="flex justify-between items-start gap-1">
-                <h3 className="font-black text-[10px] sm:text-[11px] leading-[1.1] text-white line-clamp-2 uppercase tracking-tight">{item.name}</h3>
+                <h3 className="font-black text-[10px] sm:text-[11px] leading-[1.1] text-[var(--text-main)] line-clamp-2 uppercase tracking-tight">{item.name}</h3>
                 {saleCount > 0 && (
                     <span className="bg-primary text-slate-900 font-black text-[9px] px-1.5 py-0.5 rounded-md shadow-sm shrink-0">
                         x{saleCount}
@@ -67,22 +67,22 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
 
 const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void }) => {
     return (
-        <div className="flex items-center justify-between group py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-1 px-1 rounded-lg">
+        <div className="flex items-center justify-between group py-1.5 border-b border-[var(--border-dim)] last:border-0 hover:bg-[var(--glass-bg)] -mx-1 px-1 rounded-lg transition-colors">
             <div className="flex-1 min-w-0 pr-2">
-                <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate text-white leading-none mb-0.5">{item.name}</p>
+                <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate text-[var(--text-main)] leading-none mb-0.5">{item.name}</p>
                 <p className="text-[9px] font-bold text-primary leading-none">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 rounded-lg p-0.5 sm:p-1 border border-white/10">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-[var(--bg-app)] rounded-lg p-0.5 sm:p-1 border border-[var(--border-dim)]">
                 <button 
                     onClick={() => updateQty(item.id, -1)}
-                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-300 transition-colors font-black text-[10px] sm:text-xs"
+                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-red-500/20 text-red-500 transition-colors font-black text-[10px] sm:text-xs"
                 >
                     -
                 </button>
-                <span className="text-[9px] sm:text-[10px] font-black w-4 text-center text-white">{salesCount}</span>
+                <span className="text-[9px] sm:text-[10px] font-black w-4 text-center text-[var(--text-main)]">{salesCount}</span>
                 <button 
                     onClick={() => updateQty(item.id, 1)}
-                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-300 transition-colors font-black text-[10px] sm:text-xs"
+                    className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-500 transition-colors font-black text-[10px] sm:text-xs"
                 >
                     +
                 </button>
@@ -579,7 +579,7 @@ function App() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                                 {isLoading ? (
                                     Array.from({ length: 15 }).map((_, i) => (
-                                        <div key={i} className="bg-white/5 border border-white/5 rounded-xl h-[72px] animate-pulse"></div>
+                                        <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
                                     ))
                                 ) : filteredRecipes.map((item, index) => (
                                         <MemoizedProductCard 
@@ -595,14 +595,14 @@ function App() {
 
                         {/* Right: Cart Review */}
                         <div className="w-full md:w-2/5 landscape:w-2/5 flex flex-col gap-4 lg:gap-6 md:max-h-[calc(100vh-200px)] landscape:max-h-[calc(100vh-200px)]">
-                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-6 lg:p-8 border border-white/5 flex flex-col flex-1 shadow-2xl relative overflow-hidden min-h-[300px]`}>
-                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5">
+                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-6 lg:p-8 border border-[var(--border-dim)] flex flex-col flex-1 shadow-2xl relative overflow-hidden min-h-[300px]`}>
+                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5 text-[var(--text-main)]">
                                     <span className="material-symbols-outlined text-[120px] font-black tracking-tighter">shopping_basket</span>
                                 </div>
 
                                 <div className="flex items-center justify-between mb-8 relative">
                                     <div>
-                                        <h2 className="text-xl font-black uppercase tracking-tighter text-white">Keranjang</h2>
+                                        <h2 className="text-xl font-black uppercase tracking-tighter text-[var(--text-main)]">Keranjang</h2>
                                         <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{totalItems} Item terpilih</p>
                                     </div>
                                     <button 
@@ -615,7 +615,7 @@ function App() {
 
                                 <div className="flex-1 space-y-0 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 relative">
                                     {activeCartItems.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-full py-20 opacity-30">
+                                        <div className="flex flex-col items-center justify-center h-full py-20 opacity-30 text-[var(--text-main)]">
                                             <span className="material-symbols-outlined text-6xl mb-4">inventory_2</span>
                                             <p className="text-xs font-black uppercase tracking-widest">Belum ada pesanan</p>
                                         </div>
