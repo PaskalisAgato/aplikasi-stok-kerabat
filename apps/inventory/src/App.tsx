@@ -4,6 +4,7 @@ import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
 import { db } from '@shared/services/db';
+import { syncEngine } from '@shared/services/SyncEngine';
 
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
