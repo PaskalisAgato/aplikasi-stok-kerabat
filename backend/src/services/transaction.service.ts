@@ -644,6 +644,7 @@ export class TransactionService {
 
             // 2. Create New Target Bill
             const newBillResult = await tx.insert(schema.sales).values({
+                userId: sourceBill.userId,
                 customerInfo: targetInfo || `${sourceBill.customerInfo} (Split)`,
                 status: 'OPEN',
                 subTotal: '0',
