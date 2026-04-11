@@ -26,7 +26,9 @@ try {
             "http://localhost:5000/api/auth",
         trustedOrigins: (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).concat([
             "http://localhost:5173",
-            "https://paskalisagato.github.io"
+            "http://localhost:5186",
+            "https://paskalisagato.github.io",
+            "https://aplikasi-stok-kerabat-pos.vercel.app"
         ]),
         advanced: {
             crossSubDomainCookies: {

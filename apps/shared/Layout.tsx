@@ -4,6 +4,7 @@ import ThemeToggle from './ThemeToggle';
 import { useSession } from './authClient';
 import AuthPage from './AuthPage';
 import { Toaster } from 'react-hot-toast';
+import { PerformanceSettings } from './services/performance';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -102,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({
         return (
             <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-8 text-center overflow-hidden">
                 <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700">
-                    <div className="relative accent-glow">
+                    <div className="relative">
                         <div className="size-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="material-symbols-outlined text-primary text-4xl">local_cafe</span>
@@ -118,7 +119,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </h2>
                         <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
                         {retryCount > 1 && (
-                            <div className="glass px-6 py-2 rounded-full animate-bounce">
+                            <div className={`${PerformanceSettings.getGlassClass()} px-6 py-2 rounded-full animate-bounce`}>
                                 <p className="text-[10px] text-primary font-black uppercase">Server sedang bersiap...</p>
                             </div>
                         )}
@@ -149,7 +150,7 @@ const Layout: React.FC<LayoutProps> = ({
                         </div>
                     </div>
 
-                    <div className="glass rounded-[2rem] p-8 space-y-6">
+                    <div className={`${PerformanceSettings.getGlassClass()} rounded-[2rem] p-8 space-y-6`}>
                         <p className="text-xs font-black text-primary uppercase tracking-[0.2em]">Langkah Perbaikan:</p>
                         <div className="space-y-5">
                             {[
@@ -210,7 +211,7 @@ const Layout: React.FC<LayoutProps> = ({
                 
                 {/* Desktop Sidebar (Floating Glass Effect) */}
                 {sidebar && (
-                    <aside className="hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 glass rounded-[3rem] flex-col p-8 space-y-10 z-20">
+                    <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
                         <div className="flex items-center gap-4">
                             <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
                                 <span className="material-symbols-outlined font-black">coffee</span>
@@ -232,7 +233,7 @@ const Layout: React.FC<LayoutProps> = ({
                     {/* Shell Header (Glass) */}
                     {!hideHeader && (
                         <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
-                            <div className="glass rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm">
+                            <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm`}>
                                 
                                 {/* Kiri: Hamburger + Logo */}
                                 <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-start">
@@ -276,7 +277,7 @@ const Layout: React.FC<LayoutProps> = ({
 
                     {/* Content Area */}
                     <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
                             {/* Page Header (New Location) */}
                             {!hideTitle && (
                                 <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">

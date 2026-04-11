@@ -76,6 +76,18 @@ html, body {
     @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-2xl;
   }
 
+  /* Phase 8.5: Performance Optimization for Mobile */
+  .glass-lite {
+    @apply bg-[var(--bg-surface)] border border-[var(--border-dim)] shadow-xl;
+  }
+
+  /* Disable expensive blurs on low-power devices */
+  @media (prefers-reduced-motion: reduce) {
+    .glass {
+      backdrop-filter: none !important;
+    }
+  }
+
   .btn-primary {
     @apply bg-primary text-slate-950 font-black py-3.5 px-8 rounded-2xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-3 hover:shadow-[0_20px_40px_rgba(255,191,0,0.4)] hover:-translate-y-0.5;
   }

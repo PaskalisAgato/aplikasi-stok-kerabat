@@ -234,6 +234,7 @@ inventoryRouter.get('/', async (req, res) => {
         const offset = Math.max(parseInt(req.query.offset) || 0, 0);
         const search = (req.query.search || '').trim();
         const statusFilter = req.query.status; // 'Normal', 'Kritis'
+        const categoryFilter = req.query.category;
         const idsParam = req.query.ids;
         // Hardened IDs parsing: numeric filter, uniqueness, and max limit of 50
         let targetIds = [];
@@ -244,7 +245,7 @@ inventoryRouter.get('/', async (req, res) => {
             // Take unique IDs and limit to 50 to prevent heavy queries
             targetIds = [...new Set(parsedIds)].slice(0, 50);
         }
-        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${idsParam || ''}`;
+        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${categoryFilter || ''}_${idsParam || ''}`;
         // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -270,6 +271,9 @@ inventoryRouter.get('/', async (req, res) => {
         else if (statusFilter === 'Kritis') {
             filters.push(sql `${schema.inventory.currentStock} <= ${schema.inventory.minStock}`);
         }
+        if (categoryFilter && categoryFilter !== 'Semua') {
+            filters.push(eq(schema.inventory.category, categoryFilter));
+        }
         const whereClause = and(...filters);
         // 3. Get Total Count (for meta)
         const [countResult] = await db.select({
@@ -288,6 +292,9 @@ inventoryRouter.get('/', async (req, res) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             idealStock: schema.inventory.idealStock,
+            containerWeight: schema.inventory.containerWeight,
+            containerId: schema.inventory.containerId,
+            imageUrl: sql `CASE WHEN ${schema.inventory.imageUrl} LIKE 'http%' THEN ${schema.inventory.imageUrl} ELSE NULL END`, // Prevent base64 from crashing the list view
             externalImageUrl: schema.inventory.externalImageUrl,
             hasImage: sql `CASE WHEN ${schema.inventory.imageUrl} IS NOT NULL THEN true ELSE false END`,
             version: schema.inventory.version,
@@ -345,6 +352,7 @@ inventoryRouter.get('/:id', async (req, res) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit,
             discountPrice: schema.inventory.discountPrice,
+            containerWeight: schema.inventory.containerWeight,
             idealStock: schema.inventory.idealStock,
             imageUrl: schema.inventory.imageUrl,
             externalImageUrl: schema.inventory.externalImageUrl,
@@ -446,19 +454,29 @@ inventoryRouter.get('/:id/waste', async (req, res) => {
 // POST new inventory item
 inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req, res) => {
     try {
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock } = req.body;
         if (!name || !category || !unit) {
             return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
+        }
+        const wadah = parseFloat(containerWeight?.toString() || '0');
+        let initialStock = '0';
+        if (physicalStock !== undefined) {
+            initialStock = (parseFloat(physicalStock.toString()) - wadah).toString();
+        }
+        else if (currentStock !== undefined) {
+            initialStock = currentStock.toString();
         }
         const [newItem] = await db.insert(schema.inventory).values({
             name,
             category,
             unit,
-            currentStock: '0',
+            currentStock: initialStock,
             minStock: minStock?.toString() || '0',
             idealStock: idealStock?.toString() || '0',
             pricePerUnit: pricePerUnit?.toString() || '0',
             discountPrice: discountPrice?.toString() || '0',
+            containerWeight: containerWeight?.toString() || '0',
+            containerId: containerId ? parseInt(containerId.toString()) : null,
             imageUrl
         }).returning({
             id: schema.inventory.id,
@@ -475,7 +493,7 @@ inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req, res) => {
 inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async (req, res) => {
     try {
         const inventoryId = parseInt(req.params.id);
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, imageUrl, currentStock, version } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock, version } = req.body;
         const user = req.user;
         // 1. Validation
         if (pricePerUnit !== undefined && (isNaN(Number(pricePerUnit)) || Number(pricePerUnit) < 0)) {
@@ -493,6 +511,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 name: schema.inventory.name,
                 pricePerUnit: schema.inventory.pricePerUnit,
                 discountPrice: schema.inventory.discountPrice,
+                containerWeight: schema.inventory.containerWeight,
                 currentStock: schema.inventory.currentStock,
                 version: schema.inventory.version,
                 isDeleted: schema.inventory.isDeleted
@@ -520,7 +539,35 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 });
             }
             const oldStock = parseFloat(oldItem.currentStock);
-            const newStock = currentStock !== undefined ? parseFloat(currentStock.toString()) : oldStock;
+            const currentContainerWeight = containerWeight !== undefined ? parseFloat(containerWeight.toString()) : parseFloat(oldItem.containerWeight || '0');
+            // Deduction logic: If physicalStock is provided, use it to calculate net stock.
+            // Otherwise, use currentStock (which is assumed to be net if unchanged).
+            let newStock = oldStock;
+            let currentGross = 0;
+            let currentTare = currentContainerWeight;
+            if (physicalStock !== undefined) {
+                currentGross = parseFloat(physicalStock.toString());
+                // If a containerId is provided, we should probably fetch it, but for speed, 
+                // we'll rely on the tare being passed if it's a "custom" one or the item's default.
+                // In a stricter system, we'd fetch the container by ID here.
+                if (currentGross < currentTare) {
+                    return { error: `Berat kotor (${currentGross}) tidak boleh lebih kecil dari berat wadah (${currentTare})`, status: 400 };
+                }
+                newStock = currentGross - currentTare;
+                // Snapshot logging
+                await tx.insert(schema.inventorySnapshots).values({
+                    inventoryId,
+                    grossWeight: currentGross.toString(),
+                    tareWeight: currentTare.toString(),
+                    netWeight: newStock.toString(),
+                    measuredBy: user.id,
+                    source: 'MANUAL',
+                    timestamp: new Date()
+                });
+            }
+            else if (currentStock !== undefined) {
+                newStock = parseFloat(currentStock.toString());
+            }
             const delta = newStock - oldStock;
             // 3. Handle Stock Adjustment Log
             if (delta !== 0) {
@@ -541,8 +588,10 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 ...(idealStock !== undefined && { idealStock: idealStock.toString() }),
                 ...(pricePerUnit !== undefined && { pricePerUnit: newPrice }),
                 ...(discountPrice !== undefined && { discountPrice: newDiscount }),
+                ...(containerWeight !== undefined && { containerWeight: containerWeight.toString() }),
+                ...(containerId !== undefined && { containerId: containerId ? parseInt(containerId.toString()) : null }),
                 ...(imageUrl !== undefined && { imageUrl }),
-                ...(currentStock !== undefined && { currentStock: newStock.toString() }),
+                ...(newStock !== oldStock && { currentStock: newStock.toString() }),
                 version: new Date() // Update version on every change
             })
                 .where(eq(schema.inventory.id, inventoryId))
@@ -555,6 +604,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 minStock: schema.inventory.minStock,
                 pricePerUnit: schema.inventory.pricePerUnit,
                 discountPrice: schema.inventory.discountPrice,
+                containerWeight: schema.inventory.containerWeight,
                 idealStock: schema.inventory.idealStock,
                 version: schema.inventory.version,
                 externalImageUrl: schema.inventory.externalImageUrl
@@ -678,6 +728,18 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req, res) => {
                 expiryDate: expiry,
                 ...(customDate && { createdAt: customDate })
             });
+            // Weight Snapshot Integration
+            if (req.body.grossWeight !== undefined && req.body.tareWeight !== undefined) {
+                await tx.insert(schema.inventorySnapshots).values({
+                    inventoryId,
+                    grossWeight: req.body.grossWeight.toString(),
+                    tareWeight: req.body.tareWeight.toString(),
+                    netWeight: quantity.toString(),
+                    measuredBy: user.id,
+                    source: 'MANUAL',
+                    timestamp: customDate || new Date()
+                });
+            }
             const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
                 currentStock: sql `${schema.inventory.currentStock} + ${adjustment}`
@@ -689,7 +751,7 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req, res) => {
                 userId: user.id,
                 action: `STOCK_MOVEMENT: ${type} ${quantity} for ${updatedInventory.name}`,
                 tableName: 'stock_movements',
-                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock }),
+                newData: JSON.stringify({ type, quantity, reason, currentStock: updatedInventory.currentStock, grossWeight: req.body.grossWeight, tareWeight: req.body.tareWeight }),
                 createdAt: new Date()
             });
         });

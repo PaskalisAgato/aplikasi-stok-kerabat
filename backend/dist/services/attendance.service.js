@@ -1,8 +1,7 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { eq, and, between, desc, like } from 'drizzle-orm';
-import fs from 'fs';
-import path from 'path';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 export class AttendanceService {
     static async getTodayAttendance(userId) {
         const today = new Date();
@@ -128,18 +127,11 @@ export class AttendanceService {
         // 1. Get record to find photos
         const [record] = await db.select().from(schema.attendance).where(eq(schema.attendance.id, numericId)).limit(1);
         if (record) {
-            // 2. Delete photos if segments exist
+            // 2. Delete photos from Cloudinary
             const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean);
             for (const photo of photos) {
-                const filePath = path.resolve(process.cwd(), 'uploads', photo);
-                if (fs.existsSync(filePath)) {
-                    try {
-                        fs.unlinkSync(filePath);
-                        console.log(`[DeleteRecord] Cleaned up file: ${photo}`);
-                    }
-                    catch (e) {
-                        console.error(`Failed to delete file ${photo}:`, e);
-                    }
+                if (photo.includes('cloudinary.com')) {
+                    await deleteFromCloudinary(photo);
                 }
             }
         }
@@ -160,15 +152,10 @@ export class AttendanceService {
         for (const record of records) {
             const photos = [record.checkInPhoto, record.checkOutPhoto].filter(Boolean);
             for (const photo of photos) {
-                const filePath = path.resolve(process.cwd(), 'uploads', photo);
-                if (fs.existsSync(filePath)) {
-                    try {
-                        fs.unlinkSync(filePath);
+                if (photo.includes('cloudinary.com')) {
+                    const success = await deleteFromCloudinary(photo);
+                    if (success)
                         deletedFiles++;
-                    }
-                    catch (e) {
-                        console.error(`Failed to delete file ${photo}:`, e);
-                    }
                 }
             }
         }
@@ -179,15 +166,11 @@ export class AttendanceService {
         return { count: result.length, filesDeleted: deletedFiles };
     }
     static async clearPhotoUrl(filename) {
-        // Find record by photo path
-        const photoPath = `attendance/${filename}`;
-        // Try checkInPhoto first
         await db.update(schema.attendance)
             .set({ checkInPhoto: null })
-            .where(eq(schema.attendance.checkInPhoto, photoPath));
-        // Then checkOutPhoto
+            .where(like(schema.attendance.checkInPhoto, `%${filename}%`));
         await db.update(schema.attendance)
             .set({ checkOutPhoto: null })
-            .where(eq(schema.attendance.checkOutPhoto, photoPath));
+            .where(like(schema.attendance.checkOutPhoto, `%${filename}%`));
     }
 }

@@ -5,6 +5,8 @@ import { getOptimizedImageUrl } from '@shared/supabase';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
+import { db } from '@shared/services/db';
+import { syncEngine } from '@shared/services/SyncEngine';
 
 interface Recipe {
     id: number;
@@ -30,7 +32,6 @@ function App() {
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [items, setItems] = useState<Recipe[]>([]);
-    const [meta, setMeta] = useState<ApiMeta | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
@@ -38,15 +39,41 @@ function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [amountPaid, setAmountPaid] = useState<number>(0);
+    const [pendingSyncCount, setPendingSyncCount] = useState(0);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [isPushing, setIsPushing] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     const fetchRecipes = async () => {
         try {
             setIsLoading(true);
             const response = await apiClient.getRecipes() as ApiResponse<Recipe>;
             setItems(response.data);
-            setMeta(response.meta);
+            
+            // Cache menu items for offline access
+            await db.inventoryCache.bulkPut(response.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                unit: 'pcs', // Default
+                currentStock: '0',
+                minStock: '0',
+                pricePerUnit: item.price.toString(),
+                status: 'NORMAL',
+                version: 1, // Phase 8: Data drift protection
+                updatedAt: new Date().toISOString()
+            })));
         } catch (error) {
-            console.error('Failed to load menu', error, meta); 
+            console.error('Failed to load menu, trying local cache...', error);
+            const cachedItems = await db.inventoryCache.toArray();
+            if (cachedItems.length > 0) {
+                setItems(cachedItems.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    price: parseFloat(c.pricePerUnit),
+                    category: c.category
+                })));
+            }
         } finally {
             setIsLoading(false);
         }
@@ -55,10 +82,62 @@ function App() {
     useEffect(() => {
         fetchRecipes();
 
+        // Load persisted cart
+        db.cart.get('current_cart').then(savedCart => {
+            if (savedCart && savedCart.items.length > 0) {
+                const initialSales: Record<number, number> = {};
+                savedCart.items.forEach(item => {
+                    initialSales[item.id] = item.qty;
+                });
+                setSales(initialSales);
+            }
+        });
+
         const handleOpenPrinterSettings = () => setView('printer-settings');
         window.addEventListener('open-printer-settings', handleOpenPrinterSettings);
-        return () => window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
+
+        // Syncing & Offline-First Persistence (Phase 6 & 7)
+        syncEngine.start();
+        
+        // Recovery Phase (Phase 7)
+        PrintService.recover();
+        
+        // Initial Pull Sync
+        syncEngine.pullInventory();
+
+        const unsubscribe = syncEngine.onChange((count) => {
+            setPendingSyncCount(count);
+        });
+
+        const unsubscribeState = syncEngine.onStateChange((state) => {
+            setIsSyncing(state.isPulling);
+            setIsPushing(state.isPushing);
+        });
+
+        // Online Status
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            unsubscribe();
+            unsubscribeState();
+            syncEngine.stop();
+        };
     }, []);
+
+    // Persist cart on change
+    useEffect(() => {
+        const cartItems = Object.entries(sales)
+            .filter(([_, qty]) => qty > 0)
+            .map(([id, qty]) => ({ id: parseInt(id), qty }));
+        
+        db.cart.put({ id: 'current_cart', items: cartItems, updatedAt: new Date().toISOString() });
+    }, [sales]);
 
     const filteredRecipes = items.filter((r) => {
         const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -97,7 +176,9 @@ function App() {
 
         setIsCheckingOut(true);
         try {
+            const transactionId = crypto.randomUUID();
             const checkoutData = {
+                id: transactionId, // Idempotency key / Device ID
                 items: activeCartItems.map(item => ({
                     recipeId: item.id,
                     quantity: sales[item.id],
@@ -110,16 +191,40 @@ function App() {
                 taxAmount: 0
             };
 
-            const response = await apiClient.checkoutCart(checkoutData) as { data: { id: number, createdAt: string } };
+            // 1. Save to Offline DB immediately
+            await db.transactions.add({
+                id: transactionId,
+                receipt_number: `TRX-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}-${Math.floor(1000 + Math.random() * 9000)}`,
+                total_amount: totalSalesValue,
+                payment_method: paymentMethod as any,
+                items: checkoutData.items,
+                created_at: new Date().toISOString(),
+                sync_status: 'PENDING',
+                retry_count: 0,
+                // Phase 8: Multi-outlet ready
+                outlet_id: 'OUTLET-001', // Example
+                device_id: 'POS-01',
+                cashier_id: 'CASHIER-A'
+            });
+
+            // Phase 8: Audit Log
+            await db.auditLog.add({
+                action: 'CHECKOUT',
+                entity: 'Transaction',
+                entityId: transactionId,
+                timestamp: new Date().toISOString(),
+                userId: 'CASHIER-A',
+                deviceId: 'POS-01'
+            });
             
-            // Generate print data with categories
+            // 2. Generate print data immediately
             const printData: PrintData = {
-                id: response.data?.id || Date.now(),
-                date: response.data?.createdAt || new Date().toISOString(),
+                id: transactionId as any,
+                date: new Date().toISOString(),
                 paymentMethod,
                 total: totalSalesValue,
                 amountPaid: paymentMethod === 'CASH' ? amountPaid : totalSalesValue,
-                changeDue: paymentMethod === 'CASH' ? changeDue : 0,
+                change_due: paymentMethod === 'CASH' ? changeDue : 0,
                 items: activeCartItems.map(item => ({
                     name: item.name,
                     quantity: sales[item.id],
@@ -129,23 +234,33 @@ function App() {
                 }))
             };
 
-            // Smart printing: Main Receipt + Prep Tickets (Kitchen/Bar)
-            await PrintService.printOrder(printData);
+            // 3. Print (Background task)
+            PrintService.printOrder(printData).catch(err => {
+                console.error('Printing failed', err);
+                // We don't block the UI for printing errors
+            });
 
+            // 4. Reset UI state immediately (Optimistic Response)
             setSales({});
             setPaymentMethod('CASH');
             setAmountPaid(0);
-            alert(`Transaksi Berhasil! Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
+            
+            // 5. Try to sync in background (Phase 6.2 will have a more robust engine)
+            apiClient.checkoutCart(checkoutData)
+                .then(() => db.transactions.update(transactionId, { sync_status: 'SYNCED' }))
+                .catch(err => console.log('Sync will be retried later', err));
+
+            alert(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
         } catch (error) {
             console.error('Checkout failed', error);
-            alert('Transaksi Gagal. Pastikan koneksi internet stabil.');
+            alert('Gagal menyimpan transaksi ke database lokal.');
         } finally {
             setIsCheckingOut(false);
         }
     };
 
     const PosFooter = (
-        <footer className="glass border-t border-white/5 p-4 md:p-6 shrink-0 space-y-4 md:space-y-6">
+        <footer className={`${PerformanceSettings.getGlassClass()} border-t border-white/5 p-4 md:p-6 shrink-0 space-y-4 md:space-y-6`}>
             {/* Payment Method Selector */}
             <div className="space-y-2 md:space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 px-2">Metode Pembayaran</p>
@@ -173,7 +288,7 @@ function App() {
 
             {/* Cash Payment Section */}
             {paymentMethod === 'CASH' && (
-                <div className="space-y-3 animate-in slide-in-from-top-4 duration-300">
+                <div className={`space-y-3 ${PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in slide-in-from-top-4 duration-300"}`}>
                     <div className="flex items-center justify-between px-2">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Uang Bayar (Cash)</p>
                         <div className="flex gap-2">
@@ -228,13 +343,18 @@ function App() {
 
                 <button 
                     onClick={() => handleCheckout(true)}
-                    disabled={isCheckingOut || totalItems === 0}
+                    disabled={isCheckingOut || totalItems === 0 || isSyncing}
                     className="w-full h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-4"
                 >
                     {isCheckingOut ? (
                         <>
                             <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
                             <span>Memproses...</span>
+                        </>
+                    ) : isSyncing ? (
+                         <>
+                            <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
+                            <span>Update Menu...</span>
                         </>
                     ) : (
                         <>
@@ -249,6 +369,24 @@ function App() {
 
     const PosHeaderExtras = (
         <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
+            {/* Sync Status Dot */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
+                !isOnline ? 'bg-red-500/10 border-red-500/20 text-red-500' :
+                isPushing ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
+                pendingSyncCount > 0 ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+            }`}>
+                <div className={`size-2 rounded-full ${
+                    !isOnline ? 'bg-red-500 animate-pulse' :
+                    isPushing ? 'bg-blue-500 animate-spin' :
+                    pendingSyncCount > 0 ? 'bg-amber-500 animate-bounce' :
+                    'bg-emerald-500'
+                }`} />
+                <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">
+                    {!isOnline ? 'Offline' : isPushing ? 'Syncing...' : pendingSyncCount > 0 ? `${pendingSyncCount} Pending` : 'Synced'}
+                </span>
+            </div>
+
             <div className="flex bg-white/5 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
                 <button 
                     onClick={() => setView('pos')}
@@ -268,7 +406,7 @@ function App() {
 
             <button 
                 onClick={() => setIsPrinterSettingsOpen(true)}
-                className="size-8 sm:size-10 glass rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]"
+                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]`}
                 title="Printer Settings"
             >
                 <span className="material-symbols-outlined text-base sm:text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
@@ -330,13 +468,13 @@ function App() {
                             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                                 {isLoading ? (
                                     Array.from({ length: 8 }).map((_, i) => (
-                                        <div key={i} className="glass aspect-[4/5] rounded-[2rem] animate-pulse"></div>
+                                        <div key={i} className={`${PerformanceSettings.getGlassClass()} aspect-[4/5] rounded-[2rem] animate-pulse`}></div>
                                     ))
                                 ) : filteredRecipes.map((item) => (
                                     <div 
                                         key={item.id} 
                                         onClick={() => updateQty(item.id, 1)}
-                                        className="group relative glass rounded-[2rem] overflow-hidden cursor-pointer hover:translate-y--2 transition-all duration-500 border border-white/5 hover:border-primary/30"
+                                        className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer hover:translate-y--2 transition-all duration-500 border border-white/5 hover:border-primary/30`}
                                     >
                                         <div className="aspect-[4/5] relative">
                                             <img 
@@ -368,7 +506,7 @@ function App() {
 
                         {/* Right: Cart Review */}
                         <div className="w-full md:w-2/5 flex flex-col gap-6">
-                            <div className="glass rounded-[2.5rem] p-8 border border-white/5 flex flex-col min-h-[400px] shadow-2xl relative overflow-hidden">
+                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-8 border border-white/5 flex flex-col min-h-[400px] shadow-2xl relative overflow-hidden`}>
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <span className="material-symbols-outlined text-[120px] font-black tracking-tighter">shopping_basket</span>
                                 </div>

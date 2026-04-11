@@ -5,13 +5,13 @@ export declare function useAttendance(filters?: any): {
     isActionLoading: boolean;
     error: Error | null;
     checkIn: import("@tanstack/react-query").UseMutateAsyncFunction<any, Error, {
-        photo?: File | Blob;
+        photo?: string;
         latitude?: number;
         longitude?: number;
         location?: string;
     }, unknown>;
     checkOut: import("@tanstack/react-query").UseMutateAsyncFunction<any, Error, {
-        photo?: File | Blob;
+        photo?: string;
         latitude?: number;
         longitude?: number;
         location?: string;

@@ -1,79 +1,109 @@
 import EscPosEncoder from 'esc-pos-encoder';
-import { openDB } from 'idb';
+import { db, PrinterConfig as _PrTrConf, PrintData as _PrTrData } from './db';
 
-const DB_NAME = 'kerabat-pos-pwa';
-const STORE_NAME = 'print-queue';
-const SETTINGS_STORE = 'print-settings';
 const BRIDGE_URL = 'http://127.0.0.1:3001';
 
-export interface PrinterConfig {
-    id: string;
-    name: string;
-    ip?: string; // Optional for Bluetooth
-    port: number;
-    width: 32 | 48;
-    categories: string[]; // empty means "Main/All"
-    connectionType: 'bridge' | 'bluetooth';
-    bluetoothDeviceName?: string;
-    autoPrint?: boolean;
-}
-
-export interface PrintItem {
-    name: string;
-    quantity: number;
-    price: number;
-    subtotal: number;
-    category?: string;
-}
-
-export interface PrintData {
-    id: string | number;
-    date: string;
-    items: PrintItem[];
-    total: number;
-    paymentMethod: string;
-    amountPaid?: number;
-    changeDue?: number;
-}
+export type PrinterConfig = _PrTrConf;
+export type PrintData = _PrTrData;
 
 export class PrintService {
     private static bluetoothDevice: any = null;
     private static bluetoothCharacteristic: any = null;
-    private static async getDB() {
-        return openDB(DB_NAME, 1, {
-            upgrade(db) {
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                }
-                if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
-                    db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
-                }
-            },
-        });
+    private static isPrinting = false;
+    private static QUEUE_DELAY_MS = 500;
+
+    public static async recover() {
+        console.log('[PrintService] Recovering pending print jobs...');
+        this.startQueueWorker();
     }
 
-    public static async saveSettings(configs: PrinterConfig[]) {
-        const db = await this.getDB();
-        await db.clear(SETTINGS_STORE);
-        for (const config of configs) {
-            await db.put(SETTINGS_STORE, config);
+    private static startQueueWorker() {
+        if (this.isPrinting) return;
+        
+        const worker = async () => {
+            try {
+                await this.processQueue();
+            } catch (err) {
+                console.error('[PrintService] Queue worker error:', err);
+                await this.logDiagnostic('ERROR', 'PrintService', `Queue worker failed: ${String(err)}`);
+            } finally {
+                // Check again in 10 seconds if idle
+                setTimeout(() => {
+                    const pendingCount = db.printQueue.where('status').equals('PENDING').count();
+                    pendingCount.then(c => {
+                        if (c > 0) this.startQueueWorker();
+                        else this.isPrinting = false;
+                    });
+                }, 10000);
+            }
+        };
+        worker();
+    }
+
+    private static async logDiagnostic(level: 'INFO' | 'WARN' | 'ERROR', module: string, message: string) {
+        try {
+            await db.diagnostics.add({
+                level,
+                module,
+                message,
+                timestamp: new Date().toISOString()
+            });
+        } catch (err) {
+            console.error('Print Diagnostic log failed', err);
         }
     }
 
+    public static async saveSettings(configs: PrinterConfig[]) {
+        await db.settings.put({ id: 'printer_configs', value: configs });
+    }
+
     public static async getSettings(): Promise<PrinterConfig[]> {
-        const db = await this.getDB();
-        return db.getAll(SETTINGS_STORE);
+        const entry = await db.settings.get('printer_configs');
+        return entry?.value || [];
     }
 
     public static isBluetoothSupported(): boolean {
-        return typeof window !== 'undefined' && 'bluetooth' in navigator;
+        if (typeof window === 'undefined') return false;
+        const nav = navigator as any;
+        const isNative = (window as any).bluetoothSerial !== undefined;
+        return !!(nav.bluetooth || isNative);
     }
 
     /**
-     * Connects to a Bluetooth printer. Must be called from a user gesture.
+     * Connects to a Bluetooth printer. Supports both Web Bluetooth and Native Android SPP.
      */
     public static async connectBluetooth(forcePopup = false): Promise<string | null> {
         const nav = navigator as any;
+        const btSerial = (window as any).bluetoothSerial;
+
+        // --- NATIVE ANDROID SPP (Capacitor) ---
+        if (btSerial) {
+            return new Promise((resolve, reject) => {
+                btSerial.list((devices: { name: string, address?: string, id?: string }[]) => {
+                    const printer = devices.find(d => 
+                        d.name?.toLowerCase().includes('printer') || 
+                        d.name?.toLowerCase().includes('mpt') ||
+                        d.name?.toLowerCase().includes('bt-') ||
+                        d.name?.toLowerCase().includes('rp')
+                    );
+
+                    if (printer) {
+                        btSerial.connect(printer.address || printer.id, () => {
+                            console.log('[Native] Connected to:', printer.name);
+                            this.bluetoothDevice = printer; // Store for state
+                            resolve(printer.name);
+                        }, (err: any) => {
+                            console.error('[Native] Connection failed:', err);
+                            reject(err);
+                        });
+                    } else {
+                        reject(new Error('No paired Bluetooth printer found. Please pair in Android Settings first.'));
+                    }
+                }, (err: any) => reject(err));
+            });
+        }
+
+        // --- WEB BLUETOOTH (PWA/Chrome) ---
         if (!nav.bluetooth) {
             throw new Error('Bluetooth is not supported in this browser.');
         }
@@ -83,8 +113,7 @@ export class PrintService {
             if (!forcePopup && nav.bluetooth.getDevices) {
                 const devices = await nav.bluetooth.getDevices();
                 if (devices.length > 0) {
-                    // Try to find a device that looks like a printer
-                    const printer = devices.find(d => 
+                    const printer = devices.find((d: any) => 
                         d.name?.toLowerCase().includes('printer') || 
                         d.name?.toLowerCase().includes('mpt') ||
                         d.name?.toLowerCase().includes('bt-') ||
@@ -135,7 +164,6 @@ export class PrintService {
             console.log('Connecting to GATT server...');
             const server = await device.gatt?.connect();
             
-            // Try common printing services
             const serviceUUIDs = [
                 '000018f0-0000-1000-8000-00805f9b34fb',
                 '0000ff00-0000-1000-8000-00805f9b34fb',
@@ -171,35 +199,49 @@ export class PrintService {
     }
 
     private static async sendToBluetooth(buffer: Uint8Array): Promise<boolean> {
+        const btSerial = (window as any).bluetoothSerial;
+
         try {
+            if (btSerial) {
+                return new Promise((resolve) => {
+                    btSerial.isConnected(() => {
+                        this.writeNativeChunks(buffer).then(() => resolve(true)).catch(() => resolve(false));
+                    }, async () => {
+                        try {
+                            const name = await this.connectBluetooth();
+                            if (name) {
+                                await this.writeNativeChunks(buffer);
+                                resolve(true);
+                            } else {
+                                resolve(false);
+                            }
+                        } catch {
+                            resolve(false);
+                        }
+                    });
+                });
+            }
+
             if (!this.bluetoothCharacteristic) {
                 const name = await this.connectBluetooth();
                 if (!name) return false;
             }
 
-            // Standard Bluetooth characteristic write limit is often 20 bytes
-            // Sending too fast can overwhelm the printer's buffer
             const chunkSize = 20;
-            
-            // Add a "Wake Up" sequence: some printers ignore the first few bytes
             const initBuffer = new Uint8Array([0x1b, 0x40, 0x0a]); // Init + LF
             await this.bluetoothCharacteristic.writeValue(initBuffer);
             await this.delay(100);
 
             for (let i = 0; i < buffer.length; i += chunkSize) {
                 const chunk = buffer.slice(i, i + chunkSize);
-                
                 if (this.bluetoothCharacteristic.properties.writeWithoutResponse) {
                     await this.bluetoothCharacteristic.writeValueWithoutResponse(chunk);
                 } else {
                     await this.bluetoothCharacteristic.writeValue(chunk);
                 }
-                
-                // Increased delay to allow the printer to process the chunk (50ms)
                 await this.delay(50);
             }
 
-            // Final flush: ensure data is printed and paper moved
             const flushBuffer = new Uint8Array([0x0a, 0x0a, 0x0a, 0x1d, 0x56, 0x00]); // 3 LF + Cut
             await this.bluetoothCharacteristic.writeValue(flushBuffer);
 
@@ -211,9 +253,25 @@ export class PrintService {
         }
     }
 
-    /**
-     * Test print for a specific configuration
-     */
+    private static async writeNativeChunks(buffer: Uint8Array) {
+        const btSerial = (window as any).bluetoothSerial;
+        const chunkSize = 400; 
+        
+        return new Promise<void>((resolve, reject) => {
+            const sendNextChunk = (index: number) => {
+                if (index >= buffer.length) {
+                    resolve();
+                    return;
+                }
+                const chunk = buffer.slice(index, index + chunkSize);
+                btSerial.write(chunk, () => {
+                    setTimeout(() => sendNextChunk(index + chunkSize), 20);
+                }, (err: any) => reject(err));
+            };
+            sendNextChunk(0);
+        });
+    }
+
     public static async testPrint(config: PrinterConfig): Promise<boolean> {
         const encoder = new EscPosEncoder();
         encoder.initialize()
@@ -239,24 +297,25 @@ export class PrintService {
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
-    /**
-     * Smart routing: Prints the order to all matching printers
-     */
     public static async printOrder(data: PrintData) {
         const settings = await this.getSettings();
         
-        // If no printers configured, try default bridge IP to avoid breaking changes
         if (settings.length === 0) {
-            return this.print(data, '192.168.1.100');
+            // Default bridge fallback
+            await this.enqueuePrintJob(data, { 
+                id: 'default', name: 'Default', connectionType: 'bridge', ip: '127.0.0.1', 
+                port: 9100, width: 32, categories: [], autoPrint: true 
+            });
+            this.startQueueWorker();
+            return;
         }
 
         for (const printer of settings) {
-            if (printer.autoPrint === false) continue; // Skip if autoPrint is explicitly disabled
+            if (printer.autoPrint === false) continue;
 
             let filteredItems = data.items;
             let isPrepTicket = false;
 
-            // If printer has categories, it's a prep ticket (Kitchen/Bar)
             if (printer.categories.length > 0) {
                 filteredItems = data.items.filter(item => 
                     item.category && printer.categories.includes(item.category)
@@ -265,24 +324,71 @@ export class PrintService {
             }
 
             if (filteredItems.length > 0) {
-                const buffer = this.encodeReceipt({ ...data, items: filteredItems }, { 
-                    width: printer.width,
-                    isPrepTicket 
-                });
-                
-                if (printer.connectionType === 'bluetooth') {
-                    await this.sendToBluetooth(buffer);
-                } else {
-                    await this.sendToBridge(buffer, printer.ip || '127.0.0.1');
-                }
+                await this.enqueuePrintJob(data, printer, isPrepTicket);
             }
         }
+        
+        this.startQueueWorker();
     }
 
-    /**
-     * Formats receipt data into ESC/POS binary buffer
-     */
-    public static encodeReceipt(data: PrintData, options: { width: 32 | 48, isPrepTicket?: boolean } = { width: 32 }): Uint8Array {
+    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false) {
+        const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        await db.printQueue.put({
+            id: jobId,
+            data: { ...data, config, isPrepTicket },
+            status: 'PENDING',
+            retry_count: 0,
+            created_at: new Date().toISOString()
+        });
+        console.log(`[PrintService] Enqueued job ${jobId} for ${config.name}`);
+    }
+
+    public static async processQueue() {
+        const pending = await db.printQueue
+            .where('status')
+            .equals('PENDING')
+            .toArray();
+        
+        if (pending.length === 0) {
+            return;
+        }
+
+        this.isPrinting = true;
+
+        for (const job of pending) {
+            const { data, config, isPrepTicket } = job.data as { data: _PrTrData, config: _PrTrConf, isPrepTicket: boolean };
+            const buffer = this.encodeReceipt(data, { 
+                width: config.width,
+                isPrepTicket 
+            });
+
+            console.log(`[PrintService] Processing job ${job.id} for ${config.name}...`);
+            let success = false;
+            
+            if (config.connectionType === 'bluetooth') {
+                success = await this.sendToBluetooth(buffer);
+            } else {
+                success = await this.sendToBridge(buffer, config.ip || '127.0.0.1');
+            }
+
+            if (success) {
+                await db.printQueue.update(job.id, { status: 'DONE' });
+                await db.printQueue.delete(job.id);
+            } else {
+                await db.printQueue.update(job.id, { 
+                    retry_count: job.retry_count + 1,
+                    last_error: 'Connection failed' 
+                });
+            }
+
+            // Phase 8: Inter-job delay to prevent buffer overflow
+            await this.delay(this.QUEUE_DELAY_MS);
+        }
+        
+        this.isPrinting = false;
+    }
+
+    public static encodeReceipt(data: _PrTrData, options: { width: 32 | 48, isPrepTicket?: boolean } = { width: 32 }): Uint8Array {
         const encoder = new EscPosEncoder();
         const { width, isPrepTicket } = options;
 
@@ -301,7 +407,7 @@ export class PrintService {
             .line(`Date:  ${new Date(data.date).toLocaleString('id-ID')}`)
             .line('--------------------------------');
 
-        data.items.forEach((item) => {
+        data.items.forEach((item: any) => {
             const name = item.name.length > (width - 10) ? item.name.substring(0, width - 13) + '...' : item.name;
             const qty = `${item.quantity}x`.padEnd(4);
             
@@ -324,7 +430,7 @@ export class PrintService {
                 .align('left')
                 .line(`Bayar: ${data.paymentMethod}`)
                 .line(`Cash:  Rp ${data.amountPaid?.toLocaleString('id-ID') || 0}`)
-                .line(`Laba:  Rp ${data.changeDue?.toLocaleString('id-ID') || 0}`)
+                .line(`Laba:  Rp ${data.change_due?.toLocaleString('id-ID') || 0}`)
                 .line('--------------------------------')
                 .align('center')
                 .line('Scan untuk Cek Transaksi:')
@@ -336,7 +442,6 @@ export class PrintService {
 
         encoder.newline().newline();
 
-        // Cash Drawer Kick if Cash and NOT a prep ticket
         if (!isPrepTicket && data.paymentMethod === 'CASH') {
             encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
         }
@@ -345,15 +450,7 @@ export class PrintService {
         return encoder.encode();
     }
 
-    /**
-     * Dispatches a print job to the local bridge
-     */
-    public static async print(data: PrintData, printerIp: string): Promise<boolean> {
-        const buffer = this.encodeReceipt(data);
-        return this.sendToBridge(buffer, printerIp, data);
-    }
-
-    private static async sendToBridge(buffer: Uint8Array, printerIp: string, originalData?: PrintData): Promise<boolean> {
+    private static async sendToBridge(buffer: Uint8Array, printerIp: string): Promise<boolean> {
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
 
         try {
@@ -366,31 +463,10 @@ export class PrintService {
                 })
             });
 
-            if (!response.ok) throw new Error('Bridge error');
-            return true;
+            return response.ok;
         } catch (error) {
-            console.error('Printing failed. If using Local Bridge, ensure the bridge app is running on this machine and supports CORS. For mobile/PWA, please use the Bluetooth connection type in Printer Settings.', error);
-            if (originalData) {
-                await this.queueJob({ ...originalData, printerIp });
-            }
+            console.error('Bridge printing failed:', error);
             return false;
-        }
-    }
-
-    private static async queueJob(job: any) {
-        const db = await this.getDB();
-        await db.add(STORE_NAME, { ...job, status: 'pending', timestamp: Date.now() });
-    }
-
-    public static async processQueue(printerIp: string) {
-        const db = await this.getDB();
-        const pending = await db.getAll(STORE_NAME);
-        
-        for (const job of pending) {
-            const success = await this.print(job, printerIp);
-            if (success) {
-                await db.delete(STORE_NAME, job.id);
-            }
         }
     }
 }

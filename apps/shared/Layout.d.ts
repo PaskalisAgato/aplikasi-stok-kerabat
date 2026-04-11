@@ -8,6 +8,11 @@ interface LayoutProps {
     headerExtras?: React.ReactNode;
     footer?: React.ReactNode;
     maxWidth?: string;
+    hideHeader?: boolean;
+    hideTitle?: boolean;
+    onDrawerOpen?: () => void;
+    drawerOpen?: boolean;
+    onDrawerClose?: () => void;
 }
 declare const Layout: React.FC<LayoutProps>;
 export default Layout;

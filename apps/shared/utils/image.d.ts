@@ -14,6 +14,10 @@ export interface CompressionOptions {
  */
 export declare function compressImage(source: File | Blob | string, options?: CompressionOptions): Promise<Blob>;
 /**
+ * Adds a watermark overlay to an image.
+ */
+export declare function addWatermarkToImage(source: Blob | string, userName?: string, location?: string): Promise<Blob>;
+/**
  * Validates if a base64 string is within size limits
  * Returns true if valid, false if too large.
  */

@@ -176,6 +176,7 @@ export const sales = pgTable('sales', {
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     isDeleted: boolean('is_deleted').default(false).notNull(),
+    offlineId: text('offline_id').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),

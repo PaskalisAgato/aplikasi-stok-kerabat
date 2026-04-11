@@ -67,6 +67,8 @@ export const inventory = pgTable('inventory', {
     idealStock: decimal('ideal_stock', { precision: 12, scale: 2 }).notNull().default('0'),
     pricePerUnit: decimal('price_per_unit', { precision: 12, scale: 2 }).notNull().default('0'),
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
+    containerWeight: decimal('container_weight', { precision: 12, scale: 2 }).notNull().default('0'),
+    containerId: integer('container_id').references(() => containers.id), // New: Link to container master
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
@@ -92,6 +94,27 @@ export const stockMovements = pgTable('stock_movements', {
     supplierIdx: index('stock_movements_supplier_idx').on(t.supplierId),
     createdIdx: index('stock_movements_created_at_idx').on(t.createdAt)
 }));
+export const containers = pgTable('containers', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    tareWeight: decimal('tare_weight', { precision: 12, scale: 2 }).notNull(),
+    isLocked: boolean('is_locked').default(false).notNull(),
+    qrCode: text('qr_code').unique(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+export const inventorySnapshots = pgTable('inventory_snapshots', {
+    id: serial('id').primaryKey(),
+    inventoryId: integer('inventory_id').notNull().references(() => inventory.id),
+    grossWeight: decimal('gross_weight', { precision: 12, scale: 2 }).notNull(),
+    tareWeight: decimal('tare_weight', { precision: 12, scale: 2 }).notNull(),
+    netWeight: decimal('net_weight', { precision: 12, scale: 2 }).notNull(),
+    measuredBy: text('measured_by').notNull().references(() => users.id),
+    source: text('source').default('MANUAL').notNull(), // 'MANUAL', 'SCALE', 'QR'
+    timestamp: timestamp('timestamp').defaultNow().notNull()
+}, (t) => ({
+    inventoryIdx: index('snapshots_inventory_idx').on(t.inventoryId),
+    timeIdx: index('snapshots_timestamp_idx').on(t.timestamp)
+}));
 // -----------------------------------------------------------------------------
 // 3. RECIPES & BOM (Bill of Materials)
 // -----------------------------------------------------------------------------
@@ -101,6 +124,7 @@ export const recipes = pgTable('recipes', {
     category: text('category').notNull(),
     price: decimal('price', { precision: 12, scale: 2 }).notNull().default('0'),
     margin: decimal('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
+    overhead: decimal('overhead', { precision: 5, scale: 2 }).notNull().default('10'), // Percentage 0-100
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
@@ -139,6 +163,7 @@ export const sales = pgTable('sales', {
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     isDeleted: boolean('is_deleted').default(false).notNull(),
+    offlineId: text('offline_id').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
@@ -283,6 +308,7 @@ export const todos = pgTable('todos', {
     intervalValue: integer('interval_value'), // e.g., 1 (day), 2 (weeks)
     nextRunAt: timestamp('next_run_at'),
     deadline: timestamp('deadline'),
+    photoUploadMode: text('photo_upload_mode').default('both'),
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
 export const todoCompletions = pgTable('todo_completions', {
@@ -310,6 +336,12 @@ export const todoCompletionsRelations = relations(todoCompletions, ({ one }) => 
         references: [users.id]
     })
 }));
+export const todoSettings = pgTable('todo_settings', {
+    id: serial('id').primaryKey(),
+    settingKey: text('setting_key').notNull().unique(), // e.g., 'photo_upload_mode'
+    settingValue: text('setting_value').notNull(), // 'camera', 'gallery', 'both'
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
 // -----------------------------------------------------------------------------
 // 9. AUDIT LOGS - PRICE & ECONOMY
 // -----------------------------------------------------------------------------

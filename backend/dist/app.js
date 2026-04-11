@@ -19,6 +19,8 @@ import { shiftRoutes } from './routes/shift.routes.js';
 import { attendanceRoutes } from './routes/attendance.routes.js';
 import { todoRoutes } from './routes/todo.routes.js';
 import { adminRouter } from './routes/admin.js';
+import { migrationRouter } from './routes/migration.routes.js';
+import { containersRouter } from './routes/containers.js';
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
 import { UserService } from './services/user.service.js';
@@ -41,8 +43,24 @@ app.use((req, res, next) => {
     next();
 });
 // STRICT CORS
+const ALLOWED_ORIGINS = [
+    "https://aplikasi-stok-kerabat-pos.vercel.app",
+    "https://paskalisagato.github.io",
+    "http://localhost:5186",
+    "http://localhost:5173"
+];
 app.use(cors({
-    origin: "https://aplikasi-stok-kerabat-pos.vercel.app",
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin)
+            return callback(null, true);
+        if (ALLOWED_ORIGINS.indexOf(origin) !== -1 || origin.includes('localhost')) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
@@ -81,8 +99,8 @@ app.use(monitorMiddleware);
 app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
 // 2. Background Tasks (Phase 3)
 setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 // 2. Root Handler (Explicitly Block 60MB Ghost Leaks)
@@ -194,6 +212,8 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/todo', todoRoutes);
 app.use('/api/system', adminRouter);
+app.use('/api/admin', migrationRouter);
+app.use('/api/containers', containersRouter);
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards
 app.all(/^\/api\/auth\/.*/, (req, res) => {

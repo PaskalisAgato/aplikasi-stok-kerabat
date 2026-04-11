@@ -1,21 +1,5 @@
 import { AttendanceService } from '../services/attendance.service.js';
-import fs from 'fs';
-import path from 'path';
-import { resizeImage } from '../utils/image.utils.js';
 export class AttendanceController {
-    static async upload(req, res) {
-        try {
-            if (!req.file)
-                throw new Error('No file uploaded');
-            const filename = req.file.filename;
-            // Process image in background (optional, but here we do it before response for simplicity)
-            await resizeImage(req.file.path, 1200, 70);
-            res.json({ success: true, filename });
-        }
-        catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
     static async getTodayStatus(req, res) {
         try {
             const userId = req.user?.id;
@@ -33,9 +17,9 @@ export class AttendanceController {
             const userId = req.user?.id;
             if (!userId)
                 return res.status(401).json({ error: 'Unauthorized' });
-            const { latitude, longitude, location } = req.body;
-            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
-            const record = await AttendanceService.checkIn(userId, photoPath, {
+            const { latitude, longitude, location, photo } = req.body;
+            // photo is already a Cloudinary URL if uploaded via middleware
+            const record = await AttendanceService.checkIn(userId, photo, {
                 latitude: latitude ? parseFloat(latitude) : undefined,
                 longitude: longitude ? parseFloat(longitude) : undefined,
                 location
@@ -51,9 +35,8 @@ export class AttendanceController {
             const userId = req.user?.id;
             if (!userId)
                 return res.status(401).json({ error: 'Unauthorized' });
-            const { latitude, longitude, location } = req.body;
-            const photoPath = req.file ? `attendance/${req.file.filename}` : undefined;
-            const record = await AttendanceService.checkOut(userId, photoPath, {
+            const { latitude, longitude, location, photo } = req.body;
+            const record = await AttendanceService.checkOut(userId, photo, {
                 latitude: latitude ? parseFloat(latitude) : undefined,
                 longitude: longitude ? parseFloat(longitude) : undefined,
                 location
@@ -88,36 +71,8 @@ export class AttendanceController {
         }
     }
     static async viewOnce(req, res) {
-        try {
-            const filename = req.params.filename;
-            const filePath = path.resolve(process.cwd(), 'uploads', 'attendance', filename);
-            if (!fs.existsSync(filePath)) {
-                return res.status(404).json({ error: 'Foto tidak ditemukan atau sudah dihapus.' });
-            }
-            // Stream and then delete
-            res.sendFile(filePath, async (err) => {
-                if (err) {
-                    console.error('File stream error:', err);
-                }
-                else {
-                    // Success, now delete
-                    try {
-                        // 1. Delete file
-                        fs.unlinkSync(filePath);
-                        console.log(`[ViewOnce] Deleted file: ${filename}`);
-                        // 2. Clear URL in DB
-                        await AttendanceService.clearPhotoUrl(filename);
-                        console.log(`[ViewOnce] Cleared DB URL: ${filename}`);
-                    }
-                    catch (unlinkErr) {
-                        console.error('Failed to cleanup after view:', unlinkErr);
-                    }
-                }
-            });
-        }
-        catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+        // With Cloudinary, we just return the URL, but the frontend should handle redirects.
+        res.status(410).json({ error: 'Endpoint ini sudah tidak digunakan. Foto disimpan di Cloudinary.' });
     }
     static async deleteRecord(req, res) {
         try {

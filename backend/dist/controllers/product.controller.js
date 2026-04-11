@@ -53,7 +53,10 @@ export class ProductController {
             res.json({ success: true, message: 'Produk berhasil diperbarui' });
         }
         catch (error) {
-            console.error("UPDATE ERROR:", error);
+            console.error(`[ProductController.update] Failed for ID ${req.params.id}:`, {
+                error: error.message,
+                body: req.body
+            });
             res.status(500).json({
                 success: false,
                 error: true,

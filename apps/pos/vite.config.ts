@@ -15,8 +15,20 @@ export default defineConfig({
         port: 5186,
         strictPort: true,
     },
-    base: '/',
+    base: './',
     build: {
+        target: ['es2015', 'edge88', 'firefox78', 'chrome87', 'safari14'],
         sourcemap: false,
+        cssCodeSplit: true,
+        chunkSizeWarningLimit: 1000,
+        minify: 'esbuild',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+                    'vendor-ui': ['framer-motion', 'lucide-react'],
+                }
+            }
+        }
     }
 })

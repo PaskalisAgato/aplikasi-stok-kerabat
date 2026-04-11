@@ -74,7 +74,15 @@ export class TransactionService {
     }
     // 3. PROCESS CHECKOUT (CREATE)
     static async processCheckout(data, userId) {
-        const { shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+        // 0. Idempotency Check (Offline ID)
+        if (offlineId) {
+            const existing = await db.select().from(schema.sales).where(eq(schema.sales.offlineId, offlineId)).limit(1);
+            if (existing.length > 0) {
+                console.log(`[Idempotency] Transaction ${offlineId} already exists. Skipping.`);
+                return { success: true, transactionId: existing[0].id, alreadySynced: true };
+            }
+        }
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error('No items in cart');
         }
@@ -94,6 +102,7 @@ export class TransactionService {
             ? parseInt(shiftId.toString())
             : NaN;
         const saleValues = {
+            offlineId: offlineId || null,
             shiftId: !isNaN(parsedShiftId) ? parsedShiftId : sql `NULL`,
             userId,
             subTotal: calculatedSubTotal.toString(),
@@ -320,6 +329,24 @@ export class TransactionService {
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
                 newData: { isDeleted: true },
+                createdAt: new Date()
+            });
+        });
+    }
+    // 6. CLEAR ALL TRANSACTIONS
+    static async clearAllTransactions(adminId) {
+        return await db.transaction(async (tx) => {
+            // SOFT DELETE ALL SALES
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.isDeleted, false));
+            // Log Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: adminId,
+                action: 'CLEAR_ALL_TRANSACTIONS',
+                tableName: 'sales',
+                oldData: 'BATCH_CLEAR',
+                newData: JSON.stringify({ isDeleted: true }),
                 createdAt: new Date()
             });
             return { success: true };

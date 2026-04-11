@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KerabatPOS</string>
+    <string name="title_activity_main">KerabatPOS</string>
+    <string name="package_name">com.kerabat.pos</string>
+    <string name="custom_url_scheme">com.kerabat.pos</string>
+</resources>

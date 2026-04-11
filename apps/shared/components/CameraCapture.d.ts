@@ -8,6 +8,7 @@ interface CameraCaptureProps {
     userName?: string;
     location?: string;
     facingMode?: 'user' | 'environment';
+    showWatermark?: boolean;
 }
 declare const CameraCapture: import("react").ForwardRefExoticComponent<CameraCaptureProps & import("react").RefAttributes<CameraCaptureHandle>>;
 export default CameraCapture;

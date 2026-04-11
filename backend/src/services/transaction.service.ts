@@ -87,7 +87,16 @@ export class TransactionService {
 
     // 3. PROCESS CHECKOUT (CREATE)
     static async processCheckout(data: any, userId: string) {
-        const { shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+
+        // 0. Idempotency Check (Offline ID)
+        if (offlineId) {
+            const existing = await db.select().from(schema.sales).where(eq(schema.sales.offlineId, offlineId)).limit(1);
+            if (existing.length > 0) {
+                console.log(`[Idempotency] Transaction ${offlineId} already exists. Skipping.`);
+                return { success: true, transactionId: existing[0].id, alreadySynced: true };
+            }
+        }
         
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error('No items in cart');
@@ -111,6 +120,7 @@ export class TransactionService {
             : NaN;
 
         const saleValues: any = {
+            offlineId: offlineId || null,
             shiftId: !isNaN(parsedShiftId) ? parsedShiftId : sql`NULL`,
             userId,
             subTotal: calculatedSubTotal.toString(),

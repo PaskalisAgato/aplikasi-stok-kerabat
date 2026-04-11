@@ -35,15 +35,19 @@ export class ProductService {
             ingredients.forEach(ing => {
                 const inv = inventoryItems[ing.ingredientId];
                 if (inv && parseFloat(inv.pricePerUnit) > 0) {
-                    currentHpp += (ing.qty * parseFloat(inv.pricePerUnit));
+                    const price = parseFloat(inv.pricePerUnit);
+                    const isBulk = inv.unit === 'Kg' || inv.unit === 'L';
+                    const pricePerGram = isBulk ? price / 1000 : price;
+                    currentHpp += (ing.qty * pricePerGram);
                 }
             });
             return {
                 ...recipe,
-                imageUrl: undefined, // Omit large Base64
+                imageUrl: (recipe.imageUrl && !recipe.imageUrl.startsWith('data:')) ? recipe.imageUrl : undefined, // Include URL/path, omit large Base64
                 hasImage: !!recipe.imageUrl,
                 price: parseFloat(recipe.price),
                 margin: parseFloat(recipe.margin),
+                overhead: parseFloat(recipe.overhead),
                 hpp: currentHpp > 0 ? currentHpp : 0,
                 ingredients
             };
@@ -59,63 +63,98 @@ export class ProductService {
         return recipe?.imageUrl || null;
     }
     static async createProduct(data) {
-        const { name, category, price, margin, imageUrl, ingredients } = data;
+        const toNumericString = (val) => {
+            if (val === undefined || val === null || val === '')
+                return '0';
+            const num = Number(val);
+            return isNaN(num) ? '0' : num.toString();
+        };
         return await db.transaction(async (tx) => {
-            const [newRecipe] = await tx.insert(schema.recipes).values({
-                name,
-                category,
-                price: price.toString(),
-                margin: margin?.toString() || '0',
-                imageUrl,
-            }).returning();
-            if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients.map((ing) => ({
-                    recipeId: newRecipe.id,
-                    inventoryId: ing.ingredientId,
-                    quantity: ing.qty.toString()
-                }));
-                await tx.insert(schema.recipeIngredients).values(bomInserts);
+            try {
+                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
+                const [newRecipe] = await tx.insert(schema.recipes).values({
+                    name,
+                    category,
+                    price: toNumericString(price),
+                    margin: toNumericString(margin),
+                    overhead: toNumericString(overhead || 10),
+                    imageUrl,
+                }).returning();
+                if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+                    const bomInserts = ingredients
+                        .filter((ing) => ing.ingredientId && ing.qty !== undefined)
+                        .map((ing) => ({
+                        recipeId: newRecipe.id,
+                        inventoryId: ing.ingredientId,
+                        quantity: toNumericString(ing.qty)
+                    }));
+                    if (bomInserts.length > 0) {
+                        await tx.insert(schema.recipeIngredients).values(bomInserts);
+                    }
+                }
+                return newRecipe;
             }
-            return newRecipe;
+            catch (error) {
+                console.error("[ProductService.createProduct] Transaction failed:", error);
+                throw error;
+            }
         });
     }
     static async updateProduct(id, data) {
-        const { name, category, price, margin, imageUrl, ingredients } = data;
+        const toNumericString = (val) => {
+            if (val === undefined || val === null || val === '')
+                return null;
+            const num = Number(val);
+            return isNaN(num) ? '0' : num.toString();
+        };
         return await db.transaction(async (tx) => {
-            // 1. Update main recipe data
-            const updatePayload = {
-                name,
-                category,
-                imageUrl,
-            };
-            // Defensive check for mandatory numeric fields
-            if (price !== undefined && price !== null) {
-                updatePayload.price = price.toString();
-            }
-            if (margin !== undefined && margin !== null) {
-                updatePayload.margin = margin.toString();
-            }
-            await tx.update(schema.recipes)
-                .set(updatePayload)
-                .where(eq(schema.recipes.id, id));
-            // 2. Refresh Ingredients (BOM)
-            // Delete existing ingredients for this recipe
-            await tx.delete(schema.recipeIngredients)
-                .where(eq(schema.recipeIngredients.recipeId, id));
-            // Insert new ingredients if provided
-            if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
-                const bomInserts = ingredients
-                    .filter((ing) => ing.ingredientId && ing.qty !== undefined)
-                    .map((ing) => ({
-                    recipeId: id,
-                    inventoryId: ing.ingredientId,
-                    quantity: ing.qty.toString()
-                }));
-                if (bomInserts.length > 0) {
-                    await tx.insert(schema.recipeIngredients).values(bomInserts);
+            try {
+                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
+                // 1. Update main recipe data
+                const updatePayload = {};
+                if (name)
+                    updatePayload.name = name;
+                if (category)
+                    updatePayload.category = category;
+                if (imageUrl !== undefined)
+                    updatePayload.imageUrl = imageUrl;
+                const priceStr = toNumericString(price);
+                if (priceStr !== null)
+                    updatePayload.price = priceStr;
+                const marginStr = toNumericString(margin);
+                if (marginStr !== null)
+                    updatePayload.margin = marginStr;
+                const overheadStr = toNumericString(overhead);
+                if (overheadStr !== null)
+                    updatePayload.overhead = overheadStr;
+                if (Object.keys(updatePayload).length > 0) {
+                    await tx.update(schema.recipes)
+                        .set(updatePayload)
+                        .where(eq(schema.recipes.id, id));
                 }
+                // 2. Refresh Ingredients (BOM)
+                // Delete existing ingredients for this recipe
+                await tx.delete(schema.recipeIngredients)
+                    .where(eq(schema.recipeIngredients.recipeId, id));
+                // Insert new ingredients if provided
+                if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+                    const bomInserts = ingredients
+                        .filter((ing) => ing.ingredientId && (ing.qty !== undefined && ing.qty !== null))
+                        .map((ing) => ({
+                        recipeId: id,
+                        inventoryId: ing.ingredientId,
+                        quantity: toNumericString(ing.qty) || '0'
+                    }));
+                    if (bomInserts.length > 0) {
+                        await tx.insert(schema.recipeIngredients).values(bomInserts);
+                    }
+                }
+                return { success: true };
             }
-            return { success: true };
+            catch (error) {
+                console.error(`[ProductService.updateProduct] Transaction failed for ID ${id}:`, error);
+                throw error;
+            }
         });
     }
     static async deleteProduct(id) {

@@ -33,19 +33,59 @@ export interface ApiResponse<T> {
  */
 export declare function apiFetch<T = unknown>(path: string, init?: RequestInit, asBlob?: boolean, retries?: number): Promise<T>;
 export declare const apiClient: {
-    getInventory: (limit?: number, offset?: number, search?: string, status?: string, ids?: string, signal?: AbortSignal) => Promise<ApiResponse<any>>;
+    getInventory: (limit?: number, offset?: number, search?: string, status?: string, category?: string, ids?: string, signal?: AbortSignal) => Promise<ApiResponse<any>>;
     getInventoryItem: (id: number) => Promise<any>;
     getInventoryPriceLogs: (id: number) => Promise<ApiResponse<any>>;
     exportInventoryExcel: () => Promise<Blob>;
-    getItemMovements: (id: number) => Promise<ApiResponse<any>>;
-    addInventoryItem: (data: unknown) => Promise<any>;
-    updateInventoryItem: (id: number, data: unknown) => Promise<any>;
+    addInventoryItem: (data: {
+        name: string;
+        category: string;
+        unit: string;
+        minStock: string;
+        idealStock?: string;
+        pricePerUnit?: string;
+        discountPrice?: string;
+        containerWeight?: string;
+        containerId?: number;
+        currentStock?: string | number;
+        physicalStock?: string | number;
+        imageUrl?: string;
+    }) => Promise<ApiResponse<any>>;
+    updateInventoryItem: (id: number, data: {
+        name?: string;
+        category?: string;
+        unit?: string;
+        minStock?: string;
+        idealStock?: string;
+        pricePerUnit?: string;
+        discountPrice?: string;
+        containerWeight?: string;
+        containerId?: number;
+        currentStock?: string | number;
+        physicalStock?: string | number;
+        imageUrl?: string;
+        version?: string;
+    }) => Promise<ApiResponse<any>>;
     submitOpname: (adjustments: unknown[]) => Promise<any>;
     recordStockMovement: (inventoryId: number, data: unknown) => Promise<any>;
     getWasteSummary: () => Promise<any>;
     getStockInHistory: () => Promise<ApiResponse<any>>;
     getItemWaste: (id: number) => Promise<ApiResponse<any>>;
     deleteInventoryItem: (id: number) => Promise<any>;
+    getContainers: () => Promise<ApiResponse<any>>;
+    getContainer: (id: number) => Promise<ApiResponse<any>>;
+    createContainer: (data: {
+        name: string;
+        tareWeight: number | string;
+        qrCode?: string;
+    }) => Promise<ApiResponse<any>>;
+    updateContainer: (id: number, data: {
+        name?: string;
+        tareWeight?: number | string;
+        isLocked?: boolean;
+        qrCode?: string;
+    }) => Promise<ApiResponse<any>>;
+    deleteContainer: (id: number) => Promise<ApiResponse<any>>;
     getRecipes: () => Promise<ApiResponse<any>>;
     getProducts: () => Promise<ApiResponse<any>>;
     createRecipe: (data: unknown) => Promise<any>;
@@ -55,6 +95,7 @@ export declare const apiClient: {
     getTransactionById: (id: number) => Promise<any>;
     checkoutCart: (checkoutData: unknown) => Promise<any>;
     updateTransaction: (id: number, data: unknown) => Promise<any>;
+    clearTransactions: () => Promise<any>;
     deleteTransaction: (id: number) => Promise<any>;
     getFinanceReports: () => Promise<any>;
     getExpenses: (limit?: number, offset?: number) => Promise<ApiResponse<any>>;
@@ -67,6 +108,8 @@ export declare const apiClient: {
     addExpenseCategory: (data: unknown) => Promise<any>;
     deleteExpenseCategory: (id: number) => Promise<any>;
     getHPPAnalysis: () => Promise<ApiResponse<any>>;
+    getExpensePhoto: (id: number) => Promise<any>;
+    getRecipePhoto: (id: number) => Promise<any>;
     getAllShifts: () => Promise<ApiResponse<any>>;
     getMyShifts: () => Promise<ApiResponse<any>>;
     createShift: (data: unknown) => Promise<any>;
@@ -75,19 +118,21 @@ export declare const apiClient: {
     exportShiftTemplate: () => Promise<Blob>;
     exportSchedule: (data: any) => Promise<Blob>;
     getTodayAttendance: () => Promise<any>;
-    checkIn: (formData?: FormData) => Promise<any>;
-    checkOut: (formData?: FormData) => Promise<any>;
+    checkIn: (data?: any) => Promise<any>;
+    checkOut: (data?: any) => Promise<any>;
     getAttendanceHistory: (params: Record<string, string>) => Promise<ApiResponse<any>>;
     deleteAttendanceByRange: (startDate: string, endDate: string) => Promise<any>;
     deleteAttendance: (id: string | number) => Promise<any>;
-    getAttendancePhoto: (filename: string) => Promise<Blob>;
     getTodos: () => Promise<ApiResponse<any>>;
     createTodo: (data: unknown) => Promise<any>;
     updateTodo: (id: number, data: unknown) => Promise<any>;
     deleteTodo: (id: number) => Promise<any>;
-    completeTodo: (id: number, photoProof: string) => Promise<any>;
-    getTodoHistory: () => Promise<ApiResponse<any>>;
+    completeTodo: (id: number, photoProof: string | string[]) => Promise<any>;
+    getTodoHistory: (page?: number, limit?: number) => Promise<ApiResponse<any>>;
     clearTodoHistory: () => Promise<any>;
+    getTodoPhoto: (id: number, type?: "todo" | "completion") => Promise<any>;
+    getTodoSettings: () => Promise<any>;
+    updateTodoSetting: (key: string, value: string) => Promise<any>;
     getSystemStats: () => Promise<any>;
     getBackups: () => Promise<ApiResponse<any>>;
     triggerBackup: () => Promise<any>;

@@ -15,6 +15,13 @@
       "when": 1774341867456,
       "tag": "0001_premium_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775586137784,
+      "tag": "0002_acoustic_timeslip",
+      "breakpoints": true
     }
   ]
 }

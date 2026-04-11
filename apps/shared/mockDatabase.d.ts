@@ -14,6 +14,7 @@ export interface InventoryItem {
     status: 'NORMAL' | 'KRITIS' | 'HABIS';
     pricePerUnit: number;
     imageUrl?: string;
+    hasImage?: boolean;
 }
 export interface Expense {
     id: number;
@@ -22,6 +23,8 @@ export interface Expense {
     date: string;
     amount: number;
     imageUrl?: string;
+    receiptUrl?: string;
+    hasReceipt?: boolean;
 }
 export interface Employee {
     id: number;
@@ -45,8 +48,10 @@ export interface Recipe {
     hpp: number;
     price: number;
     margin: number;
+    overhead: number;
     ingredients: RecipeIngredient[];
     imageUrl?: string;
+    hasImage?: boolean;
 }
 export declare const INVENTORY: InventoryItem[];
 export declare const EXPENSES: Expense[];

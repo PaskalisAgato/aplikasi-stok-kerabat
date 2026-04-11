@@ -3,6 +3,7 @@ import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
+import { db } from '@shared/services/db';
 
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
@@ -87,15 +88,12 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to load inventory', error);
-      let cached: BahanBaku[] = [];
-      try {
-        const raw = localStorage.getItem('inventory');
-        cached = raw ? JSON.parse(raw) : [];
-      } catch {
-        localStorage.removeItem('inventory');
+      const cached = await db.inventoryCache.toArray();
+      if (cached.length > 0) {
+        setInventoryList(cached as any);
+      } else {
+          setIsError(true);
       }
-      setInventoryList(cached);
-      if (cached.length === 0) setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -113,20 +111,27 @@ function App() {
     }
   };
 
-  // Persist successful inventory data to localStorage as a cache
+  // Persist successful inventory data to Dexie as a cache
   useEffect(() => {
     if (inventoryList.length > 0) {
-      try {
-        localStorage.setItem('inventory', JSON.stringify(inventoryList));
-      } catch {
-        // Quota exceeded – ignore
-      }
+      db.inventoryCache.bulkPut(inventoryList.map(item => ({
+          ...item,
+          updatedAt: new Date().toISOString()
+      })));
     }
   }, [inventoryList]);
 
   useEffect(() => {
+    // Phase 7: Use SyncEngine for automated pulling & recovery
+    syncEngine.start();
+    syncEngine.pullInventory();
+
     fetchInventory(false);
     fetchLowStockAlerts();
+
+    return () => {
+      syncEngine.stop();
+    };
   }, [filterType, searchQuery, filterCategory]);
 
   const filteredInventory = inventoryList;
