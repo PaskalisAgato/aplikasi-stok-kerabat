@@ -1,4 +1,5 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
+import { useKeyboardCashier } from './hooks/useKeyboardCashier';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getOptimizedImageUrl } from '@shared/supabase';
@@ -39,11 +40,11 @@ function useDebounce<T>(value: T, delay: number): T {
     return debouncedValue;
 }
 
-const MemoizedProductCard = memo(({ item, saleCount, onUpdateQty }: { item: Recipe, saleCount: number, onUpdateQty: (id: number, delta: number) => void }) => {
+const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty }: { item: Recipe, saleCount: number, isHighlighted: boolean, onUpdateQty: (id: number, delta: number) => void }) => {
     return (
         <div 
             onClick={() => onUpdateQty(item.id, 1)}
-            className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer hover:translate-y--2 transition-all duration-500 border border-white/5 hover:border-primary/30`}
+            className={`group relative ${PerformanceSettings.getGlassClass()} rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 border ${isHighlighted ? 'border-primary ring-4 ring-primary/50 scale-[1.03] shadow-xl shadow-primary/30 z-10' : 'border-white/5 hover:border-primary/30 hover:translate-y--2'}`}
         >
             <div className="aspect-[4/5] relative">
                 <img 
@@ -70,7 +71,7 @@ const MemoizedProductCard = memo(({ item, saleCount, onUpdateQty }: { item: Reci
             </div>
         </div>
     );
-}, (prev, next) => prev.item.id === next.item.id && prev.saleCount === next.saleCount);
+}, (prev, next) => prev.item.id === next.item.id && prev.saleCount === next.saleCount && prev.isHighlighted === next.isHighlighted);
 
 const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void }) => {
     return (
@@ -210,6 +211,8 @@ function App() {
         db.cart.put({ id: 'current_cart', items: cartItems, updatedAt: new Date().toISOString() });
     }, [sales]);
 
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     const filteredRecipes = useMemo(() => items.filter((r) => {
@@ -226,6 +229,44 @@ function App() {
             [id]: Math.max(0, (prev[id] || 0) + delta)
         }));
     }, []);
+
+    // --- PHASE 9: KEYBOARD-FIRST CASHIER UX ---
+    // Handle Checkout directly
+    const triggerCheckout = useCallback(() => {
+        const _sales = Object.values(sales).reduce((a, b) => a + b, 0);
+        if (_sales > 0) {
+            const btn = document.getElementById('btn-checkout');
+            if (btn) btn.click();
+        }
+    }, [sales]);
+
+    const { highlightedIndex, setHighlightedIndex } = useKeyboardCashier({
+        maxIndex: filteredRecipes.length,
+        onSearchFocus: () => {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+                // Select all text for easy replacement
+                searchInputRef.current.select();
+            }
+        },
+        onCheckout: triggerCheckout,
+        onClearCart: () => {
+            if (confirm('Apakah Anda yakin ingin mereset keranjang? (Ctrl+Delete)')) {
+                setSales({});
+                if (searchInputRef.current) searchInputRef.current.focus();
+            }
+        },
+        onAddHighlightedItem: (index) => {
+            if (filteredRecipes[index]) {
+                updateQty(filteredRecipes[index].id, 1);
+            }
+        }
+    });
+
+    // Reset highlighted index when filtering
+    useEffect(() => {
+        setHighlightedIndex(-1);
+    }, [debouncedSearchTerm, selectedCategory, setHighlightedIndex]);
 
     const totalSalesValue = Object.entries(sales).reduce((total, [id, qty]) => {
         const recipe = items.find((r) => r.id === parseInt(id));
@@ -415,26 +456,30 @@ function App() {
                 </div>
 
                 <button 
+                    id="btn-checkout"
                     onClick={() => handleCheckout(true)}
                     disabled={isCheckingOut || totalItems === 0 || isSyncing}
-                    className="w-full h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex items-center justify-center gap-4"
+                    className="w-full h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex flex-col items-center justify-center gap-1"
                 >
-                    {isCheckingOut ? (
-                        <>
-                            <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
-                            <span>Memproses...</span>
-                        </>
-                    ) : isSyncing ? (
-                         <>
-                            <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
-                            <span>Update Menu...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="material-symbols-outlined text-3xl font-black">shopping_bag</span>
-                            <span>Checkout</span>
-                        </>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {isCheckingOut ? (
+                            <>
+                                <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
+                                <span>Memproses...</span>
+                            </>
+                        ) : isSyncing ? (
+                             <>
+                                <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
+                                <span>Update Menu...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="material-symbols-outlined text-3xl font-black">shopping_bag</span>
+                                <span>Checkout</span>
+                            </>
+                        )}
+                    </div>
+                    <span className="text-[10px] font-black opacity-50 hidden md:block">Atau tekan Ctrl + Enter</span>
                 </button>
             </div>
         </footer>
@@ -529,8 +574,9 @@ function App() {
                                 <div className="w-full sm:w-64 relative group">
                                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
                                     <input 
+                                        ref={searchInputRef}
                                         type="text" 
-                                        placeholder="Cari Menu..." 
+                                        placeholder="Cari Menu... (Tekan '/')" 
                                         className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -543,11 +589,12 @@ function App() {
                                     Array.from({ length: 8 }).map((_, i) => (
                                         <div key={i} className={`${PerformanceSettings.getGlassClass()} aspect-[4/5] rounded-[2rem] animate-pulse`}></div>
                                     ))
-                                ) : filteredRecipes.map((item) => (
+                                ) : filteredRecipes.map((item, index) => (
                                         <MemoizedProductCard 
                                             key={item.id} 
                                             item={item} 
                                             saleCount={sales[item.id] || 0} 
+                                            isHighlighted={index === highlightedIndex}
                                             onUpdateQty={updateQty} 
                                         />
                                 ))}
