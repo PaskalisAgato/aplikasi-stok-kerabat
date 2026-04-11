@@ -246,6 +246,18 @@ export class PrintService {
         }
     }
 
+    public static async pulseDrawer(config: PrinterConfig): Promise<boolean> {
+        const encoder = new EscPosEncoder();
+        encoder.initialize().raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+        const buffer = encoder.encode();
+        
+        if (config.connectionType === 'bluetooth') {
+            await this.connectBluetooth();
+            return this.sendToBluetooth(buffer);
+        }
+        return this.sendToBridge(buffer, config.ip || '127.0.0.1');
+    }
+
     private static async writeNativeChunks(buffer: Uint8Array) {
         const btSerial = (window as any).bluetoothSerial;
         const chunkSize = 400; 

@@ -276,17 +276,9 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                             {printer.openCashDrawer && (
                                 <button 
                                     onClick={async () => {
-                                        // Specific pulse test
-                                        const encoder = new (await import('esc-pos-encoder')).default();
-                                        encoder.initialize().raw([0x1b, 0x70, 0x00, 0x19, 0xfa]).encode();
-                                        const buffer = encoder.encode();
-                                        if (printer.connectionType === 'bluetooth') {
-                                            await PrintService.connectBluetooth();
-                                            (PrintService as any).sendToBluetooth(buffer);
-                                        } else {
-                                            (PrintService as any).sendToBridge(buffer, printer.ip);
-                                        }
-                                        alert('Pesan buka laci dikirim');
+                                        const success = await PrintService.pulseDrawer(printer);
+                                        if (success) alert('Perintah buka laci dikirim');
+                                        else alert('Gagal mengirim perintah. Cek koneksi.');
                                     }}
                                     className="px-4 py-3 rounded-xl border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:bg-emerald-500/5 transition-all flex items-center justify-center gap-2"
                                 >
