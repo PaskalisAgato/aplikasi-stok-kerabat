@@ -566,4 +566,55 @@ export class TransactionService {
             return { success: true };
         });
     }
+
+    // 7. MERGE TWO BILLS (Gabung Meja)
+    static async mergeBills(sourceId: number, targetId: number, userId: string) {
+        return await db.transaction(async (tx: any) => {
+            // 1. Fetch both bills
+            const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+            const targetBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, targetId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+
+            if (sourceBillArr.length === 0) throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
+            if (targetBillArr.length === 0) throw new Error('Bill tujuan tidak ditemukan atau sudah dibayar');
+
+            const sourceBill = sourceBillArr[0];
+            const targetBill = targetBillArr[0];
+
+            // 2. Move items from source to target
+            await tx.update(schema.saleItems)
+                .set({ saleId: targetId })
+                .where(eq(schema.saleItems.saleId, sourceId));
+
+            // 3. Recalculate totals for target bill
+            const allItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, targetId));
+            const newSubTotal = allItems.reduce((acc: number, item: any) => acc + parseFloat(item.subtotal), 0).toString();
+            
+            // 4. Update Target Bill
+            const combinedInfo = `${targetBill.customerInfo}, ${sourceBill.customerInfo}`;
+            await tx.update(schema.sales)
+                .set({
+                    subTotal: newSubTotal,
+                    totalAmount: newSubTotal, // Assuming no tax for now as per schema defaults
+                    customerInfo: combinedInfo,
+                })
+                .where(eq(schema.sales.id, targetId));
+
+            // 5. Soft Delete Source Bill
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.id, sourceId));
+
+            // 6. Log Audit
+            await tx.insert(schema.auditLogs).values({
+                userId,
+                action: 'MERGE_BILLS',
+                tableName: 'sales',
+                oldData: JSON.stringify({ sourceId, targetId, sourceInfo: sourceBill.customerInfo, targetInfo: targetBill.customerInfo }),
+                newData: JSON.stringify({ mergedId: targetId, newTotal: newSubTotal, newInfo: combinedInfo }),
+                createdAt: new Date()
+            });
+
+            return { success: true, targetId, newTotal: newSubTotal, newInfo: combinedInfo };
+        });
+    }
 }

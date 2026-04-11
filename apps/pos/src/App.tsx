@@ -109,6 +109,8 @@ function App() {
     const [openBills, setOpenBills] = useState<any[]>([]);
     const [currentBillId, setCurrentBillId] = useState<string | number | null>(null);
     const [customerInfo, setCustomerInfo] = useState('');
+    const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+    const [sourceBillToMerge, setSourceBillToMerge] = useState<any>(null);
 
     const fetchRecipes = async () => {
         try {
@@ -484,6 +486,41 @@ function App() {
         }
     };
 
+    const handleMergeClick = (e: React.MouseEvent, bill: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSourceBillToMerge(bill);
+        setIsMergeModalOpen(true);
+    };
+
+    const performMerge = async (targetBill: any) => {
+        if (!sourceBillToMerge) return;
+        if (!confirm(`Gabungkan bill "${sourceBillToMerge.customerInfo}" ke dalam bill "${targetBill.customerInfo}"?`)) return;
+        
+        setIsCheckingOut(true);
+        try {
+            await apiClient.mergeBills(sourceBillToMerge.id, targetBill.id);
+            alert('Bill berhasil digabungkan!');
+            setIsMergeModalOpen(false);
+            setSourceBillToMerge(null);
+            
+            // Refresh
+            const response = await apiClient.get('/transactions/open-bills') as any;
+            if (response && response.data) setOpenBills(response.data);
+            
+            // If current bill was the source, clear it
+            if (currentBillId === sourceBillToMerge.id) {
+                setCurrentBillId(null);
+                setCustomerInfo('');
+                setSales({});
+            }
+        } catch (error: any) {
+            alert('Gagal menggabungkan bill: ' + error.message);
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
+
     const PosFooter = (
         <footer className={`${PerformanceSettings.getGlassClass()} border-t border-white/5 p-4 md:p-6 shrink-0 space-y-4 md:space-y-6`}>
             {/* Payment Method Selector */}
@@ -705,6 +742,13 @@ function App() {
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">delete</span>
                                             </button>
+                                            <button 
+                                                onClick={(e) => handleMergeClick(e, bill)}
+                                                className="absolute top-1 right-9 size-7 rounded-lg flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all active:scale-95 shadow-lg shadow-primary/10 z-30"
+                                                title="Gabung Meja"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">call_merge</span>
+                                            </button>
                                             <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-0.5">Meja / Nama</p>
                                             <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
                                             <p className="text-[10px] font-black text-primary mt-2">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
@@ -848,6 +892,56 @@ function App() {
                 isOpen={isPrinterSettingsOpen}
                 onClose={() => setIsPrinterSettingsOpen(false)}
             />
+
+            {/* MERGE MODAL */}
+            {isMergeModalOpen && sourceBillToMerge && (
+                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
+                        <header className="glass p-6 flex justify-between items-center border-b border-white/5">
+                            <div>
+                                <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">Gabung Meja</h3>
+                                <p className="text-xs text-primary font-bold mt-1">Pilih meja tujuan untuk: {sourceBillToMerge.customerInfo}</p>
+                            </div>
+                            <button onClick={() => setIsMergeModalOpen(false)} className="size-10 rounded-xl glass hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </header>
+                        
+                        <div className="p-6 overflow-y-auto space-y-3 flex-1 custom-scrollbar">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2">Daftar Meja Aktif Lainnya</p>
+                            {openBills.filter(b => b.id !== sourceBillToMerge.id).length === 0 ? (
+                                <div className="text-center py-10 opacity-30">
+                                    <span className="material-symbols-outlined text-4xl mb-2">info</span>
+                                    <p className="text-xs font-black uppercase tracking-widest">Tidak ada meja lain untuk digabung</p>
+                                </div>
+                            ) : (
+                                openBills.filter(b => b.id !== sourceBillToMerge.id).map(bill => (
+                                    <div 
+                                        key={bill.id}
+                                        onClick={() => performMerge(bill)}
+                                        className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary cursor-pointer transition-all group flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <p className="text-[11px] font-black text-[var(--text-main)] uppercase">{bill.customerInfo}</p>
+                                            <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                        </div>
+                                        <span className="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-all font-black">login</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        
+                        <footer className="glass p-6 border-t border-white/5 flex justify-end shrink-0">
+                            <button 
+                                onClick={() => setIsMergeModalOpen(false)}
+                                className="px-6 py-3 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
+                            >
+                                Batal
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 }

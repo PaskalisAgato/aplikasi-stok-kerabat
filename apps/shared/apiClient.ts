@@ -287,6 +287,7 @@ export const apiClient = {
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
     getOpenBills: () => apiFetch<ApiResponse<any>>('/transactions/open-bills'),
     addItemsToBill: (id: number | string, items: any[]) => apiFetch<any>(`/transactions/${id}/add-items`, { method: 'POST', body: JSON.stringify({ items }) }),
+    mergeBills: (sourceId: number | string, targetId: number | string) => apiFetch<any>('/transactions/merge', { method: 'POST', body: JSON.stringify({ sourceId, targetId }) }),
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     clearTransactions: () => apiFetch<any>('/transactions/clear', { method: 'DELETE' }),
     deleteTransaction: (id: number) => apiFetch<any>(`/transactions/${id}`, { method: 'DELETE' }),

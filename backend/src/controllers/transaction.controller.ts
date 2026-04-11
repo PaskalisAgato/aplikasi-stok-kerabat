@@ -115,4 +115,21 @@ export class TransactionController {
             res.status(500).json({ success: false, message: 'Gagal menghapus riwayat transaksi' });
         }
     }
+
+    static async merge(req: Request, res: Response) {
+        try {
+            const { sourceId, targetId } = req.body;
+            const userId = (req as any).user?.id || 'anonymous';
+
+            if (!sourceId || !targetId) {
+                return res.status(400).json({ success: false, message: 'Source ID and Target ID are required' });
+            }
+
+            const result = await TransactionService.mergeBills(parseInt(sourceId), parseInt(targetId), userId);
+            res.json({ success: true, message: 'Bill berhasil digabungkan', data: result });
+        } catch (error: any) {
+            console.error('--- TransactionController.merge ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal menggabungkan bill: ' + error.message });
+        }
+    }
 }
