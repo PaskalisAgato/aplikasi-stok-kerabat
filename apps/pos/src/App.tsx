@@ -659,10 +659,10 @@ function App() {
                                         >
                                             <button 
                                                 onClick={(e) => handleDeleteBill(e, bill)}
-                                                className="absolute top-1 right-1 size-6 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 text-[10px] hover:text-white"
+                                                className="absolute top-1 right-1 size-7 rounded-lg flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10 z-30"
                                                 title="Hapus Bill"
                                             >
-                                                <span className="material-symbols-outlined text-xs">delete</span>
+                                                <span className="material-symbols-outlined text-[18px]">delete</span>
                                             </button>
                                             <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-0.5">Meja / Nama</p>
                                             <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
