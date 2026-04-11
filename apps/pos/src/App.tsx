@@ -190,7 +190,7 @@ function App() {
         const fetchOpenBills = async () => {
             try {
                 const response = await apiClient.get('/transactions/open-bills') as any;
-                if (response.success) setOpenBills(response.data);
+                if (response && response.data) setOpenBills(response.data);
             } catch (error) {
                 console.error('Failed to fetch open bills');
             }
@@ -413,7 +413,7 @@ function App() {
             
             // Refresh open bills
             const response = await apiClient.get('/transactions/open-bills') as any;
-            if (response.success) setOpenBills(response.data);
+            if (response && response.data) setOpenBills(response.data);
         } catch (error) {
             alert('Gagal menyimpan bill');
         } finally {
@@ -618,7 +618,34 @@ function App() {
         >
             <div className="space-y-8">
                 {view === 'pos' && (
-                    <div className="flex flex-col md:flex-row landscape:flex-row gap-6 md:gap-10 h-full">
+                    <>
+                        {/* SECTION: OPEN BILLS (TOP PRIORITY) */}
+                        {openBills.length > 0 && !currentBillId && (
+                            <div className="bg-primary/5 border border-primary/20 p-4 rounded-3xl space-y-4">
+                                <div className="flex items-center justify-between px-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary">receipt_long</span>
+                                        <h3 className="font-black uppercase tracking-tighter text-sm text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
+                                    </div>
+                                    <span className="bg-primary text-slate-950 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg shadow-primary/20">{openBills.length} Meja</span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    {openBills.map(bill => (
+                                        <div 
+                                            key={bill.id}
+                                            onClick={() => loadBill(bill)}
+                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden shadow-sm"
+                                        >
+                                            <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-0.5">Meja / Nama</p>
+                                            <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
+                                            <p className="text-[10px] font-black text-primary mt-2">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col md:flex-row landscape:flex-row gap-6 md:gap-10 h-full">
                         {/* Left: Input & Menu */}
                         <div className="w-full md:w-3/5 landscape:w-3/5 space-y-8">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -722,7 +749,8 @@ function App() {
                             </div>
                         </div>
                     </div>
-                )}
+                </>
+            )}
 
                 {view === 'history' && (
                     <TransactionHistory onBack={() => setView('pos')} />
@@ -734,35 +762,6 @@ function App() {
                         onClose={() => setView('pos')} 
                         isFullPage={true} 
                     />
-                )}
-
-                {/* MODAL: OPEN BILLS */}
-                {openBills.length > 0 && view === 'pos' && !currentBillId && (
-                    <div className="mt-8 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-black uppercase tracking-tighter text-sm text-[var(--text-main)]">Daftar Bill Aktif</h3>
-                            <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-black uppercase">{openBills.length} Bill</span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {openBills.map(bill => (
-                                <div 
-                                    key={bill.id}
-                                    onClick={() => loadBill(bill)}
-                                    className="bg-[var(--glass-bg)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden"
-                                >
-                                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-20 transition-opacity">
-                                        <span className="material-symbols-outlined text-4xl">receipt_long</span>
-                                    </div>
-                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Meja / Nama</p>
-                                    <p className="text-sm font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
-                                    <div className="mt-3 pt-3 border-t border-[var(--border-dim)] flex items-center justify-between">
-                                        <p className="text-[10px] font-black text-[var(--text-main)]">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
-                                        <span className="material-symbols-outlined text-xs text-primary">arrow_forward</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
                 )}
             </div>
 
