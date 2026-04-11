@@ -1,8 +1,7 @@
-import React, { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
 import { useKeyboardCashier } from './hooks/useKeyboardCashier';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
-import { getOptimizedImageUrl } from '@shared/supabase';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
