@@ -107,6 +107,9 @@ function App() {
     const [isSyncing, setIsSyncing] = useState(false);
     const [isPushing, setIsPushing] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [openBills, setOpenBills] = useState<any[]>([]);
+    const [currentBillId, setCurrentBillId] = useState<string | number | null>(null);
+    const [customerInfo, setCustomerInfo] = useState('');
 
     const fetchRecipes = async () => {
         try {
@@ -183,6 +186,17 @@ function App() {
         const handleOffline = () => setIsOnline(false);
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
+
+        // Fetch Open Bills
+        const fetchOpenBills = async () => {
+            try {
+                const response = await apiClient.get('/transactions/open-bills') as any;
+                if (response.success) setOpenBills(response.data);
+            } catch (error) {
+                console.error('Failed to fetch open bills');
+            }
+        };
+        fetchOpenBills();
 
         return () => {
             window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
@@ -351,17 +365,72 @@ function App() {
             setAmountPaid(0);
             
             // 5. Try to sync in background (Phase 6.2 will have a more robust engine)
-            apiClient.checkoutCart(checkoutData)
+            // 5. Try to sync in background (Phase 6.2 will have a more robust engine)
+            const payload = { ...checkoutData, status: 'PAID', customerInfo };
+            apiClient.post('/transactions', payload)
                 .then(() => db.transactions.update(transactionId, { sync_status: 'SYNCED' }))
                 .catch(err => console.log('Sync will be retried later', err));
 
             alert(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
+            setCustomerInfo('');
+            setCurrentBillId(null);
         } catch (error) {
             console.error('Checkout failed', error);
             alert('Gagal menyimpan transaksi ke database lokal.');
         } finally {
             setIsCheckingOut(false);
         }
+    };
+
+    const handleSaveBill = async () => {
+        if (!customerInfo) {
+            const table = prompt('Masukkan Nomor Meja / Nama Pelanggan:');
+            if (!table) return;
+            setCustomerInfo(table);
+        }
+
+        setIsCheckingOut(true);
+        try {
+            const checkoutData = {
+                id: crypto.randomUUID(),
+                items: activeCartItems.map(item => ({
+                    recipeId: item.id,
+                    quantity: sales[item.id],
+                    price: item.price,
+                    subtotal: item.price * sales[item.id]
+                })),
+                status: 'OPEN',
+                customerInfo: customerInfo || prompt('Nomor Meja?'),
+                paymentMethod: 'CASH',
+                subTotal: totalSalesValue,
+                totalAmount: totalSalesValue
+            };
+
+            await apiClient.post('/transactions', checkoutData);
+            alert('Bill berhasil disimpan!');
+            setSales({});
+            setCustomerInfo('');
+            setCurrentBillId(null);
+            
+            // Refresh open bills
+            const response = await apiClient.get('/transactions/open-bills') as any;
+            if (response.success) setOpenBills(response.data);
+        } catch (error) {
+            alert('Gagal menyimpan bill');
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
+
+    const loadBill = (bill: any) => {
+        const newSales: Record<number, number> = {};
+        bill.items.forEach((item: any) => {
+            newSales[item.recipeId] = item.quantity;
+        });
+        setSales(newSales);
+        setCurrentBillId(bill.id);
+        setCustomerInfo(bill.customerInfo);
+        alert(`Memuat Bill: ${bill.customerInfo}`);
     };
 
     const PosFooter = (
@@ -472,6 +541,16 @@ function App() {
                     </div>
                     <span className="text-[10px] font-black opacity-50 hidden md:block">Atau tekan Ctrl + Enter</span>
                 </button>
+
+                {!currentBillId && totalItems > 0 && (
+                    <button 
+                        onClick={handleSaveBill}
+                        className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                    >
+                        <span className="material-symbols-outlined text-base">save</span>
+                        Simpan Bill (Running Order)
+                    </button>
+                )}
             </div>
         </footer>
     );
@@ -612,6 +691,16 @@ function App() {
                                     </button>
                                 </div>
 
+                                {currentBillId && (
+                                    <div className="flex items-center gap-2 mb-4 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl">
+                                        <span className="material-symbols-outlined text-primary text-sm">room_service</span>
+                                        <span className="text-[10px] font-black text-primary uppercase">{customerInfo}</span>
+                                        <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="ml-auto text-primary/50 hover:text-primary">
+                                            <span className="material-symbols-outlined text-xs">close</span>
+                                        </button>
+                                    </div>
+                                )}
+
                                 <div className="flex-1 space-y-0 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 relative">
                                     {activeCartItems.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full py-20 opacity-30 text-[var(--text-main)]">
@@ -646,6 +735,35 @@ function App() {
                         onClose={() => setView('pos')} 
                         isFullPage={true} 
                     />
+                )}
+
+                {/* MODAL: OPEN BILLS */}
+                {openBills.length > 0 && view === 'pos' && !currentBillId && (
+                    <div className="mt-8 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-black uppercase tracking-tighter text-sm text-[var(--text-main)]">Daftar Bill Aktif</h3>
+                            <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-black uppercase">{openBills.length} Bill</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {openBills.map(bill => (
+                                <div 
+                                    key={bill.id}
+                                    onClick={() => loadBill(bill)}
+                                    className="bg-[var(--glass-bg)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-20 transition-opacity">
+                                        <span className="material-symbols-outlined text-4xl">receipt_long</span>
+                                    </div>
+                                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Meja / Nama</p>
+                                    <p className="text-sm font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
+                                    <div className="mt-3 pt-3 border-t border-[var(--border-dim)] flex items-center justify-between">
+                                        <p className="text-[10px] font-black text-[var(--text-main)]">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                        <span className="material-symbols-outlined text-xs text-primary">arrow_forward</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
             </div>
 

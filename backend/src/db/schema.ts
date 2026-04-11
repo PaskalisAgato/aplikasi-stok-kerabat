@@ -175,6 +175,8 @@ export const sales = pgTable('sales', {
     serviceChargeAmount: decimal('service_charge_amount', { precision: 12, scale: 2 }).notNull().default('0'),
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
+    status: text('status').default('PAID').notNull(), // 'OPEN', 'PAID', 'CANCELLED'
+    customerInfo: text('customer_info'), // Table number or Name
     isDeleted: boolean('is_deleted').default(false).notNull(),
     offlineId: text('offline_id').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull()

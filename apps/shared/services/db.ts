@@ -10,6 +10,8 @@ export interface OfflineTransaction {
   sync_status: 'PENDING' | 'SYNCED' | 'FAILED';
   retry_count: number;
   errorMessage?: string;
+  status?: 'OPEN' | 'PAID' | 'CANCELLED';
+  customer_info?: string;
   // Phase 8: Multi-outlet ready
   outlet_id?: string;
   device_id?: string;
@@ -33,6 +35,8 @@ export interface OfflineCart {
     id: string; // 'current_cart'
     items: any[];
     updatedAt: string;
+    customerInfo?: string;
+    currentBillId?: string | number; // Link to an OPEN sale record
 }
 
 export interface OfflinePrintJob {
@@ -111,10 +115,10 @@ export class PosDatabase extends Dexie {
 
   constructor() {
     super('PosDatabase');
-    this.version(4).stores({
-      transactions: 'id, receipt_number, sync_status, created_at, outlet_id',
+    this.version(5).stores({
+      transactions: 'id, receipt_number, sync_status, created_at, outlet_id, status, customer_info',
       inventoryCache: 'id, name, status, category, updatedAt, version',
-      cart: 'id',
+      cart: 'id, currentBillId',
       printQueue: 'id, status, created_at',
       settings: 'id',
       auditLog: '++id, action, entity, timestamp',

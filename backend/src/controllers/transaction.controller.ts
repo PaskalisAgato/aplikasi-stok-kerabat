@@ -12,6 +12,16 @@ export class TransactionController {
         }
     }
 
+    static async getOpenBills(req: Request, res: Response) {
+        try {
+            const bills = await TransactionService.getOpenBills();
+            res.json({ success: true, data: bills });
+        } catch (error: any) {
+            console.error('--- TransactionController.getOpenBills ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal mengambil data bill terbuka' });
+        }
+    }
+
     static async getById(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id as string);
@@ -45,6 +55,25 @@ export class TransactionController {
         } catch (error: any) {
             console.error('--- TransactionController.checkout ERROR ---', error.message);
             res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
+        }
+    }
+
+    static async addItems(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id as string);
+            const { items } = req.body;
+            const userId = (req as any).user?.id || 'anonymous';
+
+            if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return res.status(400).json({ error: 'Items list is empty' });
+            }
+
+            const result = await (TransactionService as any).addItemsToTransaction(id, items, userId);
+            res.json({ success: true, message: 'Menu berhasil ditambahkan ke bill', data: result });
+        } catch (error: any) {
+            console.error('--- TransactionController.addItems ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal menambahkan menu: ' + error.message });
         }
     }
 

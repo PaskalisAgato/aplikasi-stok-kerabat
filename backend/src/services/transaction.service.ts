@@ -44,6 +44,41 @@ export class TransactionService {
         }));
     }
 
+    // 1.1 GET OPEN BILLS
+    static async getOpenBills() {
+        const _bills = await db.select({
+            id: schema.sales.id,
+            totalAmount: schema.sales.totalAmount,
+            customerInfo: schema.sales.customerInfo,
+            createdAt: schema.sales.createdAt,
+            cashierName: schema.users.name,
+        })
+        .from(schema.sales)
+        .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+        .where(and(eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false)))
+        .orderBy(desc(schema.sales.createdAt));
+
+        const billIds = _bills.map(b => b.id);
+        if (billIds.length === 0) return [];
+
+        const _items = await db.select({
+            id: schema.saleItems.id,
+            saleId: schema.saleItems.saleId,
+            recipeId: schema.saleItems.recipeId,
+            quantity: schema.saleItems.quantity,
+            subtotal: schema.saleItems.subtotal,
+            recipeName: schema.recipes.name,
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+        .where(inArray(schema.saleItems.saleId, billIds));
+
+        return _bills.map((bill: any) => ({
+            ...bill,
+            items: _items.filter((i: any) => i.saleId === bill.id)
+        }));
+    }
+
     // 2. GET TRANSACTION BY ID
     static async getTransactionById(id: number) {
         const saleArr = await db.select({
@@ -127,7 +162,9 @@ export class TransactionService {
             taxAmount: '0',
             serviceChargeAmount: '0',
             totalAmount: finalTotalAmount.toString(),
-            paymentMethod: paymentMethod || 'CASH'
+            paymentMethod: paymentMethod || 'CASH',
+            status: data.status || 'PAID',
+            customerInfo: data.customerInfo || null
         };
 
         return await db.transaction(async (tx: any) => {
@@ -209,6 +246,101 @@ export class TransactionService {
             });
 
             return { success: true, transactionId: newSale.id };
+        });
+    }
+
+    // 3.1 ADD ITEMS TO EXISTING OPEN BILL
+    static async addItemsToTransaction(saleId: number, items: any[], userId: string) {
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error('No items to add');
+        }
+
+        return await db.transaction(async (tx: any) => {
+            const oldSaleArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, saleId), eq(schema.sales.status, 'OPEN'))).limit(1);
+            if (oldSaleArr.length === 0) throw new Error('Open transaction not found or already paid');
+            const oldSale = oldSaleArr[0];
+
+            // 1. Insert new items and calculate incremental totals
+            let incrementalSubtotal = 0;
+            const saleItemsInsertData = items.map((item: any) => {
+                const itemPriceRaw = parseFloat(item.price?.toString() || '0');
+                const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
+                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
+                const subtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
+                incrementalSubtotal += subtotal;
+                return {
+                    saleId: saleId,
+                    recipeId: item.recipeId,
+                    quantity: item.quantity,
+                    subtotal: subtotal.toString()
+                };
+            });
+            await tx.insert(schema.saleItems).values(saleItemsInsertData);
+
+            // 2. Update parent sale totals
+            const newSubTotal = (parseFloat(oldSale.subTotal) + incrementalSubtotal).toString();
+            const newTotalAmount = (parseFloat(oldSale.totalAmount) + incrementalSubtotal).toString();
+            
+            await tx.update(schema.sales).set({
+                subTotal: newSubTotal,
+                totalAmount: newTotalAmount,
+            }).where(eq(schema.sales.id, saleId));
+
+            // 3. Deduct stock for NEW items
+            const recipeIds = items.map((i: any) => i.recipeId);
+            const allBomDeps = await tx.select({
+                recipeId: schema.recipeIngredients.recipeId,
+                inventoryId: schema.recipeIngredients.inventoryId,
+                quantity: schema.recipeIngredients.quantity
+            }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+            
+            const invIds = [...new Set(allBomDeps.map((b: any) => b.inventoryId))] as number[];
+            let invMap = new Map<number, string>();
+            if (invIds.length > 0) {
+                const invItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, invIds));
+                invMap = new Map(invItems.map((i: any) => [i.id, i.unit]));
+            }
+
+            const inventoryDeductions = new Map<number, number>();
+            for (const item of items) {
+                const bomDeps = allBomDeps.filter((b: any) => b.recipeId === item.recipeId);
+                for (const bom of bomDeps) {
+                    const unit = invMap.get(bom.inventoryId) as string;
+                    if (!unit) continue;
+                    let deductQty = parseFloat(bom.quantity) * item.quantity;
+                    if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) deductQty /= 1000;
+                    inventoryDeductions.set(bom.inventoryId, (inventoryDeductions.get(bom.inventoryId) || 0) + deductQty);
+                }
+            }
+
+            if (inventoryDeductions.size > 0) {
+                const movementsData = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => ({
+                    inventoryId: invId,
+                    type: 'OUT',
+                    quantity: qty.toString(),
+                    reason: `Bill Addition #${saleId}`
+                }));
+                await tx.insert(schema.stockMovements).values(movementsData);
+
+                const updatePromises = Array.from(inventoryDeductions.entries()).map(([invId, qty]) => 
+                    tx.update(schema.inventory)
+                        .set({ currentStock: sql`${schema.inventory.currentStock} - ${qty}` })
+                        .where(eq(schema.inventory.id, invId))
+                );
+                await Promise.all(updatePromises);
+            }
+
+            // 4. Log to Audit
+            await tx.insert(schema.auditLogs).values({
+                userId,
+                action: 'ADD_ITEMS_TO_BILL',
+                tableName: 'sales',
+                oldData: JSON.stringify(oldSale),
+                newData: JSON.stringify({ saleId, addedItems: items }),
+                createdAt: new Date()
+            });
+
+            return { success: true, updatedTotal: newTotalAmount };
         });
     }
 

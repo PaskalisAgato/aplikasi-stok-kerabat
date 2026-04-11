@@ -285,6 +285,8 @@ export const apiClient = {
     getTransactions: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/transactions?limit=${limit}&offset=${offset}`),
     getTransactionById: (id: number) => apiFetch<any>(`/transactions/${id}`),
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
+    getOpenBills: () => apiFetch<ApiResponse<any>>('/transactions/open-bills'),
+    addItemsToBill: (id: number | string, items: any[]) => apiFetch<any>(`/transactions/${id}/add-items`, { method: 'POST', body: JSON.stringify({ items }) }),
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     clearTransactions: () => apiFetch<any>('/transactions/clear', { method: 'DELETE' }),
     deleteTransaction: (id: number) => apiFetch<any>(`/transactions/${id}`, { method: 'DELETE' }),
@@ -341,6 +343,12 @@ export const apiClient = {
     getSystemStats: () => apiFetch<any>('/system/stats'),
     getBackups: () => apiFetch<ApiResponse<any>>('/system/backups'),
     triggerBackup: () => apiFetch<any>('/system/backups/trigger', { method: 'POST' }),
+
+    // ---- GENERIC HELPERS ----
+    get: (path: string) => apiFetch<any>(path),
+    post: (path: string, body: any) => apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body) }),
+    put: (path: string, body: any) => apiFetch<any>(path, { method: 'PUT', body: JSON.stringify(body) }),
+    delete: (path: string) => apiFetch<any>(path, { method: 'DELETE' }),
 };
 
 
