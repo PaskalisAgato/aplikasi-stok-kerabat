@@ -700,7 +700,7 @@ function App() {
                         {/* Right: Cart Review */}
                         <div className="w-full md:w-2/5 landscape:w-2/5 flex flex-col gap-4 lg:gap-6 md:max-h-[calc(100vh-200px)] landscape:max-h-[calc(100vh-200px)]">
                             <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-6 lg:p-8 border border-[var(--border-dim)] flex flex-col flex-1 shadow-2xl relative overflow-hidden min-h-[300px]`}>
-                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5 text-[var(--text-main)]">
+                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5 text-[var(--text-main)] pointer-events-none select-none">
                                     <span className="material-symbols-outlined text-[120px] font-black tracking-tighter">shopping_basket</span>
                                 </div>
 
@@ -718,10 +718,20 @@ function App() {
                                 </div>
 
                                 {currentBillId && (
-                                    <div className="flex items-center gap-2 mb-4 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl">
+                                    <div className="flex items-center gap-2 mb-4 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl relative z-20">
                                         <span className="material-symbols-outlined text-primary text-sm">room_service</span>
                                         <span className="text-[10px] font-black text-primary uppercase">{customerInfo}</span>
-                                        <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="ml-auto text-primary/50 hover:text-primary">
+                                        <button 
+                                            onClick={(e) => { 
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setCurrentBillId(null); 
+                                                setCustomerInfo(''); 
+                                                setSales({}); 
+                                            }} 
+                                            className="ml-auto text-primary/50 hover:text-primary p-1 hover:bg-primary/20 rounded-md transition-all active:scale-90"
+                                            title="Clear Table / Start New"
+                                        >
                                             <span className="material-symbols-outlined text-xs">close</span>
                                         </button>
                                     </div>
