@@ -632,6 +632,7 @@ export class TransactionService {
 
     // 8. SPLIT BILL (Pisah Meja)
     static async splitBill(sourceId: number, targetInfo: string, itemsToMove: { saleItemId: number, quantity: number }[], userId: string) {
+        console.log(`--- splitBill execution started ---`, { sourceId, targetInfo, itemsToMoveLength: itemsToMove.length });
         if (!itemsToMove || itemsToMove.length === 0) {
             throw new Error('Tidak ada item yang dipilih untuk dipisah');
         }
@@ -639,10 +640,14 @@ export class TransactionService {
         return await db.transaction(async (tx: any) => {
             // 1. Fetch source bill
             const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
-            if (sourceBillArr.length === 0) throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
+            if (sourceBillArr.length === 0) {
+                console.error(`Source bill ${sourceId} not found or already paid`);
+                throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
+            }
             const sourceBill = sourceBillArr[0];
 
             // 2. Create New Target Bill
+            console.log(`Creating new target bill with customerInfo: ${targetInfo || sourceBill.customerInfo + ' (Split)'}`);
             const [newBill] = await tx.insert(schema.sales).values({
                 userId: sourceBill.userId,
                 customerInfo: targetInfo || `${sourceBill.customerInfo} (Split)`,
@@ -653,22 +658,30 @@ export class TransactionService {
                 createdAt: new Date()
             }).returning({ id: schema.sales.id });
             const targetId = newBill.id;
+            console.log(`New bill created with ID: ${targetId}`);
 
             // 3. Move/Split Items
             for (const item of itemsToMove) {
+                console.log(`Processing item split: ${JSON.stringify(item)}`);
                 const originalItemArr = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.id, item.saleItemId)).limit(1);
-                if (originalItemArr.length === 0) continue;
+                if (originalItemArr.length === 0) {
+                    console.warn(`Item ${item.saleItemId} not found, skipping`);
+                    continue;
+                }
                 const originalItem = originalItemArr[0];
 
                 const moveQty = parseInt(item.quantity.toString());
                 const originalQty = parseInt(originalItem.quantity.toString());
+                console.log(`Item stats: moveQty=${moveQty}, originalQty=${originalQty}`);
 
                 if (moveQty >= originalQty) {
+                    console.log(`Moving full item ${originalItem.id} to new bill`);
                     // Move the entire item entry
                     await tx.update(schema.saleItems)
                         .set({ saleId: targetId })
                         .where(eq(schema.saleItems.id, item.saleItemId));
                 } else {
+                    console.log(`Splitting item ${originalItem.id} (moved ${moveQty}, remaining ${originalQty - moveQty})`);
                     // Split the item entry
                     // Since price isn't in saleItems, we need to calculate it from subtotal/quantity of the original item
                     const pricePerUnit = parseFloat(originalItem.subtotal) / originalQty;
@@ -694,11 +707,13 @@ export class TransactionService {
 
             // 4. Recalculate totals for both bills
             const recalculateBill = async (id: number) => {
+                console.log(`Recalculating totals for bill ${id}...`);
                 const items = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
                 const subTotal = items.reduce((acc: number, it: any) => acc + parseFloat(it.subtotal), 0).toString();
                 await tx.update(schema.sales)
                     .set({ subTotal, totalAmount: subTotal })
                     .where(eq(schema.sales.id, id));
+                console.log(`Bill ${id} new total: ${subTotal}`);
                 return subTotal;
             };
 
@@ -715,6 +730,7 @@ export class TransactionService {
                 createdAt: new Date()
             });
 
+            console.log(`--- splitBill execution success ---`);
             return { success: true, sourceId, sourceTotal, targetId, targetTotal };
         });
     }

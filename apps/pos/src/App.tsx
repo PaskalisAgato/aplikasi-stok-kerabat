@@ -530,11 +530,13 @@ function App() {
     };
 
     const performSplit = async () => {
+        console.log('--- performSplit started ---', { splitMode, splitSourceBill, selectedSplitItems });
         if (!splitSourceBill) return;
         const itemsToMove = Object.entries(selectedSplitItems)
             .filter(([_, qty]) => qty > 0)
             .map(([id, qty]) => ({ saleItemId: parseInt(id), quantity: qty }));
 
+        console.log('Items to move:', itemsToMove);
         if (itemsToMove.length === 0) {
             alert('Pilih minimal satu item untuk dipisah');
             return;
@@ -542,24 +544,28 @@ function App() {
 
         setIsCheckingOut(true);
         try {
+            console.log('Sending splitBill request...');
             const result = await apiClient.splitBill({
                 sourceId: splitSourceBill.id,
                 targetInfo: splitTargetInfo,
                 items: itemsToMove
             });
+            console.log('splitBill request result:', result);
 
             if (result.success) {
                 setIsSplitModalOpen(false);
                 
-                // Refresh open bills
+                console.log('Refreshing open bills list...');
                 const response = await apiClient.get('/transactions/open-bills') as any;
-                if (response && response.data) setOpenBills(response.data);
+                if (response && response.data) {
+                    console.log('New open bills list:', response.data);
+                    setOpenBills(response.data);
+                }
 
                 if (splitMode === 'pay') {
-                    // Start checkout for the NEW bill
+                    console.log('Processing pay mode split...');
                     const newBillId = result.data.targetId;
                     setCurrentBillId(newBillId);
-                    // Fetch details of new bill to load into POS
                     const newBillRes = await apiClient.get(`/transactions/${newBillId}`) as any;
                     if (newBillRes && newBillRes.data) {
                         const salesData: Record<number, number> = {};
@@ -568,13 +574,13 @@ function App() {
                         });
                         setSales(salesData);
                         setCustomerInfo(newBillRes.data.customerInfo);
-                        // The user can now click the big Checkout button for this partial bill
                         alert('Item berhasil dipisah untuk pembayaran. Silakan klik Checkout.');
                     }
                 } else {
+                    console.log('Processing table mode split...');
                     alert('Bill berhasil dipisah!');
                     if (currentBillId === splitSourceBill.id) {
-                        // Reload current bill if it was the source
+                        console.log('Reloading current bill as it was the source...');
                         const reloadRes = await apiClient.get(`/transactions/${splitSourceBill.id}`) as any;
                         if (reloadRes && reloadRes.data) {
                             const salesData: Record<number, number> = {};
@@ -585,11 +591,16 @@ function App() {
                         }
                     }
                 }
+            } else {
+                console.error('Split failed:', result.message);
+                alert('Gagal memisah bill (Server): ' + (result.message || 'Unknown error'));
             }
         } catch (error: any) {
+            console.error('Split exception:', error);
             alert('Gagal memisah bill: ' + error.message);
         } finally {
             setIsCheckingOut(false);
+            console.log('--- performSplit finished ---');
         }
     };
 
