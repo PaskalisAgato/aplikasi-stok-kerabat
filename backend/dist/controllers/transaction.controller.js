@@ -10,6 +10,16 @@ export class TransactionController {
             res.status(500).json({ success: false, message: 'Gagal mengambil data transaksi' });
         }
     }
+    static async getOpenBills(req, res) {
+        try {
+            const bills = await TransactionService.getOpenBills();
+            res.json({ success: true, data: bills });
+        }
+        catch (error) {
+            console.error('--- TransactionController.getOpenBills ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal mengambil data bill terbuka' });
+        }
+    }
     static async getById(req, res) {
         try {
             const id = parseInt(req.params.id);
@@ -42,6 +52,24 @@ export class TransactionController {
         catch (error) {
             console.error('--- TransactionController.checkout ERROR ---', error.message);
             res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
+        }
+    }
+    static async addItems(req, res) {
+        try {
+            const id = parseInt(req.params.id);
+            const { items } = req.body;
+            const userId = req.user?.id || 'anonymous';
+            if (isNaN(id))
+                return res.status(400).json({ error: 'Invalid ID' });
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return res.status(400).json({ error: 'Items list is empty' });
+            }
+            const result = await TransactionService.addItemsToTransaction(id, items, userId);
+            res.json({ success: true, message: 'Menu berhasil ditambahkan ke bill', data: result });
+        }
+        catch (error) {
+            console.error('--- TransactionController.addItems ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal menambahkan menu: ' + error.message });
         }
     }
     static async update(req, res) {
@@ -81,6 +109,47 @@ export class TransactionController {
         catch (error) {
             console.error('--- TransactionController.clearAll ERROR ---', error);
             res.status(500).json({ success: false, message: 'Gagal menghapus riwayat transaksi' });
+        }
+    }
+    static async merge(req, res) {
+        try {
+            const { sourceId, sourceIds, targetId } = req.body;
+            const userId = req.user?.id || 'anonymous';
+            if (!targetId) {
+                return res.status(400).json({ success: false, message: 'Target ID is required' });
+            }
+            // Support both array and single ID
+            let finalSourceIds = [];
+            if (Array.isArray(sourceIds)) {
+                finalSourceIds = sourceIds.map(id => parseInt(id));
+            }
+            else if (sourceId) {
+                finalSourceIds = [parseInt(sourceId)];
+            }
+            if (finalSourceIds.length === 0) {
+                return res.status(400).json({ success: false, message: 'At least one Source ID is required' });
+            }
+            const result = await TransactionService.mergeBills(finalSourceIds, parseInt(targetId), userId);
+            res.json({ success: true, message: 'Bill berhasil digabungkan', data: result });
+        }
+        catch (error) {
+            console.error('--- TransactionController.merge ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal menggabungkan bill: ' + error.message });
+        }
+    }
+    static async split(req, res) {
+        try {
+            const { sourceId, targetInfo, items } = req.body;
+            const userId = req.user?.id || 'anonymous';
+            if (!sourceId || !items || !Array.isArray(items)) {
+                return res.status(400).json({ success: false, message: 'Source ID and items array are required' });
+            }
+            const result = await TransactionService.splitBill(parseInt(sourceId), targetInfo, items, userId);
+            res.json({ success: true, message: 'Bill berhasil dipisah', data: result });
+        }
+        catch (error) {
+            console.error('--- TransactionController.split ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal memisah bill: ' + error.message });
         }
     }
 }

@@ -829,32 +829,39 @@ function App() {
                                         <div 
                                             key={bill.id}
                                             onClick={() => loadBill(bill)}
-                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden shadow-sm"
+                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[140px] space-y-3"
                                         >
-                                            <button 
-                                                onClick={(e) => handleDeleteBill(e, bill)}
-                                                className="absolute top-1 right-1 size-7 rounded-lg flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10 z-30"
-                                                title="Hapus Bill"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                                            </button>
-                                            <button 
-                                                onClick={(e) => handleMergeClick(e, bill)}
-                                                className="absolute top-1 right-9 size-7 rounded-lg flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all active:scale-95 shadow-lg shadow-primary/10 z-30"
-                                                title="Gabung Meja"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">call_merge</span>
-                                            </button>
-                                            <button 
-                                                onClick={(e) => handleSplitClick(e, bill, 'table')}
-                                                className="absolute top-1 right-[68px] size-7 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-blue-500/10 z-30"
-                                                title="Pisah Meja"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">call_split</span>
-                                            </button>
-                                            <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-0.5">Meja / Nama</p>
-                                            <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{bill.customerInfo}</p>
-                                            <p className="text-[10px] font-black text-primary mt-2">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1.5 opacity-60">Meja / Nama</p>
+                                                <p className="text-[14px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-4">{bill.customerInfo}</p>
+                                                
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={(e) => handleSplitClick(e, bill, 'table')}
+                                                        className="size-8 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-blue-500/10 z-30"
+                                                        title="Pisah Meja"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">call_split</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={(e) => handleMergeClick(e, bill)}
+                                                        className="size-8 rounded-lg flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all active:scale-95 shadow-lg shadow-primary/10 z-30"
+                                                        title="Gabung Meja"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">call_merge</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={(e) => handleDeleteBill(e, bill)}
+                                                        className="size-8 rounded-lg flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10 z-30"
+                                                        title="Hapus Bill"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="pt-2 border-t border-white/5">
+                                                <p className="text-[11px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
