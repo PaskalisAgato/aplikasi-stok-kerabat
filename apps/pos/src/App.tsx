@@ -8,6 +8,8 @@ import PrinterSettings from '@shared/components/PrinterSettings';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
 import { PerformanceSettings } from '@shared/services/performance';
+import { useCashierShift } from '@shared/hooks/useCashierShift';
+import { OpenShiftModal, CloseShiftModal } from './components/ShiftModals';
 
 interface Recipe {
     id: number;
@@ -91,6 +93,12 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe &
 });
 
 function App() {
+    const { 
+        activeShift, isActiveLoading, 
+        openShift, closeShift, getSummary, 
+        refreshActiveShift 
+    } = useCashierShift();
+
     const [view, setView] = useState<'pos' | 'history' | 'printer-settings'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
@@ -117,6 +125,8 @@ function App() {
     const [splitSourceBill, setSplitSourceBill] = useState<any>(null);
     const [selectedSplitItems, setSelectedSplitItems] = useState<Record<number, number>>({});
     const [splitTargetInfo, setSplitTargetInfo] = useState('');
+    const [isCloseShiftOpen, setIsCloseShiftOpen] = useState(false);
+    const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
 
     const fetchRecipes = async () => {
         try {
@@ -203,6 +213,8 @@ function App() {
                 console.error('Failed to fetch open bills');
             }
         };
+        fetchOpenBills();
+
         fetchOpenBills();
 
         return () => {
@@ -751,6 +763,30 @@ function App() {
 
     const PosHeaderExtras = (
         <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+            {/* Shift Status */}
+            {activeShift && (
+                <div className="hidden min-[1100px]:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                    <div className="size-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                        <span className="material-symbols-outlined text-sm text-primary">person</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase text-primary tracking-[0.2em] leading-none mb-1">Shift Aktif</span>
+                        <span className="text-[10px] font-bold text-white leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
+                    </div>
+                    <button 
+                        onClick={async () => {
+                            const summary = await getSummary(activeShift.id);
+                            setShiftSummaryData(summary.data);
+                            setIsCloseShiftOpen(true);
+                        }}
+                        className="ml-2 size-8 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg flex items-center justify-center transition-all"
+                        title="Tutup Shift"
+                    >
+                        <span className="material-symbols-outlined text-sm">logout</span>
+                    </button>
+                </div>
+            )}
+
             {/* Sync Status Dot */}
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
                 !isOnline ? 'bg-red-500/10 border-red-500/20 text-red-500' :
@@ -799,9 +835,38 @@ function App() {
     const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : 'Input Penjualan';
     const pageSubtitle = view === 'history' ? 'Manajemen Transaksi' : view === 'printer-settings' ? 'Hardware & Koneksi' : 'Kasir & Stok';
 
+    const handleOpenShift = async (initialCash: number) => {
+        await openShift(initialCash);
+        refreshActiveShift();
+    };
+
+    const handleCloseShift = async (data: { actualCash: number, actualNonCash: number, notes: string }) => {
+        await closeShift({ id: activeShift.id, data });
+        setIsCloseShiftOpen(false);
+        refreshActiveShift();
+        alert('Shift berhasil ditutup! Ringkasan telah disimpan.');
+    };
+
     return (
-        <Layout 
-            currentPort={5186} 
+        <>
+            {/* Shift Modals */}
+            <OpenShiftModal 
+                isOpen={!activeShift && !isActiveLoading} 
+                onOpen={handleOpenShift} 
+            />
+
+            {activeShift && (
+                <CloseShiftModal 
+                    isOpen={isCloseShiftOpen}
+                    shift={activeShift}
+                    summary={shiftSummaryData}
+                    onCancel={() => setIsCloseShiftOpen(false)}
+                    onClose={handleCloseShift}
+                />
+            )}
+
+            <Layout 
+                currentPort={5186} 
             title={pageTitle}
             subtitle={pageSubtitle}
             maxWidth="100%"
@@ -1155,7 +1220,8 @@ function App() {
                 </div>
             )}
         </Layout>
-    );
+    </>
+);
 }
 
 export default App;

@@ -159,11 +159,18 @@ export const shifts = pgTable('shifts', {
     startTime: timestamp('start_time').defaultNow().notNull(),
     endTime: timestamp('end_time'),
     initialCash: decimal('initial_cash', { precision: 12, scale: 2 }).notNull(),
-    totalCashExpected: decimal('total_cash_expected', { precision: 12, scale: 2 }).default('0'),
+    expectedCash: decimal('expected_cash', { precision: 12, scale: 2 }).default('0').notNull(),
+    expectedNonCash: decimal('expected_non_cash', { precision: 12, scale: 2 }).default('0').notNull(),
     totalCashActual: decimal('total_cash_actual', { precision: 12, scale: 2 }).default('0'),
-    discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }).default('0')
+    totalNonCashActual: decimal('total_non_cash_actual', { precision: 12, scale: 2 }).default('0'),
+    discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }).default('0'),
+    status: text('status').default('OPEN').notNull(), // 'OPEN', 'CLOSED'
+    cashierNotes: text('cashier_notes'),
+    totalSalesCount: integer('total_sales_count').default(0).notNull(),
+    totalItemsSold: integer('total_items_sold').default(0).notNull()
 }, (t: any) => ({
-    userIdx: index('shifts_user_idx').on(t.userId)
+    userIdx: index('shifts_user_idx').on(t.userId),
+    statusIdx: index('shifts_status_idx').on(t.status)
 }));
 
 export const sales = pgTable('sales', {
@@ -177,13 +184,20 @@ export const sales = pgTable('sales', {
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
     status: text('status').default('PAID').notNull(), // 'OPEN', 'PAID', 'CANCELLED'
     customerInfo: text('customer_info'), // Table number or Name
+    discountAmount: decimal('discount_amount', { precision: 12, scale: 2 }).default('0').notNull(),
+    discountType: text('discount_type'), // 'PERCENT', 'FIXED'
+    isVoided: boolean('is_voided').default(false).notNull(),
+    voidReason: text('void_reason'),
+    voidedBy: text('voided_by').references(() => users.id),
+    voidedAt: timestamp('voided_at'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
     offlineId: text('offline_id').unique(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
     userIdx: index('sales_user_idx').on(t.userId),
-    createdIdx: index('sales_created_at_idx').on(t.createdAt)
+    createdIdx: index('sales_created_at_idx').on(t.createdAt),
+    voidIdx: index('sales_is_voided_idx').on(t.isVoided)
 }));
 
 export const saleItems = pgTable('sale_items', {
@@ -204,6 +218,7 @@ export const expenses = pgTable('expenses', {
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     userId: text('user_id').references(() => users.id),
+    shiftId: integer('shift_id').references(() => shifts.id), // Link to shift
     receiptUrl: text('receipt_url'),
     externalReceiptUrl: text('external_receipt_url'),
     expenseDate: timestamp('expense_date').defaultNow().notNull(),
@@ -212,6 +227,7 @@ export const expenses = pgTable('expenses', {
 }, (t: any) => ({
     createdIdx: index('expenses_created_at_idx').on(t.createdAt),
     userIdx: index('expenses_user_id_idx').on(t.userId),
+    shiftIdx: index('expenses_shift_id_idx').on(t.shiftId),
     expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate)
 }));
 

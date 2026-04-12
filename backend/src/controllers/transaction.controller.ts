@@ -105,6 +105,22 @@ export class TransactionController {
         }
     }
 
+    static async void(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id as string);
+            const { reason } = req.body;
+            if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+            if (!reason) return res.status(400).json({ error: 'Reason is required for void' });
+            
+            const userId = (req as any).user?.id || 'admin';
+            await TransactionService.voidTransaction(id, reason, userId);
+            res.json({ success: true, message: 'Transaksi berhasil dibatalkan (VOID)' });
+        } catch (error: any) {
+            console.error('--- TransactionController.void ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal membatalkan transaksi: ' + error.message });
+        }
+    }
+
     static async clearAll(req: Request, res: Response) {
         try {
             const adminId = (req as any).user?.id || 'admin';

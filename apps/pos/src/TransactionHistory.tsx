@@ -18,6 +18,8 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [voidConfirmId, setVoidConfirmId] = useState<number | null>(null);
+    const [voidReason, setVoidReason] = useState("");
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     const [expandedDates, setExpandedDates] = useState<string[]>([]);
@@ -76,6 +78,22 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             loadData();
         } catch (error: any) {
             alert(`Gagal menghapus: ${error.message}`);
+        }
+    };
+
+    const handleVoid = async (id: number) => {
+        if (!voidReason.trim()) {
+            alert('Alasan pembatalan harus diisi.');
+            return;
+        }
+        try {
+            await apiClient.voidTransaction(id, voidReason);
+            alert('Transaksi berhasil dibatalkan (VOID).');
+            setVoidConfirmId(null);
+            setVoidReason("");
+            loadData();
+        } catch (error: any) {
+            alert(`Gagal membatalkan: ${error.message}`);
         }
     };
 
@@ -330,6 +348,15 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                                                         </button>
                                                                         
+                                                                        <button 
+                                                                            onClick={() => setVoidConfirmId(tx.id)}
+                                                                            className={`size-8 rounded-lg glass transition-all flex items-center justify-center shrink-0 ${tx.isVoided ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-purple-500 hover:bg-purple-500 hover:text-white'}`}
+                                                                            title={tx.isVoided ? "Sudah dibatalkan" : "Void/Batalkan Transaksi"}
+                                                                            disabled={tx.isVoided}
+                                                                        >
+                                                                            <span className="material-symbols-outlined text-[18px]">cancel</span>
+                                                                        </button>
+
                                                                         {isAdmin && (
                                                                             <button 
                                                                                 onClick={() => openEdit(tx)}
@@ -479,6 +506,47 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                 Simpan Perubahan
                             </button>
                         </footer>
+                    </div>
+                </div>
+            )}
+
+            {/* VOID MODAL */}
+            {voidConfirmId && (
+                <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-md w-full p-0 overflow-hidden shadow-2xl border border-purple-500/20">
+                        <header className="bg-purple-600 p-6 flex justify-between items-center text-white">
+                            <div>
+                                <h3 className="font-black text-xl uppercase tracking-widest">Batalkan Transaksi</h3>
+                                <p className="text-xs font-bold mt-1 opacity-80 uppercase tracking-widest">Audit LOG: VOID #{voidConfirmId}</p>
+                            </div>
+                            <button onClick={() => setVoidConfirmId(null)} className="size-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </header>
+                        <div className="p-6 space-y-4 bg-[var(--bg-app)]">
+                            <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Masukkan Alasan Pembatalan:</p>
+                            <textarea 
+                                value={voidReason}
+                                onChange={(e) => setVoidReason(e.target.value)}
+                                placeholder="Contoh: Kesalahan input menu, customer batal, dll..."
+                                className="w-full h-32 p-4 rounded-2xl glass border border-white/10 focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium resize-none"
+                                autoFocus
+                            />
+                            <div className="flex gap-3 pt-2">
+                                <button 
+                                    onClick={() => setVoidConfirmId(null)}
+                                    className="flex-1 py-3 px-4 rounded-xl glass font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all"
+                                >
+                                    Batal
+                                </button>
+                                <button 
+                                    onClick={() => handleVoid(voidConfirmId)}
+                                    className="flex-1 py-3 px-4 rounded-xl bg-purple-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
+                                >
+                                    Konfirmasi VOID
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

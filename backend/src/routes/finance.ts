@@ -5,6 +5,7 @@ import { desc, eq, gte, inArray, sql, and } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
+import { CashierShiftService } from '../services/cashierShift.service.js';
 
 export const financeRouter = Router();
 
@@ -256,6 +257,10 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             }
         }
 
+        // AUTO-LINK ACTIVE SHIFT
+        const userId = (req as any).user?.id;
+        const activeShift = userId ? await CashierShiftService.getActiveShift(userId) : null;
+
         const [newExpense] = await db.insert(schema.expenses).values({
             title,
             vendor,
@@ -263,7 +268,8 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             amount: amount.toString(),
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate,
-            userId: (req as any).user?.id || null
+            userId: userId || null,
+            shiftId: activeShift?.id || null
         }).returning({
             id: schema.expenses.id,
             amount: schema.expenses.amount

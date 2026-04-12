@@ -298,6 +298,7 @@ export const apiClient = {
     updateTransaction: (id: number, data: unknown) => apiFetch<any>(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     clearTransactions: () => apiFetch<any>('/transactions/clear', { method: 'DELETE' }),
     deleteTransaction: (id: number) => apiFetch<any>(`/transactions/${id}`, { method: 'DELETE' }),
+    voidTransaction: (id: number, reason: string) => apiFetch<any>(`/transactions/${id}/void`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
@@ -322,6 +323,13 @@ export const apiClient = {
     deleteShift: (id: number) => apiFetch<any>(`/shifts/${id}`, { method: 'DELETE' }),
     exportShiftTemplate: () => apiFetch<Blob>('/shifts/export-template', { method: 'GET' }, true),
     exportSchedule: (data: any) => apiFetch<Blob>('/shifts/export', { method: 'POST', body: JSON.stringify(data) }, true),
+
+    // ---- CASHIER SHIFTS ----
+    getActiveCashierShift: () => apiFetch<any>('/cashier-shifts/active'),
+    openCashierShift: (initialCash: number) => apiFetch<any>('/cashier-shifts/open', { method: 'POST', body: JSON.stringify({ initialCash }) }),
+    getCashierShiftSummary: (id: number) => apiFetch<any>(`/cashier-shifts/summary/${id}`),
+    closeCashierShift: (id: number, data: { actualCash: number, actualNonCash: number, notes: string }) => 
+        apiFetch<any>(`/cashier-shifts/close/${id}`, { method: 'POST', body: JSON.stringify(data) }),
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),

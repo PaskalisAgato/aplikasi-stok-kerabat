@@ -1,6 +1,7 @@
 import { eq, sql, desc, and, inArray } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
+import { CashierShiftService } from './cashierShift.service.js';
 
 export class TransactionService {
 
@@ -139,6 +140,12 @@ export class TransactionService {
 
         let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
         if (isNaN(calculatedSubTotal)) calculatedSubTotal = 0;
+        
+        // 0.25 Active Shift Guard
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        if (!activeShift) {
+            throw new Error('Shift belum dibuka. Silakan buka shift terlebih dahulu untuk melakukan transaksi.');
+        }
 
         // 0.5 Duplicate Open Bill Check
         const status = data.status || 'PAID';
@@ -176,7 +183,7 @@ export class TransactionService {
 
         const saleValues: any = {
             offlineId: offlineId || null,
-            shiftId: !isNaN(parsedShiftId) ? parsedShiftId : sql`NULL`,
+            shiftId: activeShift.id, // Enforce linkage to active shift
             userId,
             subTotal: calculatedSubTotal.toString(),
             taxAmount: '0',
@@ -542,6 +549,39 @@ export class TransactionService {
                 createdAt: new Date()
             });
 
+        });
+    }
+
+    static async voidTransaction(id: number, reason: string, userId: string) {
+        const [sale] = await db.select().from(schema.sales).where(eq(schema.sales.id, id)).limit(1);
+        if (!sale) throw new Error('Transaksi tidak ditemukan');
+        if (sale.isVoided) throw new Error('Transaksi sudah dibatalkan sebelumnya');
+
+        return await db.transaction(async (tx) => {
+            const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
+
+            // 1. Mark as voided
+            await tx.update(schema.sales)
+                .set({ 
+                    isVoided: true, 
+                    voidReason: reason, 
+                    voidedBy: userId, 
+                    voidedAt: new Date() 
+                })
+                .where(eq(schema.sales.id, id));
+
+            // 2. Revert Stock (Crucial for inventory accuracy)
+            await TransactionService.revertStockForSaleItems(tx, oldItems, id);
+
+            // 3. Audit Log
+            await tx.insert(schema.auditLogs).values({
+                userId,
+                action: 'VOID_TRANSACTION',
+                tableName: 'sales',
+                oldData: JSON.stringify({ sale, items: oldItems }),
+                newData: JSON.stringify({ isVoided: true, voidReason: reason }),
+                createdAt: new Date()
+            });
         });
     }
 
