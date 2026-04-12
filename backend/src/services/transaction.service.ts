@@ -654,6 +654,7 @@ export class TransactionService {
                 status: 'OPEN',
                 subTotal: '0',
                 totalAmount: '0',
+                paymentMethod: sourceBill.paymentMethod || 'CASH',
                 isDeleted: false,
                 createdAt: new Date()
             }).returning({ id: schema.sales.id });
