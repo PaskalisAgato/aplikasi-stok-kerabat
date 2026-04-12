@@ -20,6 +20,30 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+    const [expandedDates, setExpandedDates] = useState<string[]>([]);
+
+    const groupedTransactions = transactions.reduce((acc, tx) => {
+        const date = new Date(tx.createdAt).toLocaleDateString('id-ID', { dateStyle: 'long' });
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(tx);
+        return acc;
+    }, {} as Record<string, any[]>);
+
+    useEffect(() => {
+        if (transactions.length > 0) {
+            const today = new Date().toLocaleDateString('id-ID', { dateStyle: 'long' });
+            // By default expand dates that have transactions
+            setExpandedDates(prev => {
+                if (prev.length > 0) return prev;
+                return [today];
+            });
+        }
+    }, [transactions]);
+
+    const toggleDate = (date: string) => {
+        setExpandedDates(prev => prev.includes(date) ? prev.filter(d => d !== date) : [...prev, date]);
+    };
+
     useEffect(() => {
         loadData();
     }, []);
@@ -208,88 +232,125 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     </div>
                 </div>
 
-                {/* Table List */}
-                <div className="card overflow-x-auto shadow-2xl p-0">
+                {/* Grouped List */}
+                <div className="space-y-4">
                     {isLoading ? (
-                        <div className="p-20 text-center text-[var(--text-muted)] animate-pulse">Memuat jejak transaksi...</div>
+                        <div className="card p-20 text-center text-[var(--text-muted)] animate-pulse shadow-xl">Memuat jejak transaksi...</div>
                     ) : transactions.length === 0 ? (
-                        <div className="p-20 text-center text-[var(--text-muted)]">Belum ada transaksi tercatat.</div>
+                        <div className="card p-20 text-center text-[var(--text-muted)] shadow-xl">Belum ada transaksi tercatat.</div>
                     ) : (
-                        <table className="w-full text-left border-collapse min-w-[700px]">
-                            <thead>
-                                <tr className="glass uppercase text-[10px] tracking-widest text-[var(--text-muted)] border-b border-[var(--border-dim)]">
-                                    <th className="p-5 font-black">ID</th>
-                                    <th className="p-5 font-black">Waktu</th>
-                                    <th className="p-5 font-black">Kasir</th>
-                                    <th className="p-5 font-black text-right">Total</th>
-                                    <th className="p-5 font-black">Metode</th>
-                                    <th className="p-5 font-black text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[var(--border-dim)]">
-                                {transactions.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-[var(--bg-app)]/50 transition-colors">
-                                        <td className="p-5 font-black text-[var(--text-main)]">#{tx.id}</td>
-                                        <td className="p-5 text-sm text-[var(--text-muted)] font-medium">
-                                            {new Date(tx.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                                        </td>
-                                        <td className="p-5 text-sm font-bold text-primary">{tx.cashierName || tx.userId}</td>
-                                        <td className="p-5 font-black text-[var(--text-main)] text-right">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</td>
-                                        <td className="p-5">
-                                            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-primary/10 text-primary">
-                                                {tx.paymentMethod}
+                        (Object.entries(groupedTransactions) as [string, any[]][]).map(([date, txs]) => {
+                            const isExpanded = expandedDates.includes(date);
+                            const dayTotal = txs.reduce((sum: number, tx: any) => sum + parseFloat(tx.totalAmount), 0);
+
+                            return (
+                                <div key={date} className="space-y-3">
+                                    <button 
+                                        onClick={() => toggleDate(date)}
+                                        className={`w-full flex items-center justify-between p-5 rounded-[2rem] border transition-all ${isExpanded ? 'bg-primary/10 border-primary/30 shadow-lg accent-glow' : 'glass border-white/5 hover:border-white/10'}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`size-10 rounded-2xl flex items-center justify-center transition-all ${isExpanded ? 'bg-primary text-slate-950' : 'bg-white/5 text-[var(--text-muted)]'}`}>
+                                                <span className="material-symbols-outlined text-xl">{isExpanded ? 'calendar_month' : 'event'}</span>
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className={`font-black uppercase tracking-widest text-sm ${isExpanded ? 'text-primary' : 'text-[var(--text-main)]'}`}>{date}</h3>
+                                                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{txs.length} TRANSAKSI</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <div className="text-right hidden xs:block">
+                                                <p className="text-[9px] font-black text-primary uppercase tracking-widest opacity-60">Total Harian</p>
+                                                <p className="font-black text-[var(--text-main)]">Rp {dayTotal.toLocaleString('id-ID')}</p>
+                                            </div>
+                                            <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-[var(--text-muted)]'}`}>
+                                                expand_more
                                             </span>
-                                        </td>
-                                         <td className="p-5 flex justify-end gap-2">
-                                            {deleteConfirmId === tx.id ? (
-                                                <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
-                                                    <button 
-                                                        onClick={() => handleDelete(tx.id)}
-                                                        className="h-8 px-3 rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
-                                                    >
-                                                        Hapus
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setDeleteConfirmId(null)}
-                                                        className="h-8 px-3 rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
-                                                    >
-                                                        Batal
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <button 
-                                                        onClick={() => setViewData(tx)}
-                                                        className="size-8 rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                        title="Lihat Detail"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">visibility</span>
-                                                    </button>
-                                                    
-                                                     <button 
-                                                        onClick={() => setDeleteConfirmId(tx.id)}
-                                                        className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                        title="Hapus Transaksi"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                    </button>
-                                                    
-                                                    {isAdmin && (
-                                                        <button 
-                                                            onClick={() => openEdit(tx)}
-                                                            className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                            title="Edit Transaksi"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">edit_square</span>
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </button>
+
+                                    {isExpanded && (
+                                        <div className="card overflow-x-auto shadow-2xl p-0 animate-in slide-in-from-top-4 duration-500">
+                                            <table className="w-full text-left border-collapse min-w-[700px]">
+                                                <thead>
+                                                    <tr className="glass uppercase text-[10px] tracking-widest text-[var(--text-muted)] border-b border-[var(--border-dim)]">
+                                                        <th className="p-5 font-black">ID</th>
+                                                        <th className="p-5 font-black">Jam</th>
+                                                        <th className="p-5 font-black">Kasir</th>
+                                                        <th className="p-5 font-black text-right">Total</th>
+                                                        <th className="p-5 font-black">Metode</th>
+                                                        <th className="p-5 font-black text-right">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[var(--border-dim)]">
+                                                    {txs.map((tx: any) => (
+                                                        <tr key={tx.id} className="hover:bg-[var(--bg-app)]/50 transition-colors">
+                                                            <td className="p-5 font-black text-[var(--text-main)]">#{tx.id}</td>
+                                                            <td className="p-5 text-sm text-[var(--text-muted)] font-medium">
+                                                                {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                                            </td>
+                                                            <td className="p-5 text-sm font-bold text-primary">{tx.cashierName || tx.userId}</td>
+                                                            <td className="p-5 font-black text-[var(--text-main)] text-right">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</td>
+                                                            <td className="p-5">
+                                                                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-primary/10 text-primary">
+                                                                    {tx.paymentMethod}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-5 flex justify-end gap-2">
+                                                                {deleteConfirmId === tx.id ? (
+                                                                    <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
+                                                                        <button 
+                                                                            onClick={() => handleDelete(tx.id)}
+                                                                            className="h-8 px-3 rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                                                                        >
+                                                                            Hapus
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => setDeleteConfirmId(null)}
+                                                                            className="h-8 px-3 rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                                                                        >
+                                                                            Batal
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <button 
+                                                                            onClick={() => setViewData(tx)}
+                                                                            className="size-8 rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                                            title="Lihat Detail"
+                                                                        >
+                                                                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                                        </button>
+                                                                        
+                                                                        <button 
+                                                                            onClick={() => setDeleteConfirmId(tx.id)}
+                                                                            className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                                            title="Hapus Transaksi"
+                                                                        >
+                                                                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                        </button>
+                                                                        
+                                                                        {isAdmin && (
+                                                                            <button 
+                                                                                onClick={() => openEdit(tx)}
+                                                                                className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
+                                                                                title="Edit Transaksi"
+                                                                            >
+                                                                                <span className="material-symbols-outlined text-[18px]">edit_square</span>
+                                                                            </button>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
                     )}
                 </div>
             </div>
