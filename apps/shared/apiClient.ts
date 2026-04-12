@@ -183,12 +183,15 @@ export async function apiFetch<T = unknown>(
             finalData = { data: rawData, meta: { total: rawData.length, limit: rawData.length, page: 1 } };
         } else if (rawData && typeof rawData === 'object' && 'success' in rawData) {
             if (rawData.success === true) {
-                // Phase 4: Preserve metadata if present
-                if ('meta' in rawData) {
-                    finalData = { data: rawData.data, meta: rawData.meta };
-                } else {
-                    finalData = { data: rawData.data, meta: { total: Array.isArray(rawData.data) ? rawData.data.length : 1, limit: 100, page: 1 } };
-                }
+                // Preserve the success flag and any message/original data
+                const normalized = {
+                    success: true,
+                    message: rawData.message,
+                    data: rawData.data,
+                    // If rawData itself already has meta, use it, otherwise create fallback
+                    meta: rawData.meta || { total: Array.isArray(rawData.data) ? rawData.data.length : 1, limit: 100, page: 1 }
+                };
+                finalData = normalized;
             } else {
                 throw new ApiError(response.status, response.statusText, rawData.message || 'Operation failed');
             }
