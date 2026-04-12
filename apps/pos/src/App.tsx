@@ -750,7 +750,7 @@ function App() {
     );
 
     const PosHeaderExtras = (
-        <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
+        <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
             {/* Sync Status Dot */}
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
                 !isOnline ? 'bg-red-500/10 border-red-500/20 text-red-500' :
@@ -769,7 +769,7 @@ function App() {
                 </span>
             </div>
 
-            <div className="flex bg-white/5 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
+            <div className="flex bg-white/5 p-1 sm:p-1.5 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
                 <button 
                     onClick={() => setView('pos')}
                     className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
-import Layout from '@shared/Layout';
 import { useSession } from '@shared/authClient';
-import ThemeToggle from '@shared/ThemeToggle';
 
 export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const { data: session } = useSession();
@@ -21,7 +19,6 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const [recipesList, setRecipesList] = useState<any[]>([]);
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
-    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -153,29 +150,14 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     return (
-        <Layout 
-            currentPort={5186} 
-            title="Jejak Transaksi" 
-            subtitle="Audit Trail & Riwayat"
-            hideHeader={true}
-            hideTitle={true}
-            drawerOpen={drawerOpen}
-            onDrawerOpen={() => setDrawerOpen(true)}
-            onDrawerClose={() => setDrawerOpen(false)}
-        >
+        <div className="p-2 md:p-4">
             {/* Consolidated Header Bar */}
             <div className="flex justify-between items-center mb-8 px-2">
                 <div className="flex gap-4 items-center">
-                    <button 
-                        onClick={() => setDrawerOpen(true)}
-                        className="size-12 rounded-2xl glass hover:bg-primary/20 text-primary transition-all flex items-center justify-center active:scale-95 shadow-lg border border-white/5"
-                    >
-                        <span className="material-symbols-outlined text-2xl font-black">menu</span>
-                    </button>
-                    <ThemeToggle />
+                    <h2 className="font-black text-xl uppercase tracking-widest text-[var(--text-main)] hidden sm:block">Riwayat</h2>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-6">
                     {isAdmin && transactions.length > 0 && (
                         <div className="rounded-2xl glass p-1 border border-white/5 flex gap-1">
                             {!showClearConfirm ? (
@@ -439,6 +421,6 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
     );
 }
