@@ -126,7 +126,7 @@ app.get('/', (req: Request, res: Response) => {
     res.status(404).json({
         success: false,
         message: "Kerabat POS API Root. Use /api/* for endpoints.",
-        version: "1.1.0-hardened"
+        version: "1.1.5-hardened"
     });
 });
 
@@ -144,7 +144,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
         success: true,
         data: {
             status: 'ok', 
-            message: 'Kerabat Modular Backend v1.1.0 is running (Enterprise Hardened)',
+            message: 'Kerabat Modular Backend v1.1.5 is running (Enterprise Hardened)',
             database: dbStatus,
             time: new Date().toISOString()
         }
