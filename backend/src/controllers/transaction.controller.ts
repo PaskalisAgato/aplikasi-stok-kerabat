@@ -41,6 +41,7 @@ export class TransactionController {
 
     static async checkout(req: Request, res: Response) {
         try {
+            console.log('[CHECKOUT HIT]', req.body);
             const { items, paymentMethod, paymentReferenceId, offlineId } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
             

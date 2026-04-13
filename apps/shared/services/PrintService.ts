@@ -335,15 +335,29 @@ export class PrintService {
     }
 
     private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false) {
-        const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        await db.printQueue.put({
-            id: jobId,
-            data: { data, config, isPrepTicket },
-            status: 'PENDING',
+        // Pre-encode the receipt here using frontend settings
+        const buffer = this.encodeReceipt(data, { config, isPrepTicket });
+        const bufferBase64 = btoa(String.fromCharCode(...buffer));
+
+        // Pivot: Instead of local bridge, we send to cloud queue via SyncEngine
+        await db.offlineActions.add({
+            id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            type: 'ENQUEUE_PRINT',
+            payload: {
+                payload: data,
+                printerName: config.name,
+                isPrepTicket,
+                bufferBase64, // Included for the Local Agent
+                printerIp: config.ip || '127.0.0.1'
+            },
+            sync_status: 'PENDING',
             retry_count: 0,
-            created_at: new Date().toISOString()
+            idempotency_key: `print_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            created_at: new Date().toISOString(),
+            sequence_number: Date.now()
         });
-        console.log(`[PrintService] Enqueued job ${jobId} for ${config.name}`);
+        
+        console.log(`[PrintService] Enqueued CLOUD job for ${config.name} (Encoded)`);
     }
 
     public static async processQueue() {

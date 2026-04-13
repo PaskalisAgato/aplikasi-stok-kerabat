@@ -24,7 +24,7 @@ export interface OfflineAction {
   id: string; // Internal IndexedDB UUID or hash
   sequence_number?: number; // Auto-incrementing local ID for strict FIFO execution
   idempotency_key: string; // UUID v4 ensuring backend never double-processes this action
-  type: 'CHECKOUT' | 'VOID' | 'EXPENSE' | 'SHIFT_HANDOVER' | 'SHIFT_CLOSE';
+  type: 'CHECKOUT' | 'VOID' | 'EXPENSE' | 'SHIFT_HANDOVER' | 'SHIFT_CLOSE' | 'ENQUEUE_PRINT';
   payload: any; // The request body parameters
   created_at: string; // Local timestamp (but Backend will re-verify server time)
   sync_status: 'PENDING' | 'SYNCED' | 'REJECTED' | 'HALTED'; // REJECTED = pure logic failure, HALTED = blocks queue

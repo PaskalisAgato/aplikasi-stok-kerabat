@@ -189,21 +189,18 @@ class SyncEngine {
       for (const action of pending) {
         if (!this.isRunning) break;
         
-        // Handle Exponential Backoff check
+        // 1. Exponential Backoff Check (Per-Action Isolation)
         if (action.retry_count > 0) {
           const waitTime = Math.min(Math.pow(2, action.retry_count) * 5000, 3600000); 
           const lastAttempt = new Date(action.last_attempt_at || action.created_at).getTime(); 
           if (Date.now() - lastAttempt < waitTime) {
-             console.warn(`[SyncEngine] Halting queue to respect FIFO backoff for Action N=${action.sequence_number}`);
-             break; // Halt the whole queue! Strict FIFO!
+             // We no longer halt the entire queue for one action's backoff!
+             continue; 
           }
         }
 
-        const success = await this.syncAction(action);
-        if (!success) {
-           console.warn(`[SyncEngine] Circuit broken at Action N=${action.sequence_number}. Halting queue processing.`);
-           break; 
-        }
+        // 2. Process Action (Errors are handled internally in syncAction)
+        await this.syncAction(action);
       }
       
       const remaining = await db.offlineActions
@@ -230,6 +227,7 @@ class SyncEngine {
       else if (action.type === 'EXPENSE') path = '/finance/expenses';
       else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';
       else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
+      else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; // Pivot Phase: Send to backend queue
 
       await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
       

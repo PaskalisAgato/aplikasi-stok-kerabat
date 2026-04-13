@@ -25,6 +25,8 @@ import { migrationRouter } from './routes/migration.routes.js';
 import { containersRouter } from './routes/containers.js';
 import { cashierShiftRoutes } from './routes/cashierShift.routes.js';
 import { analyticsRouter } from './routes/analytics.js';
+import { printRoutes } from './routes/print.routes.js';
+
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
@@ -254,6 +256,8 @@ app.use('/api/admin', migrationRouter);
 app.use('/api/cashier-shifts', cashierShiftRoutes);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/containers', containersRouter);
+app.use('/api/print', printRoutes);
+
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)
 // Using a Regex to avoid Express 5 PathError with wildcards

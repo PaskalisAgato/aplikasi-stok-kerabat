@@ -483,3 +483,17 @@ export const backups = pgTable('backups', {
     status: text('status').notNull(), // 'Success', 'Failed'
     createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+export const printJobs = pgTable('print_jobs', {
+    id: serial('id').primaryKey(),
+    payload: text('payload').notNull(), // JSON string of PrintData
+    status: text('status').default('PENDING').notNull(), // 'PENDING', 'PROCESSING', 'SUCCESS', 'FAILED'
+    printerName: text('printer_name'),
+    retryCount: integer('retry_count').default(0).notNull(),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    processedAt: timestamp('processed_at')
+}, (t: any) => ({
+    statusIdx: index('print_jobs_status_idx').on(t.status)
+}));
+
