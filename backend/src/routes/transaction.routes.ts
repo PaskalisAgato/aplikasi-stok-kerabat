@@ -7,7 +7,8 @@ const router = Router();
 router.get('/', requireAuth, TransactionController.getAll);
 router.get('/open-bills', requireAuth, TransactionController.getOpenBills);
 router.get('/:id', requireAuth, TransactionController.getById);
-router.post('/checkout', requireAuth, TransactionController.checkout);
+router.post('/', requireAuth, TransactionController.checkout); // Fallback for older frontend / transition
+router.post('/checkout', requireAuth, TransactionController.checkout); // explicit path for newer frontend
 router.post('/:id/add-items', requireAuth, TransactionController.addItems);
 router.post('/:id/void', requireAuth, TransactionController.void);
 router.put('/:id', requireAdmin, TransactionController.update);

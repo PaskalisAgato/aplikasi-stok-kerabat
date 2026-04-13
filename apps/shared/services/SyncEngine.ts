@@ -252,7 +252,8 @@ class SyncEngine {
       }
 
       // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
-      if (error.status >= 400 && error.status < 500) {
+      // But 404 might be temporary deployment lag, so we keep it as PENDING to retry.
+      if (error.status >= 400 && error.status < 500 && error.status !== 404) {
          await db.offlineActions.update(action.id, { 
             sync_status: 'REJECTED', // Mark as failed definitively
             failure_reason: error.message || 'Server rejected payload logically',

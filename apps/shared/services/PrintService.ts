@@ -338,7 +338,7 @@ export class PrintService {
         const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
         await db.printQueue.put({
             id: jobId,
-            data: { ...data, config, isPrepTicket },
+            data: { data, config, isPrepTicket },
             status: 'PENDING',
             retry_count: 0,
             created_at: new Date().toISOString()
