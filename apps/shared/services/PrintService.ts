@@ -293,17 +293,18 @@ export class PrintService {
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
-    public static async printOrder(data: PrintData) {
+    public static async printOrder(data: PrintData, isManual = false) {
         const settings = await this.getSettings();
         
         if (settings.length === 0) {
-            // Default: Browser print dialog if no printers configured
-            console.warn('[PrintService] No printers configured. Offering browser print fallback.');
-            this.browserPrint(data);
+            if (isManual) {
+                console.warn('[PrintService] No printers configured. Offering browser print fallback.');
+                this.browserPrint(data);
+            } else {
+                console.log('[PrintService] No printers configured. Skipping auto-print silently.');
+            }
             return;
         }
-
-        // let hasBridgeFailure = false;
 
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
@@ -325,13 +326,15 @@ export class PrintService {
                     const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
                     this.sendToBluetooth(buffer).catch(err => {
                         console.error('Immediate BT Print failed', err);
-                        window.dispatchEvent(new CustomEvent('print-alert', { 
-                            detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
-                        }));
+                        if (isManual) {
+                            window.dispatchEvent(new CustomEvent('print-alert', { 
+                                detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
+                            }));
+                        }
                     });
                 } else if (printer.connectionType === 'bridge') {
                     // Optimized: Encode once, set status to PENDING
-                    await this.enqueuePrintJob(data, printer, isPrepTicket);
+                    await this.enqueuePrintJob(data, printer, isPrepTicket, isManual);
                 }
             }
         }
@@ -433,7 +436,7 @@ Terima Kasih!
         URL.revokeObjectURL(url);
     }
 
-    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false) {
+    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false, isManual = false) {
         // Pre-encode the receipt here using frontend settings
         const buffer = this.encodeReceipt(data, { config, isPrepTicket });
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
@@ -447,7 +450,8 @@ Terima Kasih!
                 printerName: config.name,
                 isPrepTicket,
                 bufferBase64, // Included for the Local Agent
-                printerIp: config.ip || '127.0.0.1'
+                printerIp: config.ip || '127.0.0.1',
+                isManual
             },
             sync_status: 'PENDING',
             retry_count: 0,
@@ -492,7 +496,7 @@ Terima Kasih!
             if (config.connectionType === 'bluetooth') {
                 success = await this.sendToBluetooth(buffer);
             } else {
-                success = await this.sendToBridge(buffer, config.ip || '127.0.0.1', data);
+                success = await this.sendToBridge(buffer, config.ip || '127.0.0.1', data, job.data.isManual);
             }
 
             if (success) {
@@ -622,7 +626,7 @@ Terima Kasih!
         return encoder.encode();
     }
 
-    private static async sendToBridge(buffer: Uint8Array, printerIp: string, data?: PrintData): Promise<boolean> {
+    private static async sendToBridge(buffer: Uint8Array, printerIp: string, data?: PrintData, isManual = false): Promise<boolean> {
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
 
         try {
@@ -638,9 +642,11 @@ Terima Kasih!
             return response.ok;
         } catch (error) {
             console.error('Bridge printing failed:', error);
-            window.dispatchEvent(new CustomEvent('print-alert', { 
-                detail: { message: `Gagal terhubung ke Print Agent (Bridge). Pastikan Agent aktif di terminal.`, type: 'ERROR', data } 
-            }));
+            if (isManual) {
+                window.dispatchEvent(new CustomEvent('print-alert', { 
+                    detail: { message: `Gagal terhubung ke Print Agent (Bridge). Pastikan Agent aktif di terminal.`, type: 'ERROR', data } 
+                }));
+            }
             return false;
         }
     }
