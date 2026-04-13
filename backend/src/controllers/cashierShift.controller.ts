@@ -45,19 +45,20 @@ export class CashierShiftController {
         try {
             const userId = (req as any).user?.id;
             const id = parseInt(req.params.id as string);
-            const { actualCash, actualNonCash, notes } = req.body;
-
+            const { denominations, actualNonCash, notes, nonCashVerified } = req.body;
+            
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid shift ID' });
-            if (actualCash === undefined || actualNonCash === undefined) {
-                return res.status(400).json({ error: 'Actual cash and non-cash amounts are required' });
+            if (actualNonCash === undefined) {
+                return res.status(400).json({ error: 'Actual non-cash amount is required' });
             }
 
             const result = await CashierShiftService.closeShift(id, {
-                actualCash: parseFloat(actualCash),
+                denominations: denominations || [],
                 actualNonCash: parseFloat(actualNonCash),
                 notes: notes || '',
-                userId
+                userId,
+                nonCashVerified: !!nonCashVerified
             });
 
             res.json({ success: true, data: result });
