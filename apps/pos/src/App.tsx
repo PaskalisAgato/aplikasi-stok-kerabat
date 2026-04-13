@@ -835,6 +835,23 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
                 </span>
             </div>
 
+            {/* Clear stuck queue button — only visible when there are stuck PENDING items */}
+            {pendingSyncCount > 0 && !isPushing && (
+                <button
+                    onClick={async () => {
+                        if (confirm(`Bersihkan ${pendingSyncCount} transaksi yang macet dari antrean? Transaksi yang belum terkirim akan dibatalkan.`)) {
+                            await syncEngine.clearAllPending();
+                            setPendingSyncCount(0);
+                        }
+                    }}
+                    className="size-8 rounded-lg flex items-center justify-center bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 transition-all border border-amber-500/20"
+                    title="Bersihkan antrean yang macet"
+                >
+                    <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                </button>
+            )}
+
+
             <div className="flex bg-white/5 p-1 sm:p-1.5 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
                 <button 
                     onClick={() => setView('pos')}

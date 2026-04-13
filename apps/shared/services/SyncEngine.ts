@@ -286,6 +286,27 @@ class SyncEngine {
   public async forceSync() {
       await this.processQueue();
   }
+
+  /**
+   * Emergency flush: marks all PENDING actions as REJECTED.
+   * Use when old queued items are permanently stuck (e.g. expired session data).
+   */
+  public async clearAllPending() {
+      const pending = await db.offlineActions
+          .where('sync_status').equals('PENDING')
+          .toArray();
+      
+      for (const action of pending) {
+          await db.offlineActions.update(action.id, {
+              sync_status: 'REJECTED' as any,
+              failure_reason: 'Manually cleared by user (session expired or stuck)'
+          });
+      }
+
+      this.notify(0);
+      console.log(`[SyncEngine] Manually cleared ${pending.length} stuck PENDING actions.`);
+      return pending.length;
+  }
 }
 
 export const syncEngine = new SyncEngine();
