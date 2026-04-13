@@ -394,6 +394,13 @@ export class PrintService {
     public static encodeReceipt(data: _PrTrData, options: { config: _PrTrConf, isPrepTicket?: boolean }): Uint8Array {
         const encoder = new EscPosEncoder();
         const { config, isPrepTicket } = options;
+        
+        // Anti-crash guard for malformed job data
+        if (!data) {
+            console.error('[PrintService] encodeReceipt: Missing data object');
+            return encoder.initialize().line('ERR: MISSING DATA').encode();
+        }
+
         const width = config.width || 32;
 
         const centerText = (text: string) => {
@@ -414,7 +421,8 @@ export class PrintService {
             .align('left');
         
         if (config.showDate !== false) {
-            encoder.line(`Date:  ${new Date(data.date).toLocaleString('id-ID')}`);
+            const printDate = data.date ? new Date(data.date) : new Date();
+            encoder.line(`Date:  ${printDate.toLocaleString('id-ID')}`);
         }
         
         encoder.line(`Order: #${data.id}`)
@@ -436,7 +444,7 @@ export class PrintService {
                 const nameLines = [];
                 let currentLine = '';
                 
-                words.forEach(word => {
+                words.forEach((word: string) => {
                     if ((currentLine + word).length < availableForName) {
                         currentLine += (currentLine ? ' ' : '') + word;
                     } else {

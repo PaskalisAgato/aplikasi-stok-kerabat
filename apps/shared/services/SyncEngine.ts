@@ -225,8 +225,8 @@ class SyncEngine {
       await db.offlineActions.update(action.id, { last_attempt_at: new Date().toISOString() });
 
       let path = '';
-      if (action.type === 'CHECKOUT') path = '/checkout';
-      else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; // Ensure API path receives ID correctly
+      if (action.type === 'CHECKOUT') path = '/transactions'; // Changed from /checkout to match TransactionController mapping
+      else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; 
       else if (action.type === 'EXPENSE') path = '/finance/expenses';
       else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';
       else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
