@@ -13,7 +13,7 @@ class SyncEngine {
   private stateListeners: ((state: { isPulling: boolean, isPushing: boolean, lastError: string | null }) => void)[] = [];
 
   private readonly PULL_INTERVAL_MS = 60000; // Pull every 1 minute
-  private readonly MAX_RETRIES = 10;
+  private readonly MAX_RETRIES = 3; // Reduced for Enterprise Hardening Phase
 
   public async start(intervalMs = 15000) {
     if (this.isRunning) return;
@@ -230,13 +230,11 @@ class SyncEngine {
       else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; // Pivot Phase: Send to backend queue
 
       await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+
+      // Phase Hardening: Immediately remove successful actions to prevent double-processing risk
+      await db.offlineActions.delete(action.id);
       
-      await db.offlineActions.update(action.id, { 
-        sync_status: 'SYNCED',
-        retry_count: action.retry_count + 1 
-      });
-      
-      console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}]`);
+      console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}] - DELETED FROM QUEUE`);
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
@@ -250,7 +248,7 @@ class SyncEngine {
       }
 
       // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
-      // But 404 might be temporary deployment lag, so we keep it as PENDING to retry.
+      // 404 treated as possibly transient (deploy lag) but subject to max retries.
       if (error.status >= 400 && error.status < 500 && error.status !== 404) {
          await db.offlineActions.update(action.id, { 
             sync_status: 'REJECTED', // Mark as failed definitively
@@ -262,7 +260,7 @@ class SyncEngine {
       }
 
       const nextRetryCount = action.retry_count + 1;
-      const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'REJECTED' : 'PENDING';
+      const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'FAILED_PERMANENT' : 'PENDING';
 
       await db.offlineActions.update(action.id, { 
         retry_count: nextRetryCount,
@@ -270,8 +268,9 @@ class SyncEngine {
         failure_reason: error.message || 'Unknown error'
       });
       
-      // If it's a network retry, return false to strictly halt the queue
-      return false; 
+      // If it's a network retry (PENDING), return false to strictly halt the queue 
+      // If FAILED_PERMANENT, return true to skip it and keep processing others
+      return nextStatus === 'FAILED_PERMANENT'; 
     }
   }
 

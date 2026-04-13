@@ -27,7 +27,7 @@ export interface OfflineAction {
   type: 'CHECKOUT' | 'VOID' | 'EXPENSE' | 'SHIFT_HANDOVER' | 'SHIFT_CLOSE' | 'ENQUEUE_PRINT';
   payload: any; // The request body parameters
   created_at: string; // Local timestamp (but Backend will re-verify server time)
-  sync_status: 'PENDING' | 'SYNCED' | 'REJECTED' | 'HALTED'; // REJECTED = pure logic failure, HALTED = blocks queue
+  sync_status: 'PENDING' | 'SYNCED' | 'REJECTED' | 'FAILED_PERMANENT' | 'HALTED'; // REJECTED = pure logic failure, HALTED = blocks queue
   retry_count: number;
   failure_reason?: string;
   last_attempt_at?: string;

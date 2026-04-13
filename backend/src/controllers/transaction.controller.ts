@@ -40,8 +40,13 @@ export class TransactionController {
     }
 
     static async checkout(req: Request, res: Response) {
+        const idempotencyKey = req.headers['x-idempotency-key'] as string;
         try {
-            console.log('[CHECKOUT HIT]', req.body);
+            // 1. HARDENING: Check for existing response
+            const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
+            if (cached) return res.status(cached.statusCode).json(cached.body);
+
+            console.log(`[CHECKOUT START] Key: ${idempotencyKey}`, req.body.offlineId || 'no-offline-id');
             const { items, paymentMethod, paymentReferenceId, offlineId } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
             
@@ -57,11 +62,33 @@ export class TransactionController {
                 data: { transactionId: result.transactionId }
             };
 
-
+            // 2. HARDENING: Cache response for idempotency
+            await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 201);
             
+            console.log(`[CHECKOUT SUCCESS] Key: ${idempotencyKey} -> Tx: ${result.transactionId}`);
             res.status(201).json(responseBody);
         } catch (error: any) {
-            console.error('--- TransactionController.checkout ERROR ---', error.message);
+            console.error(`--- [CHECKOUT ERROR] Key: ${idempotencyKey} ---`, error.message);
+            
+            // Log to system logs for audit
+            try {
+                const { db } = await import('../config/db.js');
+                const schema = await import('../db/schema.js');
+                await db.insert(schema.systemLogs).values({
+                    method: 'POST',
+                    path: '/transactions/checkout',
+                    responseTime: 0,
+                    payloadSize: JSON.stringify(req.body).length,
+                    statusCode: 500,
+                    userId: (req as any).user?.id || 'anonymous',
+                    level: 'ERROR',
+                    errorDetails: `IdempotencyKey: ${idempotencyKey} | Error: ${error.message}`,
+                    createdAt: new Date()
+                });
+            } catch (auditErr) {
+                console.error('Failed to log checkout error to systemLogs', auditErr);
+            }
+
             res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
         }
     }

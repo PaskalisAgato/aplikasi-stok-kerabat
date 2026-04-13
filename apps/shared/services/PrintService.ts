@@ -297,14 +297,13 @@ export class PrintService {
         const settings = await this.getSettings();
         
         if (settings.length === 0) {
-            // Default bridge fallback
-            await this.enqueuePrintJob(data, { 
-                id: 'default', name: 'Default', connectionType: 'bridge', ip: '127.0.0.1', 
-                port: 9100, width: 32, categories: [], autoPrint: true 
-            });
-            this.startQueueWorker();
+            // Default: Browser print dialog if no printers configured
+            console.warn('[PrintService] No printers configured. Offering browser print fallback.');
+            this.browserPrint(data);
             return;
         }
+
+        // let hasBridgeFailure = false;
 
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
@@ -324,14 +323,114 @@ export class PrintService {
                     // Bluetooth requires active User Gesture. Cannot be queued asynchronously.
                     console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
                     const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
-                    this.sendToBluetooth(buffer).catch(err => console.error('Immediate BT Print failed', err));
-                } else {
+                    this.sendToBluetooth(buffer).catch(err => {
+                        console.error('Immediate BT Print failed', err);
+                        window.dispatchEvent(new CustomEvent('print-alert', { 
+                            detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
+                        }));
+                    });
+                } else if (printer.connectionType === 'bridge') {
+                    // Optimized: Encode once, set status to PENDING
                     await this.enqueuePrintJob(data, printer, isPrepTicket);
                 }
             }
         }
         
+        // Start worker for bridge jobs
         this.startQueueWorker();
+    }
+
+    /**
+     * Standard Browser Print Fallback
+     */
+    public static browserPrint(data: PrintData) {
+        if (typeof window === 'undefined') return;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Popup terblokir! Izinkan popup untuk mencetak struk.');
+            return;
+        }
+
+        const itemsHtml = data.items.map(item => `
+            <tr>
+                <td style="padding: 4px 0;">${item.quantity}x ${item.name}</td>
+                <td style="text-align: right; padding: 4px 0;">Rp ${item.subtotal.toLocaleString('id-ID')}</td>
+            </tr>
+        `).join('');
+
+        const html = `
+            <html>
+            <head>
+                <title>Receipt #${data.id}</title>
+                <style>
+                    body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0 auto; padding: 10px; font-size: 12px; }
+                    .center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .divider { border-top: 1px dotted #000; margin: 10px 0; }
+                    table { width: 100%; border-collapse: collapse; }
+                </style>
+            </head>
+            <body>
+                <div class="center bold" style="font-size: 16px;">KERABAT KOPI TIAM</div>
+                <div class="center">Premium Coffee & Toast</div>
+                <div class="divider"></div>
+                <div>Date: ${new Date(data.date).toLocaleString('id-ID')}</div>
+                <div>Order: #${data.id}</div>
+                <div class="divider"></div>
+                <table>${itemsHtml}</table>
+                <div class="divider"></div>
+                <div style="display: flex; justify-content: space-between;" class="bold">
+                    <span>TOTAL:</span>
+                    <span>Rp ${data.total.toLocaleString('id-ID')}</span>
+                </div>
+                <div style="margin-top: 10px;">Metode: ${data.paymentMethod}</div>
+                <div class="divider"></div>
+                <div class="center">Terima Kasih!</div>
+                <div class="center">Selamat Menikmati</div>
+                <script>
+                    window.onload = () => {
+                        window.print();
+                        setTimeout(() => window.close(), 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+    }
+
+    /**
+     * Downloadable PDF Receipt Fallback
+     */
+    public static downloadPdfReceipt(data: PrintData) {
+        // Simple implementation: generate text/plain blob as a placeholder for "PDF"
+        // In a real app we might use jspdf, but simple text is more robust for fallbacks.
+        const content = `
+RESEPSI PEMBAYARAN - KERABAT POS
+===============================
+ID: #${data.id}
+Waktu: ${new Date(data.date).toLocaleString('id-ID')}
+-------------------------------
+${data.items.map(i => `${i.quantity}x ${i.name.padEnd(20)} Rp ${i.subtotal.toLocaleString('id-ID')}`).join('\n')}
+-------------------------------
+TOTAL: Rp ${data.total.toLocaleString('id-ID')}
+Metode: ${data.paymentMethod}
+===============================
+Terima Kasih!
+        `;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Receipt_${data.id}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false) {
@@ -393,7 +492,7 @@ export class PrintService {
             if (config.connectionType === 'bluetooth') {
                 success = await this.sendToBluetooth(buffer);
             } else {
-                success = await this.sendToBridge(buffer, config.ip || '127.0.0.1');
+                success = await this.sendToBridge(buffer, config.ip || '127.0.0.1', data);
             }
 
             if (success) {
@@ -523,7 +622,7 @@ export class PrintService {
         return encoder.encode();
     }
 
-    private static async sendToBridge(buffer: Uint8Array, printerIp: string): Promise<boolean> {
+    private static async sendToBridge(buffer: Uint8Array, printerIp: string, data?: PrintData): Promise<boolean> {
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
 
         try {
@@ -539,6 +638,9 @@ export class PrintService {
             return response.ok;
         } catch (error) {
             console.error('Bridge printing failed:', error);
+            window.dispatchEvent(new CustomEvent('print-alert', { 
+                detail: { message: `Gagal terhubung ke Print Agent (Bridge). Pastikan Agent aktif di terminal.`, type: 'ERROR', data } 
+            }));
             return false;
         }
     }

@@ -132,13 +132,27 @@ function App() {
     const [isHandoverShiftOpen, setIsHandoverShiftOpen] = useState(false);
     const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
     const [pendingSyncs, setPendingSyncs] = useState<number>(0);
+    const [printAlert, setPrintAlert] = useState<{ message: string, type: 'WARN' | 'ERROR', data?: PrintData } | null>(null);
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
         const unsubscribe = syncEngine.onChange((count) => {
             setPendingSyncs(count);
         });
-        return unsubscribe;
+
+        const handlePrintAlert = (e: any) => {
+            setPrintAlert({ 
+                message: e.detail.message, 
+                type: e.detail.type, 
+                data: e.detail.data 
+            });
+        };
+        window.addEventListener('print-alert', handlePrintAlert);
+
+        return () => {
+            unsubscribe();
+            window.removeEventListener('print-alert', handlePrintAlert);
+        };
     }, []);
 
     const fetchRecipes = async () => {
@@ -337,7 +351,7 @@ function App() {
         try {
             const transactionId = crypto.randomUUID();
             const checkoutData = {
-                id: transactionId, // Idempotency key / Device ID
+                id: transactionId, 
                 items: activeCartItems.map(item => ({
                     recipeId: item.id,
                     quantity: sales[item.id],
@@ -350,7 +364,6 @@ function App() {
                 taxAmount: 0
             };
 
-            // 1. Generate print data FIRST to retain Chrome User-Gesture token
             const printData: PrintData = {
                 id: transactionId as any,
                 date: new Date().toISOString(),
@@ -367,12 +380,14 @@ function App() {
                 }))
             };
 
-            // 2. Print (Background task) - Call IMMEDIATELY before yielding to DB
+            // 1. Decoupled Printing: Fire and forget (don't block checkout success)
             PrintService.printOrder(printData).catch(err => {
-                console.error('Printing failed', err);
+                console.error('Initial printing attempt failed', err);
+                // PrintService.printOrder internal logic already emits print-alert if it fails
             });
 
-            // 3. Save to Enterprise Offline Queue
+            // 2. Save to Offline Queue (Local Source of Truth)
+            // Use transactionid as both ID and idempotency key foundation
             await db.offlineActions.add({
                 id: transactionId,
                 idempotency_key: `req_checkout_${transactionId}`,
@@ -383,7 +398,14 @@ function App() {
                 retry_count: 0
             });
 
-            // Phase 8: Audit Log
+            // 3. UI Optimistic Success
+            setSales({});
+            setPaymentMethod('CASH');
+            setAmountPaid(0);
+            setCustomerInfo('');
+            setCurrentBillId(null);
+            
+            // 4. Trace Log
             await db.auditLog.add({
                 action: 'CHECKOUT',
                 entity: 'Transaction',
@@ -393,17 +415,10 @@ function App() {
                 deviceId: 'POS-01'
             });
 
-            // 4. Trigger Background Sync explicitly for instant feedback if online
+            // 5. Trigger sync in background
             syncEngine.forceSync().catch(console.error);
 
-            // 5. Reset UI state immediately (Optimistic Response)
-            setSales({});
-            setPaymentMethod('CASH');
-            setAmountPaid(0);
-
             alert(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
-            setCustomerInfo('');
-            setCurrentBillId(null);
         } catch (error) {
             console.error('Checkout failed', error);
             alert('Gagal menyimpan transaksi ke database lokal.');
@@ -1223,6 +1238,53 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
                                 {isCheckingOut ? 'Memproses...' : splitMode === 'pay' ? 'Pilih & Lanjut Bayar' : 'Pisah Meja'}
                             </button>
                         </footer>
+                    </div>
+                </div>
+            )}
+
+            {/* PRINT ALERT / FALLBACK UI */}
+            {printAlert && (
+                <div className="fixed bottom-6 right-6 z-[200] w-full max-w-sm animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="glass border-amber-500/30 overflow-hidden shadow-2xl rounded-2xl">
+                        <div className="p-4 bg-amber-500/10 flex gap-3">
+                            <div className="size-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined">print_disabled</span>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-black text-xs text-amber-500 uppercase tracking-widest">Printer Bermasalah</h4>
+                                <p className="text-[11px] font-bold text-[var(--text-main)] mt-1 leading-relaxed">
+                                    {printAlert.message}
+                                </p>
+                            </div>
+                            <button onClick={() => setPrintAlert(null)} className="size-6 rounded-lg hover:bg-white/5 flex items-center justify-center transition-all">
+                                <span className="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                        <div className="p-3 bg-white/5 grid grid-cols-2 gap-2">
+                            <button 
+                                onClick={() => {
+                                    if (printAlert.data) PrintService.browserPrint(printAlert.data);
+                                    else alert('Data struk tidak tersedia untuk print browser.');
+                                }}
+                                className="h-10 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                                Browser
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    if (printAlert.data) PrintService.downloadPdfReceipt(printAlert.data);
+                                    else alert('Data struk tidak tersedia untuk download.');
+                                }}
+                                className="h-10 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm">download</span>
+                                Unduh (TXT)
+                            </button>
+                        </div>
+                        <div className="px-4 py-2 bg-slate-950/20 text-[9px] font-bold text-[var(--text-muted)] italic text-center">
+                            Transaksi tetap tersimpan meskipun cetak gagal.
+                        </div>
                     </div>
                 </div>
             )}
