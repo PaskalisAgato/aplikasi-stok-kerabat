@@ -85,7 +85,7 @@ export default function SyncWidget() {
             }}
         >
             <span className="material-symbols-outlined text-sm">{icon}</span>
-            <span className="text-xs font-bold whitespace-nowrap">{label} (v1.1.5)</span>
+            <span className="text-xs font-bold whitespace-nowrap">{label} (v1.1.6)</span>
         </div>
     );
 }

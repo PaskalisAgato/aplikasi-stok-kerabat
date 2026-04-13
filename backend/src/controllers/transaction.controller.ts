@@ -40,13 +40,8 @@ export class TransactionController {
     }
 
     static async checkout(req: Request, res: Response) {
-        const idempotencyKey = req.headers['x-idempotency-key'] as string;
         try {
-            // 1. HARDENING: Server-side Idempotency Cache
-            const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
-            if (cached) return res.status(cached.statusCode).json(cached.body);
-
-            const { items } = req.body;
+            const { items, paymentMethod, paymentReferenceId, offlineId } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
             
             if (!items || !Array.isArray(items) || items.length === 0) {
@@ -61,8 +56,7 @@ export class TransactionController {
                 data: { transactionId: result.transactionId }
             };
 
-            // 2. Save for idempotency
-            await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 201);
+
             
             res.status(201).json(responseBody);
         } catch (error: any) {
