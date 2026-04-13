@@ -123,75 +123,74 @@ export class TransactionService {
 
     // 3. PROCESS CHECKOUT (CREATE)
     static async processCheckout(data: any, userId: string) {
-        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod } = data;
+        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod, paymentReferenceId } = data;
 
         // 0. Idempotency Check (Offline ID)
         if (offlineId) {
             const existing = await db.select().from(schema.sales).where(eq(schema.sales.offlineId, offlineId)).limit(1);
             if (existing.length > 0) {
-                console.log(`[Idempotency] Transaction ${offlineId} already exists. Skipping.`);
+                console.log(`[Idempotency] Transaction ${offlineId} already exists. Returning cached success.`);
                 return { success: true, transactionId: existing[0].id, alreadySynced: true };
             }
         }
         
         if (!items || !Array.isArray(items) || items.length === 0) {
-            throw new Error('No items in cart');
+            throw new Error('Keranjang belanja kosong');
         }
 
-        let calculatedSubTotal = subTotal ? parseFloat(subTotal.toString()) : 0;
-        if (isNaN(calculatedSubTotal)) calculatedSubTotal = 0;
+        // 1. HARDENING: Re-validate prices from DB (Source of Truth)
+        const recipeIds = items.map((i: any) => i.recipeId);
+        const dbRecipes = await db.select({ id: schema.recipes.id, price: schema.recipes.price, costPrice: schema.recipes.costPrice })
+            .from(schema.recipes)
+            .where(inArray(schema.recipes.id, recipeIds));
         
-        // 0.25 Active Shift Guard
+        const priceMap = new Map(dbRecipes.map(r => [r.id, parseFloat(r.price)]));
+        const costMap = new Map(dbRecipes.map(r => [r.id, parseFloat(r.costPrice)]));
+        
+        let serverCalculatedSubTotal = 0;
+        for (const item of items) {
+            const freshPrice = priceMap.get(item.recipeId);
+            if (freshPrice === undefined) throw new Error(`Menu dengan ID ${item.recipeId} tidak ditemukan`);
+            serverCalculatedSubTotal += freshPrice * item.quantity;
+        }
+
+        // 2. HARDENING: Compare with client total
+        const clientTotal = parseFloat(totalAmount?.toString() || '0');
+        // Tolerance for floating point if needed, but POS should be exact
+        if (Math.abs(serverCalculatedSubTotal - clientTotal) > 0.01) {
+            console.error(`[FRAUD ALERT] Price mismatch! Client: ${clientTotal}, Server: ${serverCalculatedSubTotal}`);
+            
+            // LOG CRITICAL FRAUD ALARM
+            await db.insert(schema.auditLogs).values({
+                userId,
+                action: 'FRAUD_PRICE_MISMATCH_ATTEMPT',
+                tableName: 'sales',
+                oldData: JSON.stringify({ items, clientTotal }),
+                newData: JSON.stringify({ serverCalculatedSubTotal, status: 'REJECTED_BY_SERVER_ARMOR' }),
+                createdAt: new Date()
+            });
+
+            throw new Error('Manipulasi Harga Terdeteksi: Total harga tidak sesuai dengan database server.');
+        }
+
+        // 3. HARDENING: Active Shift Guard
         const activeShift = await CashierShiftService.getActiveShift(userId);
         if (!activeShift) {
-            throw new Error('Shift belum dibuka. Silakan buka shift terlebih dahulu untuk melakukan transaksi.');
+            throw new Error('Shift belum dibuka. Tidak bisa melakukan transaksi.');
         }
-
-        // 0.5 Duplicate Open Bill Check
-        const status = data.status || 'PAID';
-        const customerInfo = data.customerInfo;
-        if (status === 'OPEN' && customerInfo) {
-            const existingOpen = await db.select({ id: schema.sales.id })
-                .from(schema.sales)
-                .where(
-                    and(
-                        eq(schema.sales.status, 'OPEN'),
-                        eq(schema.sales.customerInfo, customerInfo),
-                        eq(schema.sales.isDeleted, false)
-                    )
-                )
-                .limit(1);
-            
-            if (existingOpen.length > 0) {
-                throw new Error(`Tagihan untuk "${customerInfo}" sudah aktif. Gunakan fitur "Tambah Item" untuk memperbarui pesanan.`);
-            }
-        }
-
-        if (calculatedSubTotal === 0) {
-            calculatedSubTotal = items.reduce((acc: number, item: any) => {
-                const p = parseFloat(item.price?.toString() || '0');
-                return acc + (isNaN(p) ? 0 : p * (item.quantity || 0));
-            }, 0);
-        }
-
-        let finalTotalAmount = totalAmount ? parseFloat(totalAmount.toString()) : calculatedSubTotal;
-        if (isNaN(finalTotalAmount)) finalTotalAmount = calculatedSubTotal;
-
-        const parsedShiftId = (shiftId !== null && shiftId !== undefined && shiftId !== '')
-            ? parseInt(shiftId.toString())
-            : NaN;
 
         const saleValues: any = {
             offlineId: offlineId || null,
             shiftId: activeShift.id, // Enforce linkage to active shift
             userId,
-            subTotal: calculatedSubTotal.toString(),
+            subTotal: serverCalculatedSubTotal.toString(),
             taxAmount: '0',
             serviceChargeAmount: '0',
-            totalAmount: finalTotalAmount.toString(),
+            totalAmount: serverCalculatedSubTotal.toString(),
             paymentMethod: paymentMethod || 'CASH',
             status: data.status || 'PAID',
-            customerInfo: data.customerInfo || null
+            customerInfo: data.customerInfo || null,
+            paymentReferenceId: paymentReferenceId || null
         };
 
         return await db.transaction(async (tx: any) => {
@@ -200,22 +199,21 @@ export class TransactionService {
                 totalAmount: schema.sales.totalAmount
             });
 
-            // 1. Bulk insert saleItems
+            // 1. Bulk insert saleItems using server-verified prices
             const saleItemsInsertData = items.map((item: any) => {
-                const itemPriceRaw = parseFloat(item.price?.toString() || '0');
-                const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
-                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
+                const verifiedPrice = priceMap.get(item.recipeId) || 0;
+                const snapCostPrice = costMap.get(item.recipeId) || 0;
                 return {
                     saleId: newSale.id,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString()
+                    subtotal: (verifiedPrice * item.quantity).toString(),
+                    costPrice: snapCostPrice.toString()
                 };
             });
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
 
             // 2. Bulk fetch BOMs
-            const recipeIds = items.map((i: any) => i.recipeId);
             const allBomDeps = await tx.select({
                 recipeId: schema.recipeIngredients.recipeId,
                 inventoryId: schema.recipeIngredients.inventoryId,
@@ -270,6 +268,15 @@ export class TransactionService {
                 oldData: null,
                 newData: JSON.stringify({ sale: newSale, items }),
                 createdAt: new Date()
+            });
+
+            // 6. Record to Cash Ledger (Anti-Fraud)
+            await tx.insert(schema.cashLedger).values({
+                shiftId: activeShift.id,
+                type: 'sale',
+                amount: newSale.totalAmount.toString(),
+                referenceId: newSale.id,
+                description: `Pemasukan Penjualan ${paymentMethod}`
             });
 
             return { success: true, transactionId: newSale.id };
@@ -552,15 +559,35 @@ export class TransactionService {
         });
     }
 
-    static async voidTransaction(id: number, reason: string, userId: string) {
+    static async voidTransaction(id: number, reason: string, userId: string, adminPin?: string) {
         const [sale] = await db.select().from(schema.sales).where(eq(schema.sales.id, id)).limit(1);
         if (!sale) throw new Error('Transaksi tidak ditemukan');
         if (sale.isVoided) throw new Error('Transaksi sudah dibatalkan sebelumnya');
 
+        // 1. HARDENING: Anti-Fraud Void Rules
+        const transactionAgeMinutes = (Date.now() - new Date(sale.createdAt).getTime()) / (1000 * 60);
+        const requiresAdminApproval = transactionAgeMinutes > 2 || sale.paymentMethod === 'CASH';
+
+        if (requiresAdminApproval) {
+            if (!adminPin) {
+                throw new Error('OTORISASI DIPERLUKAN: Pembatalan transaksi lama atau transaksi tunai wajib menggunakan PIN Admin.');
+            }
+            const isValidAdmin = await this.verifyAdminPin(adminPin);
+            if (!isValidAdmin) {
+                throw new Error('PIN Admin tidak valid. Gagal melakukan pembatalan.');
+            }
+        }
+
+        // 2. HARDENING: Active Shift Guard
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        if (!activeShift) {
+            throw new Error('Tidak bisa melakukan Void tanpa shift aktif.');
+        }
+
         return await db.transaction(async (tx) => {
             const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
 
-            // 1. Mark as voided
+            // Mark as voided
             await tx.update(schema.sales)
                 .set({ 
                     isVoided: true, 
@@ -570,19 +597,43 @@ export class TransactionService {
                 })
                 .where(eq(schema.sales.id, id));
 
-            // 2. Revert Stock (Crucial for inventory accuracy)
+            // Revert Stock
             await TransactionService.revertStockForSaleItems(tx, oldItems, id);
 
-            // 3. Audit Log
+            // Negative Cash Ledger Record (Refund)
+            await tx.insert(schema.cashLedger).values({
+                shiftId: activeShift.id, // Use current active shift for the refund ledger entry
+                type: 'refund',
+                amount: (-parseFloat(sale.totalAmount)).toString(),
+                referenceId: sale.id,
+                description: `Pembatalan Transaksi (Void) - Alasan: ${reason}${adminPin ? ' (Approved by Admin)' : ''}`
+            });
+
+            // Log to Void Logs
+            await tx.insert(schema.voidLogs).values({
+                transactionId: sale.id,
+                userId: userId,
+                reason: reason,
+                approvedBy: adminPin ? 'ADMIN' : null, // Logical marker
+            });
+
+            // Audit Log
             await tx.insert(schema.auditLogs).values({
                 userId,
-                action: 'VOID_TRANSACTION',
+                action: 'VOID_TRANSACTION_HARDENED',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale, items: oldItems }),
-                newData: JSON.stringify({ isVoided: true, voidReason: reason }),
+                newData: JSON.stringify({ isVoided: true, voidReason: reason, adminApproval: !!adminPin }),
                 createdAt: new Date()
             });
         });
+    }
+
+    private static async verifyAdminPin(pin: string) {
+        const admin = await db.select().from(schema.users)
+            .where(and(eq(schema.users.pin, pin), eq(schema.users.role, 'Admin')))
+            .limit(1);
+        return admin.length > 0;
     }
 
     // 6. CLEAR ALL TRANSACTIONS

@@ -137,6 +137,7 @@ export const recipes = pgTable('recipes', {
     overhead: decimal('overhead', { precision: 5, scale: 2 }).notNull().default('10'), // Percentage 0-100
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
+    costPrice: decimal('cost_price', { precision: 12, scale: 2 }).notNull().default('0'), // HPP
     isDeleted: boolean('is_deleted').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull()
 });
@@ -167,7 +168,8 @@ export const shifts = pgTable('shifts', {
     status: text('status').default('OPEN').notNull(), // 'OPEN', 'CLOSED'
     cashierNotes: text('cashier_notes'),
     totalSalesCount: integer('total_sales_count').default(0).notNull(),
-    totalItemsSold: integer('total_items_sold').default(0).notNull()
+    totalItemsSold: integer('total_items_sold').default(0).notNull(),
+    ledgerSnapshot: text('ledger_snapshot'), // New: Immutable JSON snapshot of accounting state at closing
 }, (t: any) => ({
     userIdx: index('shifts_user_idx').on(t.userId),
     statusIdx: index('shifts_status_idx').on(t.status)
@@ -182,6 +184,7 @@ export const sales = pgTable('sales', {
     serviceChargeAmount: decimal('service_charge_amount', { precision: 12, scale: 2 }).notNull().default('0'),
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
     paymentMethod: text('payment_method').notNull(), // 'CASH', 'QRIS', 'CARD'
+    paymentStatus: text('payment_status').default('success').notNull(), // 'success', 'pending', 'failed'
     status: text('status').default('PAID').notNull(), // 'OPEN', 'PAID', 'CANCELLED'
     customerInfo: text('customer_info'), // Table number or Name
     discountAmount: decimal('discount_amount', { precision: 12, scale: 2 }).default('0').notNull(),
@@ -192,6 +195,7 @@ export const sales = pgTable('sales', {
     voidedAt: timestamp('voided_at'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
     offlineId: text('offline_id').unique(),
+    paymentReferenceId: text('payment_reference_id'), // New: Proof for Non-Cash (e.g. Card/QRIS Ref Number)
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
@@ -205,7 +209,8 @@ export const saleItems = pgTable('sale_items', {
     saleId: integer('sale_id').notNull().references(() => sales.id),
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     quantity: integer('quantity').notNull(),
-    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull()
+    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
+    costPrice: decimal('cost_price', { precision: 12, scale: 2 }).notNull().default('0') // Capture HPP at time of sale
 }, (t: any) => ({
     saleIdx: index('sale_items_sale_idx').on(t.saleId),
     recipeIdx: index('sale_items_recipe_idx').on(t.recipeId)
@@ -230,6 +235,46 @@ export const expenses = pgTable('expenses', {
     shiftIdx: index('expenses_shift_id_idx').on(t.shiftId),
     expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate)
 }));
+
+export const cashLedger = pgTable('cash_ledger', {
+    id: serial('id').primaryKey(),
+    shiftId: integer('shift_id').notNull().references(() => shifts.id),
+    type: text('type').notNull(), // 'sale', 'refund', 'expense', 'handover'
+    amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+    referenceId: integer('reference_id'), // Pointer to sales, expenses, etc.
+    description: text('description'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    shiftIdx: index('cash_ledger_shift_idx').on(t.shiftId)
+}));
+
+export const voidLogs = pgTable('void_logs', {
+    id: serial('id').primaryKey(),
+    transactionId: integer('transaction_id').notNull().references(() => sales.id),
+    userId: text('user_id').notNull().references(() => users.id),
+    reason: text('reason').notNull(),
+    approvedBy: text('approved_by').references(() => users.id), // Admin pinning
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const shiftHandover = pgTable('shift_handover', {
+    id: serial('id').primaryKey(),
+    shiftFrom: integer('shift_from').notNull().references(() => shifts.id),
+    shiftTo: integer('shift_to').notNull().references(() => shifts.id),
+    cashAmount: decimal('cash_amount', { precision: 12, scale: 2 }).notNull(),
+    approvedBy1: text('approved_by_1').notNull().references(() => users.id), // Outgoing cashier
+    approvedBy2: text('approved_by_2').notNull().references(() => users.id), // Incoming cashier
+    timestamp: timestamp('timestamp').defaultNow().notNull()
+});
+
+export const shiftCashDenominations = pgTable('shift_cash_denominations', {
+    id: serial('id').primaryKey(),
+    shiftId: integer('shift_id').notNull().references(() => shifts.id),
+    nominal: integer('nominal').notNull(),
+    qty: integer('qty').notNull(),
+    total: decimal('total', { precision: 12, scale: 2 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
 
 export const expenseCategories = pgTable('expense_categories', {
     id: serial('id').primaryKey(),

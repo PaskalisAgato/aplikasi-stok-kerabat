@@ -1,4 +1,4 @@
-import { db, type OfflineTransaction } from './db';
+import { db, type OfflineAction } from './db';
 import { apiClient } from '../apiClient';
 
 class SyncEngine {
@@ -92,22 +92,22 @@ class SyncEngine {
   }
 
   /**
-   * Phase 8: Auto-Cleanup of synced transactions older than 7 days
+   * Phase 8: Auto-Cleanup of synced actions older than 7 days
    */
   public async cleanup() {
     try {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const oldSynced = await db.transactions
+      const oldSynced = await db.offlineActions
         .where('sync_status').equals('SYNCED')
-        .and(trx => new Date(trx.created_at) < sevenDaysAgo)
+        .and(action => new Date(action.created_at) < sevenDaysAgo)
         .primaryKeys();
       
       if (oldSynced.length > 0) {
-        console.log(`[SyncEngine] Cleaning up ${oldSynced.length} old synced transactions...`);
-        await db.transactions.bulkDelete(oldSynced);
-        await this.logDiagnostic('INFO', 'SyncEngine', `Cleaned up ${oldSynced.length} old transactions`);
+        console.log(`[SyncEngine] Cleaning up ${oldSynced.length} old synced actions...`);
+        await db.offlineActions.bulkDelete(oldSynced);
+        await this.logDiagnostic('INFO', 'SyncEngine', `Cleaned up ${oldSynced.length} old actions`);
       }
     } catch (error) {
       console.error('[SyncEngine] Cleanup failed', error);
@@ -170,32 +170,38 @@ class SyncEngine {
     this.notifyState();
 
     try {
-      const pending = await db.transactions
+      const pending = await db.offlineActions
         .where('sync_status')
         .equals('PENDING')
-        .toArray();
+        .sortBy('sequence_number');
 
       this.notify(pending.length);
 
       if (pending.length === 0) return;
 
-      console.log(`[SyncEngine] Processing ${pending.length} pending transactions...`);
+      console.log(`[SyncEngine] Processing ${pending.length} pending actions STRICT FIFO...`);
 
-      for (const trx of pending) {
+      for (const action of pending) {
         if (!this.isRunning) break;
         
         // Handle Exponential Backoff check
-        if (trx.retry_count > 0) {
-          const waitTime = Math.min(Math.pow(2, trx.retry_count) * 5000, 3600000); 
-          const lastAttempt = new Date(trx.created_at).getTime(); 
-          if (Date.now() - lastAttempt < waitTime) continue; 
+        if (action.retry_count > 0) {
+          const waitTime = Math.min(Math.pow(2, action.retry_count) * 5000, 3600000); 
+          const lastAttempt = new Date(action.last_attempt_at || action.created_at).getTime(); 
+          if (Date.now() - lastAttempt < waitTime) {
+             console.warn(`[SyncEngine] Halting queue to respect FIFO backoff for Action N=${action.sequence_number}`);
+             break; // Halt the whole queue! Strict FIFO!
+          }
         }
 
-        const success = await this.syncTransaction(trx);
-        if (!success) break; 
+        const success = await this.syncAction(action);
+        if (!success) {
+           console.warn(`[SyncEngine] Circuit broken at Action N=${action.sequence_number}. Halting queue processing.`);
+           break; 
+        }
       }
       
-      const remaining = await db.transactions
+      const remaining = await db.offlineActions
         .where('sync_status')
         .equals('PENDING')
         .count();
@@ -209,48 +215,64 @@ class SyncEngine {
     }
   }
 
-  private async syncTransaction(trx: OfflineTransaction): Promise<boolean> {
+  private async syncAction(action: OfflineAction): Promise<boolean> {
     try {
-      const checkoutData = {
-        id: trx.id, 
-        items: trx.items,
-        paymentMethod: trx.payment_method,
-        totalAmount: trx.total_amount,
-        subTotal: trx.total_amount,
-        createdAt: trx.created_at
-      };
+      await db.offlineActions.update(action.id, { last_attempt_at: new Date().toISOString() });
 
-      await apiClient.checkoutCart(checkoutData);
+      let path = '';
+      if (action.type === 'CHECKOUT') path = '/checkout';
+      else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; // Ensure API path receives ID correctly
+      else if (action.type === 'EXPENSE') path = '/finance/expenses';
+      else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';
+      else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
+
+      await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
       
-      await db.transactions.update(trx.id, { 
+      await db.offlineActions.update(action.id, { 
         sync_status: 'SYNCED',
-        retry_count: trx.retry_count + 1 
+        retry_count: action.retry_count + 1 
       });
       
-      console.log(`[SyncEngine] Successfully synced transaction ${trx.receipt_number}`);
+      console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}]`);
       return true;
     } catch (error: any) {
-      console.error(`[SyncEngine] Failed to sync ${trx.receipt_number}`, error);
+      console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
       
       if (error.status === 401 || error.status === 403) {
         console.warn('[SyncEngine] Unauthorized. Stopping sync engine.');
         return false; 
       }
 
-      const nextRetryCount = trx.retry_count + 1;
-      const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'FAILED' : 'PENDING';
+      // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
+      if (error.status >= 400 && error.status < 500) {
+         await db.offlineActions.update(action.id, { 
+            sync_status: 'REJECTED', // Mark as failed definitively
+            failure_reason: error.message || 'Server rejected payload logically',
+            retry_count: action.retry_count + 1
+          });
+         return true; // Return true to continue the queue processing past this corrupted item
+      }
 
-      await db.transactions.update(trx.id, { 
+      const nextRetryCount = action.retry_count + 1;
+      const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'REJECTED' : 'PENDING';
+
+      await db.offlineActions.update(action.id, { 
         retry_count: nextRetryCount,
-        sync_status: nextStatus,
-        errorMessage: error.message || 'Unknown error'
+        sync_status: nextStatus as any,
+        failure_reason: error.message || 'Unknown error'
       });
-      return true; 
+      
+      // If it's a network retry, return false to strictly halt the queue
+      return false; 
     }
   }
 
   public getPendingCount() {
       return this.pendingCount;
+  }
+
+  public async forceSync() {
+      await this.processQueue();
   }
 }
 

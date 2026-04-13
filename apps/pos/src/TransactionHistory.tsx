@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import { useSession } from '@shared/authClient';
+import { db } from '@shared/services/db';
+import { syncEngine } from '@shared/services/SyncEngine';
 
 export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const { data: session } = useSession();
@@ -87,10 +89,23 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             return;
         }
         try {
-            await apiClient.voidTransaction(id, voidReason);
-            alert('Transaksi berhasil dibatalkan (VOID).');
+            await db.offlineActions.add({
+                id: `void-${id}-${Date.now()}`,
+                idempotency_key: `req_void_${id}_${Date.now()}`,
+                type: 'VOID',
+                payload: { id, reason: voidReason }, // The ID is in the payload so SyncEngine can use it in the URL
+                created_at: new Date().toISOString(),
+                sync_status: 'PENDING',
+                retry_count: 0,
+                depends_on_action_id: `req_checkout_${id}` // Prevents QUEUE DESYNC attacks
+            });
+
+            syncEngine.forceSync().catch(console.error);
+
+            alert('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.');
             setVoidConfirmId(null);
             setVoidReason("");
+            // Optimistically or eventually the network will update it.
             loadData();
         } catch (error: any) {
             alert(`Gagal membatalkan: ${error.message}`);

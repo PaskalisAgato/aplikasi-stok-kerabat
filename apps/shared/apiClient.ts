@@ -330,6 +330,8 @@ export const apiClient = {
     getCashierShiftSummary: (id: number) => apiFetch<any>(`/cashier-shifts/summary/${id}`),
     closeCashierShift: (id: number, data: { actualCash: number, actualNonCash: number, notes: string }) => 
         apiFetch<any>(`/cashier-shifts/close/${id}`, { method: 'POST', body: JSON.stringify(data) }),
+    handoverCashierShift: (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) =>
+        apiFetch<any>('/cashier-shifts/handover', { method: 'POST', body: JSON.stringify(data) }),
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),
@@ -360,9 +362,14 @@ export const apiClient = {
     getBackups: () => apiFetch<ApiResponse<any>>('/system/backups'),
     triggerBackup: () => apiFetch<any>('/system/backups/trigger', { method: 'POST' }),
 
+    // ---- ANALYTICS & OWNER DASHBOARD ----
+    getAnalyticsDashboard: () => apiFetch<any>('/analytics/dashboard'),
+
     // ---- GENERIC HELPERS ----
     get: (path: string) => apiFetch<any>(path),
     post: (path: string, body: any) => apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body) }),
+    postWithIdempotency: (path: string, body: any, idempotencyKey: string) => 
+        apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body), idempotencyKey } as any),
     put: (path: string, body: any) => apiFetch<any>(path, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (path: string) => apiFetch<any>(path, { method: 'DELETE' }),
 };

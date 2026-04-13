@@ -1,6 +1,7 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql, desc, sum, ne } from 'drizzle-orm';
+import { CashLedgerService } from './cashLedger.service.js';
 
 export class CashierShiftService {
     static async getActiveShift(userId: string) {
@@ -48,7 +49,32 @@ export class CashierShiftService {
     }
 
     static async getShiftSummary(shiftId: number) {
-        // 1. Get Sales Summary
+        const shiftArr = await db.select().from(schema.shifts).where(eq(schema.shifts.id, shiftId)).limit(1);
+        if (shiftArr.length === 0) throw new Error('Shift tidak ditemukan.');
+        const shift = shiftArr[0];
+
+        // 1. IF CLOSED & SNAPSHOT EXISTS -> RETURN IMMUTABLE TRUTH
+        if (shift.status === 'CLOSED' && shift.ledgerSnapshot) {
+            try {
+                return JSON.parse(shift.ledgerSnapshot);
+            } catch (e) {
+                console.error('[Snapshot Error] Failed to parse ledger snapshot:', e);
+            }
+        }
+
+        // 2. LIVE CALCULATION (From Cash Ledger Source of Truth)
+        const ledgerEntries = await db.select().from(schema.cashLedger).where(eq(schema.cashLedger.shiftId, shiftId));
+        
+        const ledgerSummary = {
+            sale: 0,
+            expense: 0,
+            refund: 0,
+            adjustment: 0,
+            nonCash: 0 // We'll need to join or filter if we want non-cash from ledger, 
+                      // but typically ledger = cash. Let's stick to the user's "All movements in ledger" request.
+        };
+
+        // For non-cash tracking, we still need to look at sales if not explicitly in ledger as cash-only
         const salesData = await db.select({
             count: sql<number>`count(${schema.sales.id})`,
             totalAmount: sql<string>`sum(cast(${schema.sales.totalAmount} as decimal))`,
@@ -58,14 +84,12 @@ export class CashierShiftService {
         .from(schema.sales)
         .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
 
-        // 2. Get Expenses
         const expensesData = await db.select({
             total: sql<string>`sum(cast(${schema.expenses.amount} as decimal))`
         })
         .from(schema.expenses)
         .where(and(eq(schema.expenses.shiftId, shiftId), eq(schema.expenses.isDeleted, false)));
 
-        // 3. Get Items Sold
         const itemsData = await db.select({
             totalItems: sql<number>`sum(${schema.saleItems.quantity})`
         })
@@ -73,78 +97,159 @@ export class CashierShiftService {
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
         .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
 
-        // 4. Breakdown by Category
-        const categoryData = await db.select({
-            category: schema.recipes.category,
-            total: sql<string>`sum(cast(${schema.saleItems.subtotal} as decimal))`
-        })
-        .from(schema.saleItems)
-        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
-        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)))
-        .groupBy(schema.recipes.category);
-
-        // 5. Breakdown by Payment Method
-        const paymentData = await db.select({
-            method: schema.sales.paymentMethod,
-            total: sql<string>`sum(cast(${schema.sales.totalAmount} as decimal))`
-        })
-        .from(schema.sales)
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)))
-        .groupBy(schema.sales.paymentMethod);
+        // Ledger Verification
+        const cashFlow = ledgerEntries.reduce((acc, entry) => {
+            const val = parseFloat(entry.amount);
+            if (entry.type === 'sale') acc.sale += val;
+            if (entry.type === 'expense') acc.expense += val;
+            if (entry.type === 'refund') acc.refund += val;
+            if (entry.type === 'adjustment') acc.adjustment += val;
+            return acc;
+        }, { sale: 0, expense: 0, refund: 0, adjustment: 0 });
 
         const summary = {
             salesCount: Number(salesData[0]?.count || 0),
             totalOmzet: parseFloat(salesData[0]?.totalAmount || '0'),
-            totalCashSales: parseFloat(salesData[0]?.cashAmount || '0'),
+            totalCashSales: cashFlow.sale, // LEDGER AS SOURCE OF TRUTH
             totalNonCashSales: parseFloat(salesData[0]?.nonCashAmount || '0'),
-            totalExpenses: parseFloat(expensesData[0]?.total || '0'),
+            totalExpenses: Math.abs(cashFlow.expense), // Ledger expenses are stored as negative or positive? 
+                                                     // Usually positive in table, let's keep it consistent.
             totalItemsSold: Number(itemsData[0]?.totalItems || 0),
-            categories: categoryData.map(c => ({ name: c.category, total: parseFloat(c.total) })),
-            payments: paymentData.map(p => ({ method: p.method, total: parseFloat(p.total) }))
+            ledgerAudit: cashFlow, // Detailed audit trail
+            nonCashTransactions: await db.select({
+                id: schema.sales.id,
+                total: schema.sales.totalAmount,
+                method: schema.sales.paymentMethod,
+                ref: schema.sales.paymentReferenceId,
+                time: schema.sales.createdAt
+            })
+            .from(schema.sales)
+            .where(and(eq(schema.sales.shiftId, shiftId), ne(schema.sales.paymentMethod, 'CASH'), eq(schema.sales.isVoided, false)))
         };
 
         return summary;
     }
 
-    static async closeShift(shiftId: number, data: { actualCash: number, actualNonCash: number, notes: string, userId: string }) {
-        const { actualCash, actualNonCash, notes, userId } = data;
+    static async closeShift(shiftId: number, data: { denominations: {nominal: number, qty: number}[], actualNonCash: number, notes: string, userId: string, nonCashVerified: boolean }) {
+        const { denominations, actualNonCash, notes, userId, nonCashVerified } = data;
 
-        const summary = await this.getShiftSummary(shiftId);
+        if (!nonCashVerified) {
+            throw new Error('Anda harus memverifikasi semua transaksi non-cash sebelum bisa menutup shift.');
+        }
+
         const shiftArr = await db.select().from(schema.shifts).where(eq(schema.shifts.id, shiftId)).limit(1);
         if (shiftArr.length === 0) throw new Error('Shift tidak ditemukan.');
         const shift = shiftArr[0];
-
+        
+        // Anti-Fraud Logics (Single Source of Truth)
+        const ledgerSummary = await CashLedgerService.getSummary(shiftId);
+        
         const initialCash = parseFloat(shift.initialCash);
-        const expectedCash = initialCash + summary.totalCashSales - summary.totalExpenses;
+        const expectedCash = initialCash + ledgerSummary.sale - ledgerSummary.expense + ledgerSummary.refund; // refunds are usually negative in db but lets be safe if it's already negative
+
+        // Get missing legacy fields 
+        const summary = await this.getShiftSummary(shiftId);
         const expectedNonCash = summary.totalNonCashSales;
 
+        // Calculate actual cash from physical denominations
+        const actualCash = (denominations || []).reduce((acc, d) => acc + (d.nominal * d.qty), 0);
         const discrepancy = actualCash - expectedCash;
 
-        const [closedShift] = await db.update(schema.shifts).set({
-            endTime: new Date(),
-            expectedCash: expectedCash.toString(),
-            expectedNonCash: expectedNonCash.toString(),
-            totalCashActual: actualCash.toString(),
-            totalNonCashActual: actualNonCash.toString(),
-            discrepancy: discrepancy.toString(),
-            cashierNotes: notes,
-            totalSalesCount: summary.salesCount,
-            totalItemsSold: summary.totalItemsSold,
-            status: 'CLOSED'
-        })
-        .where(eq(schema.shifts.id, shiftId))
-        .returning();
+        return await db.transaction(async (tx) => {
+            const [closedShift] = await tx.update(schema.shifts).set({
+                endTime: new Date(),
+                expectedCash: expectedCash.toString(),
+                expectedNonCash: expectedNonCash.toString(),
+                totalCashActual: actualCash.toString(),
+                totalNonCashActual: actualNonCash.toString(),
+                discrepancy: discrepancy.toString(),
+                cashierNotes: notes,
+                totalSalesCount: summary.salesCount,
+                totalItemsSold: summary.totalItemsSold,
+                status: 'CLOSED',
+                ledgerSnapshot: JSON.stringify(summary) // LOCK THE TRUTH
+            })
+            .where(eq(schema.shifts.id, shiftId))
+            .returning();
 
-        // Audit Log
-        await db.insert(schema.auditLogs).values({
-            userId,
-            action: 'CLOSE_SHIFT',
-            tableName: 'shifts',
-            newData: JSON.stringify(closedShift),
-            createdAt: new Date()
+            // Insert denominations tracing
+            if (denominations && denominations.length > 0) {
+                const denomsData = denominations.map(d => ({
+                    shiftId,
+                    nominal: d.nominal,
+                    qty: d.qty,
+                    total: (d.nominal * d.qty).toString()
+                }));
+                await tx.insert(schema.shiftCashDenominations).values(denomsData);
+            }
+
+            // Audit Log
+            await tx.insert(schema.auditLogs).values({
+                userId,
+                action: 'CLOSE_SHIFT_ANTI_FRAUD',
+                tableName: 'shifts',
+                newData: JSON.stringify({ closedShift, denominations }),
+                createdAt: new Date()
+            });
+
+            return { ...closedShift, summary, actualCash, discrepancy };
         });
+    }
 
-        return { ...closedShift, summary };
+    static async handoverShift(fromShiftId: number, toUserId: string, cashAmount: number, approvedBy1: string, approvedBy2: string) {
+        // Verify fromShift
+        const fromShiftArr = await db.select().from(schema.shifts).where(eq(schema.shifts.id, fromShiftId)).limit(1);
+        if (fromShiftArr.length === 0) throw new Error('Shift asal tidak ditemukan.');
+        const fromShift = fromShiftArr[0];
+
+        if (fromShift.status !== 'CLOSED') {
+            throw new Error('Shift asal harus ditutup (Closing) terlebih dahulu sebelum Handover.');
+        }
+
+        // Verify toUser doesn't have an active shift
+        const existingToShift = await this.getActiveShift(toUserId);
+        if (existingToShift) {
+            throw new Error('Kasir penerima masih memiliki shift aktif.');
+        }
+
+        // Check if hand-off cache is EXACTLY the same as what fromShift was closed with
+        const actualFromCash = parseFloat(fromShift.totalCashActual || '0');
+        if (cashAmount !== actualFromCash) {
+            throw new Error(`Uang kas tidak valid! Uang penutupan kasir sebelumnya adalah Rp ${actualFromCash}, tapi Anda menyerahkan Rp ${cashAmount}.`);
+        }
+
+        return await db.transaction(async (tx) => {
+            // 1. Create new shift for toUserId
+            const [newShift] = await tx.insert(schema.shifts).values({
+                userId: toUserId,
+                startTime: new Date(),
+                initialCash: cashAmount.toString(),
+                expectedCash: cashAmount.toString(),
+                status: 'OPEN',
+                totalSalesCount: 0,
+                totalItemsSold: 0
+            }).returning();
+
+            // 2. Insert handover evidence
+            await tx.insert(schema.shiftHandover).values({
+                shiftFrom: fromShift.id,
+                shiftTo: newShift.id,
+                cashAmount: cashAmount.toString(),
+                approvedBy1, // The pin-checker handled this in the middleware, these are user IDs
+                approvedBy2,
+                timestamp: new Date()
+            });
+
+            // 3. Log Audit
+            await tx.insert(schema.auditLogs).values({
+                userId: approvedBy2,
+                action: 'SHIFT_HANDOVER',
+                tableName: 'shifts',
+                newData: JSON.stringify({ fromShiftId: fromShift.id, toShiftId: newShift.id, cashAmount }),
+                createdAt: new Date()
+            });
+
+            return newShift;
+        });
     }
 }

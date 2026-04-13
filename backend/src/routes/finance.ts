@@ -6,6 +6,7 @@ import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
 import { CashierShiftService } from '../services/cashierShift.service.js';
+import { IdempotencyService } from '../services/idempotency.service.js';
 
 export const financeRouter = Router();
 
@@ -238,17 +239,30 @@ financeRouter.delete('/expenses/categories/:id', requireAdmin, async (req: Reque
     }
 });
 
+import { CashLedgerService } from '../services/cashLedger.service.js';
+
 // POST new expense
 financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), async (req: Request, res: Response) => {
+    const idempotencyKey = req.headers['x-idempotency-key'] as string;
     try {
+        // 1. HARDENING: Server-side Idempotency Cache
+        const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
+        if (cached) return res.status(cached.statusCode).json(cached.body);
+
         const { title, vendor, category, amount, date, receiptUrl } = req.body;
         
-        // Better validation: amount can be 0, but must be defined and a number
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
-            return res.status(400).json({ success: false, message: 'Bidang pengeluaran yang diperlukan tidak ada atau tidak valid' });
+            return res.status(400).json({ success: false, message: 'Data pengeluaran tidak lengkap atau nominal tidak valid' });
         }
 
-        // Validate date to prevent 500 errors from Postgres
+        // 2. HARDENING: Active Shift Guard (MANDATORY)
+        const userId = (req as any).user?.id;
+        const activeShift = userId ? await CashierShiftService.getActiveShift(userId) : null;
+        
+        if (!activeShift) {
+            return res.status(403).json({ success: false, message: 'KEAMANAN: Tidak bisa mencatat pengeluaran tanpa shift aktif. Silakan buka shift terlebih dahulu.' });
+        }
+
         let expenseDate = new Date();
         if (date) {
             expenseDate = new Date(date);
@@ -256,10 +270,6 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
                 return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
             }
         }
-
-        // AUTO-LINK ACTIVE SHIFT
-        const userId = (req as any).user?.id;
-        const activeShift = userId ? await CashierShiftService.getActiveShift(userId) : null;
 
         const [newExpense] = await db.insert(schema.expenses).values({
             title,
@@ -269,21 +279,35 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate,
             userId: userId || null,
-            shiftId: activeShift?.id || null
+            shiftId: activeShift.id
         }).returning({
             id: schema.expenses.id,
-            amount: schema.expenses.amount
+            amount: schema.expenses.amount,
+            title: schema.expenses.title
         });
 
-        console.log(`[FinanceAPI] Expense recorded: "${title}" | Amount: ${amount} | Receipt: ${receiptUrl ? 'YES' : 'NO'}`);
-        res.status(201).json({ success: true, data: newExpense });
+        await CashLedgerService.addEntry({
+            shiftId: activeShift.id,
+            type: 'expense',
+            amount: amount,
+            referenceId: newExpense.id,
+            description: `Pengeluaran: ${newExpense.title}`
+        });
+
+        const responseBody = { success: true, data: newExpense };
+
+        // 3. Save for idempotency
+        await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 201);
+
+        console.log(`[FinanceAPI-Hardened] Expense recorded: "${title}" | Shift: ${activeShift.id}`);
+        res.status(201).json(responseBody);
     } catch (error) {
         console.error('[FinanceAPI] Error adding expense:', error);
         res.status(500).json({ success: false, message: 'Gagal merekam pengeluaran' });
     }
 });
 
-// DELETE expense
+// REVERSE (DELETE) expense (Anti-Fraud: No actual deletion, only ledger reversal)
 financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id as string);
@@ -291,69 +315,54 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Res
             return res.status(400).json({ success: false, message: 'ID pengeluaran tidak valid' });
         }
 
-        const [deletedExpense] = await db.update(schema.expenses)
-            .set({ isDeleted: true })
-            .where(eq(schema.expenses.id, id))
-            .returning();
-
-        if (!deletedExpense) {
+        const expenseArr = await db.select().from(schema.expenses).where(eq(schema.expenses.id, id)).limit(1);
+        if (expenseArr.length === 0) {
             return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
         }
-
-        res.json({ success: true, message: 'Pengeluaran berhasil dihapus' });
-    } catch (error) {
-        console.error('Error deleting expense:', error);
-        res.status(500).json({ success: false, message: 'Gagal menghapus pengeluaran' });
-    }
-});
-
-// UPDATE expense
-financeRouter.put('/expenses/:id', requireAuth, validateBase64Image('receiptUrl'), async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string);
-        if (isNaN(id)) {
-            return res.status(400).json({ success: false, message: 'ID pengeluaran tidak valid' });
+        
+        const expenseToReverse = expenseArr[0];
+        if (expenseToReverse.isDeleted) {
+            return res.status(400).json({ success: false, message: 'Pengeluaran ini sudah di-reverse sebelumnya' });
         }
 
-        const { title, vendor, category, amount, date, receiptUrl } = req.body;
+        // 1. Soft delete so it hides from UI
+        await db.update(schema.expenses).set({ isDeleted: true }).where(eq(schema.expenses.id, id));
 
-        if (!title || !category || amount === undefined || isNaN(Number(amount))) {
-            return res.status(400).json({ success: false, message: 'Bidang pengeluaran yang diperlukan tidak ada atau tidak valid' });
-        }
-
-        let expenseDate = new Date();
-        if (date) {
-            expenseDate = new Date(date);
-            if (isNaN(expenseDate.getTime())) {
-                return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
-            }
-        }
-
-        const [updatedExpense] = await db.update(schema.expenses)
-            .set({
-                title,
-                vendor,
-                category,
-                amount: amount.toString(),
-                receiptUrl: receiptUrl || null,
-                expenseDate: expenseDate
-            })
-            .where(eq(schema.expenses.id, id))
-            .returning({
-                id: schema.expenses.id,
-                amount: schema.expenses.amount
+        // 2. Reverse Ledger (insert negative expense)
+        if (expenseToReverse.shiftId) {
+            await CashLedgerService.addEntry({
+                shiftId: expenseToReverse.shiftId,
+                type: 'expense', // Keeping type identical but value negative neutralizes the sum
+                amount: -parseFloat(expenseToReverse.amount),
+                referenceId: expenseToReverse.id,
+                description: `Reverse Pengeluaran: ${expenseToReverse.title}`
             });
-
-        if (!updatedExpense) {
-            return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
         }
 
-        res.json({ success: true, data: updatedExpense });
+        // 3. Audit Log
+        await db.insert(schema.auditLogs).values({
+            userId: (req as any).user?.id,
+            action: 'REVERSE_EXPENSE',
+            tableName: 'expenses',
+            oldData: JSON.stringify(expenseToReverse),
+            newData: JSON.stringify({ isDeleted: true, status: 'REVERSED' }),
+            createdAt: new Date()
+        });
+
+        res.json({ success: true, message: 'Pengeluaran berhasil di-reverse sesuai kebijakan keamanan.' });
     } catch (error) {
-        console.error('Error updating expense:', error);
-        res.status(500).json({ success: false, message: 'Gagal memperbarui pengeluaran' });
+        console.error('Error reversing expense:', error);
+        res.status(500).json({ success: false, message: 'Gagal me-reverse pengeluaran' });
     }
 });
+
+// UPDATE expense (Anti-Fraud: Modification is disabled!)
+financeRouter.put('/expenses/:id', requireAuth, async (req: Request, res: Response) => {
+    return res.status(403).json({ success: false, message: 'Keamanan Lanjutan Aktif: Pengeluaran tidak bisa diedit. Silakan hapus/reverse lalu buat data baru.' });
+});
+
+// Legacy update function disabled
+// financeRouter.put('/expenses/:id', requireAuth, validateBase64Image('receiptUrl'), async (req: Request, res: Response) => {
 
 // GET Dashboard & P&L Report Summary
 financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) => {

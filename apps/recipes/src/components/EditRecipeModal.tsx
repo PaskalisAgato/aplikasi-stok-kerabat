@@ -247,6 +247,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 name: namaResep,
                 category: category,
                 price: hargaJual,
+                costPrice: totalHPP, // Persist calculated HPP for profit tracking
                 margin: parseFloat(margin),
                 overhead: overhead, // Include overhead in payload
                 imageUrl: imageUrl, // Pass Base64 directly

@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/transaction.service.js';
+import { IdempotencyService } from '../services/idempotency.service.js';
 
 export class TransactionController {
+    // ... (getAll, getOpenBills, getById remain the same)
     static async getAll(req: Request, res: Response) {
         try {
             const transactions = await TransactionService.getAllTransactions();
@@ -38,20 +40,31 @@ export class TransactionController {
     }
 
     static async checkout(req: Request, res: Response) {
+        const idempotencyKey = req.headers['x-idempotency-key'] as string;
         try {
+            // 1. HARDENING: Server-side Idempotency Cache
+            const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
+            if (cached) return res.status(cached.statusCode).json(cached.body);
+
             const { items } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
             
             if (!items || !Array.isArray(items) || items.length === 0) {
-                return res.status(400).json({ error: 'Cart is empty' });
+                return res.status(400).json({ error: 'Keranjang belanja kosong' });
             }
 
             const result = await TransactionService.processCheckout(req.body, userId);
-            res.status(201).json({ 
+            
+            const responseBody = { 
                 success: true, 
                 message: 'Transaksi berhasil diselesaikan',
                 data: { transactionId: result.transactionId }
-            });
+            };
+
+            // 2. Save for idempotency
+            await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 201);
+            
+            res.status(201).json(responseBody);
         } catch (error: any) {
             console.error('--- TransactionController.checkout ERROR ---', error.message);
             res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
@@ -106,15 +119,26 @@ export class TransactionController {
     }
 
     static async void(req: Request, res: Response) {
+        const idempotencyKey = req.headers['x-idempotency-key'] as string;
         try {
+            // 1. HARDENING: Server-side Idempotency Cache
+            const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
+            if (cached) return res.status(cached.statusCode).json(cached.body);
+
             const id = parseInt(req.params.id as string);
-            const { reason } = req.body;
+            const { reason, adminPin } = req.body;
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
             if (!reason) return res.status(400).json({ error: 'Reason is required for void' });
             
             const userId = (req as any).user?.id || 'admin';
-            await TransactionService.voidTransaction(id, reason, userId);
-            res.json({ success: true, message: 'Transaksi berhasil dibatalkan (VOID)' });
+            await TransactionService.voidTransaction(id, reason, userId, adminPin);
+
+            const responseBody = { success: true, message: 'Transaksi berhasil dibatalkan (VOID)' };
+            
+            // 2. Save for idempotency
+            await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 200);
+
+            res.json(responseBody);
         } catch (error: any) {
             console.error('--- TransactionController.void ERROR ---', error);
             res.status(500).json({ success: false, message: 'Gagal membatalkan transaksi: ' + error.message });

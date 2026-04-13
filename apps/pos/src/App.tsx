@@ -9,7 +9,7 @@ import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
 import { PerformanceSettings } from '@shared/services/performance';
 import { useCashierShift } from '@shared/hooks/useCashierShift';
-import { OpenShiftModal, CloseShiftModal } from './components/ShiftModals';
+import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
 
 interface Recipe {
     id: number;
@@ -95,7 +95,7 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe &
 function App() {
     const { 
         activeShift, isActiveLoading, 
-        openShift, closeShift, getSummary, 
+        openShift, closeShift, handoverShift, getSummary, 
         refreshActiveShift 
     } = useCashierShift();
 
@@ -126,7 +126,17 @@ function App() {
     const [selectedSplitItems, setSelectedSplitItems] = useState<Record<number, number>>({});
     const [splitTargetInfo, setSplitTargetInfo] = useState('');
     const [isCloseShiftOpen, setIsCloseShiftOpen] = useState(false);
+    const [isHandoverShiftOpen, setIsHandoverShiftOpen] = useState(false);
     const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
+    const [pendingSyncs, setPendingSyncs] = useState<number>(0);
+
+    // Track pending syncs for Shift blocking
+    useEffect(() => {
+        const unsubscribe = syncEngine.onChange((count) => {
+            setPendingSyncs(count);
+        });
+        return unsubscribe;
+    }, []);
 
     const fetchRecipes = async () => {
         try {
@@ -352,20 +362,15 @@ function App() {
                 console.error('Printing failed', err);
             });
 
-            // 3. Save to Offline DB
-            await db.transactions.add({
+            // 3. Save to Enterprise Offline Queue
+            await db.offlineActions.add({
                 id: transactionId,
-                receipt_number: `TRX-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}-${Math.floor(1000 + Math.random() * 9000)}`,
-                total_amount: totalSalesValue,
-                payment_method: paymentMethod as any,
-                items: checkoutData.items,
+                idempotency_key: `req_checkout_${transactionId}`,
+                type: 'CHECKOUT',
+                payload: { ...checkoutData, status: 'PAID', customerInfo },
                 created_at: new Date().toISOString(),
                 sync_status: 'PENDING',
-                retry_count: 0,
-                // Phase 8: Multi-outlet ready
-                outlet_id: 'OUTLET-001', // Example
-                device_id: 'POS-01',
-                cashier_id: 'CASHIER-A'
+                retry_count: 0
             });
 
             // Phase 8: Audit Log
@@ -374,21 +379,17 @@ function App() {
                 entity: 'Transaction',
                 entityId: transactionId,
                 timestamp: new Date().toISOString(),
-                userId: 'CASHIER-A',
+                userId: activeShift?.userName || 'Kasir',
                 deviceId: 'POS-01'
             });
 
-            // 4. Reset UI state immediately (Optimistic Response)
+            // 4. Trigger Background Sync explicitly for instant feedback if online
+            syncEngine.forceSync().catch(console.error);
+
+            // 5. Reset UI state immediately (Optimistic Response)
             setSales({});
             setPaymentMethod('CASH');
             setAmountPaid(0);
-            
-            // 5. Try to sync in background (Phase 6.2 will have a more robust engine)
-            // 5. Try to sync in background (Phase 6.2 will have a more robust engine)
-            const payload = { ...checkoutData, status: 'PAID', customerInfo };
-            apiClient.post('/transactions', payload)
-                .then(() => db.transactions.update(transactionId, { sync_status: 'SYNCED' }))
-                .catch(err => console.log('Sync will be retried later', err));
 
             alert(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
             setCustomerInfo('');
@@ -616,12 +617,31 @@ function App() {
         }
     };
 
+    const handleOpenShift = async (initialCash: number) => {
+        await openShift(initialCash);
+        refreshActiveShift();
+    };
+
+    const handleCloseShift = async (data: { actualCash: number, actualNonCash: number, notes: string, denominations: Record<string, number>, nonCashVerified: boolean }) => {
+        await closeShift({ id: activeShift.id, data });
+        setIsCloseShiftOpen(false);
+        refreshActiveShift();
+        alert('Shift berhasil ditutup! Ringkasan telah disimpan.');
+    };
+
+    const handleHandoverShift = async (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) => {
+        await handoverShift(data);
+        setIsHandoverShiftOpen(false);
+        alert('Shift berhasil dipindahtangankan. Aplikasi akan dimuat ulang.');
+        window.location.reload(); 
+    };
+
     const PosFooter = (
-        <footer className={`${PerformanceSettings.getGlassClass()} border-t border-white/5 p-4 md:p-6 shrink-0 space-y-4 md:space-y-6`}>
+        <footer className="bg-transparent p-3 shrink-0 flex flex-col gap-3">
             {/* Payment Method Selector */}
-            <div className="space-y-2 md:space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 px-2">Metode Pembayaran</p>
-                <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 px-1">Pembayaran</p>
+                <div className="grid grid-cols-3 gap-2">
                     {[
                         { id: 'CASH', label: 'Tunai', icon: 'payments' },
                         { id: 'QRIS', label: 'QRIS', icon: 'qr_code_2' },
@@ -630,14 +650,14 @@ function App() {
                         <button
                             key={method.id}
                             onClick={() => setPaymentMethod(method.id as any)}
-                            className={`flex flex-col items-center justify-center gap-1 py-1.5 rounded-xl border-2 transition-all active:scale-95 ${
+                            className={`flex items-center justify-center gap-1.5 py-2 rounded-lg border transition-all active:scale-95 ${
                                 paymentMethod === method.id 
-                                    ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary/20' 
-                                    : 'bg-[var(--border-dim)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-black/5'
+                                    ? 'bg-primary/10 border-primary text-primary shadow-sm' 
+                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-black/5'
                             }`}
                         >
-                            <span className="material-symbols-outlined text-lg font-black">{method.icon}</span>
-                            <span className="text-[8px] font-black uppercase tracking-widest">{method.label}</span>
+                            <span className="material-symbols-outlined text-[14px] font-black">{method.icon}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">{method.label}</span>
                         </button>
                     ))}
                 </div>
@@ -645,118 +665,98 @@ function App() {
 
             {/* Cash Payment Section */}
             {paymentMethod === 'CASH' && (
-                <div className={`space-y-3 ${PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in slide-in-from-top-4 duration-300"}`}>
-                    <div className="flex items-center justify-between px-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Uang Bayar (Cash)</p>
-                        <div className="flex gap-2">
-                            {[20000, 50000, 100000].map(amount => (
-                                <button 
-                                    key={amount}
-                                    onClick={() => setAmountPaid(amount)}
-                                    className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-[9px] font-black hover:bg-primary/20 hover:text-primary transition-all"
-                                >
-                                    {amount / 1000}k
-                                </button>
-                            ))}
-                        </div>
+                <div className="bg-black/10 rounded-xl p-2 border border-white/5 space-y-2">
+                    <div className="flex flex-wrap gap-1.5">
+                        {[10000, 20000, 50000, 100000, totalSalesValue].map((amount, idx) => (
+                            <button 
+                                key={idx}
+                                onClick={() => setAmountPaid(amount)}
+                                className={`flex-1 min-w-[50px] py-2 rounded-lg border font-black text-[9px] transition-all active:scale-95 ${
+                                    amountPaid === amount 
+                                        ? 'bg-primary border-primary text-slate-900 shadow-md' 
+                                        : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:bg-white/5'
+                                }`}
+                            >
+                                {amount === totalSalesValue ? 'PAS' : `${amount / 1000}k`}
+                            </button>
+                        ))}
                     </div>
-                    <div className="flex gap-4">
-                        <div className="flex-1 relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-black text-xs md:text-sm">Rp</span>
+                    <div className="flex gap-2">
+                        <div className="flex-[1.5] relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-black text-[10px]">Bayar:</span>
                             <input 
                                 type="number" 
                                 value={amountPaid || ''}
                                 onChange={(e) => setAmountPaid(parseInt(e.target.value) || 0)}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 md:pl-12 pr-4 py-3 md:py-4 text-sm md:text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-30"
+                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-12 pr-4 py-3 text-sm font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
                                 placeholder="0"
+                                onFocus={(e) => e.target.select()}
                             />
                         </div>
-                        <div className="flex-1 bg-primary/5 border border-primary/20 rounded-2xl px-5 py-2.5 flex flex-col justify-center">
-                            <p className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60">Kembalian</p>
-                            <p className="text-sm md:text-lg font-black text-primary">
-                                <span className="text-[9px] mr-1">Rp</span>
-                                {changeDue.toLocaleString('id-ID')}
+                        <div className={`flex-1 rounded-xl px-3 py-1.5 flex flex-col justify-center border transition-colors ${changeDue > 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/5'}`}>
+                            <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Kembalian</p>
+                            <p className={`text-sm font-black leading-none mt-1 ${changeDue > 0 ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}>
+                                Rp {changeDue.toLocaleString('id-ID')}
                             </p>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="space-y-4 md:space-y-6 text-[var(--text-main)]">
-                <div className="flex items-end justify-between px-2">
-                    <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Total Bayar</p>
-                        <p className="text-3xl md:text-5xl font-black tracking-tighter text-[var(--text-main)]">
-                            <span className="text-primary mr-1">Rp</span>
+            <div className="flex flex-col gap-3">
+                <div className="flex items-end justify-between px-1">
+                    <div className="space-y-0.5">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Total Penjualan</p>
+                        <p className="text-3xl font-black tracking-tighter text-[var(--text-main)] leading-none">
+                            <span className="text-primary mr-1 text-sm">Rp</span>
                             {totalSalesValue.toLocaleString('id-ID')}
-                        </p>
-                    </div>
-                    <div className="bg-[var(--border-dim)] px-4 py-2 rounded-xl border border-[var(--border-dim)]">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-                            {totalItems} Items
                         </p>
                     </div>
                 </div>
 
-                <div className="flex gap-4">
-                    <button 
-                        onClick={(e) => {
-                            const bill = openBills.find(b => b.id === currentBillId);
-                            if (bill) handleSplitClick(e, bill, 'pay');
-                        }}
-                        disabled={!currentBillId || Object.keys(sales).length === 0 || isCheckingOut || isSyncing}
-                        className="flex-1 h-16 md:h-24 bg-blue-600 text-white rounded-2xl md:rounded-[32px] font-black text-sm md:text-xl uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex flex-col items-center justify-center gap-1"
-                    >
-                        <span className="material-symbols-outlined text-2xl font-black">payments</span>
-                        <span>Bayar Sebagian</span>
-                    </button>
+                <div className="flex gap-2">
                     <button 
                         id="btn-checkout"
                         onClick={() => handleCheckout(true)}
-                        disabled={isCheckingOut || totalItems === 0 || isSyncing}
-                        className="flex-[2] h-16 md:h-24 bg-primary text-slate-950 rounded-2xl md:rounded-[32px] font-black text-lg md:text-2xl uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 flex flex-col items-center justify-center gap-1"
+                        disabled={isCheckingOut || totalItems === 0 || isSyncing || (paymentMethod === 'CASH' && amountPaid < totalSalesValue)}
+                        className={`flex-1 h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                            (paymentMethod === 'CASH' && amountPaid >= totalSalesValue) || paymentMethod !== 'CASH'
+                                ? 'bg-primary text-slate-950 shadow-primary/20' 
+                                : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
+                        }`}
                     >
-                    <div className="flex items-center gap-4">
                         {isCheckingOut ? (
                             <>
-                                <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
-                                <span>Memproses...</span>
-                            </>
-                        ) : isSyncing ? (
-                             <>
-                                <div className="size-6 border-4 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
-                                <span>Update Menu...</span>
+                                <div className="size-5 border-3 border-slate-950/20 border-t-slate-950 rounded-full animate-spin"></div>
+                                <span className="animate-pulse">Memproses...</span>
                             </>
                         ) : (
                             <>
-                                <span className="material-symbols-outlined text-3xl font-black">shopping_bag</span>
-                                <span>Checkout</span>
+                                <span className="material-symbols-outlined text-xl">payments</span>
+                                {paymentMethod === 'CASH' && amountPaid < totalSalesValue ? 'Uang Kurang' : 'Bayar Sekarang'}
                             </>
                         )}
-                    </div>
-                    <span className="text-[10px] font-black opacity-50 hidden md:block">Atau tekan Ctrl + Enter</span>
-                </button>
-            </div>
-
-                {currentBillId && totalItems > 0 && (
-                    <button 
-                        onClick={handleUpdateBill}
-                        className="w-full py-4 bg-primary text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                    >
-                        <span className="material-symbols-outlined text-base">add_circle</span>
-                        Simpan Perubahan ke Bill
                     </button>
-                )}
+                </div>
 
-                {!currentBillId && totalItems > 0 && (
-                    <button 
-                        onClick={handleSaveBill}
-                        className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                    >
-                        <span className="material-symbols-outlined text-base">save</span>
-                        Simpan sebagai Bill Baru
-                    </button>
-                )}
+                <div className="flex gap-2">
+                    {currentBillId && totalItems > 0 && (
+                        <button 
+                            onClick={handleUpdateBill}
+                            className="flex-1 py-3 bg-primary/20 text-primary rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-primary hover:text-slate-950 transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <span className="material-symbols-outlined text-sm">add_circle</span> Simpan ke Bill
+                        </button>
+                    )}
+                    {!currentBillId && totalItems > 0 && (
+                        <button 
+                            onClick={handleSaveBill}
+                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <span className="material-symbols-outlined text-sm">save</span> Simpan Bill Baru
+                        </button>
+                    )}
+                </div>
             </div>
         </footer>
     );
@@ -773,16 +773,29 @@ function App() {
                         <span className="text-[8px] font-black uppercase text-primary tracking-[0.2em] leading-none mb-1">Shift Aktif</span>
                         <span className="text-[10px] font-bold text-white leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
                     </div>
+                    <button
+                        onClick={() => setIsHandoverShiftOpen(true)}
+                        className="ml-2 size-8 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                        title="Oper Shift (Handover)"
+                    >
+                        <span className="material-symbols-outlined text-sm">sync_alt</span>
+                    </button>
                     <button 
                         onClick={async () => {
+                            if (pendingSyncs > 0) {
+                                alert(`Tidak bisa menutup shift! Ada ${pendingSyncs} transaksi data yang belum tersinkronisasi server. Mohon tunggu hingga terkoneksi internet sebelum menutup shift.`);
+                                return;
+                            }
                             const summary = await getSummary(activeShift.id);
                             setShiftSummaryData(summary.data);
                             setIsCloseShiftOpen(true);
                         }}
-                        className="ml-2 size-8 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg flex items-center justify-center transition-all"
-                        title="Tutup Shift"
+                        className={`ml-2 size-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            pendingSyncs > 0 ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500'
+                        }`}
+                        title={pendingSyncs > 0 ? "Tunggu Sync Selesai" : "Tutup Shift"}
                     >
-                        <span className="material-symbols-outlined text-sm">logout</span>
+                        <span className="material-symbols-outlined text-sm">{pendingSyncs > 0 ? 'cloud_sync' : 'logout'}</span>
                     </button>
                 </div>
             )}
@@ -835,18 +848,6 @@ function App() {
     const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : 'Input Penjualan';
     const pageSubtitle = view === 'history' ? 'Manajemen Transaksi' : view === 'printer-settings' ? 'Hardware & Koneksi' : 'Kasir & Stok';
 
-    const handleOpenShift = async (initialCash: number) => {
-        await openShift(initialCash);
-        refreshActiveShift();
-    };
-
-    const handleCloseShift = async (data: { actualCash: number, actualNonCash: number, notes: string }) => {
-        await closeShift({ id: activeShift.id, data });
-        setIsCloseShiftOpen(false);
-        refreshActiveShift();
-        alert('Shift berhasil ditutup! Ringkasan telah disimpan.');
-    };
-
     return (
         <>
             {/* Shift Modals */}
@@ -865,6 +866,15 @@ function App() {
                 />
             )}
 
+            {activeShift && (
+                <HandoverShiftModal
+                    isOpen={isHandoverShiftOpen}
+                    shift={activeShift}
+                    onHandover={handleHandoverShift}
+                    onCancel={() => setIsHandoverShiftOpen(false)}
+                />
+            )}
+
             <Layout 
                 currentPort={5186} 
             title={pageTitle}
@@ -879,53 +889,33 @@ function App() {
             <div className="space-y-8">
                 {view === 'pos' && (
                     <>
-                        {/* SECTION: OPEN BILLS (TOP PRIORITY) */}
+                        {/* SECTION: OPEN BILLS */}
                         {openBills.length > 0 && !currentBillId && (
-                            <div className="bg-primary/5 border border-primary/20 p-4 rounded-3xl space-y-4">
+                            <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl flex flex-col gap-3 shrink-0">
                                 <div className="flex items-center justify-between px-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-primary">receipt_long</span>
-                                        <h3 className="font-black uppercase tracking-tighter text-sm text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
+                                        <span className="material-symbols-outlined text-primary text-sm">receipt_long</span>
+                                        <h3 className="font-black uppercase tracking-tighter text-xs text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
                                     </div>
-                                    <span className="bg-primary text-slate-950 text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-lg shadow-primary/20">{openBills.length} Meja</span>
+                                    <span className="bg-primary text-slate-950 text-[9px] px-2 py-0.5 rounded-full font-black uppercase shadow-sm">{openBills.length} Meja</span>
                                 </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 snap-x">
                                     {openBills.map(bill => (
                                         <div 
                                             key={bill.id}
                                             onClick={() => loadBill(bill)}
-                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl hover:border-primary/50 cursor-pointer transition-all group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[140px] space-y-3"
+                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer transition-all shrink-0 w-[200px] snap-start flex flex-col justify-between"
                                         >
                                             <div className="min-w-0">
-                                                <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1.5 opacity-60">Meja / Nama</p>
-                                                <p className="text-[14px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-4">{bill.customerInfo}</p>
-                                                
-                                                <div className="flex gap-2">
-                                                    <button 
-                                                        onClick={(e) => handleSplitClick(e, bill, 'table')}
-                                                        className="size-8 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-blue-500/10 z-30"
-                                                        title="Pisah Meja"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">call_split</span>
-                                                    </button>
-                                                    <button 
-                                                        onClick={(e) => handleMergeClick(e, bill)}
-                                                        className="size-8 rounded-lg flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all active:scale-95 shadow-lg shadow-primary/10 z-30"
-                                                        title="Gabung Meja"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">call_merge</span>
-                                                    </button>
-                                                    <button 
-                                                        onClick={(e) => handleDeleteBill(e, bill)}
-                                                        className="size-8 rounded-lg flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10 z-30"
-                                                        title="Hapus Bill"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                    </button>
+                                                <p className="text-[12px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
+                                                <div className="flex gap-1.5">
+                                                    <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
+                                                    <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
+                                                    <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
                                                 </div>
                                             </div>
-                                            <div className="pt-2 border-t border-white/5">
-                                                <p className="text-[11px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                            <div className="pt-2 mt-2 border-t border-white/5">
+                                                <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -933,29 +923,32 @@ function App() {
                             </div>
                         )}
 
-                        <div className="flex flex-col md:flex-row landscape:flex-row gap-6 md:gap-10 h-full">
-                        {/* Left: Input & Menu */}
-                        <div className="w-full md:w-3/5 landscape:w-3/5 space-y-8">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div className="flex flex-wrap gap-2">
+                        {/* ULTRA-FAST 1-SCREEN 3-COLUMN LAYOUT */}
+                        <div className="flex flex-col md:flex-row h-[calc(100vh-180px)] min-h-[600px] gap-4 w-full">
+                            
+                            {/* Column 1: Kategori (Left - 15%) */}
+                            <div className="hidden lg:flex w-[15%] flex-col gap-2 shrink-0 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-3 overflow-y-auto custom-scrollbar">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mb-2 px-1">Kategori</h4>
+                                <button 
+                                    onClick={() => setSelectedCategory(null)}
+                                    className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
+                                >
+                                    Semua Menu
+                                </button>
+                                {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
                                     <button 
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${!selectedCategory ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20 accent-glow scale-105' : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'}`}
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent overflow-hidden text-ellipsis'}`}
                                     >
-                                        Semua
+                                        {cat}
                                     </button>
-                                    {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
-                                        <button 
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20 accent-glow scale-105' : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'}`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
+                                ))}
+                            </div>
 
-                                <div className="w-full sm:w-64 relative group">
+                            {/* Column 2: Daftar Menu (Center - 55%) */}
+                            <div className="w-full lg:w-[50%] flex flex-col gap-4">
+                                <div className="relative group shrink-0">
                                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
                                     <input 
                                         ref={searchInputRef}
@@ -966,14 +959,12 @@ function App() {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-                                {isLoading ? (
-                                    Array.from({ length: 15 }).map((_, i) => (
-                                        <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
-                                    ))
-                                ) : filteredRecipes.map((item, index) => (
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
+                                    {isLoading ? (
+                                        Array.from({ length: 12 }).map((_, i) => (
+                                            <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
+                                        ))
+                                    ) : filteredRecipes.map((item, index) => (
                                         <MemoizedProductCard 
                                             key={item.id} 
                                             item={item} 
@@ -981,72 +972,55 @@ function App() {
                                             isHighlighted={index === highlightedIndex}
                                             onUpdateQty={updateQty} 
                                         />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Right: Cart Review */}
-                        <div className="w-full md:w-2/5 landscape:w-2/5 flex flex-col gap-4 lg:gap-6 md:max-h-[calc(100vh-200px)] landscape:max-h-[calc(100vh-200px)]">
-                            <div className={`${PerformanceSettings.getGlassClass()} rounded-[2.5rem] p-6 lg:p-8 border border-[var(--border-dim)] flex flex-col flex-1 shadow-2xl relative overflow-hidden min-h-[300px]`}>
-                                <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5 text-[var(--text-main)] pointer-events-none select-none">
-                                    <span className="material-symbols-outlined text-[120px] font-black tracking-tighter">shopping_basket</span>
+                                    ))}
                                 </div>
+                            </div>
 
-                                <div className="flex items-center justify-between mb-8 relative">
+                            {/* Column 3: Cart & Quick Pay (Right - 30%) */}
+                            <div className="w-full lg:w-[35%] flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden">
+                                {/* Cart Header */}
+                                <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-xl font-black uppercase tracking-tighter text-[var(--text-main)]">Keranjang</h2>
-                                        <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{totalItems} Item terpilih</p>
+                                        <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary text-base">shopping_cart</span>
+                                            Keranjang
+                                        </h2>
+                                        <p className="text-[9px] font-bold text-primary uppercase mt-1">{totalItems} Item terpilih</p>
                                     </div>
-                                    <button 
-                                        onClick={() => setSales({})}
-                                        className="text-[10px] font-black text-red-400/60 uppercase tracking-widest hover:text-red-400 transition-colors"
-                                    >
-                                        Reset Item
+                                    <button onClick={() => setSales({})} className="text-[9px] font-black text-red-500 opacity-60 hover:opacity-100 uppercase transition-all bg-red-500/10 px-2 py-1 flex items-center gap-1 rounded-md">
+                                        <span className="material-symbols-outlined text-[10px]">delete</span> Riset
                                     </button>
                                 </div>
-
+                                
+                                {/* Active Table Bar */}
                                 {currentBillId && (
-                                    <div className="flex items-center gap-2 mb-4 bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl relative z-20">
-                                        <span className="material-symbols-outlined text-primary text-sm">room_service</span>
-                                        <span className="text-[10px] font-black text-primary uppercase">{customerInfo}</span>
-                                        <button 
-                                            onClick={(e) => { 
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setCurrentBillId(null); 
-                                                setCustomerInfo(''); 
-                                                setSales({}); 
-                                            }} 
-                                            className="ml-auto text-primary/50 hover:text-primary p-1 hover:bg-primary/20 rounded-md transition-all active:scale-90"
-                                            title="Clear Table / Start New"
-                                        >
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 shrink-0">
+                                        <span className="material-symbols-outlined text-primary text-xs">room_service</span>
+                                        <span className="text-[10px] font-black text-primary uppercase flex-1 truncate">{customerInfo}</span>
+                                        <button onClick={(e) => { e.stopPropagation(); setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-primary/60 hover:text-primary transition-all">
                                             <span className="material-symbols-outlined text-xs">close</span>
                                         </button>
                                     </div>
                                 )}
 
-                                <div className="flex-1 space-y-0 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 relative">
+                                {/* Cart Items List */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
                                     {activeCartItems.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-full py-20 opacity-30 text-[var(--text-main)]">
-                                            <span className="material-symbols-outlined text-6xl mb-4">inventory_2</span>
-                                            <p className="text-xs font-black uppercase tracking-widest">Belum ada pesanan</p>
+                                        <div className="h-full flex flex-col items-center justify-center opacity-30">
+                                            <span className="material-symbols-outlined text-4xl mb-2">remove_shopping_cart</span>
+                                            <p className="text-[10px] font-black uppercase tracking-widest">Kosong</p>
                                         </div>
                                     ) : activeCartItems.map((item) => (
-                                        <MemoizedCartItem
-                                            key={item.id}
-                                            item={item}
-                                            salesCount={sales[item.id]}
-                                            updateQty={updateQty}
-                                        />
+                                        <MemoizedCartItem key={item.id} item={item} salesCount={sales[item.id]} updateQty={updateQty} />
                                     ))}
                                 </div>
-                            </div>
 
-                            <div className="hidden md:block landscape:block shrink-0 mt-auto w-full">
-                                {view === 'pos' && PosFooter}
+                                {/* Compact Embedded PosFooter */}
+                                <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20">
+                                    {PosFooter}
+                                </div>
                             </div>
                         </div>
-                    </div>
                 </>
             )}
 

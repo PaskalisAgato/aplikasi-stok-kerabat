@@ -1,5 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 
+// DEPRECATED: Retained only for migrating old offline data if any.
+// DO NOT USE FOR NEW TRANSACTIONS.
 export interface OfflineTransaction {
   id: string; // UUID v4
   receipt_number: string;
@@ -12,10 +14,24 @@ export interface OfflineTransaction {
   errorMessage?: string;
   status?: 'OPEN' | 'PAID' | 'CANCELLED';
   customer_info?: string;
-  // Phase 8: Multi-outlet ready
   outlet_id?: string;
   device_id?: string;
   cashier_id?: string;
+}
+
+// THE NEW ENTERPRISE SYNC ARCHITECTURE
+export interface OfflineAction {
+  id: string; // Internal IndexedDB UUID or hash
+  sequence_number?: number; // Auto-incrementing local ID for strict FIFO execution
+  idempotency_key: string; // UUID v4 ensuring backend never double-processes this action
+  type: 'CHECKOUT' | 'VOID' | 'EXPENSE' | 'SHIFT_HANDOVER' | 'SHIFT_CLOSE';
+  payload: any; // The request body parameters
+  created_at: string; // Local timestamp (but Backend will re-verify server time)
+  sync_status: 'PENDING' | 'SYNCED' | 'REJECTED' | 'HALTED'; // REJECTED = pure logic failure, HALTED = blocks queue
+  retry_count: number;
+  failure_reason?: string;
+  last_attempt_at?: string;
+  depends_on_action_id?: string; // E.g., a VOID depends on the CHECKOUT action succeeding first to prevent Async Desyncs
 }
 
 export interface InventoryCache {
@@ -28,7 +44,7 @@ export interface InventoryCache {
   pricePerUnit: string;
   status: 'NORMAL' | 'KRITIS' | 'HABIS';
   updatedAt: string;
-  version: number; // Phase 8: Data drift protection
+  version: number; 
 }
 
 export interface OfflineCart {
@@ -36,7 +52,7 @@ export interface OfflineCart {
     items: any[];
     updatedAt: string;
     customerInfo?: string;
-    currentBillId?: string | number; // Link to an OPEN sale record
+    currentBillId?: string | number; 
 }
 
 export interface OfflinePrintJob {
@@ -100,12 +116,13 @@ export interface PrintData {
     total: number;
     paymentMethod: string;
     amountPaid?: number;
-    change_due?: number; // synced with existing code
+    change_due?: number; 
     cashier_id?: string;
 }
 
 export class PosDatabase extends Dexie {
-  transactions!: Table<OfflineTransaction>;
+  transactions!: Table<OfflineTransaction>; // Deprecated
+  offlineActions!: Table<OfflineAction>; // Enterprise Polymorphic Queue
   inventoryCache!: Table<InventoryCache>;
   cart!: Table<OfflineCart>;
   printQueue!: Table<OfflinePrintJob>;
@@ -115,8 +132,10 @@ export class PosDatabase extends Dexie {
 
   constructor() {
     super('PosDatabase');
-    this.version(5).stores({
+    // Bump version to 6 for the new schema
+    this.version(6).stores({
       transactions: 'id, receipt_number, sync_status, created_at, outlet_id, status, customer_info',
+      offlineActions: '++sequence_number, id, idempotency_key, sync_status, type, depends_on_action_id',
       inventoryCache: 'id, name, status, category, updatedAt, version',
       cart: 'id, currentBillId',
       printQueue: 'id, status, created_at',

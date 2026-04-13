@@ -25,14 +25,21 @@ export function useCashierShift() {
         mutationFn: (id: number) => apiClient.getCashierShiftSummary(id),
     });
 
+    const handoverShiftMutation = useMutation({
+        mutationFn: (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) => 
+            apiClient.handoverCashierShift(data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cashier-shifts'] }),
+    });
+
     return {
         activeShift: activeShiftQuery.data?.data ?? null,
         isActiveLoading: activeShiftQuery.isLoading,
         activeError: activeShiftQuery.error,
         openShift: openShiftMutation.mutateAsync,
         closeShift: closeShiftMutation.mutateAsync,
+        handoverShift: handoverShiftMutation.mutateAsync,
         getSummary: getSummaryMutation.mutateAsync,
-        isMutating: openShiftMutation.isPending || closeShiftMutation.isPending || getSummaryMutation.isPending,
+        isMutating: openShiftMutation.isPending || closeShiftMutation.isPending || getSummaryMutation.isPending || handoverShiftMutation.isPending,
         refreshActiveShift: () => queryClient.invalidateQueries({ queryKey: ['cashier-shifts', 'active'] })
     };
 }
