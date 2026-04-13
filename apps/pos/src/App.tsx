@@ -193,6 +193,12 @@ function App() {
         // Syncing & Offline-First Persistence (Phase 6 & 7)
         syncEngine.start();
         
+        // Handle Session Expiry from SyncEngine
+        const handleSyncAuthFailed = () => {
+             alert("Sesi kamu telah berakhir (Unauthorized). Harap refresh halaman dan login kembali agar data tersinkronisasi.");
+        };
+        window.addEventListener('sync-auth-failed', handleSyncAuthFailed);
+        
         // Recovery Phase (Phase 7)
         PrintService.recover();
         
@@ -228,6 +234,7 @@ function App() {
         fetchOpenBills();
 
         return () => {
+            window.removeEventListener('sync-auth-failed', handleSyncAuthFailed);
             window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
@@ -783,7 +790,14 @@ function App() {
                     <button 
                         onClick={async () => {
                             if (pendingSyncs > 0) {
-                                alert(`Tidak bisa menutup shift! Ada ${pendingSyncs} transaksi data yang belum tersinkronisasi server. Mohon tunggu hingga terkoneksi internet sebelum menutup shift.`);
+                                alert(`Gagal Menutup Shift! Masih ada ${pendingSyncs} data transaksi yang belum tersinkronisasi ke server. 
+
+Kemungkinan penyebab:
+1. Koneksi internet sedang lambat/terputus.
+2. Sesi login kamu berakhir (Unauthorized). 
+3. Ada error teknis pada salah satu transaksi.
+
+Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba refresh halaman.`);
                                 return;
                             }
                             const summary = await getSummary(activeShift.id);

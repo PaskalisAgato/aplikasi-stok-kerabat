@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { syncEngine } from '@shared/services/SyncEngine';
 
 export default function SyncWidget() {
@@ -6,6 +6,7 @@ export default function SyncWidget() {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [isPushing, setIsPushing] = useState(false);
     const [isPulling, setIsPulling] = useState(false);
+    const [lastError, setLastError] = useState<string | null>(null);
 
     useEffect(() => {
         // Track navigator state
@@ -23,6 +24,7 @@ export default function SyncWidget() {
         const unsubState = syncEngine.onStateChange((state) => {
             setIsPushing(state.isPushing);
             setIsPulling(state.isPulling);
+            setLastError(state.lastError);
         });
 
         return () => {
@@ -53,6 +55,10 @@ export default function SyncWidget() {
         icon = 'cloud_off';
         color = 'text-red-500 bg-red-500/10';
         label = `Offline (${pendingCount})`;
+    } else if (lastError && pendingCount > 0) {
+        icon = 'sync_problem';
+        color = 'text-red-500 bg-red-500/10';
+        label = `Error (${pendingCount})`;
     } else if (pendingCount > 0) {
         icon = isPushing ? 'cloud_sync' : 'cloud_upload';
         color = isPushing ? 'text-amber-500 bg-amber-500/10 animate-pulse' : 'text-orange-500 bg-orange-500/10';
@@ -66,7 +72,12 @@ export default function SyncWidget() {
     return (
         <div 
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
-            title={!isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : pendingCount > 0 ? "Menunggu sinkronisasi..." : "Sistem terhubung dan sinkron."}
+            title={
+                !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
+                lastError ? `Gagal Sinkron: ${lastError}. Klik untuk coba lagi.` :
+                pendingCount > 0 ? "Menunggu sinkronisasi..." : 
+                "Sistem terhubung dan sinkron."
+            }
             onClick={() => {
                 if (isOnline && pendingCount > 0 && !isPushing) {
                     syncEngine.forceSync().catch(console.error);

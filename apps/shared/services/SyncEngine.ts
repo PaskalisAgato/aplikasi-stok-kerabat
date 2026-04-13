@@ -8,8 +8,9 @@ class SyncEngine {
   private lastPullTime = 0;
   private isPulling = false;
   private isPushing = false;
+  private lastError: string | null = null;
   private listeners: ((count: number) => void)[] = [];
-  private stateListeners: ((state: { isPulling: boolean, isPushing: boolean }) => void)[] = [];
+  private stateListeners: ((state: { isPulling: boolean, isPushing: boolean, lastError: string | null }) => void)[] = [];
 
   private readonly PULL_INTERVAL_MS = 60000; // Pull every 1 minute
   private readonly MAX_RETRIES = 10;
@@ -35,16 +36,20 @@ class SyncEngine {
     }
   }
 
-  public onStateChange(callback: (state: { isPulling: boolean, isPushing: boolean }) => void) {
+  public onStateChange(callback: (state: { isPulling: boolean, isPushing: boolean, lastError: string | null }) => void) {
     this.stateListeners.push(callback);
-    callback({ isPulling: this.isPulling, isPushing: this.isPushing });
+    callback({ isPulling: this.isPulling, isPushing: this.isPushing, lastError: this.lastError });
     return () => {
       this.stateListeners = this.stateListeners.filter(l => l !== callback);
     };
   }
 
   private notifyState() {
-    this.stateListeners.forEach(l => l({ isPulling: this.isPulling, isPushing: this.isPushing }));
+    this.stateListeners.forEach(l => l({ 
+      isPulling: this.isPulling, 
+      isPushing: this.isPushing, 
+      lastError: this.lastError 
+    }));
   }
 
   private async tick() {
@@ -237,9 +242,12 @@ class SyncEngine {
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
+      this.lastError = error.message || 'Network Fail';
       
       if (error.status === 401 || error.status === 403) {
         console.warn('[SyncEngine] Unauthorized. Stopping sync engine.');
+        // Notify UI to re-auth
+        window.dispatchEvent(new CustomEvent('sync-auth-failed'));
         return false; 
       }
 
@@ -250,6 +258,7 @@ class SyncEngine {
             failure_reason: error.message || 'Server rejected payload logically',
             retry_count: action.retry_count + 1
           });
+         this.lastError = null; // Clear error since we bypassed it
          return true; // Return true to continue the queue processing past this corrupted item
       }
 
@@ -265,6 +274,10 @@ class SyncEngine {
       // If it's a network retry, return false to strictly halt the queue
       return false; 
     }
+  }
+
+  public getLastError() {
+      return this.lastError;
   }
 
   public getPendingCount() {
