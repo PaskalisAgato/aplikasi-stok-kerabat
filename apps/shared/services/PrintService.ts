@@ -136,51 +136,111 @@ export class PrintService {
             this.bluetoothDevice = await nav.bluetooth.requestDevice({
                 acceptAllDevices: true,
                 optionalServices: [
-                    '000018f0-0000-1000-8000-00805f9b34fb', // Common printer
-                    '0000ff00-0000-1000-8000-00805f9b34fb', // Generic
-                    '0000ffe0-0000-1000-8000-00805f9b34fb', // High speed
-                    '00001101-0000-1000-8000-00805f9b34fb', // SPP
-                    '0000180a-0000-1000-8000-00805f9b34fb', // Device Info
-                    '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Microchip
-                    'e7810a71-73ae-499d-8c15-faa9aef0c3f2'  // Low-cost generic
+                    '000018f0-0000-1000-8000-00805f9b34fb', // Common thermal printer
+                    '0000ff00-0000-1000-8000-00805f9b34fb', // Generic vendor
+                    '0000ffe0-0000-1000-8000-00805f9b34fb', // HM-10 / JDY modules
+                    '0000ffe1-0000-1000-8000-00805f9b34fb', // HM-10 characteristic
+                    '00001101-0000-1000-8000-00805f9b34fb', // SPP (won't work on Web BT but listed)
+                    '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
+                    '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
+                    '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Microchip BLE
+                    '49535343-8841-43f4-a8d4-ecbe34729bb3', // Microchip TX
+                    'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // RD / low-cost generic
+                    '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
+                    '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
                 ]
             });
 
+            const deviceName = this.bluetoothDevice.name || 'Unknown Device';
+            console.log(`Selected device: ${deviceName}`);
+
             const ok = await this.setupGATT(this.bluetoothDevice);
-            return ok ? (this.bluetoothDevice.name || 'Bluetooth Printer') : null;
-        } catch (error) {
+            if (!ok) {
+                // Device selected but GATT failed → likely a Bluetooth Classic printer
+                throw new Error(
+                    `Printer "${deviceName}" tidak mendukung Bluetooth Low Energy (BLE). ` +
+                    `Printer ini kemungkinan hanya mendukung Bluetooth Classic (SPP). ` +
+                    `Solusi: Gunakan tipe koneksi "Local Bridge (IP)" di pengaturan printer, ` +
+                    `lalu hubungkan printer via Bluetooth sistem (Windows/Linux) dan jalankan Print Agent.`
+                );
+            }
+            return deviceName;
+        } catch (error: any) {
             console.error('Bluetooth connection failed:', error);
+            // Re-throw with user-friendly message if it's our custom error
+            if (error.message?.includes('tidak mendukung')) {
+                throw error;
+            }
+            // User cancelled the picker
+            if (error.name === 'NotFoundError') {
+                return null;
+            }
             return null;
         }
     }
 
     private static async setupGATT(device: any): Promise<boolean> {
         try {
-            console.log('Connecting to GATT server...');
+            console.log(`[BT] Connecting GATT to "${device.name}"...`);
             const server = await device.gatt?.connect();
-            if (!server) return false;
+            if (!server) {
+                console.warn('[BT] GATT server not available on this device');
+                return false;
+            }
 
-            // Try to discover all primary services
-            const services = await server.getPrimaryServices();
-            console.log(`Found ${services.length} primary services`);
+            // Strategy 1: Try known printer service UUIDs first (faster)
+            const knownPrinterServices = [
+                '000018f0-0000-1000-8000-00805f9b34fb',
+                '0000ff00-0000-1000-8000-00805f9b34fb',
+                '0000ffe0-0000-1000-8000-00805f9b34fb',
+                '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+                'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+            ];
 
-            for (const service of services) {
+            for (const uuid of knownPrinterServices) {
                 try {
+                    const service = await server.getPrimaryService(uuid);
                     const chars = await service.getCharacteristics();
                     for (const char of chars) {
                         if (char.properties.write || char.properties.writeWithoutResponse) {
-                            console.log(`GATT Setup: Found writable characteristic: ${char.uuid} in service ${service.uuid}`);
+                            console.log(`[BT] ✓ Found writable char ${char.uuid} via known service ${uuid}`);
                             this.bluetoothCharacteristic = char;
                             return true;
                         }
                     }
-                } catch (e) {
-                    continue;
+                } catch {
+                    // Service not found on this device, try next
                 }
             }
+
+            // Strategy 2: Discover ALL services (slower but catches unknown printers)
+            console.log('[BT] Known services not found, discovering all services...');
+            try {
+                const services = await server.getPrimaryServices();
+                console.log(`[BT] Found ${services.length} primary services`);
+
+                for (const service of services) {
+                    try {
+                        const chars = await service.getCharacteristics();
+                        for (const char of chars) {
+                            if (char.properties.write || char.properties.writeWithoutResponse) {
+                                console.log(`[BT] ✓ Found writable char ${char.uuid} in service ${service.uuid}`);
+                                this.bluetoothCharacteristic = char;
+                                return true;
+                            }
+                        }
+                    } catch {
+                        continue;
+                    }
+                }
+            } catch (discoverErr) {
+                console.warn('[BT] Full service discovery failed:', discoverErr);
+            }
+
+            console.warn('[BT] ✗ No writable characteristic found on this device.');
             return false;
         } catch (err) {
-            console.error('GATT setup failed:', err);
+            console.error('[BT] GATT setup failed:', err);
             return false;
         }
     }
