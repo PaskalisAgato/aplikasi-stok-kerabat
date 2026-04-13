@@ -864,9 +864,8 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
 
     return (
         <>
-            {/* Shift Modals */}
             <OpenShiftModal 
-                isOpen={!activeShift && !isActiveLoading} 
+                isOpen={!activeShift && !isActiveLoading && view === 'pos'} 
                 onOpen={handleOpenShift} 
             />
 
