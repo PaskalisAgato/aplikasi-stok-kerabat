@@ -99,6 +99,9 @@ function App() {
         refreshActiveShift 
     } = useCashierShift();
 
+    // Auth gate: Only show shift modal when user is logged in
+    const isAuthenticated = !!(localStorage.getItem('kerabat_auth_token'));
+
     const [view, setView] = useState<'pos' | 'history' | 'printer-settings'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
@@ -865,7 +868,7 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
     return (
         <>
             <OpenShiftModal 
-                isOpen={!activeShift && !isActiveLoading && view === 'pos'} 
+                isOpen={isAuthenticated && !activeShift && !isActiveLoading && view === 'pos'} 
                 onOpen={handleOpenShift} 
             />
 
