@@ -359,7 +359,15 @@ export class PrintService {
         this.isPrinting = true;
 
         for (const job of pending) {
-            const { data, config, isPrepTicket } = job.data as { data: _PrTrData, config: _PrTrConf, isPrepTicket: boolean };
+            let { data, config, isPrepTicket } = job.data as { data: _PrTrData, config: _PrTrConf, isPrepTicket: boolean };
+            
+            // Backward Compatibility: If 'data' is missing, it might be an old flattened job
+            if (!data && (job.data as any).items) {
+                console.log(`[PrintService] Found legacy flattened job ${job.id}. Re-nesting...`);
+                data = job.data as unknown as _PrTrData;
+                // Note: config and isPrepTicket are already part of job.data in legacy structure too
+            }
+
             const buffer = this.encodeReceipt(data, { 
                 config,
                 isPrepTicket 

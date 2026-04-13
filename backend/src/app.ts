@@ -28,6 +28,7 @@ import { analyticsRouter } from './routes/analytics.js';
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
+import { requireAuth } from './middleware/auth.js';
 import { UserService } from './services/user.service.js';
 
 const UserController = (await import('./controllers/user.controller.js')).UserController;
@@ -152,6 +153,12 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // 3. Custom Auth Endpoints (High Priority)
 app.post('/api/auth/login-pin', UserController.loginByPin);
+
+// Atomic Checkout Routes (Bypass potential router 404s during transition)
+const TransactionController = (await import('./controllers/transaction.controller.js')).TransactionController;
+app.post('/api/transactions/checkout', requireAuth, TransactionController.checkout);
+app.post('/api/checkout', requireAuth, TransactionController.checkout);
+
 
 // Manual session endpoint for frontend
 app.get('/api/auth/session', async (req: Request, res: Response) => {
