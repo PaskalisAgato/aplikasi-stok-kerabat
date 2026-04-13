@@ -40,8 +40,10 @@ export const idempotencyMiddleware = async (req: Request, res: Response, next: N
             // Restore original send to actually send the response
             res.send = originalSend;
 
-            // Only store successful or 4xx responses
-            if (res.statusCode < 500) {
+            // Only store successful or meaningful 4xx responses (like 400 Bad Request)
+            // DO NOT store 404 (Route not found - might be deployment lag)
+            // DO NOT store 401/403 (Auth issues - should be retried after login)
+            if (res.statusCode < 500 && ![404, 401, 403].includes(res.statusCode)) {
                 let parsedBody = body;
                 try {
                     if (typeof body === 'string') parsedBody = JSON.parse(body);

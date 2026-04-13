@@ -113,6 +113,7 @@ app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
 
 // 2. Background Tasks (Phase 3)
 setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
+setTimeout(cleanupIdempotencyKeys, 10000); // Phase 11 Hotfix: Flush poisoned keys on boot (10s delay to ensure DB is ready)
 
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
