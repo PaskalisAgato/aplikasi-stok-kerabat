@@ -367,6 +367,22 @@ class SyncEngine {
   }
 
   /**
+   * Manually reset backoff for a specific action to retry immediately
+   */
+  public async retryAction(id: string): Promise<void> {
+      const action = await db.offlineActions.get(id);
+      if (action) {
+          await db.offlineActions.update(id, {
+              retry_count: 0,
+              last_attempt_at: undefined,
+              sync_status: 'PENDING'
+          });
+          console.log(`[SyncEngine] Action ${id} was manually reset for RETRY.`);
+          this.processQueue();
+      }
+  }
+
+  /**
    * Completely wipe the local sync queue (emergency)
    */
   public async clearAllActions(): Promise<void> {

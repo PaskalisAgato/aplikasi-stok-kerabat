@@ -34,6 +34,11 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
         }
     };
 
+    const handleRetryItem = async (id: string) => {
+        await syncEngine.retryAction(id);
+        await loadActions();
+    };
+
     const handleRetry = async () => {
         await syncEngine.forceSync();
         await loadActions();
@@ -146,13 +151,22 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                                         )}
                                     </div>
 
-                                    <button 
-                                        onClick={() => handleCancel(action.id)}
-                                        className="w-full py-2.5 rounded-xl glass text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">delete</span>
-                                        Batalkan Sinkronisasi
-                                    </button>
+                                    <div className="grid grid-cols-2 gap-2 mt-4">
+                                        <button 
+                                            onClick={() => handleRetryItem(action.id)}
+                                            className="py-2.5 rounded-xl bg-amber-500/10 text-amber-500 font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-slate-950 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">sync</span>
+                                            Coba Lagi
+                                        </button>
+                                        <button 
+                                            onClick={() => handleCancel(action.id)}
+                                            className="py-2.5 rounded-xl bg-red-500/10 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">delete</span>
+                                            Batal
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         })}
