@@ -9,6 +9,7 @@ import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
+import { useNotification } from './components/NotificationProvider';
 import { PerformanceSettings } from '@shared/services/performance';
 import { useCashierShift } from '@shared/hooks/useCashierShift';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
@@ -104,6 +105,7 @@ function App() {
 
     // Auth gate: Only show shift modal when user is logged in
     const isAuthenticated = !!(localStorage.getItem('kerabat_auth_token'));
+    const { showNotification } = useNotification();
 
     const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
@@ -219,7 +221,7 @@ function App() {
         
         // Handle Session Expiry from SyncEngine
         const handleSyncAuthFailed = () => {
-             alert("Sesi kamu telah berakhir (Unauthorized). Harap refresh halaman dan login kembali agar data tersinkronisasi.");
+             showNotification("Sesi kamu telah berakhir (Unauthorized). Harap refresh halaman dan login kembali.", "error");
         };
         window.addEventListener('sync-auth-failed', handleSyncAuthFailed);
         
@@ -406,10 +408,10 @@ function App() {
             // 5. Trigger sync in background
             syncEngine.forceSync().catch(console.error);
 
-            alert(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`);
+            showNotification(`Transaksi Berhasil! Simpan Offline. Kembalian: Rp ${changeDue.toLocaleString('id-ID')}`, "success");
         } catch (error) {
             console.error('Checkout failed', error);
-            alert('Gagal menyimpan transaksi ke database lokal.');
+            showNotification('Gagal menyimpan transaksi ke database lokal.', "error");
         } finally {
             setIsCheckingOut(false);
         }
@@ -425,7 +427,7 @@ function App() {
 
         // Duplicate Check for OPEN bills
         if (openBills.some(b => b.customerInfo?.toLowerCase() === info.toLowerCase())) {
-            alert(`Tagihan untuk "${info}" sudah ada di Daftar Bill Aktif. Silakan pilih meja tersebut jika ingin menambahkan item.`);
+            showNotification(`Tagihan untuk "${info}" sudah ada di Daftar Bill Aktif.`, "warning");
             return;
         }
 
@@ -448,7 +450,7 @@ function App() {
             };
 
             await apiClient.post('/transactions', checkoutData);
-            alert('Bill berhasil disimpan!');
+            showNotification('Bill berhasil disimpan!', "success");
             setSales({});
             setCustomerInfo('');
             setCurrentBillId(null);
@@ -457,7 +459,7 @@ function App() {
             const response = await apiClient.get('/transactions/open-bills') as any;
             if (response && response.data) setOpenBills(response.data);
         } catch (error) {
-            alert('Gagal menyimpan bill');
+            showNotification('Gagal menyimpan bill', "error");
         } finally {
             setIsCheckingOut(false);
         }
@@ -474,14 +476,14 @@ function App() {
             }));
 
             await syncEngine.enqueue('ADD_ITEMS_TO_BILL', { id: currentBillId, items });
-            alert('Permintaan update bill disimpan ke antrean!');
+            showNotification('Permintaan update bill disimpan ke antrean!', "success");
             
             // Optimistic refresh (still fetch open bills to get other updates, but don't wait for sync)
             apiClient.get('/transactions/open-bills').then((response: any) => {
                 if (response && response.data) setOpenBills(response.data);
             }).catch(() => {});
         } catch (error) {
-            alert('Gagal memperbarui bill');
+            showNotification('Gagal memperbarui bill', "error");
         } finally {
             setIsCheckingOut(false);
         }
@@ -495,7 +497,7 @@ function App() {
         setSales(newSales);
         setCurrentBillId(bill.id);
         setCustomerInfo(bill.customerInfo);
-        alert(`Memuat Bill: ${bill.customerInfo}`);
+        showNotification(`Memuat Bill: ${bill.customerInfo}`, "info");
     };
 
     const handleDeleteBill = async (e: React.MouseEvent, bill: any) => {
@@ -516,7 +518,7 @@ function App() {
             });
 
             syncEngine.forceSync().catch(console.error);
-            alert('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.');
+            showNotification('Penghapusan telah masuk antrean.', "info");
 
             // Optimistic Update: Remove from local list or refresh
             setOpenBills(prev => prev.filter(b => b.id !== bill.id));
@@ -526,7 +528,7 @@ function App() {
                 setSales({});
             }
         } catch (error: any) {
-            alert(`Gagal menghapus: ${error.message}`);
+            showNotification(`Gagal menghapus: ${error.message}`, "error");
         }
     };
 
@@ -563,7 +565,7 @@ function App() {
                 setIsSplitModalOpen(true);
             }
         } catch (error) {
-            alert('Gagal mengambil detail bill');
+            showNotification('Gagal mengambil detail bill', "error");
         }
     };
 
@@ -576,7 +578,7 @@ function App() {
 
         console.log('Items to move:', itemsToMove);
         if (itemsToMove.length === 0) {
-            alert('Pilih minimal satu item untuk dipisah');
+            showNotification('Pilih minimal satu item untuk dipisah', "warning");
             return;
         }
 
@@ -612,11 +614,11 @@ function App() {
                         });
                         setSales(salesData);
                         setCustomerInfo(newBillRes.data.customerInfo);
-                        alert('Item berhasil dipisah untuk pembayaran. Silakan klik Checkout.');
+                        showNotification('Item berhasil dipisah. Silakan klik Checkout.', "success");
                     }
                 } else {
                     console.log('Processing table mode split...');
-                    alert('Bill berhasil dipisah!');
+                    showNotification('Bill berhasil dipisah!', "success");
                     if (currentBillId === splitSourceBill.id) {
                         console.log('Reloading current bill as it was the source...');
                         const reloadRes = await apiClient.get(`/transactions/${splitSourceBill.id}`) as any;
@@ -631,11 +633,11 @@ function App() {
                 }
             } else {
                 console.error('Split failed:', result.message);
-                alert('Gagal memisah bill (Server): ' + (result.message || 'Unknown error'));
+                showNotification('Gagal memisah bill (Server): ' + (result.message || 'Unknown error'), "error");
             }
         } catch (error: any) {
             console.error('Split exception:', error);
-            alert('Gagal memisah bill: ' + error.message);
+            showNotification('Gagal memisah bill: ' + error.message, "error");
         } finally {
             setIsCheckingOut(false);
             console.log('--- performSplit finished ---');
@@ -651,14 +653,14 @@ function App() {
         await closeShift({ id: activeShift.id, data });
         setIsCloseShiftOpen(false);
         refreshActiveShift();
-        alert('Shift berhasil ditutup! Ringkasan telah disimpan.');
+        showNotification('Shift berhasil ditutup! Ringkasan telah disimpan.', "success");
     };
 
     const handleHandoverShift = async (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) => {
         await handoverShift(data);
         setIsHandoverShiftOpen(false);
-        alert('Shift berhasil dipindahtangankan. Aplikasi akan dimuat ulang.');
-        window.location.reload(); 
+        showNotification('Shift berhasil pindahtangan. Aplikasi dimuat ulang.', "success");
+        setTimeout(() => window.location.reload(), 2000); 
     };
 
     const PosFooter = (
@@ -808,9 +810,7 @@ function App() {
                     <button 
                         onClick={async () => {
                             if (pendingSyncs > 0) {
-                                alert(`Gagal Menutup Shift! Masih ada ${pendingSyncs} data transaksi yang belum tersinkronisasi ke server. 
-
-Silakan klik widget "Cloud Sync" (titik kuning/merah) di kanan atas untuk membatalkan transaksi yang macet jika diperlukan agar bisa melanjutkan tutup shift.`);
+                                showNotification(`Gagal Menutup Shift! Masih ada ${pendingSyncs} antrean cloud.`, "error");
                                 return;
                             }
                             const summary = await getSummary(activeShift.id);

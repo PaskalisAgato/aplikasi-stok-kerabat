@@ -4,11 +4,13 @@ import type { ApiResponse } from '@shared/apiClient';
 import { useSession } from '@shared/authClient';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
+import { useNotification } from './components/NotificationProvider';
 
 export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const { data: session } = useSession();
     const userRole = session?.user?.role || 'Karyawan';
     const isAdmin = userRole === 'Admin';
+    const { showNotification } = useNotification();
 
     const [transactions, setTransactions] = useState<any[]>([]);
     const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
@@ -76,42 +78,42 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         try {
             await syncEngine.enqueue('DELETE_TRANSACTION', { id });
 
-            alert('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.');
+            showNotification('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.', "info");
             setDeleteConfirmId(null);
             
             // Optimistic Update
             setTransactions(prev => prev.filter(tx => tx.id !== id));
         } catch (error: any) {
-            alert(`Gagal menghapus: ${error.message}`);
+            showNotification(`Gagal menghapus: ${error.message}`, "error");
         }
     };
 
     const handleVoid = async (id: number) => {
         if (!voidReason.trim()) {
-            alert('Alasan pembatalan harus diisi.');
+            showNotification('Alasan pembatalan harus diisi.', "warning");
             return;
         }
         try {
             await syncEngine.enqueue('VOID', { id, reason: voidReason });
 
-            alert('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.');
+            showNotification('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.', "success");
             setVoidConfirmId(null);
             setVoidReason("");
             // Optimistically or eventually the network will update it.
             loadData();
         } catch (error: any) {
-            alert(`Gagal membatalkan: ${error.message}`);
+            showNotification(`Gagal membatalkan: ${error.message}`, "error");
         }
     };
 
     const handleClearHistory = async () => {
         try {
             await apiClient.clearTransactions();
-            alert('Seluruh riwayat transaksi berhasil dihapus.');
+            showNotification('Seluruh riwayat transaksi berhasil dihapus.', "success");
             setShowClearConfirm(false);
             loadData();
         } catch (error: any) {
-            alert(`Gagal menghapus riwayat: ${error.message}`);
+            showNotification(`Gagal menghapus riwayat: ${error.message}`, "error");
         }
     };
 
@@ -177,7 +179,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         }));
 
         if (finalItems.length === 0) {
-            alert('Transaksi tidak dapat disimpan tanpa item. Silakan gunakan tombol hapus transaksi jika ingin dibatalkan.');
+            showNotification('Transaksi tidak dapat disimpan tanpa item.', "warning");
             return;
         }
 
@@ -190,11 +192,11 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 totalAmount: calculatedSubTotal, // Simplified, modify if tax involved
                 paymentMethod: editData.paymentMethod
             });
-            alert('Transaksi berhasil diperbarui.');
+            showNotification('Transaksi berhasil diperbarui.', "success");
             setEditData(null);
             loadData();
         } catch (error: any) {
-            alert(`Gagal memperbarui transaksi: ${error.message}`);
+            showNotification(`Gagal memperbarui transaksi: ${error.message}`, "error");
         }
     };
 
