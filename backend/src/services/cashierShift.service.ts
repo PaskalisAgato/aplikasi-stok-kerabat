@@ -104,22 +104,38 @@ export class CashierShiftService {
             nonCashAmount: sql<string>`sum(case when ${schema.sales.paymentMethod} != 'CASH' then ${schema.sales.totalAmount} else 0 end)`
         })
         .from(schema.sales)
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
+        .where(and(
+            eq(schema.sales.shiftId, shiftId), 
+            eq(schema.sales.status, 'PAID'),
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.isDeleted, false)
+        ));
 
         const itemsData = await db.select({
             totalItems: sql<number>`sum(${schema.saleItems.quantity})`
         })
         .from(schema.saleItems)
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
+        .where(and(
+            eq(schema.sales.shiftId, shiftId), 
+            eq(schema.sales.status, 'PAID'),
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.isDeleted, false)
+        ));
 
         const summary = {
+            shiftId,
+            status: shift.status,
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            initialCash: parseFloat(shift.initialCash),
             salesCount: Number(salesData[0]?.count || 0),
             totalOmzet: parseFloat(salesData[0]?.totalAmount || '0'),
             totalCashSales: cashFlow.sale, // LEDGER AS SOURCE OF TRUTH
             totalNonCashSales: parseFloat(salesData[0]?.nonCashAmount || '0'),
-            totalExpenses: Math.abs(cashFlow.expense), // Ledger expenses are stored as negative or positive? 
-                                                     // Usually positive in table, let's keep it consistent.
+            totalExpenses: Math.abs(cashFlow.expense),
+            totalRefunds: cashFlow.refund,
+            totalAdjustments: cashFlow.adjustment,
             totalItemsSold: Number(itemsData[0]?.totalItems || 0),
             ledgerAudit: cashFlow, // Detailed audit trail
             nonCashTransactions: await db.select({
@@ -133,6 +149,7 @@ export class CashierShiftService {
             .where(and(
                 eq(schema.sales.shiftId, shiftId), 
                 ne(schema.sales.paymentMethod, 'CASH'), 
+                eq(schema.sales.status, 'PAID'),
                 eq(schema.sales.isVoided, false),
                 eq(schema.sales.isDeleted, false)
             ))
