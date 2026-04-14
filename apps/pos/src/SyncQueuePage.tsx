@@ -133,19 +133,31 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                                         </span>
                                     </div>
 
-                                    <div className="space-y-2 mb-6">
-                                        <div className="flex justify-between text-[10px]">
-                                            <span className="text-[var(--text-muted)] uppercase tracking-widest font-bold">Waktu</span>
-                                            <span className="text-[var(--text-main)] font-black">{new Date(action.created_at).toLocaleString('id-ID')}</span>
+                                    <div className="space-y-3 mb-6 bg-black/10 p-4 rounded-2xl border border-white/5">
+                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                                            <span>Waktu</span>
+                                            <span className="text-[var(--text-main)]">{new Date(action.created_at).toLocaleString('id-ID')}</span>
                                         </div>
-                                        <div className="flex justify-between text-[10px]">
-                                            <span className="text-[var(--text-muted)] uppercase tracking-widest font-bold">Retries</span>
-                                            <span className="text-[var(--text-main)] font-black">{action.retry_count} Kali</span>
+                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                                            <span>Percobaan</span>
+                                            <span className={`px-2 py-0.5 rounded-full ${action.retry_count > 0 ? 'bg-amber-500/20 text-amber-500' : 'bg-green-500/20 text-green-500'}`}>
+                                                {action.retry_count} / 3
+                                            </span>
                                         </div>
+                                        {action.last_attempt_at && (
+                                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                                                <span>Terakhir</span>
+                                                <span className="text-[var(--text-main)]/60">{new Date(action.last_attempt_at).toLocaleTimeString('id-ID')}</span>
+                                            </div>
+                                        )}
                                         {action.failure_reason && (
-                                            <div className="mt-2 p-2 rounded-lg bg-red-500/5 border border-red-500/10">
-                                                <p className="text-[9px] text-red-500 font-bold italic truncate overflow-hidden" title={action.failure_reason}>
-                                                    Error: {action.failure_reason}
+                                            <div className="mt-2 p-3 rounded-xl bg-red-500/10 border border-red-500/10">
+                                                <div className="flex items-center gap-2 mb-1 text-red-500">
+                                                    <span className="material-symbols-outlined text-xs">error</span>
+                                                    <p className="text-[9px] font-black uppercase tracking-widest">Detail Error</p>
+                                                </div>
+                                                <p className="text-[10px] text-red-200/50 leading-relaxed italic">
+                                                    {action.failure_reason}
                                                 </p>
                                             </div>
                                         )}
