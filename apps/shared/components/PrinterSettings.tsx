@@ -131,7 +131,17 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                         </div>
 
                         {printer.connectionType === 'bluetooth' ? (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
+                                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                    <p className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">info</span>
+                                        Penting (BLE Mode)
+                                    </p>
+                                    <p className="text-[9px] text-amber-500/80 mt-1">
+                                        Gunakan mode ini hanya jika printer Anda mendukung **Bluetooth 4.0/5.0 (BLE)**. 
+                                        Jika printer tidak terdeteksi, gunakan tipe **"Serial / Legacy Bluetooth"**.
+                                    </p>
+                                </div>
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paired Bluetooth Device (BLE Only)</label>
                                 <div className="flex gap-2">
                                     <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)]">
@@ -166,12 +176,23 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                 </div>
                             </div>
                         ) : printer.connectionType === 'serial' ? (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
+                                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                    <p className="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">settings_bluetooth</span>
+                                        Panduan Legacy Bluetooth (SPP)
+                                    </p>
+                                    <ul className="text-[9px] text-blue-400/80 mt-1 list-disc ml-4 space-y-1">
+                                        <li>Pairing printer Anda di <b>Settings Bluetooth Laptop/PC</b> Anda terlebih dahulu.</li>
+                                        <li>Jika di Linux, pastikan izin dialout aktif (cek panduan di bawah).</li>
+                                        <li>Klik "Select Port" dan pilih <b>COM/RFCOMM</b> yang muncul.</li>
+                                    </ul>
+                                </div>
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Serial / COM Port (Legacy BT)</label>
                                 <div className="flex gap-2">
                                     <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)] flex flex-col gap-1">
                                         <p className="font-bold">{printer.bluetoothDeviceName || 'Port Belum Dipilih'}</p>
-                                        <p className="text-[9px] opacity-60">Pastikan printer sudah di-pairing dengan OS Windows/Linux sebagai COM port.</p>
+                                        <p className="text-[9px] opacity-60">Pilih virtual port yang sesuai dengan printer Anda.</p>
                                     </div>
                                     {PrintService.isSerialSupported() ? (
                                         <button 
