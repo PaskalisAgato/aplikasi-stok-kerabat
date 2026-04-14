@@ -39,8 +39,9 @@ export default function SyncQueueModal({ isOpen, onClose }: SyncQueueModalProps)
     };
 
     return (
-        <div className="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="card max-w-2xl w-full max-h-[85vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
+        <div className="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-300">
+            <div className="flex min-h-full items-center justify-center p-4">
+                <div className="card max-w-2xl w-full max-h-[85vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
                 {/* Header */}
                 <header className="glass p-6 flex justify-between items-center border-b border-white/5 shrink-0">
                     <div className="flex items-center gap-4">
@@ -137,6 +138,7 @@ export default function SyncQueueModal({ isOpen, onClose }: SyncQueueModalProps)
                         Paksa Sinkron Sekarang
                     </button>
                 </footer>
+            </div>
             </div>
         </div>
     );
