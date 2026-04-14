@@ -156,6 +156,7 @@ function App() {
     const [printAlert, setPrintAlert] = useState<{ message: string, type: 'WARN' | 'ERROR', data?: PrintData } | null>(null);
     const [printQueueCount, setPrintQueueCount] = useState<number>(0);
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
+    const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -865,50 +866,82 @@ function App() {
                 </div>
             )}
 
-            {/* Consolidated Action Bar */}
-            <div className={`flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 scale-90 sm:scale-100`}>
-                <SyncWidget />
-                
-                <div className="h-6 w-px bg-white/10 mx-1"></div>
-
-                <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
-                    <button 
-                        onClick={() => navigateTo('pos')}
-                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                    >
-                        <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
-                        <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
-                    </button>
-                    <button 
-                        onClick={() => navigateTo('history')}
-                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                    >
-                        <span className="material-symbols-outlined text-[14px]">history</span>
-                        <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-inherit">History</span>
-                    </button>
-                    <button 
-                        onClick={() => navigateTo('print-queue')}
-                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1.5 relative ${view === 'print-queue' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                    >
-                        <span className="material-symbols-outlined text-[14px]">receipt_long</span>
-                        <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-inherit">Struk</span>
-                        {printQueueCount > 0 && (
-                            <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#1a1f2e]">
-                                {printQueueCount}
-                            </span>
-                        )}
-                    </button>
-                </div>
-
-                <div className="h-6 w-px bg-white/10 mx-1"></div>
-
+            {/* Consolidated Action Menu (3 Dots) */}
+            <div className="relative">
                 <button 
-                    onClick={() => navigateTo('printer-settings')}
-                    className={`size-8 sm:size-10 rounded-lg flex items-center justify-center ${view === 'printer-settings' ? 'bg-primary text-[#0b1220]' : 'bg-white/5 hover:bg-white/10'} active:scale-95 transition-all group border border-white/5`}
-                    title="Printer Settings"
+                    onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
+                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'} active:scale-95 transition-all shadow-lg`}
+                    title="Menu Aksi"
                 >
-                    <span className={`material-symbols-outlined text-base sm:text-lg ${view === 'printer-settings' ? 'text-slate-950 font-black' : 'text-white opacity-40 group-hover:opacity-100 group-hover:text-primary'} transition-all`}>print</span>
+                    <span className="material-symbols-outlined text-2xl font-black">more_vert</span>
                 </button>
+
+                {/* Dropdown Menu */}
+                {isActionMenuOpen && (
+                    <>
+                        {/* Backdrop for closing */}
+                        <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setIsActionMenuOpen(false)}
+                        />
+                        
+                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className="space-y-3">
+                                {/* Section: Status & Sync */}
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2">Sinkronisasi</p>
+                                    <div className="bg-black/20 rounded-xl p-2">
+                                        <SyncWidget />
+                                    </div>
+                                </div>
+
+                                <div className="h-px bg-white/5 mx-2"></div>
+
+                                {/* Section: Navigasi */}
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2 mb-2">Navigasi</p>
+                                    <button 
+                                        onClick={() => { navigateTo('pos'); setIsActionMenuOpen(false); }}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'pos' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-base">point_of_sale</span>
+                                        <span className="text-xs uppercase tracking-widest">Input Penjualan</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => { navigateTo('history'); setIsActionMenuOpen(false); }}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'history' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-base">history</span>
+                                        <span className="text-xs uppercase tracking-widest">Riwayat Kasir</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => { navigateTo('print-queue'); setIsActionMenuOpen(false); }}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 relative transition-all ${view === 'print-queue' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-base">receipt_long</span>
+                                        <span className="text-xs uppercase tracking-widest">Antrean Struk</span>
+                                        {printQueueCount > 0 && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 size-5 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full flex items-center justify-center shadow-lg">
+                                                {printQueueCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+
+                                <div className="h-px bg-white/5 mx-2"></div>
+
+                                {/* Section: Settings */}
+                                <button 
+                                    onClick={() => { navigateTo('printer-settings'); setIsActionMenuOpen(false); }}
+                                    className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'printer-settings' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                >
+                                    <span className="material-symbols-outlined text-base">print</span>
+                                    <span className="text-xs uppercase tracking-widest">Pengaturan Printer</span>
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
