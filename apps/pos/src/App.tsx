@@ -871,10 +871,22 @@ function App() {
                 </button>
                 <button 
                     onClick={() => navigateTo('history')}
-                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
-                    <span className="material-symbols-outlined text-[12px] sm:text-[14px]">history</span>
-                    <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">History</span>
+                    <span className="material-symbols-outlined text-[14px]">history</span>
+                    <span className="hidden sm:inline text-[9px] uppercase tracking-widest">History</span>
+                </button>
+                <button 
+                    onClick={() => navigateTo('print-queue')}
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1.5 relative ${view === 'print-queue' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                >
+                    <span className="material-symbols-outlined text-[14px]">receipt_long</span>
+                    <span className="hidden sm:inline text-[9px] uppercase tracking-widest">Struk</span>
+                    {printQueueCount > 0 && (
+                        <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#1a1f2e]">
+                            {printQueueCount}
+                        </span>
+                    )}
                 </button>
             </div>
 
@@ -1073,18 +1085,9 @@ function App() {
                                 {/* Cart Header */}
                                 <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <button 
-                                            onClick={() => navigateTo('print-queue')} 
-                                            className="size-10 rounded-xl glass text-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 relative"
-                                            title="Antrean Struk"
-                                        >
-                                            <span className="material-symbols-outlined text-xl">receipt_long</span>
-                                            {printQueueCount > 0 && (
-                                                <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                                                    {printQueueCount}
-                                                </span>
-                                            )}
-                                        </button>
+                                        <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all shrink-0">
+                                            <span className="material-symbols-outlined text-xl">shopping_cart</span>
+                                        </div>
                                         <div className="min-w-0">
                                             <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2 truncate">
                                                 Keranjang
