@@ -2,6 +2,7 @@ import { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
 import { useKeyboardCashier } from './hooks/useKeyboardCashier';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import PrintQueueManager from './PrintQueueManager';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
@@ -102,7 +103,7 @@ function App() {
     // Auth gate: Only show shift modal when user is logged in
     const isAuthenticated = !!(localStorage.getItem('kerabat_auth_token'));
 
-    const [view, setView] = useState<'pos' | 'history' | 'printer-settings'>('pos');
+    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [items, setItems] = useState<Recipe[]>([]);
@@ -133,6 +134,7 @@ function App() {
     const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
     const [pendingSyncs, setPendingSyncs] = useState<number>(0);
     const [printAlert, setPrintAlert] = useState<{ message: string, type: 'WARN' | 'ERROR', data?: PrintData } | null>(null);
+    const [printQueueCount, setPrintQueueCount] = useState<number>(0);
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -148,6 +150,11 @@ function App() {
             });
         };
         window.addEventListener('print-alert', handlePrintAlert);
+
+        // Load initial print queue count
+        PrintService.getPendingJobs().then(jobs => {
+            setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+        });
 
         return () => {
             unsubscribe();
@@ -380,10 +387,14 @@ function App() {
                 }))
             };
 
-            // 1. Decoupled Printing: Fire and forget (don't block checkout success)
-            PrintService.printOrder(printData).catch(err => {
-                console.error('Initial printing attempt failed', err);
-                // PrintService.printOrder internal logic already emits print-alert if it fails
+            // 1. Queue receipt for later printing (NO auto-print)
+            PrintService.queueReceipt(printData).then(() => {
+                // Update badge counter
+                PrintService.getPendingJobs().then(jobs => {
+                    setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+                });
+            }).catch(err => {
+                console.error('Failed to queue receipt', err);
             });
 
             // 2. Save to Offline Queue (Local Source of Truth)
@@ -885,6 +896,19 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
             </div>
 
             <button 
+                onClick={() => setView('print-queue')}
+                className={`relative size-8 sm:size-10 glass rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border ${view === 'print-queue' ? 'border-primary/40 bg-primary/10' : 'border-[var(--border-dim)]'}`}
+                title="Antrean Cetak"
+            >
+                <span className={`material-symbols-outlined text-base sm:text-lg transition-all ${view === 'print-queue' ? 'text-primary' : 'text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary'}`}>receipt_long</span>
+                {printQueueCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center px-1 shadow-lg animate-bounce">
+                        {printQueueCount}
+                    </span>
+                )}
+            </button>
+
+            <button 
                 onClick={() => setIsPrinterSettingsOpen(true)}
                 className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]`}
                 title="Printer Settings"
@@ -894,8 +918,8 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
         </div>
     );
 
-    const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : 'Input Penjualan';
-    const pageSubtitle = view === 'history' ? 'Manajemen Transaksi' : view === 'printer-settings' ? 'Hardware & Koneksi' : 'Kasir & Stok';
+    const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : view === 'print-queue' ? 'Antrean Cetak' : 'Input Penjualan';
+    const pageSubtitle = view === 'history' ? 'Manajemen Transaksi' : view === 'printer-settings' ? 'Hardware & Koneksi' : view === 'print-queue' ? 'Struk Menunggu Cetak' : 'Kasir & Stok';
 
     return (
         <>
@@ -1082,6 +1106,15 @@ Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba r
                         onClose={() => setView('pos')} 
                         isFullPage={true} 
                     />
+                )}
+
+                {view === 'print-queue' && (
+                    <PrintQueueManager onBack={() => {
+                        setView('pos');
+                        PrintService.getPendingJobs().then(jobs => {
+                            setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+                        });
+                    }} />
                 )}
             </div>
 

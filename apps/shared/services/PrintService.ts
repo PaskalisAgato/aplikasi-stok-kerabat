@@ -1,5 +1,5 @@
 import EscPosEncoder from 'esc-pos-encoder';
-import { db, PrinterConfig as _PrTrConf, PrintData as _PrTrData } from './db';
+import { db, PrinterConfig as _PrTrConf, PrintData as _PrTrData, OfflinePrintJob } from './db';
 
 const BRIDGE_URL = 'http://127.0.0.1:3001';
 
@@ -709,5 +709,79 @@ Terima Kasih!
             }
             return false;
         }
+    }
+
+    // ========== PRINT QUEUE MANAGEMENT ==========
+
+    /**
+     * Queue a receipt for later printing (NO auto-print).
+     * Called during checkout instead of printOrder.
+     */
+    public static async queueReceipt(data: PrintData): Promise<void> {
+        await db.printQueue.add({
+            id: `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            data,
+            status: 'PENDING',
+            retry_count: 0,
+            created_at: new Date().toISOString()
+        });
+        console.log('[PrintService] Receipt queued for later printing:', data.id);
+    }
+
+    /**
+     * Get all pending print jobs for the queue manager UI.
+     */
+    public static async getPendingJobs(): Promise<OfflinePrintJob[]> {
+        return db.printQueue
+            .orderBy('created_at')
+            .reverse()
+            .toArray();
+    }
+
+    /**
+     * Print a specific job from the queue by its ID.
+     * Tries printOrder (which handles bridge/bluetooth routing).
+     * Returns true if print succeeded.
+     */
+    public static async printFromQueue(jobId: string): Promise<boolean> {
+        const job = await db.printQueue.get(jobId);
+        if (!job) {
+            console.warn('[PrintService] Job not found:', jobId);
+            return false;
+        }
+
+        try {
+            // Use printOrder with isManual=true so alerts fire on failure
+            await this.printOrder(job.data as PrintData, true);
+            
+            // Mark as done
+            await db.printQueue.update(jobId, { status: 'DONE' });
+            console.log('[PrintService] Queue job printed:', jobId);
+            return true;
+        } catch (err) {
+            console.error('[PrintService] Queue job print failed:', jobId, err);
+            await db.printQueue.update(jobId, { 
+                status: 'FAILED', 
+                retry_count: (job.retry_count || 0) + 1,
+                last_error: (err as Error).message
+            });
+            return false;
+        }
+    }
+
+    /**
+     * Delete a single job from the queue.
+     */
+    public static async deleteJob(jobId: string): Promise<void> {
+        await db.printQueue.delete(jobId);
+        console.log('[PrintService] Queue job deleted:', jobId);
+    }
+
+    /**
+     * Clear the entire print queue.
+     */
+    public static async clearQueue(): Promise<void> {
+        await db.printQueue.clear();
+        console.log('[PrintService] Entire print queue cleared.');
     }
 }
