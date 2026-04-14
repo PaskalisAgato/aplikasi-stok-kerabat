@@ -923,7 +923,7 @@ function App() {
             title={pageTitle}
             subtitle={pageSubtitle}
             maxWidth="100%"
-            footer={view === 'pos' ? <div className="md:hidden landscape:hidden">{PosFooter}</div> : null}
+            footer={view === 'pos' ? <div className="lg:hidden">{PosFooter}</div> : null}
             headerExtras={PosHeaderExtras}
             drawerOpen={drawerOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
@@ -933,33 +933,30 @@ function App() {
                 {view === 'pos' && (
                     <>
                         {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
-                        <div className="!flex lg:!hidden gap-2 bg-white/5 p-1 rounded-2xl border border-white/5 mb-4 shrink-0">
+                        <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
                             <button
-                                onClick={() => setMobileTab('cart')}
-                                className={`flex-[1.5] py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${
-                                    mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
+                                onClick={() => setMobileTab('menu')}
+                                className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                    mobileTab === 'menu' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
                                 }`}
                             >
-                                <span className="material-symbols-outlined text-lg">shopping_cart</span>
-                                <span className="uppercase tracking-widest text-[10px]">Keranjang</span>
-                                {totalItems > 0 && (
-                                    <span className={`ml-1 size-4 rounded-full text-[9px] flex items-center justify-center font-black ${
-                                        mobileTab === 'cart' ? 'bg-slate-950 text-primary' : 'bg-primary text-slate-950'
-                                    }`}>
-                                        {totalItems}
-                                    </span>
-                                )}
+                                <span className="material-symbols-outlined text-[18px]">restaurant_menu</span>
+                                <span className="uppercase tracking-widest text-[10px]">Menu</span>
                             </button>
                             
                             <button
-                                onClick={() => navigateTo('print-queue')}
-                                className="flex-1 py-3 rounded-xl hover:bg-white/5 text-[var(--text-main)] flex items-center justify-center gap-2 transition-all font-bold"
+                                onClick={() => setMobileTab('cart')}
+                                className={`flex-[1.2] py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                    mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
+                                }`}
                             >
-                                <span className="material-symbols-outlined text-lg">receipt_long</span>
-                                <span className="uppercase tracking-widest text-[10px]">Struk</span>
-                                {printQueueCount > 0 && (
-                                    <span className="ml-1 size-4 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center animate-bounce">
-                                        {printQueueCount}
+                                <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+                                <span className="uppercase tracking-widest text-[10px]">Keranjang</span>
+                                {totalItems > 0 && (
+                                    <span className={`ml-1 size-5 rounded-full text-[9px] flex items-center justify-center font-black ${
+                                        mobileTab === 'cart' ? 'bg-slate-950 text-primary' : 'bg-primary text-slate-950'
+                                    }`}>
+                                        {totalItems}
                                     </span>
                                 )}
                             </button>
@@ -1077,19 +1074,29 @@ function App() {
                                 {/* Cart Header */}
                                 <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <button onClick={() => setMobileTab('menu')} className="lg:hidden size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all">
-                                            <span className="material-symbols-outlined text-lg">arrow_back</span>
+                                        <button 
+                                            onClick={() => navigateTo('print-queue')} 
+                                            className="size-10 rounded-xl glass text-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 relative"
+                                            title="Antrean Struk"
+                                        >
+                                            <span className="material-symbols-outlined text-xl">receipt_long</span>
+                                            {printQueueCount > 0 && (
+                                                <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                                                    {printQueueCount}
+                                                </span>
+                                            )}
                                         </button>
-                                        <div>
-                                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-primary text-base">shopping_cart</span>
+                                        <div className="min-w-0">
+                                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2 truncate">
                                                 Keranjang
                                             </h2>
-                                            <p className="text-[9px] font-bold text-primary uppercase mt-1">{totalItems} Item</p>
+                                            <p className="text-[10px] font-bold text-primary uppercase mt-0.5">{totalItems} Item</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setSales({})} className="text-[9px] font-black text-red-500 opacity-60 hover:opacity-100 uppercase transition-all bg-red-500/10 px-2 py-1 flex items-center gap-1 rounded-md">
-                                        <span className="material-symbols-outlined text-[10px]">delete</span> Riset
+                                    
+                                    <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2.5 flex items-center gap-1.5 rounded-xl shrink-0 transition-all active:scale-95 border border-red-500/20">
+                                        <span className="material-symbols-outlined text-base">delete_sweep</span> 
+                                        <span className="xs:inline hidden">Riset</span>
                                     </button>
                                 </div>
                                 
@@ -1116,8 +1123,8 @@ function App() {
                                     ))}
                                 </div>
 
-                                {/* Compact Embedded PosFooter */}
-                                <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20">
+                                {/* Compact Embedded PosFooter (Desktop Only) */}
+                                <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20 hidden lg:block">
                                     {PosFooter}
                                 </div>
                             </div>

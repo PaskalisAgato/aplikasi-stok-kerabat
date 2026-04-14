@@ -199,39 +199,102 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         }
     };
 
+    const TableActions = ({ tx, compact = false }: { tx: any, compact?: boolean }) => {
+        if (deleteConfirmId === tx.id) {
+            return (
+                <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
+                    <button 
+                        onClick={() => handleDelete(tx.id)}
+                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all`}
+                    >
+                        Hapus
+                    </button>
+                    <button 
+                        onClick={() => setDeleteConfirmId(null)}
+                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all`}
+                    >
+                        Batal
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex gap-2">
+                <button 
+                    onClick={() => setViewData(tx)}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                    title="Lihat Detail"
+                >
+                    <span className="material-symbols-outlined text-[20px]">visibility</span>
+                </button>
+                
+                <button 
+                    onClick={() => setDeleteConfirmId(tx.id)}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                    title="Hapus Transaksi"
+                >
+                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+                
+                <button 
+                    onClick={() => setVoidConfirmId(tx.id)}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass transition-all flex items-center justify-center shrink-0 ${tx.isVoided ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-purple-500 hover:bg-purple-500 hover:text-white'}`}
+                    title={tx.isVoided ? "Sudah dibatalkan" : "Void/Batalkan Transaksi"}
+                    disabled={tx.isVoided}
+                >
+                    <span className="material-symbols-outlined text-[20px]">cancel</span>
+                </button>
+
+                {isAdmin && (
+                    <button 
+                        onClick={() => openEdit(tx)}
+                        className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                        title="Edit Transaksi"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">edit_square</span>
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="p-2 md:p-4">
-            {/* Consolidated Header Bar */}
-            <div className="flex justify-between items-center mb-8 px-2">
-                <div className="flex gap-4 items-center">
-                    <h2 className="font-black text-xl uppercase tracking-widest text-[var(--text-main)] hidden sm:block">Riwayat</h2>
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 px-2 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="size-10 md:size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-primary text-xl md:text-2xl font-black">history</span>
+                    </div>
+                    <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Riwayat Transaksi</h2>
                 </div>
                 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3 w-full md:w-auto">
                     {isAdmin && transactions.length > 0 && (
-                        <div className="rounded-2xl glass p-1 border border-white/5 flex gap-1">
+                        <div className="flex-1 md:flex-none">
                             {!showClearConfirm ? (
                                 <button 
                                     onClick={() => setShowClearConfirm(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                    className="w-full md:w-auto flex items-center justify-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95"
                                 >
                                     <span className="material-symbols-outlined text-sm font-black">delete_sweep</span>
-                                    Hapus Semua
+                                    Hapus <span className="hidden xs:inline">Semua</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-1 animate-in zoom-in duration-300">
+                                <div className="flex items-center gap-1 animate-in zoom-in duration-300 w-full">
                                     <button 
                                         onClick={() => setShowClearConfirm(false)}
-                                        className="px-4 py-2.5 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[10px] uppercase tracking-widest"
+                                        className="flex-1 px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
                                     >
                                         Batal
                                     </button>
                                     <button 
                                         onClick={handleClearHistory}
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
+                                        className="flex-[2] flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
                                     >
                                         <span className="material-symbols-outlined text-sm font-black">check</span>
-                                        Yakin Hapus Semua?
+                                        Ya, Hapus
                                     </button>
                                 </div>
                             )}
@@ -240,9 +303,9 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     
                     <button 
                         onClick={onBack}
-                        className="flex items-center gap-3 px-6 py-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-[var(--border-dim)]"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 md:gap-3 px-3 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-[var(--border-dim)]"
                     >
-                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span className="material-symbols-outlined text-[16px] md:text-[18px]">arrow_back</span>
                         Kembali
                     </button>
                 </div>
@@ -264,40 +327,41 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                         <div className="card p-20 text-center text-[var(--text-muted)] animate-pulse shadow-xl">Memuat jejak transaksi...</div>
                     ) : transactions.length === 0 ? (
                         <div className="card p-20 text-center text-[var(--text-muted)] shadow-xl">Belum ada transaksi tercatat.</div>
-                    ) : (
-                        (Object.entries(groupedTransactions) as [string, any[]][]).map(([date, txs]) => {
-                            const isExpanded = expandedDates.includes(date);
-                            const dayTotal = txs.reduce((sum: number, tx: any) => sum + parseFloat(tx.totalAmount), 0);
+                    ) : (Object.entries(groupedTransactions) as [string, any[]][]).map(([date, txs]) => {
+                        const isExpanded = expandedDates.includes(date);
+                        const dayTotal = txs.reduce((sum: number, tx: any) => sum + parseFloat(tx.totalAmount), 0);
 
-                            return (
-                                <div key={date} className="space-y-3">
-                                    <button 
-                                        onClick={() => toggleDate(date)}
-                                        className={`w-full flex items-center justify-between p-5 rounded-[2rem] border transition-all ${isExpanded ? 'bg-primary/10 border-primary/30 shadow-lg accent-glow' : 'glass border-white/5 hover:border-white/10'}`}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`size-10 rounded-2xl flex items-center justify-center transition-all ${isExpanded ? 'bg-primary text-slate-950' : 'bg-white/5 text-[var(--text-muted)]'}`}>
-                                                <span className="material-symbols-outlined text-xl">{isExpanded ? 'calendar_month' : 'event'}</span>
-                                            </div>
-                                            <div className="text-left">
-                                                <h3 className={`font-black uppercase tracking-widest text-sm ${isExpanded ? 'text-primary' : 'text-[var(--text-main)]'}`}>{date}</h3>
-                                                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{txs.length} TRANSAKSI</p>
-                                            </div>
+                        return (
+                            <div key={date} className="space-y-3">
+                                <button 
+                                    onClick={() => toggleDate(date)}
+                                    className={`w-full flex items-center justify-between p-5 rounded-[2rem] border transition-all ${isExpanded ? 'bg-primary/10 border-primary/30 shadow-lg accent-glow' : 'glass border-white/5 hover:border-white/10'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`size-10 rounded-2xl flex items-center justify-center transition-all ${isExpanded ? 'bg-primary text-slate-950' : 'bg-white/5 text-[var(--text-muted)]'}`}>
+                                            <span className="material-symbols-outlined text-xl">{isExpanded ? 'calendar_month' : 'event'}</span>
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className="text-right hidden xs:block">
-                                                <p className="text-[9px] font-black text-primary uppercase tracking-widest opacity-60">Total Harian</p>
-                                                <p className="font-black text-[var(--text-main)]">Rp {dayTotal.toLocaleString('id-ID')}</p>
-                                            </div>
-                                            <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-[var(--text-muted)]'}`}>
-                                                expand_more
-                                            </span>
+                                        <div className="text-left">
+                                            <h3 className={`font-black uppercase tracking-widest text-sm ${isExpanded ? 'text-primary' : 'text-[var(--text-main)]'}`}>{date}</h3>
+                                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{txs.length} TRANSAKSI</p>
                                         </div>
-                                    </button>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="text-right hidden xs:block">
+                                            <p className="text-[9px] font-black text-primary uppercase tracking-widest opacity-60">Total Harian</p>
+                                            <p className="font-black text-[var(--text-main)]">Rp {dayTotal.toLocaleString('id-ID')}</p>
+                                        </div>
+                                        <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-[var(--text-muted)]'}`}>
+                                            expand_more
+                                        </span>
+                                    </div>
+                                </button>
 
-                                    {isExpanded && (
-                                        <div className="card overflow-x-auto shadow-2xl p-0 animate-in slide-in-from-top-4 duration-500">
-                                            <table className="w-full text-left border-collapse min-w-[700px]">
+                                {isExpanded && (
+                                    <div className="space-y-3">
+                                        {/* Desktop Table View */}
+                                        <div className="card hidden lg:block overflow-x-auto shadow-2xl p-0">
+                                            <table className="w-full text-left border-collapse">
                                                 <thead>
                                                     <tr className="glass uppercase text-[10px] tracking-widest text-[var(--text-muted)] border-b border-[var(--border-dim)]">
                                                         <th className="p-5 font-black">ID</th>
@@ -323,70 +387,55 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                                 </span>
                                                             </td>
                                                             <td className="p-5 flex justify-end gap-2">
-                                                                {deleteConfirmId === tx.id ? (
-                                                                    <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
-                                                                        <button 
-                                                                            onClick={() => handleDelete(tx.id)}
-                                                                            className="h-8 px-3 rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all"
-                                                                        >
-                                                                            Hapus
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={() => setDeleteConfirmId(null)}
-                                                                            className="h-8 px-3 rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
-                                                                        >
-                                                                            Batal
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <>
-                                                                        <button 
-                                                                            onClick={() => setViewData(tx)}
-                                                                            className="size-8 rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                                            title="Lihat Detail"
-                                                                        >
-                                                                            <span className="material-symbols-outlined text-[18px]">visibility</span>
-                                                                        </button>
-                                                                        
-                                                                        <button 
-                                                                            onClick={() => setDeleteConfirmId(tx.id)}
-                                                                            className="size-8 rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                                            title="Hapus Transaksi"
-                                                                        >
-                                                                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                                        </button>
-                                                                        
-                                                                        <button 
-                                                                            onClick={() => setVoidConfirmId(tx.id)}
-                                                                            className={`size-8 rounded-lg glass transition-all flex items-center justify-center shrink-0 ${tx.isVoided ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-purple-500 hover:bg-purple-500 hover:text-white'}`}
-                                                                            title={tx.isVoided ? "Sudah dibatalkan" : "Void/Batalkan Transaksi"}
-                                                                            disabled={tx.isVoided}
-                                                                        >
-                                                                            <span className="material-symbols-outlined text-[18px]">cancel</span>
-                                                                        </button>
-
-                                                                        {isAdmin && (
-                                                                            <button 
-                                                                                onClick={() => openEdit(tx)}
-                                                                                className="size-8 rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0"
-                                                                                title="Edit Transaksi"
-                                                                            >
-                                                                                <span className="material-symbols-outlined text-[18px]">edit_square</span>
-                                                                            </button>
-                                                                        )}
-                                                                    </>
-                                                                )}
+                                                                <TableActions tx={tx} />
                                                             </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })
-                    )}
+
+                                        {/* Mobile Card-Based View */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
+                                            {txs.map((tx: any) => (
+                                                <div key={tx.id} className="card p-0 overflow-hidden border-white/5 shadow-xl hover:border-white/10 transition-all">
+                                                    <div className="p-4 flex items-center justify-between border-b border-white/5 bg-white/5">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                                <span className="material-symbols-outlined text-primary text-base font-black">receipt</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">#{tx.id}</p>
+                                                                <p className="text-[10px] text-[var(--text-muted)] font-bold">
+                                                                    {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary">
+                                                            {tx.paymentMethod}
+                                                        </span>
+                                                    </div>
+                                                    <div className="p-4 flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Total Transaksi</p>
+                                                            <p className="text-xl font-black text-[var(--text-main)]">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Kasir</p>
+                                                            <p className="text-xs font-bold text-primary truncate max-w-[100px]">{tx.cashierName || tx.userId}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2 justify-end">
+                                                        <TableActions tx={tx} compact />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 

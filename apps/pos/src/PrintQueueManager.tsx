@@ -195,30 +195,30 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
 
                                     {/* Card Footer - Actions */}
                                     {job.status !== 'DONE' && (
-                                        <div className="p-3 bg-white/[0.02] border-t border-white/5 grid grid-cols-3 gap-2">
+                                        <div className="p-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => handlePrint(job.id)}
                                                 disabled={isPrinting}
-                                                className="h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                                className="flex-1 h-11 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-slate-950 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 min-w-[80px]"
                                             >
-                                                <span className="material-symbols-outlined text-sm">
+                                                <span className="material-symbols-outlined text-[18px]">
                                                     {isPrinting ? 'hourglass_top' : 'print'}
                                                 </span>
-                                                {isPrinting ? '...' : 'Cetak'}
+                                                {isPrinting ? 'Wait' : 'Cetak'}
                                             </button>
                                             <button
                                                 onClick={() => handleBrowserPrint(job)}
-                                                className="h-10 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all active:scale-95"
+                                                className="flex-1 h-11 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all active:scale-95 min-w-[80px]"
                                             >
-                                                <span className="material-symbols-outlined text-sm">open_in_new</span>
-                                                Browser
+                                                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                                                <span className="xs:inline hidden">Browser</span>
+                                                <span className="xs:hidden inline">View</span>
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(job.id)}
-                                                className="h-10 rounded-xl glass border-white/5 text-red-500 hover:bg-red-500/10 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                                className="h-11 px-4 rounded-xl glass border-white/5 text-red-500 hover:bg-red-500/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
                                             >
-                                                <span className="material-symbols-outlined text-sm">delete</span>
-                                                Hapus
+                                                <span className="material-symbols-outlined text-[18px]">delete</span>
                                             </button>
                                         </div>
                                     )}
