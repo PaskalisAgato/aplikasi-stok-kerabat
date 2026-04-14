@@ -135,7 +135,6 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
-    const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [amountPaid, setAmountPaid] = useState<number>(0);
@@ -880,11 +879,11 @@ function App() {
             </div>
 
             <button 
-                onClick={() => setIsPrinterSettingsOpen(true)}
-                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]`}
+                onClick={() => navigateTo('printer-settings')}
+                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center ${view === 'printer-settings' ? 'bg-primary text-[#0b1220]' : 'hover:bg-primary/10'} active:scale-95 transition-all group border border-[var(--border-dim)]`}
                 title="Printer Settings"
             >
-                <span className="material-symbols-outlined text-base sm:text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
+                <span className={`material-symbols-outlined text-base sm:text-lg ${view === 'printer-settings' ? 'text-slate-950 font-black' : 'text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary'} transition-all`}>print</span>
             </button>
         </div>
     );
@@ -1158,10 +1157,7 @@ function App() {
                 )}
             </div>
 
-            <PrinterSettings 
-                isOpen={isPrinterSettingsOpen}
-                onClose={() => setIsPrinterSettingsOpen(false)}
-            />
+
 
             {/* MERGE MODAL (Multi-Selection Ready) */}
             {isMergeModalOpen && targetBillForMerge && (
