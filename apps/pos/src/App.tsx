@@ -156,6 +156,7 @@ function App() {
     const [pendingSyncs, setPendingSyncs] = useState<number>(0);
     const [printAlert, setPrintAlert] = useState<{ message: string, type: 'WARN' | 'ERROR', data?: PrintData } | null>(null);
     const [printQueueCount, setPrintQueueCount] = useState<number>(0);
+    const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -752,9 +753,19 @@ function App() {
             )}
 
             <div className="flex flex-col gap-3">
-                <div className="flex items-end justify-between px-1">
+                <div 
+                    className="flex items-end justify-between px-1 cursor-pointer group active:opacity-60 transition-all md:cursor-default md:active:opacity-100"
+                    onClick={() => {
+                        if (window.innerWidth < 1024) { // lg breakpoint
+                            setMobileTab('cart');
+                        }
+                    }}
+                >
                     <div className="space-y-0.5">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Total Penjualan</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Total Penjualan</p>
+                            <span className="lg:hidden px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[8px] font-black uppercase tracking-tighter animate-pulse">Lihat Detail</span>
+                        </div>
                         <p className="text-3xl font-black tracking-tighter text-[var(--text-main)] leading-none">
                             <span className="text-primary mr-1 text-sm">Rp</span>
                             {totalSalesValue.toLocaleString('id-ID')}
@@ -810,7 +821,7 @@ function App() {
     );
 
     const PosHeaderExtras = (
-        <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
             {/* Shift Status */}
             {activeShift && (
                 <div className="hidden min-[1100px]:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
@@ -857,14 +868,14 @@ function App() {
                     className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
                     <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
-                    <span className="hidden min-[380px]:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
+                    <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
                 </button>
                 <button 
                     onClick={() => navigateTo('history')}
                     className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
                     <span className="material-symbols-outlined text-[12px] sm:text-[14px]">history</span>
-                    <span className="hidden min-[380px]:inline text-[8px] sm:text-[9px] uppercase tracking-widest">History</span>
+                    <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">History</span>
                 </button>
             </div>
 
@@ -931,11 +942,36 @@ function App() {
             onDrawerOpen={() => setDrawerOpen(true)}
             onDrawerClose={() => setDrawerOpen(false)}
         >
-            <div className="space-y-8">
+            <div className="space-y-4 md:space-y-8">
                 {view === 'pos' && (
                     <>
-                        {/* SECTION: OPEN BILLS */}
-                        {openBills.length > 0 && !currentBillId && (
+                        {/* MOBILE TAB SWITCHER */}
+                        <div className="!flex lg:!hidden bg-white/5 p-1 rounded-2xl border border-white/5 mb-4">
+                            {[
+                                { id: 'menu', icon: 'restaurant_menu', label: 'Menu' },
+                                { id: 'cart', icon: 'shopping_cart', label: 'Keranjang', count: totalItems },
+                                { id: 'bills', icon: 'receipt_long', label: 'Meja', count: openBills.length }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setMobileTab(tab.id as any)}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all relative ${
+                                        mobileTab === tab.id ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+                                    <span className="text-[10px] uppercase tracking-widest hidden xs:inline">{tab.label}</span>
+                                    {tab.count !== undefined && tab.count > 0 && (
+                                        <span className={`absolute top-1.5 right-1.5 size-4 rounded-full text-[8px] flex items-center justify-center font-black ${mobileTab === tab.id ? 'bg-slate-900 text-primary' : 'bg-primary text-slate-950'}`}>
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* SECTION: OPEN BILLS (Only in Menu/Bills tab on mobile) */}
+                        {(mobileTab === 'menu' || mobileTab === 'bills') && openBills.length > 0 && !currentBillId && (
                             <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl flex flex-col gap-3 shrink-0">
                                 <div className="flex items-center justify-between px-2">
                                     <div className="flex items-center gap-2">
@@ -992,7 +1028,7 @@ function App() {
                             </div>
 
                             {/* Column 2: Daftar Menu (Center - 55%) */}
-                            <div className="w-full lg:w-[50%] flex flex-col gap-4">
+                            <div className={`w-full lg:w-[50%] flex-col gap-4 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
                                 <div className="relative group shrink-0">
                                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
                                     <input 
@@ -1004,6 +1040,26 @@ function App() {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
+
+                                {/* HORIZONTAL CATEGORIES (Mobile Only) */}
+                                <div className="!flex lg:!hidden gap-2 overflow-x-auto pb-2 px-1 custom-scrollbar shrink-0">
+                                    <button 
+                                        onClick={() => setSelectedCategory(null)}
+                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedCategory ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                    >
+                                        Semua
+                                    </button>
+                                    {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
+                                        <button 
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${selectedCategory === cat ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
                                     {isLoading ? (
                                         Array.from({ length: 12 }).map((_, i) => (
@@ -1022,7 +1078,7 @@ function App() {
                             </div>
 
                             {/* Column 3: Cart & Quick Pay (Right - 30%) */}
-                            <div className="w-full lg:w-[35%] flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden">
+                            <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
                                 {/* Cart Header */}
                                 <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                     <div>

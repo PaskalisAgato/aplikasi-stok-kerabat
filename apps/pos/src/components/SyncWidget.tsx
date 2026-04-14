@@ -72,7 +72,7 @@ export default function SyncWidget() {
 
     return (
         <div 
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
             title={
                 !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
                 lastError ? `Gagal Sinkron: ${lastError}. Klik untuk detail.` :
@@ -82,7 +82,7 @@ export default function SyncWidget() {
             onClick={handleClick}
         >
             <span className="material-symbols-outlined text-sm">{icon}</span>
-            <span className="text-xs font-bold whitespace-nowrap">{label}</span>
+            <span className="text-xs font-bold whitespace-nowrap hidden sm:inline">{label}</span>
         </div>
     );
 }

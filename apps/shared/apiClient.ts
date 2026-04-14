@@ -253,7 +253,7 @@ export const apiClient = {
         }),
     updateInventoryItem: (id: number, data: { name?: string, category?: string, unit?: string, minStock?: string, idealStock?: string, pricePerUnit?: string, discountPrice?: string, containerWeight?: string, containerId?: number, currentStock?: string|number, physicalStock?: string|number, imageUrl?: string, version?: string }) => 
         apiFetch<ApiResponse<any>>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    submitOpname: (adjustments: unknown[]) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
+    submitOpname: (adjustments: Array<{ inventoryId: number, physicalStock: string | number, reason: string }>) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
     getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
     getStockInHistory: () => apiFetch<ApiResponse<any>>('/inventory/movements/in'),
