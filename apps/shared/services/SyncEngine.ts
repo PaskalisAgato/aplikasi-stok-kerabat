@@ -240,7 +240,8 @@ class SyncEngine {
 
   private async syncAction(action: OfflineAction): Promise<boolean> {
     try {
-      await db.offlineActions.update(action.id, { last_attempt_at: new Date().toISOString() });
+      // Phase Hardening: Use unique 'id' for all lookups to avoid PK mismatch
+      await db.offlineActions.where('id').equals(action.id).modify({ last_attempt_at: new Date().toISOString() });
 
       let path = '';
       let useDelete = false;
@@ -265,11 +266,10 @@ class SyncEngine {
           await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
       }
 
-      // 8. On success, remove from queue
-      if (action.sequence_number !== undefined) {
-        await db.offlineActions.delete(action.sequence_number);
-        console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}] - DELETED FROM QUEUE`);
-      }
+      // 8. On success, remove from queue using unique ID
+      await db.offlineActions.where('id').equals(action.id).delete();
+      console.log(`[SyncEngine] Successfully synced action ${action.type} [ID: ${action.id}] - DELETED FROM QUEUE`);
+      
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
@@ -297,8 +297,8 @@ class SyncEngine {
       const nextRetryCount = action.retry_count + 1;
       const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'FAILED_PERMANENT' : 'PENDING';
 
-      if (action.sequence_number !== undefined) {
-          await db.offlineActions.update(action.sequence_number, {
+      if (action.id) {
+          await db.offlineActions.where('id').equals(action.id).modify({
             retry_count: nextRetryCount,
             sync_status: nextStatus as any,
             failure_reason: error.message || 'Unknown error',
