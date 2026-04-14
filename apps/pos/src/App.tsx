@@ -879,8 +879,13 @@ function App() {
                 </button>
             </div>
 
-
-
+            <button 
+                onClick={() => setIsPrinterSettingsOpen(true)}
+                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]`}
+                title="Printer Settings"
+            >
+                <span className="material-symbols-outlined text-base sm:text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
+            </button>
         </div>
     );
 
@@ -957,13 +962,6 @@ function App() {
                                         {printQueueCount}
                                     </span>
                                 )}
-                            </button>
-
-                            <button
-                                onClick={() => setIsPrinterSettingsOpen(true)}
-                                className="w-12 shrink-0 rounded-xl hover:bg-white/5 text-[var(--text-main)] flex items-center justify-center transition-all border-l border-white/5 ml-1 pl-1"
-                            >
-                                <span className="material-symbols-outlined text-lg">print</span>
                             </button>
                         </div>
 
