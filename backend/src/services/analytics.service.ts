@@ -18,7 +18,11 @@ export class AnalyticsService {
             nonCashRevenue: sql<number>`COALESCE(SUM(CASE WHEN ${schema.sales.paymentMethod} != 'CASH' AND ${schema.sales.isVoided} = false THEN CAST(${schema.sales.totalAmount} AS DECIMAL) ELSE 0 END), 0)`
         })
         .from(schema.sales)
-        .where(gte(schema.sales.createdAt, today));
+        .where(and(
+            gte(schema.sales.createdAt, today),
+            eq(schema.sales.isDeleted, false),
+            eq(schema.sales.status, 'PAID')
+        ));
 
         // 2. Profit (Price - Cost)
         const profitData = await db.select({
@@ -27,7 +31,12 @@ export class AnalyticsService {
         })
         .from(schema.saleItems)
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
-        .where(and(gte(schema.sales.createdAt, today), eq(schema.sales.isVoided, false)));
+        .where(and(
+            gte(schema.sales.createdAt, today), 
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.isDeleted, false),
+            eq(schema.sales.status, 'PAID')
+        ));
 
         // 3. Expenses
         const expenseData = await db.select({
@@ -101,6 +110,10 @@ export class AnalyticsService {
         })
         .from(schema.sales)
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+        .where(and(
+            eq(schema.sales.isDeleted, false),
+            eq(schema.sales.status, 'PAID')
+        ))
         .groupBy(schema.users.name)
         .orderBy(desc(sql`sales_volume`));
 
