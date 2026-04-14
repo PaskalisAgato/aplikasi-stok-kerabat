@@ -179,7 +179,11 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                                         updatePrinter(printer.id, { bluetoothDeviceName: name });
                                                     }
                                                 } catch (err: any) {
-                                                    alert(err.message || 'Gagal menyambungkan Serial port.');
+                                                    let msg = err.message || 'Gagal menyambungkan Serial port.';
+                                                    if (msg.includes('Permission denied')) {
+                                                        msg += '\n\nTip Linux: Jalankan `sudo usermod -a -G dialout $USER` lalu logout & login kembali.';
+                                                    }
+                                                    alert(msg);
                                                 }
                                             }}
                                             className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-slate-950 transition-all font-black"
