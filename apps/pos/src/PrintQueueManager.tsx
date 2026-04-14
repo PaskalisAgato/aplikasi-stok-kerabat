@@ -57,44 +57,44 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
     return (
         <div className="p-2 md:p-4">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 px-2">
-                <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 px-2 gap-4">
+                <div className="flex items-center gap-3 md:gap-4">
+                    <div className="size-10 md:size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-primary text-xl md:text-2xl">receipt_long</span>
                     </div>
-                    <div>
-                        <h2 className="font-black text-xl uppercase tracking-widest text-[var(--text-main)]">Antrean Cetak</h2>
-                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+                    <div className="min-w-0">
+                        <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Antrean Cetak</h2>
+                        <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 truncate">
                             {pendingCount} struk menunggu
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3 w-full md:w-auto">
                     {jobs.length > 0 && (
                         <>
                             {!showClearConfirm ? (
                                 <button 
                                     onClick={() => setShowClearConfirm(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                    className="flex-1 md:flex-none flex items-center justify-center gap-1 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95"
                                 >
                                     <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                                    Hapus Semua
+                                    Hapus <span className="hidden xs:inline">Semua</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-1 animate-in zoom-in duration-300">
+                                <div className="flex-1 md:flex-none flex items-center gap-1 animate-in zoom-in duration-300 w-full md:w-auto">
                                     <button 
                                         onClick={() => setShowClearConfirm(false)}
-                                        className="px-4 py-2.5 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[10px] uppercase tracking-widest"
+                                        className="flex-1 md:flex-none px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
                                     >
                                         Batal
                                     </button>
                                     <button 
                                         onClick={handleClearAll}
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
+                                        className="flex-[2] md:flex-none flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
                                     >
                                         <span className="material-symbols-outlined text-sm">check</span>
-                                        Yakin Hapus?
+                                        Yakin<span className="hidden xs:inline"> Hapus?</span>
                                     </button>
                                 </div>
                             )}
@@ -102,9 +102,9 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                     )}
                     <button 
                         onClick={onBack}
-                        className="flex items-center gap-3 px-6 py-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-[var(--border-dim)]"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1 md:gap-3 px-3 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl glass hover:bg-primary/20 text-primary transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 shadow-lg border border-[var(--border-dim)]"
                     >
-                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span className="material-symbols-outlined text-[16px] md:text-[18px]">arrow_back</span>
                         Kembali
                     </button>
                 </div>
