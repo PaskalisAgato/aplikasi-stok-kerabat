@@ -185,15 +185,37 @@ export class PrintService {
     /**
      * Connects to a Serial port (used for legacy Bluetooth SPP mapped as COM/TTY).
      */
-    public static async connectSerial(): Promise<string | null> {
+    public static async connectSerial(forcePopup = false): Promise<string | null> {
         const nav = navigator as any;
         if (!nav.serial) {
             throw new Error('Web Serial API tidak didukung di browser ini.');
         }
 
         try {
+            // 1. Try silent reconnect first
+            if (!forcePopup) {
+                const ports = await nav.serial.getPorts();
+                if (ports.length > 0) {
+                    console.log('[Serial] Found authorized ports, trying to reuse...');
+                    // Try to find a port that's already open or use the first one
+                    this.serialPort = ports[0];
+                    try {
+                        await this.serialPort.open({ baudRate: 9600 });
+                    } catch (openErr) {
+                        // Already open or failed to open
+                    }
+                    
+                    if (this.serialPort.writable) {
+                        this.serialWriter = this.serialPort.writable.getWriter();
+                        console.log('[Serial] Silent reconnect success.');
+                        return 'Serial Port Printer';
+                    }
+                }
+            }
+
+            // 2. Fallback to popup
             this.serialPort = await nav.serial.requestPort();
-            await this.serialPort.open({ baudRate: 9600 }); // Common default for thermal printers
+            await this.serialPort.open({ baudRate: 9600 }); 
             
             const writable = this.serialPort.writable;
             if (writable) {
@@ -781,9 +803,16 @@ Terima Kasih!
      * Called during checkout instead of printOrder.
      */
     public static async queueReceipt(data: PrintData): Promise<void> {
+        const settings = await this.getSettings();
+        const primaryPrinter = settings.find(p => p.autoPrint !== false) || settings[0];
+
         await db.printQueue.add({
             id: `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-            data,
+            data: {
+                data,
+                config: primaryPrinter,
+                isPrepTicket: false
+            },
             status: 'PENDING',
             retry_count: 0,
             created_at: new Date().toISOString()

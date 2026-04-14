@@ -398,14 +398,16 @@ function App() {
                 }))
             };
 
-            // 1. Queue receipt for later printing (NO auto-print)
+            // 1. Queue & Trigger Auto-Print
             PrintService.queueReceipt(printData).then(() => {
-                // Update badge counter
-                PrintService.getPendingJobs().then(jobs => {
-                    setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+                PrintService.printOrder(printData).catch(err => {
+                    console.error('Auto-print error', err);
+                }).finally(() => {
+                    // Refresh badge counter
+                    PrintService.getPendingJobs().then(jobs => {
+                        setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+                    });
                 });
-            }).catch(err => {
-                console.error('Failed to queue receipt', err);
             });
 
             // 2. Save to Offline Queue & Trigger Sync
