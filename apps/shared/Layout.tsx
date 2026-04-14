@@ -262,13 +262,6 @@ const Layout: React.FC<LayoutProps> = ({
                                             {headerExtras}
                                         </div>
                                     )}
-                                    
-
-                                    <div className="h-6 w-px bg-[var(--border-dim)] mx-1 hidden min-[500px]:block"></div>
-
-                                    <div className="shrink-0 scale-90 sm:scale-100">
-                                        <ThemeToggle />
-                                    </div>
                                 </div>
 
                             </div>
