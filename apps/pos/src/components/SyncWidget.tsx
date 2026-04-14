@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { syncEngine } from '@shared/services/SyncEngine';
+import SyncQueueModal from './SyncQueueModal';
 
 export default function SyncWidget() {
     const [pendingCount, setPendingCount] = useState(0);
@@ -7,20 +8,19 @@ export default function SyncWidget() {
     const [isPushing, setIsPushing] = useState(false);
     const [isPulling, setIsPulling] = useState(false);
     const [lastError, setLastError] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        // Track navigator state
+        // ... (existing listeners remain same)
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // Track queue count
         const unsubCount = syncEngine.onChange((count) => {
             setPendingCount(count);
         });
 
-        // Track engine state
         const unsubState = syncEngine.onStateChange((state) => {
             setIsPushing(state.isPushing);
             setIsPulling(state.isPulling);
@@ -40,7 +40,7 @@ export default function SyncWidget() {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (pendingCount > 0) {
                 e.preventDefault();
-                e.returnValue = ''; // Required for Chrome/Firefox to show warning
+                e.returnValue = ''; 
             }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -70,22 +70,25 @@ export default function SyncWidget() {
     }
 
     return (
-        <div 
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
-            title={
-                !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
-                lastError ? `Gagal Sinkron: ${lastError}. Klik untuk coba lagi.` :
-                pendingCount > 0 ? "Menunggu sinkronisasi..." : 
-                "Sistem terhubung dan sinkron."
-            }
-            onClick={() => {
-                if (isOnline && pendingCount > 0 && !isPushing) {
-                    syncEngine.forceSync().catch(console.error);
+        <>
+            <div 
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
+                title={
+                    !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
+                    lastError ? `Gagal Sinkron: ${lastError}. Klik untuk detail.` :
+                    pendingCount > 0 ? "Klik untuk melihat antrean sinkronisasi." : 
+                    "Sistem terhubung dan sinkron."
                 }
-            }}
-        >
-            <span className="material-symbols-outlined text-sm">{icon}</span>
-            <span className="text-xs font-bold whitespace-nowrap">{label} (v1.1.6)</span>
-        </div>
+                onClick={() => setIsModalOpen(true)}
+            >
+                <span className="material-symbols-outlined text-sm">{icon}</span>
+                <span className="text-xs font-bold whitespace-nowrap">{label}</span>
+            </div>
+
+            <SyncQueueModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+            />
+        </>
     );
 }

@@ -316,6 +316,31 @@ class SyncEngine {
       console.log(`[SyncEngine] Manually cleared ${pending.length} stuck PENDING actions.`);
       return pending.length;
   }
+
+  /**
+   * Get all actions in the sync queue (not just pending)
+   */
+  public async getAllActions(): Promise<OfflineAction[]> {
+      return db.offlineActions
+          .orderBy('sequence_number')
+          .reverse()
+          .toArray();
+  }
+
+  /**
+   * Cancel / Delete a specific action from the local queue
+   */
+  public async cancelAction(id: string): Promise<void> {
+      const action = await db.offlineActions.get(id);
+      if (action) {
+          await db.offlineActions.delete(id);
+          console.log(`[SyncEngine] Action ${id} was manually CANCELLED/DELETED from queue.`);
+          
+          // Refresh count
+          const count = await db.offlineActions.where('sync_status').equals('PENDING').count();
+          this.notify(count);
+      }
+  }
 }
 
 export const syncEngine = new SyncEngine();

@@ -832,12 +832,7 @@ function App() {
                             if (pendingSyncs > 0) {
                                 alert(`Gagal Menutup Shift! Masih ada ${pendingSyncs} data transaksi yang belum tersinkronisasi ke server. 
 
-Kemungkinan penyebab:
-1. Koneksi internet sedang lambat/terputus.
-2. Sesi login kamu berakhir (Unauthorized). 
-3. Ada error teknis pada salah satu transaksi.
-
-Harap cek widget "Cloud Sync" di pojok kanan atas untuk detail error atau coba refresh halaman.`);
+Silakan klik widget "Cloud Sync" (titik kuning/merah) di kanan atas untuk membatalkan transaksi yang macet jika diperlukan agar bisa melanjutkan tutup shift.`);
                                 return;
                             }
                             const summary = await getSummary(activeShift.id);
