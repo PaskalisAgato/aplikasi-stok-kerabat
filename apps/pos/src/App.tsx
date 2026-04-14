@@ -879,26 +879,8 @@ function App() {
                 </button>
             </div>
 
-            <button 
-                onClick={() => navigateTo('print-queue')}
-                className={`relative size-8 sm:size-10 glass rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border ${view === 'print-queue' ? 'border-primary/40 bg-primary/10' : 'border-[var(--border-dim)]'}`}
-                title="Antrean Cetak"
-            >
-                <span className={`material-symbols-outlined text-base sm:text-lg transition-all ${view === 'print-queue' ? 'text-primary' : 'text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary'}`}>receipt_long</span>
-                {printQueueCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center px-1 shadow-lg animate-bounce">
-                        {printQueueCount}
-                    </span>
-                )}
-            </button>
 
-            <button 
-                onClick={() => setIsPrinterSettingsOpen(true)}
-                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border border-[var(--border-dim)]`}
-                title="Printer Settings"
-            >
-                <span className="material-symbols-outlined text-base sm:text-lg text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all">print</span>
-            </button>
+
         </div>
     );
 
@@ -945,29 +927,44 @@ function App() {
             <div className="space-y-4 md:space-y-8">
                 {view === 'pos' && (
                     <>
-                        {/* MOBILE TAB SWITCHER */}
-                        <div className="!flex lg:!hidden bg-white/5 p-1 rounded-2xl border border-white/5 mb-4">
-                            {[
-                                { id: 'menu', icon: 'restaurant_menu', label: 'Menu' },
-                                { id: 'cart', icon: 'shopping_cart', label: 'Keranjang', count: totalItems },
-                                { id: 'bills', icon: 'receipt_long', label: 'Meja', count: openBills.length }
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setMobileTab(tab.id as any)}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all relative ${
-                                        mobileTab === tab.id ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'
-                                    }`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">{tab.icon}</span>
-                                    <span className="text-[10px] uppercase tracking-widest hidden xs:inline">{tab.label}</span>
-                                    {tab.count !== undefined && tab.count > 0 && (
-                                        <span className={`absolute top-1.5 right-1.5 size-4 rounded-full text-[8px] flex items-center justify-center font-black ${mobileTab === tab.id ? 'bg-slate-900 text-primary' : 'bg-primary text-slate-950'}`}>
-                                            {tab.count}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
+                        {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
+                        <div className="!flex lg:!hidden gap-2 bg-white/5 p-1 rounded-2xl border border-white/5 mb-4 shrink-0">
+                            <button
+                                onClick={() => setMobileTab('cart')}
+                                className={`flex-[1.5] py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${
+                                    mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-lg">shopping_cart</span>
+                                <span className="uppercase tracking-widest text-[10px]">Keranjang</span>
+                                {totalItems > 0 && (
+                                    <span className={`ml-1 size-4 rounded-full text-[9px] flex items-center justify-center font-black ${
+                                        mobileTab === 'cart' ? 'bg-slate-950 text-primary' : 'bg-primary text-slate-950'
+                                    }`}>
+                                        {totalItems}
+                                    </span>
+                                )}
+                            </button>
+                            
+                            <button
+                                onClick={() => navigateTo('print-queue')}
+                                className="flex-1 py-3 rounded-xl hover:bg-white/5 text-[var(--text-main)] flex items-center justify-center gap-2 transition-all font-bold"
+                            >
+                                <span className="material-symbols-outlined text-lg">receipt_long</span>
+                                <span className="uppercase tracking-widest text-[10px]">Struk</span>
+                                {printQueueCount > 0 && (
+                                    <span className="ml-1 size-4 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center animate-bounce">
+                                        {printQueueCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => setIsPrinterSettingsOpen(true)}
+                                className="w-12 shrink-0 rounded-xl hover:bg-white/5 text-[var(--text-main)] flex items-center justify-center transition-all border-l border-white/5 ml-1 pl-1"
+                            >
+                                <span className="material-symbols-outlined text-lg">print</span>
+                            </button>
                         </div>
 
                         {/* SECTION: OPEN BILLS (Only in Menu/Bills tab on mobile) */}
@@ -1081,12 +1078,17 @@ function App() {
                             <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
                                 {/* Cart Header */}
                                 <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-primary text-base">shopping_cart</span>
-                                            Keranjang
-                                        </h2>
-                                        <p className="text-[9px] font-bold text-primary uppercase mt-1">{totalItems} Item terpilih</p>
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => setMobileTab('menu')} className="lg:hidden size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all">
+                                            <span className="material-symbols-outlined text-lg">arrow_back</span>
+                                        </button>
+                                        <div>
+                                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary text-base">shopping_cart</span>
+                                                Keranjang
+                                            </h2>
+                                            <p className="text-[9px] font-bold text-primary uppercase mt-1">{totalItems} Item</p>
+                                        </div>
                                     </div>
                                     <button onClick={() => setSales({})} className="text-[9px] font-black text-red-500 opacity-60 hover:opacity-100 uppercase transition-all bg-red-500/10 px-2 py-1 flex items-center gap-1 rounded-md">
                                         <span className="material-symbols-outlined text-[10px]">delete</span> Riset
