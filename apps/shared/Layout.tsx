@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import NavDrawer from './NavDrawer';
-import ThemeToggle from './ThemeToggle';
+import { ThemeProvider } from './hooks/ThemeContext';
 import { useSession } from './authClient';
 import AuthPage from './AuthPage';
 import { Toaster } from 'react-hot-toast';
@@ -191,106 +191,108 @@ const Layout: React.FC<LayoutProps> = ({
     }
 
     return (
-        <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
-            <Toaster position="top-right" reverseOrder={false} />
-            <NavDrawer 
-                open={drawerOpen} 
-                onClose={() => setDrawerOpen(false)} 
-                currentPort={currentPort}
-            />
+        <ThemeProvider>
+            <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
+                <Toaster position="top-right" reverseOrder={false} />
+                <NavDrawer 
+                    open={drawerOpen} 
+                    onClose={() => setDrawerOpen(false)} 
+                    currentPort={currentPort}
+                />
 
-            {/* Offline Mode Banner */}
-            {isOffline && (
-                <div className="fixed top-0 inset-x-0 z-[1000] bg-red-600 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
-                    <span className="material-symbols-outlined text-lg animate-pulse">signal_wifi_off</span>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Mode: Koneksi Terputus. Data mungkin tidak akurat.</span>
-                </div>
-            )}
-            
-            <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative w-full overflow-hidden`} style={{ maxWidth }}>
-                
-                {/* Desktop Sidebar (Floating Glass Effect) */}
-                {sidebar && (
-                    <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
-                        <div className="flex items-center gap-4">
-                            <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
-                                <span className="material-symbols-outlined font-black">coffee</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Kerabat POS</p>
-                                <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
-                                {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto hide-scrollbar pr-2 -mr-2">
-                            {sidebar}
-                        </div>
-                    </aside>
+                {/* Offline Mode Banner */}
+                {isOffline && (
+                    <div className="fixed top-0 inset-x-0 z-[1000] bg-red-600 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
+                        <span className="material-symbols-outlined text-lg animate-pulse">signal_wifi_off</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Mode: Koneksi Terputus. Data mungkin tidak akurat.</span>
+                    </div>
                 )}
-
-                {/* Main Viewport */}
-                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-                    {/* Shell Header (Glass) */}
-                    {!hideHeader && (
-                        <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
-                            <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm`}>
-                                
-                                {/* Kiri: Hamburger + Logo */}
-                                <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-start">
-                                    <button 
-                                        onClick={() => setDrawerOpen(true)} 
-                                        className="size-9 sm:size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
-                                        style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
-                                    >
-                                        <span className="material-symbols-outlined text-[18px] sm:text-[20px] font-black">menu</span>
-                                    </button>
-                                    
-                                    {!sidebar && (
-                                         <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
-                                            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">coffee</span>
-                                        </div>
-                                    )}
+                
+                <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative w-full overflow-hidden`} style={{ maxWidth }}>
+                    
+                    {/* Desktop Sidebar (Floating Glass Effect) */}
+                    {sidebar && (
+                        <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
+                            <div className="flex items-center gap-4">
+                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
+                                    <span className="material-symbols-outlined font-black">coffee</span>
                                 </div>
-                                
-                                {/* Tengah: Kosong atau Navigasi Tambahan */}
-                                <div className="flex-1 min-w-0"></div>
-
-                                {/* Kanan: Header Extras & Theme Toggle */}
-                                <div className="flex items-center gap-2 sm:gap-4 shrink-0 justify-end">
-                                    {headerExtras && (
-                                        <div className="flex items-center shrink-0">
-                                            {headerExtras}
-                                        </div>
-                                    )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Kerabat POS</p>
+                                    <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
+                                    {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
                                 </div>
-
                             </div>
-                        </header>
+                            <div className="flex-1 overflow-y-auto hide-scrollbar pr-2 -mr-2">
+                                {sidebar}
+                            </div>
+                        </aside>
                     )}
 
-                    {/* Content Area */}
-                    <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
-                        <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
-                            {/* Page Header (New Location) */}
-                            {!hideTitle && (
-                                <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
-                                    <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
-                                    <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                    {/* Main Viewport */}
+                    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                        {/* Shell Header (Glass) */}
+                        {!hideHeader && (
+                            <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
+                                <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm`}>
+                                    
+                                    {/* Kiri: Hamburger + Logo */}
+                                    <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-start">
+                                        <button 
+                                            onClick={() => setDrawerOpen(true)} 
+                                            className="size-9 sm:size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
+                                            style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
+                                        >
+                                            <span className="material-symbols-outlined text-[18px] sm:text-[20px] font-black">menu</span>
+                                        </button>
+                                        
+                                        {!sidebar && (
+                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
+                                                <span className="material-symbols-outlined text-[18px] sm:text-[20px]">coffee</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Tengah: Kosong atau Navigasi Tambahan */}
+                                    <div className="flex-1 min-w-0"></div>
+
+                                    {/* Kanan: Header Extras & Theme Toggle */}
+                                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 justify-end">
+                                        {headerExtras && (
+                                            <div className="flex items-center shrink-0">
+                                                {headerExtras}
+                                            </div>
+                                        )}
+                                    </div>
+
                                 </div>
-                            )}
-                            {children}
-                        </div>
-                    </main>
+                            </header>
+                        )}
 
-                    {/* Fixed Footer */}
-                    {footer && (
-                        <div className="shrink-0">
-                            {footer}
-                        </div>
-                    )}
+                        {/* Content Area */}
+                        <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
+                            <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
+                                {/* Page Header (New Location) */}
+                                {!hideTitle && (
+                                    <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
+                                        <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
+                                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                                    </div>
+                                )}
+                                {children}
+                            </div>
+                        </main>
+
+                        {/* Fixed Footer */}
+                        {footer && (
+                            <div className="shrink-0">
+                                {footer}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </ThemeProvider>
     );
 };
 
