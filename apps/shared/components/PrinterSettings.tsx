@@ -141,9 +141,12 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                         <button 
                                             onClick={async () => {
                                                 try {
-                                                    const name = await PrintService.connectBluetooth(true);
-                                                    if (name) {
-                                                        updatePrinter(printer.id, { bluetoothDeviceName: name });
+                                                    const result = await PrintService.connectBluetooth(true);
+                                                    if (result) {
+                                                        updatePrinter(printer.id, { 
+                                                            bluetoothDeviceName: result.name,
+                                                            deviceId: result.deviceId 
+                                                        });
                                                     } else {
                                                         alert('Pairing gagal atau dibatalkan');
                                                     }
@@ -174,9 +177,12 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                         <button 
                                             onClick={async () => {
                                                 try {
-                                                    const name = await PrintService.connectSerial();
-                                                    if (name) {
-                                                        updatePrinter(printer.id, { bluetoothDeviceName: name });
+                                                    const result = await PrintService.connectSerial();
+                                                    if (result) {
+                                                        updatePrinter(printer.id, { 
+                                                            bluetoothDeviceName: result.name,
+                                                            deviceId: result.deviceId
+                                                        });
                                                     }
                                                 } catch (err: any) {
                                                     let msg = err.message || 'Gagal menyambungkan Serial port.';

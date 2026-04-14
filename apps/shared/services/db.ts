@@ -91,6 +91,7 @@ export interface PrinterConfig {
     categories: string[]; 
     connectionType: 'bridge' | 'bluetooth' | 'serial';
     bluetoothDeviceName?: string;
+    deviceId?: string;
     autoPrint?: boolean;
     openCashDrawer?: boolean;
     headerTitle?: string;

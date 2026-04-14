@@ -15,8 +15,22 @@ export class PrintService {
     private static QUEUE_DELAY_MS = 500;
 
     public static async recover() {
-        console.log('[PrintService] Recovering pending print jobs...');
+        console.log('[PrintService] Recovering pending print jobs and connections...');
         this.startQueueWorker();
+        
+        // Proactive Reconnection for Bluetooth/Serial
+        const settings = await this.getSettings();
+        for (const printer of settings) {
+            if (printer.autoPrint !== false) {
+                if (printer.connectionType === 'bluetooth') {
+                    console.log(`[PrintService] Proactive reconnect to BT: ${printer.name}`);
+                    this.connectBluetooth(false, printer.deviceId).catch(() => {});
+                } else if (printer.connectionType === 'serial') {
+                    console.log(`[PrintService] Proactive reconnect to Serial: ${printer.name}`);
+                    this.connectSerial(false).catch(() => {});
+                }
+            }
+        }
     }
 
     private static startQueueWorker() {
@@ -79,7 +93,7 @@ export class PrintService {
     /**
      * Connects to a Bluetooth printer. Supports both Web Bluetooth and Native Android SPP.
      */
-    public static async connectBluetooth(forcePopup = false): Promise<string | null> {
+    public static async connectBluetooth(forcePopup = false, preferredId?: string): Promise<{name: string, deviceId: string} | null> {
         const nav = navigator as any;
         const btSerial = (window as any).bluetoothSerial;
 
@@ -87,18 +101,20 @@ export class PrintService {
         if (btSerial) {
             return new Promise((resolve, reject) => {
                 btSerial.list((devices: { name: string, address?: string, id?: string }[]) => {
-                    const printer = devices.find(d => 
-                        d.name?.toLowerCase().includes('printer') || 
-                        d.name?.toLowerCase().includes('mpt') ||
-                        d.name?.toLowerCase().includes('bt-') ||
-                        d.name?.toLowerCase().includes('rp')
-                    );
+                    const printer = preferredId 
+                        ? devices.find(d => (d.address || d.id) === preferredId)
+                        : devices.find(d => 
+                            d.name?.toLowerCase().includes('printer') || 
+                            d.name?.toLowerCase().includes('mpt') ||
+                            d.name?.toLowerCase().includes('bt-') ||
+                            d.name?.toLowerCase().includes('rp')
+                        );
 
                     if (printer) {
                         btSerial.connect(printer.address || printer.id, () => {
                             console.log('[Native] Connected to:', printer.name);
                             this.bluetoothDevice = printer; // Store for state
-                            resolve(printer.name);
+                            resolve({ name: printer.name, deviceId: printer.address || printer.id || '' });
                         }, (err: any) => {
                             console.error('[Native] Connection failed:', err);
                             reject(err);
@@ -120,20 +136,22 @@ export class PrintService {
             if (!forcePopup && nav.bluetooth.getDevices) {
                 const devices = await nav.bluetooth.getDevices();
                 if (devices.length > 0) {
-                    const printer = devices.find((d: any) => 
-                        d.name?.toLowerCase().includes('printer') || 
-                        d.name?.toLowerCase().includes('mpt') ||
-                        d.name?.toLowerCase().includes('bt-') ||
-                        d.name?.toLowerCase().includes('rp') ||
-                        d.name?.toLowerCase().includes('thermal') ||
-                        d.name?.toLowerCase().includes('pos')
-                    ) || devices[0];
+                    const printer = preferredId 
+                        ? devices.find((d: any) => d.id === preferredId)
+                        : devices.find((d: any) => 
+                            d.name?.toLowerCase().includes('printer') || 
+                            d.name?.toLowerCase().includes('mpt') ||
+                            d.name?.toLowerCase().includes('bt-') ||
+                            d.name?.toLowerCase().includes('rp') ||
+                            d.name?.toLowerCase().includes('thermal') ||
+                            d.name?.toLowerCase().includes('pos')
+                        ) || devices[0];
 
                     if (printer) {
                         console.log('Attempting silent reconnect to:', printer.name);
                         this.bluetoothDevice = printer;
                         const ok = await this.setupGATT(printer);
-                        if (ok) return printer.name || 'Bluetooth Printer';
+                        if (ok) return { name: printer.name || 'Bluetooth Printer', deviceId: printer.id };
                     }
                 }
             }
@@ -162,6 +180,7 @@ export class PrintService {
             });
 
             const deviceName = this.bluetoothDevice.name || 'Unknown Device';
+            const deviceId = this.bluetoothDevice.id;
             console.log(`Selected device: ${deviceName}`);
 
             const ok = await this.setupGATT(this.bluetoothDevice);
@@ -173,7 +192,7 @@ export class PrintService {
                     `Coba gunakan tipe koneksi "Serial / Legacy Bluetooth" di pengaturan printer.`
                 );
             }
-            return deviceName;
+            return { name: deviceName, deviceId };
         } catch (error: any) {
             console.error('Bluetooth connection failed:', error);
             if (error.message?.includes('tidak mendukung')) throw error;
@@ -201,7 +220,7 @@ export class PrintService {
     /**
      * Connects to a Serial port (used for legacy Bluetooth SPP mapped as COM/TTY).
      */
-    public static async connectSerial(forcePopup = false): Promise<string | null> {
+    public static async connectSerial(forcePopup = false): Promise<{name: string, deviceId: string} | null> {
         const nav = navigator as any;
         if (!nav.serial) {
             throw new Error('Web Serial API tidak didukung di browser ini.');
@@ -213,7 +232,7 @@ export class PrintService {
                 // Reuse existing writer if stream is already open and not locked or we already own the lock
                 if (this.serialPort?.readable && this.serialWriter) {
                      console.log('[Serial] Reusing existing open port and writer.');
-                     return 'Serial Port Printer';
+                     return { name: 'Serial Port Printer', deviceId: 'serial-0' };
                 }
 
                 const ports = await nav.serial.getPorts();
@@ -245,7 +264,7 @@ export class PrintService {
                             this.serialWriter = this.serialPort.writable.getWriter();
                             console.log('[Serial] New writer acquired for existing port.');
                         }
-                        return 'Serial Port Printer';
+                        return { name: 'Serial Port Printer', deviceId: 'serial-0' };
                     }
                 }
             }
@@ -265,7 +284,7 @@ export class PrintService {
                 console.log('[Serial] New port opened and writer acquired.');
             }
             
-            return 'Serial Port Printer';
+            return { name: 'Serial Port Printer', deviceId: 'serial-0' };
         } catch (error: any) {
             console.error('[Serial] Connection failed:', error);
             if (error.name === 'NotFoundError') return null;
