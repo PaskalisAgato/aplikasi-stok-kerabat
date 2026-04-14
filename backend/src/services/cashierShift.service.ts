@@ -98,6 +98,21 @@ export class CashierShiftService {
             return acc;
         }, { sale: 0, expense: 0, refund: 0, adjustment: 0 });
 
+        const salesData = await db.select({
+            count: sql<number>`count(${schema.sales.id})`,
+            totalAmount: sql<string>`sum(${schema.sales.totalAmount})`,
+            nonCashAmount: sql<string>`sum(case when ${schema.sales.paymentMethod} != 'CASH' then ${schema.sales.totalAmount} else 0 end)`
+        })
+        .from(schema.sales)
+        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false)));
+
+        const itemsData = await db.select({
+            totalItems: sql<number>`sum(${schema.saleItems.quantity})`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false)));
+
         const summary = {
             salesCount: Number(salesData[0]?.count || 0),
             totalOmzet: parseFloat(salesData[0]?.totalAmount || '0'),
@@ -142,8 +157,19 @@ export class CashierShiftService {
         const summary = await this.getShiftSummary(shiftId);
         const expectedNonCash = summary.totalNonCashSales;
 
+        // Normalize denominations to array (could be Record<string, number> from older frontend or bug)
+        const denomsArray: { nominal: number; qty: number }[] = Array.isArray(denominations) 
+            ? denominations 
+            : (denominations && typeof denominations === 'object')
+                ? Object.entries(denominations).map(([nominal, qty]) => ({ nominal: parseInt(nominal), qty: Number(qty) }))
+                : [];
+
         // Calculate actual cash from physical denominations
-        const actualCash = (denominations || []).reduce((acc, d) => acc + (d.nominal * d.qty), 0);
+        const actualCash = denomsArray.reduce((acc, d) => {
+            // Nominal 1 = Coins/Direct Total input
+            if (d.nominal === 1) return acc + d.qty;
+            return acc + (d.nominal * d.qty);
+        }, 0);
         const discrepancy = actualCash - expectedCash;
 
         return await db.transaction(async (tx) => {
@@ -164,12 +190,12 @@ export class CashierShiftService {
             .returning();
 
             // Insert denominations tracing
-            if (denominations && denominations.length > 0) {
-                const denomsData = denominations.map(d => ({
+            if (denomsArray && denomsArray.length > 0) {
+                const denomsData = denomsArray.map(d => ({
                     shiftId,
                     nominal: d.nominal,
                     qty: d.qty,
-                    total: (d.nominal * d.qty).toString()
+                    total: d.nominal === 1 ? d.qty.toString() : (d.nominal * d.qty).toString()
                 }));
                 await tx.insert(schema.shiftCashDenominations).values(denomsData);
             }

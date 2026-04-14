@@ -328,7 +328,12 @@ export const apiClient = {
     getActiveCashierShift: () => apiFetch<any>('/cashier-shifts/active'),
     openCashierShift: (initialCash: number) => apiFetch<any>('/cashier-shifts/open', { method: 'POST', body: JSON.stringify({ initialCash }) }),
     getCashierShiftSummary: (id: number) => apiFetch<any>(`/cashier-shifts/summary/${id}`),
-    closeCashierShift: (id: number, data: { actualCash: number, actualNonCash: number, notes: string }) => 
+    closeCashierShift: (id: number, data: { 
+        denominations: Array<{ nominal: number, qty: number }>, 
+        actualNonCash: number, 
+        notes: string,
+        nonCashVerified: boolean
+    }) => 
         apiFetch<any>(`/cashier-shifts/close/${id}`, { method: 'POST', body: JSON.stringify(data) }),
     handoverCashierShift: (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) =>
         apiFetch<any>('/cashier-shifts/handover', { method: 'POST', body: JSON.stringify(data) }),

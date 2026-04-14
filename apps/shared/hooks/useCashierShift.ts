@@ -16,7 +16,12 @@ export function useCashierShift() {
     });
 
     const closeShiftMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { actualCash: number, actualNonCash: number, notes: string } }) => 
+        mutationFn: ({ id, data }: { id: number; data: { 
+            denominations: Array<{ nominal: number, qty: number }>, 
+            actualNonCash: number, 
+            notes: string,
+            nonCashVerified: boolean
+        } }) => 
             apiClient.closeCashierShift(id, data),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cashier-shifts'] }),
     });

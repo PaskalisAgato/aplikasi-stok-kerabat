@@ -674,7 +674,19 @@ function App() {
     };
 
     const handleCloseShift = async (data: { actualCash: number, actualNonCash: number, notes: string, denominations: Record<string, number>, nonCashVerified: boolean }) => {
-        await closeShift({ id: activeShift.id, data });
+        // Transform denominations record to array of objects for backend
+        const formattedDenominations = Object.entries(data.denominations).map(([nominal, qty]) => ({
+            nominal: parseInt(nominal),
+            qty
+        }));
+
+        await closeShift({ 
+            id: activeShift.id, 
+            data: {
+                ...data,
+                denominations: formattedDenominations
+            } as any
+        });
         setIsCloseShiftOpen(false);
         refreshActiveShift();
         showNotification('Shift berhasil ditutup! Ringkasan telah disimpan.', "success");
