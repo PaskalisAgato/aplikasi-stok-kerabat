@@ -183,6 +183,22 @@ export class PrintService {
     }
 
     /**
+     * Safely releases the serial writer lock.
+     */
+    private static async releaseSerial() {
+        if (this.serialWriter) {
+            try {
+                // If the writer is currently busy, this might fail, so we catch it
+                await this.serialWriter.close().catch(() => {});
+                this.serialWriter.releaseLock();
+            } catch (e) {
+                console.warn('[Serial] Failed to release lock:', e);
+            }
+            this.serialWriter = null;
+        }
+    }
+
+    /**
      * Connects to a Serial port (used for legacy Bluetooth SPP mapped as COM/TTY).
      */
     public static async connectSerial(forcePopup = false): Promise<string | null> {
@@ -194,33 +210,59 @@ export class PrintService {
         try {
             // 1. Try silent reconnect first
             if (!forcePopup) {
+                // Reuse existing writer if stream is already open and not locked or we already own the lock
+                if (this.serialPort?.readable && this.serialWriter) {
+                     console.log('[Serial] Reusing existing open port and writer.');
+                     return 'Serial Port Printer';
+                }
+
                 const ports = await nav.serial.getPorts();
                 if (ports.length > 0) {
                     console.log('[Serial] Found authorized ports, trying to reuse...');
-                    // Try to find a port that's already open or use the first one
-                    this.serialPort = ports[0];
+                    const port = ports[0];
+                    
+                    // If this is a DIFFERENT port than current, release current
+                    if (this.serialPort && this.serialPort !== port) {
+                        await this.releaseSerial();
+                        await this.serialPort.close().catch(() => {});
+                    }
+
+                    this.serialPort = port;
+                    
                     try {
-                        await this.serialPort.open({ baudRate: 9600 });
+                        if (this.serialPort.readable === null) {
+                            await this.serialPort.open({ baudRate: 9600 });
+                        }
                     } catch (openErr) {
-                        // Already open or failed to open
+                        console.log('[Serial] Port already open or failed to open, continuing...');
                     }
                     
                     if (this.serialPort.writable) {
-                        this.serialWriter = this.serialPort.writable.getWriter();
-                        console.log('[Serial] Silent reconnect success.');
+                        if (this.serialPort.writable.locked && this.serialWriter) {
+                            console.log('[Serial] Writable already locked by us, reusing writer.');
+                        } else {
+                            await this.releaseSerial(); // Clear any stale writers
+                            this.serialWriter = this.serialPort.writable.getWriter();
+                            console.log('[Serial] New writer acquired for existing port.');
+                        }
                         return 'Serial Port Printer';
                     }
                 }
             }
 
-            // 2. Fallback to popup
+            // 2. Fallback to popup (forced or no authorized ports)
+            console.log('[Serial] Requesting new port via popup...');
+            await this.releaseSerial();
+            if (this.serialPort) {
+                await this.serialPort.close().catch(() => {});
+            }
+            
             this.serialPort = await nav.serial.requestPort();
             await this.serialPort.open({ baudRate: 9600 }); 
             
-            const writable = this.serialPort.writable;
-            if (writable) {
-                this.serialWriter = writable.getWriter();
-                console.log('[Serial] Port opened and writer acquired.');
+            if (this.serialPort.writable) {
+                this.serialWriter = this.serialPort.writable.getWriter();
+                console.log('[Serial] New port opened and writer acquired.');
             }
             
             return 'Serial Port Printer';
@@ -314,8 +356,11 @@ export class PrintService {
             return true;
         } catch (error) {
             console.error('[Serial] Write failed:', error);
-            this.serialWriter = null;
-            this.serialPort = null;
+            await this.releaseSerial();
+            if (this.serialPort) {
+                await this.serialPort.close().catch(() => {});
+                this.serialPort = null;
+            }
             return false;
         }
     }
