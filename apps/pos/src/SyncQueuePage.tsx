@@ -27,6 +27,13 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
         }
     };
 
+    const handleClearAll = async () => {
+        if (confirm('YAKIN HAPUS SEMUA ANTREAN? Semua data transaksi yang belum terkirim ke server akan DIHAPUS PERMANEN dari perangkat ini.')) {
+            await syncEngine.clearAllActions();
+            await loadActions();
+        }
+    };
+
     const handleRetry = async () => {
         await syncEngine.forceSync();
         await loadActions();
@@ -37,7 +44,7 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
     return (
         <div className="p-2 md:p-4 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 px-2">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 px-2 gap-4">
                 <div className="flex items-center gap-4">
                     <div className="size-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
                         <span className="material-symbols-outlined text-amber-500 text-2xl animate-pulse">cloud_sync</span>
@@ -50,7 +57,16 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    {actions.length > 0 && (
+                        <button 
+                            onClick={handleClearAll}
+                            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 border border-red-500/20"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                            Hapus Semua
+                        </button>
+                    )}
                     <button 
                         onClick={handleRetry}
                         disabled={actions.length === 0}

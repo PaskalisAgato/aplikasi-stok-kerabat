@@ -341,6 +341,15 @@ class SyncEngine {
           this.notify(count);
       }
   }
+
+  /**
+   * Completely wipe the local sync queue (emergency)
+   */
+  public async clearAllActions(): Promise<void> {
+      await db.offlineActions.clear();
+      this.notify(0);
+      console.log('[SyncEngine] Local queue was COMPLETELY WIPED by user.');
+  }
 }
 
 export const syncEngine = new SyncEngine();
