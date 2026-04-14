@@ -1,6 +1,6 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq, and, sql, desc, sum, ne } from 'drizzle-orm';
+import { eq, and, sql, desc, sum, ne, or, isNull } from 'drizzle-orm';
 import { CashLedgerService } from './cashLedger.service.js';
 
 export class CashierShiftService {
@@ -63,42 +63,33 @@ export class CashierShiftService {
         }
 
         // 2. LIVE CALCULATION (From Cash Ledger Source of Truth)
-        const ledgerEntries = await db.select().from(schema.cashLedger).where(eq(schema.cashLedger.shiftId, shiftId));
+        // Join with sales AND expenses to verify if the referenced entity is deleted/voided
+        const ledgerEntriesWithRefs = await db.select({
+            ledger: schema.cashLedger,
+            saleDeleted: schema.sales.isDeleted,
+            saleVoided: schema.sales.isVoided,
+            expenseDeleted: schema.expenses.isDeleted
+        })
+        .from(schema.cashLedger)
+        .leftJoin(schema.sales, eq(schema.cashLedger.referenceId, schema.sales.id))
+        .leftJoin(schema.expenses, eq(schema.cashLedger.referenceId, schema.expenses.id))
+        .where(eq(schema.cashLedger.shiftId, shiftId));
         
-        const ledgerSummary = {
-            sale: 0,
-            expense: 0,
-            refund: 0,
-            adjustment: 0,
-            nonCash: 0 // We'll need to join or filter if we want non-cash from ledger, 
-                      // but typically ledger = cash. Let's stick to the user's "All movements in ledger" request.
-        };
+        const cashFlow = ledgerEntriesWithRefs.reduce((acc, row) => {
+            const entry = row.ledger;
+            
+            // SECURITY FILTER: If it's a sale entry and the sale was deleted, IGNORE IT
+            if (entry.type === 'sale' && row.saleDeleted) return acc;
+            
+            // If it's a voided sale, the original sale and refund should neutralize each other. 
+            // In Anti-Fraud view, we usually keep them, but if user wants "clean history", 
+            // we filter if both entries refer to a voided sale.
+            if (entry.type === 'sale' && row.saleVoided) return acc;
+            if (entry.type === 'refund' && row.saleVoided) return acc;
+            
+            // If it's an expense entry and the expense was reversed/deleted, IGNORE IT
+            if (entry.type === 'expense' && row.expenseDeleted) return acc;
 
-        // For non-cash tracking, we still need to look at sales if not explicitly in ledger as cash-only
-        const salesData = await db.select({
-            count: sql<number>`count(${schema.sales.id})`,
-            totalAmount: sql<string>`sum(cast(${schema.sales.totalAmount} as decimal))`,
-            cashAmount: sql<string>`sum(case when ${schema.sales.paymentMethod} = 'CASH' then cast(${schema.sales.totalAmount} as decimal) else 0 end)`,
-            nonCashAmount: sql<string>`sum(case when ${schema.sales.paymentMethod} != 'CASH' then cast(${schema.sales.totalAmount} as decimal) else 0 end)`,
-        })
-        .from(schema.sales)
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
-
-        const expensesData = await db.select({
-            total: sql<string>`sum(cast(${schema.expenses.amount} as decimal))`
-        })
-        .from(schema.expenses)
-        .where(and(eq(schema.expenses.shiftId, shiftId), eq(schema.expenses.isDeleted, false)));
-
-        const itemsData = await db.select({
-            totalItems: sql<number>`sum(${schema.saleItems.quantity})`
-        })
-        .from(schema.saleItems)
-        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
-
-        // Ledger Verification
-        const cashFlow = ledgerEntries.reduce((acc, entry) => {
             const val = parseFloat(entry.amount);
             if (entry.type === 'sale') acc.sale += val;
             if (entry.type === 'expense') acc.expense += val;
