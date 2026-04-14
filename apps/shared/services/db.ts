@@ -89,7 +89,7 @@ export interface PrinterConfig {
     port: number;
     width: 32 | 48;
     categories: string[]; 
-    connectionType: 'bridge' | 'bluetooth';
+    connectionType: 'bridge' | 'bluetooth' | 'serial';
     bluetoothDeviceName?: string;
     autoPrint?: boolean;
     openCashDrawer?: boolean;

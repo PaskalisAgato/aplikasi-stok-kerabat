@@ -9,6 +9,8 @@ export type PrintData = _PrTrData;
 export class PrintService {
     private static bluetoothDevice: any = null;
     private static bluetoothCharacteristic: any = null;
+    private static serialPort: any = null;
+    private static serialWriter: any = null;
     private static isPrinting = false;
     private static QUEUE_DELAY_MS = 500;
 
@@ -69,6 +71,11 @@ export class PrintService {
         return !!(nav.bluetooth || isNative);
     }
 
+    public static isSerialSupported(): boolean {
+        if (typeof window === 'undefined') return false;
+        return !!(navigator as any).serial;
+    }
+
     /**
      * Connects to a Bluetooth printer. Supports both Web Bluetooth and Native Android SPP.
      */
@@ -117,7 +124,9 @@ export class PrintService {
                         d.name?.toLowerCase().includes('printer') || 
                         d.name?.toLowerCase().includes('mpt') ||
                         d.name?.toLowerCase().includes('bt-') ||
-                        d.name?.toLowerCase().includes('rp')
+                        d.name?.toLowerCase().includes('rp') ||
+                        d.name?.toLowerCase().includes('thermal') ||
+                        d.name?.toLowerCase().includes('pos')
                     ) || devices[0];
 
                     if (printer) {
@@ -140,7 +149,8 @@ export class PrintService {
                     '0000ff00-0000-1000-8000-00805f9b34fb', // Generic vendor
                     '0000ffe0-0000-1000-8000-00805f9b34fb', // HM-10 / JDY modules
                     '0000ffe1-0000-1000-8000-00805f9b34fb', // HM-10 characteristic
-                    '00001101-0000-1000-8000-00805f9b34fb', // SPP (won't work on Web BT but listed)
+                    '0000af30-0000-1000-8000-00805f9b34fb', // Generic Chinese thermal
+                    '00001101-0000-1000-8000-00805f9b34fb', // SPP (Classic) fallback
                     '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
                     '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
                     '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Microchip BLE
@@ -160,24 +170,45 @@ export class PrintService {
                 throw new Error(
                     `Printer "${deviceName}" tidak mendukung Bluetooth Low Energy (BLE). ` +
                     `Printer ini kemungkinan hanya mendukung Bluetooth Classic (SPP). ` +
-                    `Solusi: Gunakan tipe koneksi "Local Bridge (IP)" di pengaturan printer, ` +
-                    `lalu hubungkan printer via Bluetooth sistem (Windows/Linux) dan jalankan Print Agent.`
+                    `Coba gunakan tipe koneksi "Serial / Legacy Bluetooth" di pengaturan printer.`
                 );
             }
             return deviceName;
         } catch (error: any) {
             console.error('Bluetooth connection failed:', error);
-            // Re-throw with user-friendly message if it's our custom error
-            if (error.message?.includes('tidak mendukung')) {
-                throw error;
-            }
-            // User cancelled the picker
-            if (error.name === 'NotFoundError') {
-                return null;
-            }
+            if (error.message?.includes('tidak mendukung')) throw error;
+            if (error.name === 'NotFoundError') return null;
             return null;
         }
     }
+
+    /**
+     * Connects to a Serial port (used for legacy Bluetooth SPP mapped as COM/TTY).
+     */
+    public static async connectSerial(): Promise<string | null> {
+        const nav = navigator as any;
+        if (!nav.serial) {
+            throw new Error('Web Serial API tidak didukung di browser ini.');
+        }
+
+        try {
+            this.serialPort = await nav.serial.requestPort();
+            await this.serialPort.open({ baudRate: 9600 }); // Common default for thermal printers
+            
+            const writable = this.serialPort.writable;
+            if (writable) {
+                this.serialWriter = writable.getWriter();
+                console.log('[Serial] Port opened and writer acquired.');
+            }
+            
+            return 'Serial Port Printer';
+        } catch (error: any) {
+            console.error('[Serial] Connection failed:', error);
+            if (error.name === 'NotFoundError') return null;
+            throw error;
+        }
+    }
+
 
     private static async setupGATT(device: any): Promise<boolean> {
         try {
@@ -249,6 +280,24 @@ export class PrintService {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    private static async sendToSerial(buffer: Uint8Array): Promise<boolean> {
+        if (!this.serialWriter) {
+            const name = await this.connectSerial();
+            if (!name) return false;
+        }
+
+        try {
+            await this.serialWriter.write(buffer);
+            console.log('[Serial] Data written successfully.');
+            return true;
+        } catch (error) {
+            console.error('[Serial] Write failed:', error);
+            this.serialWriter = null;
+            this.serialPort = null;
+            return false;
+        }
+    }
+
     private static async sendToBluetooth(buffer: Uint8Array): Promise<boolean> {
         const btSerial = (window as any).bluetoothSerial;
 
@@ -306,6 +355,9 @@ export class PrintService {
             await this.connectBluetooth();
             return this.sendToBluetooth(buffer);
         }
+        if (config.connectionType === 'serial') {
+            return this.sendToSerial(buffer);
+        }
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
@@ -350,6 +402,9 @@ export class PrintService {
         if (config.connectionType === 'bluetooth') {
             return this.sendToBluetooth(buffer);
         }
+        if (config.connectionType === 'serial') {
+            return this.sendToSerial(buffer);
+        }
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
@@ -391,6 +446,12 @@ export class PrintService {
                                 detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
                             }));
                         }
+                    });
+                } else if (printer.connectionType === 'serial') {
+                    console.log(`[PrintService] Executing Serial print immediately for ${printer.name}`);
+                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
+                    this.sendToSerial(buffer).catch(err => {
+                        console.error('Immediate Serial Print failed', err);
                     });
                 } else if (printer.connectionType === 'bridge') {
                     // Optimized: Encode once, set status to PENDING
@@ -555,6 +616,8 @@ Terima Kasih!
             
             if (config.connectionType === 'bluetooth') {
                 success = await this.sendToBluetooth(buffer);
+            } else if (config.connectionType === 'serial') {
+                success = await this.sendToSerial(buffer);
             } else {
                 success = await this.sendToBridge(buffer, config.ip || '127.0.0.1', data, job.data.isManual);
             }

@@ -60,10 +60,15 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
     const testPrint = async (printer: PrinterConfig) => {
         const success = await PrintService.testPrint(printer);
         if (success) {
-            const target = printer.connectionType === 'bluetooth' ? (printer.bluetoothDeviceName || 'Bluetooth') : printer.ip;
+            const target = printer.connectionType === 'bluetooth' ? (printer.bluetoothDeviceName || 'Bluetooth') : 
+                           printer.connectionType === 'serial' ? 'Serial Port' : printer.ip;
             alert('Test print berhasil dikirim ke ' + target);
         } else {
-            alert('Test print gagal. Pastikan' + (printer.connectionType === 'bluetooth' ? ' Bluetooth menyala.' : ' Bridge dan Printer menyala.'));
+            let msg = 'Test print gagal. ';
+            if (printer.connectionType === 'bluetooth') msg += 'Pastikan Bluetooth menyala.';
+            else if (printer.connectionType === 'serial') msg += 'Pastikan kabel/bluetooth terhubung dan terdeteksi sebagai COM port.';
+            else msg += 'Pastikan Bridge dan Printer menyala.';
+            alert(msg);
         }
     };
 
@@ -104,11 +109,12 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Tipe Koneksi</label>
                                 <select 
                                     value={printer.connectionType || 'bridge'}
-                                    onChange={(e) => updatePrinter(printer.id, { connectionType: e.target.value as 'bridge' | 'bluetooth' })}
+                                    onChange={(e) => updatePrinter(printer.id, { connectionType: e.target.value as any })}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
                                 >
                                     <option value="bridge">Local Bridge (IP)</option>
-                                    <option value="bluetooth">Bluetooth (Direct)</option>
+                                    <option value="bluetooth">Bluetooth (Direct BLE)</option>
+                                    <option value="serial">Serial / Legacy Bluetooth (SPP)</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
@@ -126,7 +132,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
 
                         {printer.connectionType === 'bluetooth' ? (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paired Bluetooth Device</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paired Bluetooth Device (BLE Only)</label>
                                 <div className="flex gap-2">
                                     <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)]">
                                         {printer.bluetoothDeviceName || 'Not Paired'}
@@ -152,6 +158,37 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                     ) : (
                                         <div className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase flex items-center">
                                             Unsupported
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : printer.connectionType === 'serial' ? (
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Serial / COM Port (Legacy BT)</label>
+                                <div className="flex gap-2">
+                                    <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)] flex flex-col gap-1">
+                                        <p className="font-bold">{printer.bluetoothDeviceName || 'Port Belum Dipilih'}</p>
+                                        <p className="text-[9px] opacity-60">Pastikan printer sudah di-pairing dengan OS Windows/Linux sebagai COM port.</p>
+                                    </div>
+                                    {PrintService.isSerialSupported() ? (
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const name = await PrintService.connectSerial();
+                                                    if (name) {
+                                                        updatePrinter(printer.id, { bluetoothDeviceName: name });
+                                                    }
+                                                } catch (err: any) {
+                                                    alert(err.message || 'Gagal menyambungkan Serial port.');
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-slate-950 transition-all font-black"
+                                        >
+                                            Select Port
+                                        </button>
+                                    ) : (
+                                        <div className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase flex items-center">
+                                            Not Supported
                                         </div>
                                     )}
                                 </div>
