@@ -265,10 +265,11 @@ class SyncEngine {
           await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
       }
 
-      // Phase Hardening: Immediately remove successful actions to prevent double-processing risk
-      await db.offlineActions.delete(action.id);
-      
-      console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}] - DELETED FROM QUEUE`);
+      // 8. On success, remove from queue
+      if (action.sequence_number !== undefined) {
+        await db.offlineActions.delete(action.sequence_number);
+        console.log(`[SyncEngine] Successfully synced action ${action.type} [Seq: ${action.sequence_number}] - DELETED FROM QUEUE`);
+      }
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
@@ -284,7 +285,7 @@ class SyncEngine {
       // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
       // 404 treated as possibly transient (deploy lag) but subject to max retries.
       if (error.status >= 400 && error.status < 500 && error.status !== 404) {
-         await db.offlineActions.update(action.id, { 
+         await db.offlineActions.where('id').equals(action.id).modify({ 
             sync_status: 'REJECTED', // Mark as failed definitively
             failure_reason: error.message || 'Server rejected payload logically',
             retry_count: action.retry_count + 1
@@ -296,11 +297,14 @@ class SyncEngine {
       const nextRetryCount = action.retry_count + 1;
       const nextStatus = nextRetryCount >= this.MAX_RETRIES ? 'FAILED_PERMANENT' : 'PENDING';
 
-      await db.offlineActions.update(action.id, { 
-        retry_count: nextRetryCount,
-        sync_status: nextStatus as any,
-        failure_reason: error.message || 'Unknown error'
-      });
+      if (action.sequence_number !== undefined) {
+          await db.offlineActions.update(action.sequence_number, {
+            retry_count: nextRetryCount,
+            sync_status: nextStatus as any,
+            failure_reason: error.message || 'Unknown error',
+            last_attempt_at: new Date().toISOString()
+          });
+      }
       
       // If it's a network retry (PENDING), return false to strictly halt the queue 
       // If FAILED_PERMANENT, return true to skip it and keep processing others
@@ -330,7 +334,7 @@ class SyncEngine {
           .toArray();
       
       for (const action of pending) {
-          await db.offlineActions.update(action.id, {
+          await db.offlineActions.where('id').equals(action.id).modify({
               sync_status: 'REJECTED' as any,
               failure_reason: 'Manually cleared by user (session expired or stuck)'
           });
@@ -355,24 +359,18 @@ class SyncEngine {
    * Cancel / Delete a specific action from the local queue
    */
   public async cancelAction(id: string): Promise<void> {
-      const action = await db.offlineActions.get(id);
-      if (action) {
-          await db.offlineActions.delete(id);
-          console.log(`[SyncEngine] Action ${id} was manually CANCELLED/DELETED from queue.`);
-          
-          // Refresh count
-          const count = await db.offlineActions.where('sync_status').equals('PENDING').count();
-          this.notify(count);
-      }
+    await db.offlineActions.where('id').equals(id).delete();
+    const count = await db.offlineActions.where('sync_status').equals('PENDING').count();
+    this.notify(count);
   }
 
   /**
    * Manually reset backoff for a specific action to retry immediately
    */
   public async retryAction(id: string): Promise<void> {
-      const action = await db.offlineActions.get(id);
-      if (action) {
-          await db.offlineActions.update(id, {
+      const action = await db.offlineActions.where('id').equals(id).first();
+      if (action && action.sequence_number !== undefined) {
+          await db.offlineActions.update(action.sequence_number, {
               retry_count: 0,
               last_attempt_at: undefined,
               sync_status: 'PENDING'
