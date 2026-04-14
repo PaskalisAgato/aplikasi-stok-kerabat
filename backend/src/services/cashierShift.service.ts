@@ -104,14 +104,14 @@ export class CashierShiftService {
             nonCashAmount: sql<string>`sum(case when ${schema.sales.paymentMethod} != 'CASH' then ${schema.sales.totalAmount} else 0 end)`
         })
         .from(schema.sales)
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false)));
+        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
 
         const itemsData = await db.select({
             totalItems: sql<number>`sum(${schema.saleItems.quantity})`
         })
         .from(schema.saleItems)
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
-        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false)));
+        .where(and(eq(schema.sales.shiftId, shiftId), eq(schema.sales.isVoided, false), eq(schema.sales.isDeleted, false)));
 
         const summary = {
             salesCount: Number(salesData[0]?.count || 0),
@@ -130,7 +130,12 @@ export class CashierShiftService {
                 time: schema.sales.createdAt
             })
             .from(schema.sales)
-            .where(and(eq(schema.sales.shiftId, shiftId), ne(schema.sales.paymentMethod, 'CASH'), eq(schema.sales.isVoided, false)))
+            .where(and(
+                eq(schema.sales.shiftId, shiftId), 
+                ne(schema.sales.paymentMethod, 'CASH'), 
+                eq(schema.sales.isVoided, false),
+                eq(schema.sales.isDeleted, false)
+            ))
         };
 
         return summary;
