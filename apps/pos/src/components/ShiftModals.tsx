@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '@shared/components/NotificationProvider';
 
 interface OpenShiftModalProps {
     isOpen: boolean;
@@ -8,6 +9,7 @@ interface OpenShiftModalProps {
 export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }) => {
     const [initialCash, setInitialCash] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { showNotification } = useNotification();
 
     if (!isOpen) return null;
 
@@ -17,7 +19,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
         try {
             await onOpen(initialCash);
         } catch (error: any) {
-            alert(error.message);
+            showNotification(error.message, 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -92,6 +94,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
     const [nonCashVerified, setNonCashVerified] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState(1);
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         if (summary) {
@@ -122,7 +125,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
             setNonCashVerified(false);
             setNotes('');
         } catch (error: any) {
-            alert(error.message);
+            showNotification(error.message, 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -313,6 +316,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
     const [nextCashierName, setNextCashierName] = useState('');
     const [adminPin, setAdminPin] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { showNotification } = useNotification();
 
     if (!isOpen || !shift) return null;
 
@@ -330,7 +334,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
             setNextCashierName('');
             setAdminPin('');
         } catch (error: any) {
-            alert(error.message);
+            showNotification(error.message, 'error');
         } finally {
             setIsSubmitting(false);
         }

@@ -259,6 +259,7 @@ class SyncEngine {
       else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';
       else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
       else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; 
+      else if (action.type === 'SPLIT_BILL') path = '/transactions/split';
 
       if (useDelete) {
           await apiClient.deleteWithIdempotency(path, action.idempotency_key);

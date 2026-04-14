@@ -5,11 +5,11 @@ import Layout from '@shared/Layout';
 import PrintQueueManager from './PrintQueueManager';
 import SyncQueuePage from './SyncQueuePage';
 import { PrintService, PrintData } from '@shared/services/PrintService';
+import { useNotification } from '@shared/components/NotificationProvider';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
-import { useNotification } from './components/NotificationProvider';
 import { PerformanceSettings } from '@shared/services/performance';
 import { useCashierShift } from '@shared/hooks/useCashierShift';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
@@ -106,8 +106,29 @@ function App() {
     // Auth gate: Only show shift modal when user is logged in
     const isAuthenticated = !!(localStorage.getItem('kerabat_auth_token'));
     const { showNotification } = useNotification();
+    
+    // 1. Navigation State based on URL Hash for History Support
+    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue'>(() => {
+        const hash = window.location.hash.replace('#', '') as any;
+        return ['pos', 'history', 'printer-settings', 'print-queue', 'sync-queue'].includes(hash) ? hash : 'pos';
+    });
 
-    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue'>('pos');
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.replace('#', '') as any;
+            if (['pos', 'history', 'printer-settings', 'print-queue', 'sync-queue'].includes(hash)) {
+                setView(hash);
+            } else {
+                setView('pos');
+            }
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    const navigateTo = (newView: typeof view) => {
+        window.location.hash = newView;
+    };
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [items, setItems] = useState<Recipe[]>([]);
@@ -212,7 +233,9 @@ function App() {
         });
 
         const handleOpenPrinterSettings = () => setView('printer-settings');
-        const handleOpenSyncQueue = () => setView('sync-queue');
+        const handleOpenSyncQueue = () => {
+            navigateTo('sync-queue');
+        };
         window.addEventListener('open-printer-settings', handleOpenPrinterSettings);
         window.addEventListener('open-sync-queue', handleOpenSyncQueue);
 
@@ -584,63 +607,61 @@ function App() {
 
         setIsCheckingOut(true);
         try {
-            console.log('Sending splitBill request...');
-            const result = await apiClient.splitBill({
+            console.log('Enqueuing splitBill request...');
+            const payload = {
                 sourceId: splitSourceBill.id,
                 targetInfo: splitTargetInfo,
                 items: itemsToMove
-            });
-            console.log('splitBill request result:', result);
+            };
 
-            if (result.success) {
-                setIsSplitModalOpen(false);
-                
-                console.log('Refreshing open bills list...');
-                const response = await apiClient.get('/transactions/open-bills') as any;
-                if (response && response.data) {
-                    console.log('New open bills list:', response.data);
-                    setOpenBills(response.data);
-                }
+            if (navigator.onLine) {
+                // If online, we try to do it normally to support immediate redirection for "pay" mode
+                try {
+                    const result = await apiClient.splitBill(payload);
+                    if (result.success) {
+                        setIsSplitModalOpen(false);
+                        
+                        // Local Refresh
+                        apiClient.get('/transactions/open-bills').then((res: any) => {
+                            if (res && res.data) setOpenBills(res.data);
+                        }).catch(() => {});
 
-                if (splitMode === 'pay') {
-                    console.log('Processing pay mode split...');
-                    const newBillId = result.data.targetId;
-                    setCurrentBillId(newBillId);
-                    const newBillRes = await apiClient.get(`/transactions/${newBillId}`) as any;
-                    if (newBillRes && newBillRes.data) {
-                        const salesData: Record<number, number> = {};
-                        newBillRes.data.items.forEach((it: any) => {
-                            salesData[it.recipeId] = parseInt(it.quantity);
-                        });
-                        setSales(salesData);
-                        setCustomerInfo(newBillRes.data.customerInfo);
-                        showNotification('Item berhasil dipisah. Silakan klik Checkout.', "success");
-                    }
-                } else {
-                    console.log('Processing table mode split...');
-                    showNotification('Bill berhasil dipisah!', "success");
-                    if (currentBillId === splitSourceBill.id) {
-                        console.log('Reloading current bill as it was the source...');
-                        const reloadRes = await apiClient.get(`/transactions/${splitSourceBill.id}`) as any;
-                        if (reloadRes && reloadRes.data) {
-                            const salesData: Record<number, number> = {};
-                            reloadRes.data.items.forEach((it: any) => {
-                                salesData[it.recipeId] = parseInt(it.quantity);
-                            });
-                            setSales(salesData);
+                        if (splitMode === 'pay') {
+                            const newBillId = result.data.targetId;
+                            setCurrentBillId(newBillId);
+                            const newBillRes = await apiClient.get(`/transactions/${newBillId}`) as any;
+                            if (newBillRes && newBillRes.data) {
+                                const salesData: Record<number, number> = {};
+                                newBillRes.data.items.forEach((it: any) => {
+                                    salesData[it.recipeId] = parseInt(it.quantity);
+                                });
+                                setSales(salesData);
+                                setCustomerInfo(newBillRes.data.customerInfo);
+                                showNotification('Item berhasil dipisah. Silakan klik Checkout.', "success");
+                            }
+                        } else {
+                            showNotification('Bill berhasil dipisah!', "success");
                         }
+                        return;
                     }
+                } catch (err) {
+                    console.log('Direct split failed, falling back to queue...', err);
                 }
-            } else {
-                console.error('Split failed:', result.message);
-                showNotification('Gagal memisah bill (Server): ' + (result.message || 'Unknown error'), "error");
             }
+
+            // QUEUE PATH: If offline or direct failed
+            await syncEngine.enqueue('SPLIT_BILL', payload);
+            setIsSplitModalOpen(false);
+            showNotification('Permintaan pisah bill disimpan ke antrean.', "info");
+            
+            // Optimistically update the UI by removing the bill from list if it was a total move?
+            // (Hard to do perfectly without knowing server state, so we just inform the user)
+            
         } catch (error: any) {
             console.error('Split exception:', error);
-            showNotification('Gagal memisah bill: ' + error.message, "error");
+            showNotification(`Gagal memisah bill: ${error.message}`, "error");
         } finally {
             setIsCheckingOut(false);
-            console.log('--- performSplit finished ---');
         }
     };
 
@@ -832,14 +853,14 @@ function App() {
 
             <div className="flex bg-white/5 p-1 sm:p-1.5 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
                 <button 
-                    onClick={() => setView('pos')}
+                    onClick={() => navigateTo('pos')}
                     className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
                     <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
                     <span className="hidden min-[380px]:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
                 </button>
                 <button 
-                    onClick={() => setView('history')}
+                    onClick={() => navigateTo('history')}
                     className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                 >
                     <span className="material-symbols-outlined text-[12px] sm:text-[14px]">history</span>
@@ -848,7 +869,7 @@ function App() {
             </div>
 
             <button 
-                onClick={() => setView('print-queue')}
+                onClick={() => navigateTo('print-queue')}
                 className={`relative size-8 sm:size-10 glass rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all group border ${view === 'print-queue' ? 'border-primary/40 bg-primary/10' : 'border-[var(--border-dim)]'}`}
                 title="Antrean Cetak"
             >
@@ -911,7 +932,6 @@ function App() {
             onDrawerClose={() => setDrawerOpen(false)}
         >
             <div className="space-y-8">
-                {view === 'sync-queue' && <SyncQueuePage onBack={() => setView('pos')} />}
                 {view === 'pos' && (
                     <>
                         {/* SECTION: OPEN BILLS */}
@@ -1050,24 +1070,28 @@ function App() {
             )}
 
                 {view === 'history' && (
-                    <TransactionHistory onBack={() => setView('pos')} />
+                    <TransactionHistory onBack={() => navigateTo('pos')} />
                 )}
 
                 {view === 'printer-settings' && (
                     <PrinterSettings 
                         isOpen={true} 
-                        onClose={() => setView('pos')} 
+                        onClose={() => navigateTo('pos')} 
                         isFullPage={true} 
                     />
                 )}
 
                 {view === 'print-queue' && (
                     <PrintQueueManager onBack={() => {
-                        setView('pos');
+                        navigateTo('pos');
                         PrintService.getPendingJobs().then(jobs => {
                             setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
                         });
                     }} />
+                )}
+
+                {view === 'sync-queue' && (
+                    <SyncQueuePage onBack={() => navigateTo('pos')} />
                 )}
             </div>
 

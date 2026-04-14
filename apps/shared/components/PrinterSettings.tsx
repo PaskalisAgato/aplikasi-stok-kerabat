@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PrintService, PrinterConfig } from '@shared/services/PrintService';
+import { useNotification } from './NotificationProvider';
 
 interface PrinterSettingsProps {
     isOpen: boolean;
@@ -10,6 +11,7 @@ interface PrinterSettingsProps {
 const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFullPage = false }) => {
     const [config, setConfig] = useState<PrinterConfig[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -25,10 +27,10 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
             await PrintService.saveSettings(config);
             if (!isFullPage) onClose();
             else {
-                alert('Pengaturan berhasil disimpan');
+                showNotification('Pengaturan berhasil disimpan', 'success');
             }
         } catch (error) {
-            alert('Gagal menyimpan pengaturan');
+            showNotification('Gagal menyimpan pengaturan', 'error');
         } finally {
             setIsSaving(false);
         }

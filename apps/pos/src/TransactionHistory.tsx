@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import { useSession } from '@shared/authClient';
-import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
-import { useNotification } from './components/NotificationProvider';
+import { useNotification } from '@shared/components/NotificationProvider';
 
 export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const { data: session } = useSession();
