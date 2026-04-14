@@ -4,7 +4,7 @@ import App from './App.tsx'
 import './index.css'
 import { QueryProvider } from '@shared/QueryProvider'
 
-import { NotificationProvider } from './components/NotificationProvider'
+import { NotificationProvider } from '@shared/components/NotificationProvider'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
