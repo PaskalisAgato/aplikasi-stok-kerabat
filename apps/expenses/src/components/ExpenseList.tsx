@@ -11,6 +11,7 @@ interface Expense {
     amount: string;
     receiptUrl?: string;
     hasReceipt?: boolean;
+    fundSource?: 'CASHIER' | 'OWNER';
 }
 
 interface ExpenseListProps {
@@ -123,6 +124,12 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                     <div className="flex-1 min-w-0 space-y-1.5">
                                         <div className="flex items-center gap-2">
                                             <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{expense.category}</span>
+                                            {expense.fundSource === 'OWNER' && (
+                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Uang Owner</span>
+                                            )}
+                                            {expense.fundSource === 'CASHIER' && (
+                                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Uang Kasir</span>
+                                            )}
                                             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
                                         </div>
                                         <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase text-auto-fit">{expense.title}</h4>

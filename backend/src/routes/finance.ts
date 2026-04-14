@@ -27,7 +27,8 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             createdAt: schema.expenses.createdAt,
             receiptUrl: schema.expenses.receiptUrl, // Added
             hasReceipt: sql`CASE WHEN ${schema.expenses.receiptUrl} IS NOT NULL THEN true ELSE false END`,
-            externalReceiptUrl: schema.expenses.externalReceiptUrl
+            externalReceiptUrl: schema.expenses.externalReceiptUrl,
+            fundSource: schema.expenses.fundSource
         })
         .from(schema.expenses)
         .where(eq(schema.expenses.isDeleted, false))
@@ -204,6 +205,7 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
             receiptUrl: schema.expenses.receiptUrl,
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
             expenseDate: schema.expenses.expenseDate,
+            fundSource: schema.expenses.fundSource,
             userId: schema.expenses.userId,
             createdAt: schema.expenses.createdAt
         }).from(schema.expenses).where(
@@ -249,7 +251,7 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
         const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
         if (cached) return res.status(cached.statusCode).json(cached.body);
 
-        const { title, vendor, category, amount, date, receiptUrl } = req.body;
+        const { title, vendor, category, amount, date, receiptUrl, fundSource = 'CASHIER' } = req.body;
         
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
             return res.status(400).json({ success: false, message: 'Data pengeluaran tidak lengkap atau nominal tidak valid' });
@@ -279,20 +281,25 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate,
             userId: userId || null,
-            shiftId: activeShift.id
+            shiftId: activeShift.id,
+            fundSource: fundSource
         }).returning({
             id: schema.expenses.id,
             amount: schema.expenses.amount,
-            title: schema.expenses.title
+            title: schema.expenses.title,
+            fundSource: schema.expenses.fundSource
         });
 
-        await CashLedgerService.addEntry({
-            shiftId: activeShift.id,
-            type: 'expense',
-            amount: amount,
-            referenceId: newExpense.id,
-            description: `Pengeluaran: ${newExpense.title}`
-        });
+        // ONLY add to Cash Ledger if it uses Cashier's money (drawer)
+        if (fundSource === 'CASHIER') {
+            await CashLedgerService.addEntry({
+                shiftId: activeShift.id,
+                type: 'expense',
+                amount: amount,
+                referenceId: newExpense.id,
+                description: `Pengeluaran (KASIR): ${newExpense.title}`
+            });
+        }
 
         const responseBody = { success: true, data: newExpense };
 

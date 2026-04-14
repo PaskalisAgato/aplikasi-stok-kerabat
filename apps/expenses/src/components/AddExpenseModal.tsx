@@ -24,6 +24,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [fundSource, setFundSource] = useState<'CASHIER' | 'OWNER'>('CASHIER');
 
     const fetchCategories = async () => {
         try {
@@ -57,6 +58,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             console.log('[ExpenseForm] Loading initial data, receipt:', existingReceipt);
             setReceipt(existingReceipt);
             setExpenseDate(new Date(initialData.expenseDate || initialData.date).toISOString().split('T')[0]);
+            setFundSource(initialData.fundSource || 'CASHIER');
         } else if (isOpen && !initialData) {
             // Reset for new expense
             setName('');
@@ -65,6 +67,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             if (categories.length > 0) setSelectedCategory(categories[0].name);
             setReceipt(null);
             setExpenseDate(new Date().toISOString().split('T')[0]);
+            setFundSource('CASHIER');
         }
     }, [initialData, isOpen, categories]);
 
@@ -130,7 +133,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 category: selectedCategory || 'Lainnya',
                 amount: Number(amount),
                 receiptUrl: receipt, // Pass Base64 string directly
-                date: expenseDate
+                date: expenseDate,
+                fundSource: fundSource
             };
 
             console.log('[ExpenseForm] Final Payload:', expensePayload);
@@ -286,6 +290,42 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 onChange={e => setExpenseDate(e.target.value)}
                                 className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  font-medium"
                             />
+                        </div>
+    
+                        {/* Fund Source Selection */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Sumber Dana</label>
+                            <div className="flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setFundSource('CASHIER')}
+                                    className={`flex-1 h-14 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                                        fundSource === 'CASHIER' 
+                                        ? 'bg-primary/20 border-primary text-primary font-bold shadow-sm' 
+                                        : 'bg-primary/5 border-primary/20 text-slate-500 hover:bg-primary/10'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined">payments</span>
+                                    <span>Uang Kasir</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFundSource('OWNER')}
+                                    className={`flex-1 h-14 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                                        fundSource === 'OWNER' 
+                                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 font-bold shadow-sm' 
+                                        : 'bg-primary/5 border-primary/20 text-slate-500 hover:bg-primary/10'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined">person</span>
+                                    <span>Uang Owner</span>
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-500 italic mt-1">
+                                {fundSource === 'CASHIER' 
+                                    ? '* Mengurangi saldo laci kasir saat closing.' 
+                                    : '* Tidak mengurangi saldo laci kasir (pribadi owner).'}
+                            </p>
                         </div>
 
                         {/* Categories — chip-based */}

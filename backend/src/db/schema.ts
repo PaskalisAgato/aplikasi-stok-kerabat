@@ -228,6 +228,7 @@ export const expenses = pgTable('expenses', {
     externalReceiptUrl: text('external_receipt_url'),
     expenseDate: timestamp('expense_date').defaultNow().notNull(),
     isDeleted: boolean('is_deleted').default(false).notNull(),
+    fundSource: text('fund_source').default('CASHIER').notNull(), // 'CASHIER' or 'OWNER'
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     createdIdx: index('expenses_created_at_idx').on(t.createdAt),
