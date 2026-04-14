@@ -526,18 +526,29 @@ function App() {
         if (!confirm(`Hapus/Batalkan Bill untuk "${bill.customerInfo}"? Stok yang sudah dipotong tidak akan otomatis kembali.`)) return;
         
         try {
-            await apiClient.deleteTransaction(bill.id);
-            alert('Bill berhasil dibatalkan');
-            // Refresh
-            const response = await apiClient.get('/transactions/open-bills') as any;
-            if (response && response.data) setOpenBills(response.data);
+            // Enterprise Hardening: Use Sync Queue for deletion
+            await db.offlineActions.add({
+                id: `del-${bill.id}-${Date.now()}`,
+                idempotency_key: `req_del_${bill.id}_${Date.now()}`,
+                type: 'DELETE_TRANSACTION',
+                payload: { id: bill.id },
+                created_at: new Date().toISOString(),
+                sync_status: 'PENDING',
+                retry_count: 0
+            });
+
+            syncEngine.forceSync().catch(console.error);
+            alert('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.');
+
+            // Optimistic Update: Remove from local list or refresh
+            setOpenBills(prev => prev.filter(b => b.id !== bill.id));
             if (currentBillId === bill.id) {
                 setCurrentBillId(null);
                 setCustomerInfo('');
                 setSales({});
             }
-        } catch (error) {
-            alert('Gagal menghapus bill');
+        } catch (error: any) {
+            alert(`Gagal menghapus: ${error.message}`);
         }
     };
 

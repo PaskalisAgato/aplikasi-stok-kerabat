@@ -222,14 +222,24 @@ class SyncEngine {
       await db.offlineActions.update(action.id, { last_attempt_at: new Date().toISOString() });
 
       let path = '';
-      if (action.type === 'CHECKOUT') path = '/transactions/checkout'; // Explicit path to avoid root-router ambiguity 404s
+      let useDelete = false;
+
+      if (action.type === 'CHECKOUT') path = '/transactions/checkout';
       else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; 
+      else if (action.type === 'DELETE_TRANSACTION') {
+          path = `/transactions/${action.payload.id}`;
+          useDelete = true;
+      }
       else if (action.type === 'EXPENSE') path = '/finance/expenses';
       else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';
       else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
-      else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; // Pivot Phase: Send to backend queue
+      else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; 
 
-      await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+      if (useDelete) {
+          await apiClient.deleteWithIdempotency(path, action.idempotency_key);
+      } else {
+          await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+      }
 
       // Phase Hardening: Immediately remove successful actions to prevent double-processing risk
       await db.offlineActions.delete(action.id);

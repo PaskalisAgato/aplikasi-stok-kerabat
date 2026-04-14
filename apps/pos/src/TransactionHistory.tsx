@@ -74,10 +74,23 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     const handleDelete = async (id: number) => {
         try {
-            await apiClient.deleteTransaction(id);
-            alert('Transaksi berhasil dihapus.');
+            await db.offlineActions.add({
+                id: `del-${id}-${Date.now()}`,
+                idempotency_key: `req_del_${id}_${Date.now()}`,
+                type: 'DELETE_TRANSACTION',
+                payload: { id },
+                created_at: new Date().toISOString(),
+                sync_status: 'PENDING',
+                retry_count: 0
+            });
+
+            syncEngine.forceSync().catch(console.error);
+
+            alert('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.');
             setDeleteConfirmId(null);
-            loadData();
+            
+            // Optimistic Update
+            setTransactions(prev => prev.filter(tx => tx.id !== id));
         } catch (error: any) {
             alert(`Gagal menghapus: ${error.message}`);
         }
