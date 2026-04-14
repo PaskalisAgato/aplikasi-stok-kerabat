@@ -74,17 +74,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     const handleDelete = async (id: number) => {
         try {
-            await db.offlineActions.add({
-                id: `del-${id}-${Date.now()}`,
-                idempotency_key: `req_del_${id}_${Date.now()}`,
-                type: 'DELETE_TRANSACTION',
-                payload: { id },
-                created_at: new Date().toISOString(),
-                sync_status: 'PENDING',
-                retry_count: 0
-            });
-
-            syncEngine.forceSync().catch(console.error);
+            await syncEngine.enqueue('DELETE_TRANSACTION', { id });
 
             alert('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.');
             setDeleteConfirmId(null);
@@ -102,18 +92,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             return;
         }
         try {
-            await db.offlineActions.add({
-                id: `void-${id}-${Date.now()}`,
-                idempotency_key: `req_void_${id}_${Date.now()}`,
-                type: 'VOID',
-                payload: { id, reason: voidReason }, // The ID is in the payload so SyncEngine can use it in the URL
-                created_at: new Date().toISOString(),
-                sync_status: 'PENDING',
-                retry_count: 0,
-                depends_on_action_id: `req_checkout_${id}` // Prevents QUEUE DESYNC attacks
-            });
-
-            syncEngine.forceSync().catch(console.error);
+            await syncEngine.enqueue('VOID', { id, reason: voidReason });
 
             alert('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.');
             setVoidConfirmId(null);

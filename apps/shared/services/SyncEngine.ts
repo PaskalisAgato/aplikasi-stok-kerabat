@@ -147,6 +147,27 @@ class SyncEngine {
     }
   }
 
+  /**
+   * Enqueue a new action for background synchronization (STRICT FIFO)
+   */
+  public async enqueue(type: OfflineAction['type'], payload: any) {
+    const action: Omit<OfflineAction, 'sequence_number'> = {
+      id: crypto.randomUUID(),
+      type,
+      payload,
+      sync_status: 'PENDING',
+      retry_count: 0,
+      created_at: new Date().toISOString(),
+      idempotency_key: crypto.randomUUID()
+    };
+    
+    await db.offlineActions.add(action as OfflineAction);
+    console.log(`[SyncEngine] Enqueued ${type} action. Starting processQueue...`);
+    
+    // Non-blocking trigger
+    this.processQueue();
+  }
+
   public stop() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -224,11 +245,14 @@ class SyncEngine {
       let path = '';
       let useDelete = false;
 
-      if (action.type === 'CHECKOUT') path = '/transactions/checkout';
+      if (action.type === 'CHECKOUT') path = '/transactions';
       else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; 
       else if (action.type === 'DELETE_TRANSACTION') {
           path = `/transactions/${action.payload.id}`;
           useDelete = true;
+      }
+      else if (action.type === 'ADD_ITEMS_TO_BILL') {
+          path = `/transactions/${action.payload.id}/add-items`;
       }
       else if (action.type === 'EXPENSE') path = '/finance/expenses';
       else if (action.type === 'SHIFT_HANDOVER') path = '/cashier-shifts/handover';

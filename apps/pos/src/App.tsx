@@ -383,17 +383,8 @@ function App() {
                 console.error('Failed to queue receipt', err);
             });
 
-            // 2. Save to Offline Queue (Local Source of Truth)
-            // Use transactionid as both ID and idempotency key foundation
-            await db.offlineActions.add({
-                id: transactionId,
-                idempotency_key: `req_checkout_${transactionId}`,
-                type: 'CHECKOUT',
-                payload: { ...checkoutData, status: 'PAID', customerInfo },
-                created_at: new Date().toISOString(),
-                sync_status: 'PENDING',
-                retry_count: 0
-            });
+            // 2. Save to Offline Queue & Trigger Sync
+            await syncEngine.enqueue('CHECKOUT', { ...checkoutData, status: 'PAID', customerInfo });
 
             // 3. UI Optimistic Success
             setSales({});
@@ -482,12 +473,13 @@ function App() {
                 price: item.price
             }));
 
-            await apiClient.addItemsToBill(currentBillId, items);
-            alert('Bill berhasil diperbarui!');
+            await syncEngine.enqueue('ADD_ITEMS_TO_BILL', { id: currentBillId, items });
+            alert('Permintaan update bill disimpan ke antrean!');
             
-            // Refresh
-            const response = await apiClient.get('/transactions/open-bills') as any;
-            if (response && response.data) setOpenBills(response.data);
+            // Optimistic refresh (still fetch open bills to get other updates, but don't wait for sync)
+            apiClient.get('/transactions/open-bills').then((response: any) => {
+                if (response && response.data) setOpenBills(response.data);
+            }).catch(() => {});
         } catch (error) {
             alert('Gagal memperbarui bill');
         } finally {
