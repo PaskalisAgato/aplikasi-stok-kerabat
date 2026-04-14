@@ -167,12 +167,15 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                         <div className="space-y-4">
                             <h3 className="text-xs font-black uppercase tracking-widest text-white/40 border-b border-white/5 pb-2">Detail Per Kategori</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {summary.categories.map((cat: any) => (
+                                {summary?.categories?.map((cat: any) => (
                                     <div key={cat.name} className="flex justify-between items-center py-1 sm:px-2">
                                         <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">{cat.name}</span>
                                         <span className="text-xs font-black text-white">Rp {cat.total.toLocaleString()}</span>
                                     </div>
                                 ))}
+                                {(!summary?.categories || summary.categories.length === 0) && (
+                                    <p className="text-[10px] text-white/40 italic">Tidak ada rincian kategori.</p>
+                                )}
                             </div>
                         </div>
 
@@ -246,7 +249,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 </div>
                             </div>
 
-                            {summary.nonCashTransactions && summary.nonCashTransactions.length > 0 && (
+                            {summary?.nonCashTransactions && summary.nonCashTransactions.length > 0 && (
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Daftar Transaksi Non-Tunai</label>
                                     <div className="bg-white/5 border border-white/10 rounded-2xl max-h-[150px] overflow-y-auto custom-scrollbar p-2 space-y-1">

@@ -846,9 +846,14 @@ function App() {
                                 showNotification(`Gagal Menutup Shift! Masih ada ${pendingSyncs} antrean cloud.`, "error");
                                 return;
                             }
-                            const summary = await getSummary(activeShift.id);
-                            setShiftSummaryData(summary.data);
-                            setIsCloseShiftOpen(true);
+                            try {
+                                const summary = await getSummary(activeShift.id);
+                                setShiftSummaryData(summary.data);
+                                setIsCloseShiftOpen(true);
+                            } catch (error: any) {
+                                console.error('Failed to load shift summary:', error);
+                                showNotification('Gagal memuat ringkasan shift. Cek koneksi internet.', 'error');
+                            }
                         }}
                         className={`ml-2 size-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                             pendingSyncs > 0 ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500'
@@ -860,45 +865,51 @@ function App() {
                 </div>
             )}
 
-            <SyncWidget />
+            {/* Consolidated Action Bar */}
+            <div className={`flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 scale-90 sm:scale-100`}>
+                <SyncWidget />
+                
+                <div className="h-6 w-px bg-white/10 mx-1"></div>
 
+                <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+                    <button 
+                        onClick={() => navigateTo('pos')}
+                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    >
+                        <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
+                        <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
+                    </button>
+                    <button 
+                        onClick={() => navigateTo('history')}
+                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    >
+                        <span className="material-symbols-outlined text-[14px]">history</span>
+                        <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-inherit">History</span>
+                    </button>
+                    <button 
+                        onClick={() => navigateTo('print-queue')}
+                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md transition-all flex items-center gap-1.5 relative ${view === 'print-queue' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    >
+                        <span className="material-symbols-outlined text-[14px]">receipt_long</span>
+                        <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-inherit">Struk</span>
+                        {printQueueCount > 0 && (
+                            <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#1a1f2e]">
+                                {printQueueCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
 
-            <div className="flex bg-white/5 p-1 sm:p-1.5 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
+                <div className="h-6 w-px bg-white/10 mx-1"></div>
+
                 <button 
-                    onClick={() => navigateTo('pos')}
-                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${view === 'pos' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                    onClick={() => navigateTo('printer-settings')}
+                    className={`size-8 sm:size-10 rounded-lg flex items-center justify-center ${view === 'printer-settings' ? 'bg-primary text-[#0b1220]' : 'bg-white/5 hover:bg-white/10'} active:scale-95 transition-all group border border-white/5`}
+                    title="Printer Settings"
                 >
-                    <span className="material-symbols-outlined text-[12px] sm:text-[14px]">point_of_sale</span>
-                    <span className="hidden sm:inline text-[8px] sm:text-[9px] uppercase tracking-widest">POS</span>
-                </button>
-                <button 
-                    onClick={() => navigateTo('history')}
-                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1.5 ${view === 'history' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                >
-                    <span className="material-symbols-outlined text-[14px]">history</span>
-                    <span className="hidden sm:inline text-[9px] uppercase tracking-widest">History</span>
-                </button>
-                <button 
-                    onClick={() => navigateTo('print-queue')}
-                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg transition-all flex items-center gap-1.5 relative ${view === 'print-queue' ? 'bg-primary text-[#0b1220] font-black shadow-lg shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
-                >
-                    <span className="material-symbols-outlined text-[14px]">receipt_long</span>
-                    <span className="hidden sm:inline text-[9px] uppercase tracking-widest">Struk</span>
-                    {printQueueCount > 0 && (
-                        <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-slate-950 text-[8px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#1a1f2e]">
-                            {printQueueCount}
-                        </span>
-                    )}
+                    <span className={`material-symbols-outlined text-base sm:text-lg ${view === 'printer-settings' ? 'text-slate-950 font-black' : 'text-white opacity-40 group-hover:opacity-100 group-hover:text-primary'} transition-all`}>print</span>
                 </button>
             </div>
-
-            <button 
-                onClick={() => navigateTo('printer-settings')}
-                className={`size-8 sm:size-10 ${PerformanceSettings.getGlassClass()} rounded-lg sm:rounded-xl flex items-center justify-center ${view === 'printer-settings' ? 'bg-primary text-[#0b1220]' : 'hover:bg-primary/10'} active:scale-95 transition-all group border border-[var(--border-dim)]`}
-                title="Printer Settings"
-            >
-                <span className={`material-symbols-outlined text-base sm:text-lg ${view === 'printer-settings' ? 'text-slate-950 font-black' : 'text-[var(--text-main)] opacity-40 group-hover:opacity-100 group-hover:text-primary'} transition-all`}>print</span>
-            </button>
         </div>
     );
 
@@ -933,15 +944,15 @@ function App() {
 
             <Layout 
                 currentPort={5186} 
-            title={pageTitle}
-            subtitle={pageSubtitle}
-            maxWidth="100%"
-            footer={view === 'pos' ? <div className="lg:hidden">{PosFooter}</div> : null}
-            headerExtras={PosHeaderExtras}
-            drawerOpen={drawerOpen}
-            onDrawerOpen={() => setDrawerOpen(true)}
-            onDrawerClose={() => setDrawerOpen(false)}
-        >
+                title={pageTitle}
+                subtitle={pageSubtitle}
+                maxWidth="100%"
+                footer={view === 'pos' ? <div className="lg:hidden">{PosFooter}</div> : null}
+                headerExtras={PosHeaderExtras}
+                drawerOpen={drawerOpen}
+                onDrawerOpen={() => setDrawerOpen(true)}
+                onDrawerClose={() => setDrawerOpen(false)}
+            >
             <div className="space-y-4 md:space-y-8">
                 {view === 'pos' && (
                     <>
