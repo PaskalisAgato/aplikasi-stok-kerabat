@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { syncEngine } from '@shared/services/SyncEngine';
-import SyncQueueModal from './SyncQueueModal';
 
 export default function SyncWidget() {
     const [pendingCount, setPendingCount] = useState(0);
@@ -8,10 +7,8 @@ export default function SyncWidget() {
     const [isPushing, setIsPushing] = useState(false);
     const [isPulling, setIsPulling] = useState(false);
     const [lastError, setLastError] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        // ... (existing listeners remain same)
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
         window.addEventListener('online', handleOnline);
@@ -69,26 +66,23 @@ export default function SyncWidget() {
         label = 'Downloading...';
     }
 
-    return (
-        <>
-            <div 
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
-                title={
-                    !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
-                    lastError ? `Gagal Sinkron: ${lastError}. Klik untuk detail.` :
-                    pendingCount > 0 ? "Klik untuk melihat antrean sinkronisasi." : 
-                    "Sistem terhubung dan sinkron."
-                }
-                onClick={() => setIsModalOpen(true)}
-            >
-                <span className="material-symbols-outlined text-sm">{icon}</span>
-                <span className="text-xs font-bold whitespace-nowrap">{label}</span>
-            </div>
+    const handleClick = () => {
+        window.dispatchEvent(new CustomEvent('open-sync-queue'));
+    };
 
-            <SyncQueueModal 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
-            />
-        </>
+    return (
+        <div 
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
+            title={
+                !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
+                lastError ? `Gagal Sinkron: ${lastError}. Klik untuk detail.` :
+                pendingCount > 0 ? "Klik untuk melihat antrean sinkronisasi." : 
+                "Sistem terhubung dan sinkron."
+            }
+            onClick={handleClick}
+        >
+            <span className="material-symbols-outlined text-sm">{icon}</span>
+            <span className="text-xs font-bold whitespace-nowrap">{label}</span>
+        </div>
     );
 }

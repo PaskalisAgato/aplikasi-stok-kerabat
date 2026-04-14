@@ -3,6 +3,7 @@ import { useKeyboardCashier } from './hooks/useKeyboardCashier';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import PrintQueueManager from './PrintQueueManager';
+import SyncQueuePage from './SyncQueuePage';
 import { PrintService, PrintData } from '@shared/services/PrintService';
 import TransactionHistory from './TransactionHistory';
 import PrinterSettings from '@shared/components/PrinterSettings';
@@ -104,7 +105,7 @@ function App() {
     // Auth gate: Only show shift modal when user is logged in
     const isAuthenticated = !!(localStorage.getItem('kerabat_auth_token'));
 
-    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue'>('pos');
+    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue'>('pos');
     const [sales, setSales] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [items, setItems] = useState<Recipe[]>([]);
@@ -209,7 +210,9 @@ function App() {
         });
 
         const handleOpenPrinterSettings = () => setView('printer-settings');
+        const handleOpenSyncQueue = () => setView('sync-queue');
         window.addEventListener('open-printer-settings', handleOpenPrinterSettings);
+        window.addEventListener('open-sync-queue', handleOpenSyncQueue);
 
         // Syncing & Offline-First Persistence (Phase 6 & 7)
         syncEngine.start();
@@ -245,6 +248,7 @@ function App() {
         return () => {
             window.removeEventListener('sync-auth-failed', handleSyncAuthFailed);
             window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
+            window.removeEventListener('open-sync-queue', handleOpenSyncQueue);
             unsubscribe();
             syncEngine.stop();
         };
@@ -874,8 +878,8 @@ Silakan klik widget "Cloud Sync" (titik kuning/merah) di kanan atas untuk membat
         </div>
     );
 
-    const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : view === 'print-queue' ? 'Antrean Cetak' : 'Input Penjualan';
-    const pageSubtitle = view === 'history' ? 'Manajemen Transaksi' : view === 'printer-settings' ? 'Hardware & Koneksi' : view === 'print-queue' ? 'Struk Menunggu Cetak' : 'Kasir & Stok';
+    const pageTitle = view === 'history' ? 'Riwayat Penjualan' : view === 'printer-settings' ? 'Pengaturan Printer' : view === 'print-queue' ? 'Antrean Cetak' : view === 'sync-queue' ? 'Antrean Cloud' : 'Input Penjualan';
+    const pageSubtitle = view === 'history' ? 'Daftar semua transaksi yang telah selesai' : view === 'printer-settings' ? 'Konfigurasi bluetooth dan thermal printer' : view === 'print-queue' ? 'Cetak ulang struk yang tertunda' : view === 'sync-queue' ? 'Manajemen sinkronisasi data ke cloud' : 'Input pesanan pelanggan baru';
 
     return (
         <>
@@ -915,6 +919,7 @@ Silakan klik widget "Cloud Sync" (titik kuning/merah) di kanan atas untuk membat
             onDrawerClose={() => setDrawerOpen(false)}
         >
             <div className="space-y-8">
+                {view === 'sync-queue' && <SyncQueuePage onBack={() => setView('pos')} />}
                 {view === 'pos' && (
                     <>
                         {/* SECTION: OPEN BILLS */}
