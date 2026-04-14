@@ -11,6 +11,7 @@ import { syncEngine } from '@shared/services/SyncEngine';
 import { PerformanceSettings } from '@shared/services/performance';
 import { useCashierShift } from '@shared/hooks/useCashierShift';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
+import SyncWidget from './components/SyncWidget';
 
 interface Recipe {
     id: number;
@@ -114,10 +115,6 @@ function App() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [amountPaid, setAmountPaid] = useState<number>(0);
-    const [pendingSyncCount, setPendingSyncCount] = useState(0);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [isPushing, setIsPushing] = useState(false);
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [openBills, setOpenBills] = useState<any[]>([]);
     const [currentBillId, setCurrentBillId] = useState<string | number | null>(null);
     const [customerInfo, setCustomerInfo] = useState('');
@@ -229,20 +226,10 @@ function App() {
         // Initial Pull Sync
         syncEngine.pullInventory();
 
+        // Listen for sync changes (needed for shift-blocking logic)
         const unsubscribe = syncEngine.onChange((count) => {
-            setPendingSyncCount(count);
+            setPendingSyncs(count);
         });
-
-        const unsubscribeState = syncEngine.onStateChange((state) => {
-            setIsSyncing(state.isPulling);
-            setIsPushing(state.isPushing);
-        });
-
-        // Online Status
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
 
         // Fetch Open Bills
         const fetchOpenBills = async () => {
@@ -255,15 +242,10 @@ function App() {
         };
         fetchOpenBills();
 
-        fetchOpenBills();
-
         return () => {
             window.removeEventListener('sync-auth-failed', handleSyncAuthFailed);
             window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
             unsubscribe();
-            unsubscribeState();
             syncEngine.stop();
         };
     }, []);
@@ -765,7 +747,7 @@ function App() {
                     <button 
                         id="btn-checkout"
                         onClick={() => handleCheckout(true)}
-                        disabled={isCheckingOut || totalItems === 0 || isSyncing || (paymentMethod === 'CASH' && amountPaid < totalSalesValue)}
+                        disabled={isCheckingOut || totalItems === 0 || (paymentMethod === 'CASH' && amountPaid < totalSalesValue)}
                         className={`flex-1 h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
                             (paymentMethod === 'CASH' && amountPaid >= totalSalesValue) || paymentMethod !== 'CASH'
                                 ? 'bg-primary text-slate-950 shadow-primary/20' 
@@ -849,39 +831,7 @@ Silakan klik widget "Cloud Sync" (titik kuning/merah) di kanan atas untuk membat
                 </div>
             )}
 
-            {/* Sync Status Dot */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
-                !isOnline ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-                isPushing ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
-                pendingSyncCount > 0 ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-            }`}>
-                <div className={`size-2 rounded-full ${
-                    !isOnline ? 'bg-red-500 animate-pulse' :
-                    isPushing ? 'bg-blue-500 animate-spin' :
-                    pendingSyncCount > 0 ? 'bg-amber-500 animate-bounce' :
-                    'bg-emerald-500'
-                }`} />
-                <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">
-                    {!isOnline ? 'Offline' : isPushing ? 'Syncing...' : pendingSyncCount > 0 ? `${pendingSyncCount} Pending` : 'Synced'}
-                </span>
-            </div>
-
-            {/* Clear stuck queue button — only visible when there are stuck PENDING items */}
-            {pendingSyncCount > 0 && !isPushing && (
-                <button
-                    onClick={async () => {
-                        if (confirm(`Bersihkan ${pendingSyncCount} transaksi yang macet dari antrean? Transaksi yang belum terkirim akan dibatalkan.`)) {
-                            await syncEngine.clearAllPending();
-                            setPendingSyncCount(0);
-                        }
-                    }}
-                    className="size-8 rounded-lg flex items-center justify-center bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 transition-all border border-amber-500/20"
-                    title="Bersihkan antrean yang macet"
-                >
-                    <span className="material-symbols-outlined text-sm">delete_sweep</span>
-                </button>
-            )}
+            <SyncWidget />
 
 
             <div className="flex bg-white/5 p-1 sm:p-1.5 rounded-lg sm:rounded-xl border border-white/5 scale-90 sm:scale-100">
