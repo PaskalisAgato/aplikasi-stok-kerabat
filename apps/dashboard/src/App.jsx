@@ -161,31 +161,31 @@ function App() {
             ))}
           </div>
 
-          <div className="flex items-center gap-5 w-full md:w-auto mt-4 md:mt-0">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             {dateFilter === 'custom' && (
-              <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
+              <div className="flex flex-row items-center gap-2 animate-in slide-in-from-right-4">
                 <input 
                   type="date" 
-                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+                  className="bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-[13px] font-bold outline-none focus:border-primary w-32 md:w-auto"
                   value={customRange.start}
                   onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
                 />
-                <span className="text-xs opacity-40">s/d</span>
+                <span className="text-xs opacity-40">to</span>
                 <input 
                   type="date" 
-                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+                  className="bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-[13px] font-bold outline-none focus:border-primary w-32 md:w-auto"
                   value={customRange.end}
                   onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
                 />
-                 <button onClick={fetchData} className="px-2.5 py-1.5 bg-primary text-slate-950 rounded-md flex items-center justify-center hover:bg-primary/80 transition-all min-w-[40px]">
+                <button onClick={fetchData} className="px-2.5 py-1.5 bg-primary text-slate-950 rounded-md flex items-center justify-center hover:bg-primary/80 transition-all min-w-[40px] h-[36px]">
                    <span className="material-symbols-outlined text-lg font-black">search</span>
-                 </button>
+                </button>
               </div>
             )}
              <button 
                onClick={fetchData}
                disabled={isLoading}
-               className={`px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all min-w-[40px] ${isLoading ? 'opacity-50' : ''}`}
+               className={`px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all min-w-[40px] h-[36px] ${isLoading ? 'opacity-50' : ''}`}
              >
                <span className={`material-symbols-outlined text-lg ${isLoading ? 'animate-spin' : ''}`}>sync</span>
              </button>
