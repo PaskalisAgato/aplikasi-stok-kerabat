@@ -186,32 +186,33 @@ function App() {
 
           {/* Custom Date Row: Stacked & Responsive */}
           {dateFilter === 'custom' && (
-            <div className="grid grid-cols-7 items-center gap-2 animate-in slide-in-from-top-4 p-3 bg-black/40 rounded-[1.5rem] border border-white/5">
-              <div className="col-span-3">
-                <input 
-                  type="date" 
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-2 h-10 text-[10px] font-black text-white outline-none focus:border-primary cursor-pointer"
-                  value={customRange.start}
-                  onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
-                />
+            <div className="flex flex-col sm:flex-row items-center gap-3 animate-in slide-in-from-top-4 p-4 bg-black/40 rounded-[1.5rem] border border-white/5">
+              <div className="w-full sm:flex-1 flex items-center gap-2">
+                <div className="flex-1">
+                   <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Dari</p>
+                   <input 
+                     type="date" 
+                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                     value={customRange.start}
+                     onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
+                   />
+                </div>
+                <div className="flex-1">
+                   <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Sampai</p>
+                   <input 
+                     type="date" 
+                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                     value={customRange.end}
+                     onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
+                   />
+                </div>
               </div>
-              <div className="col-span-1 text-center">
-                <span className="text-[10px] font-black uppercase opacity-20">to</span>
-              </div>
-              <div className="col-span-3 flex gap-2">
-                <input 
-                  type="date" 
-                  className="flex-1 min-w-0 bg-black/40 border border-white/10 rounded-xl px-2 h-10 text-[10px] font-black text-white outline-none focus:border-primary cursor-pointer"
-                  value={customRange.end}
-                  onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
-                />
-                <button 
-                  onClick={fetchData}
-                  className="size-10 bg-primary text-slate-950 rounded-xl flex items-center justify-center hover:bg-primary/80 active:scale-95 transition-all shrink-0 shadow-lg shadow-primary/20"
-                >
-                  <span className="material-symbols-outlined text-lg font-black">search</span>
-                </button>
-              </div>
+              <button 
+                onClick={fetchData}
+                className="w-full sm:w-14 h-11 bg-primary text-slate-950 rounded-xl flex items-center justify-center hover:bg-primary/80 active:scale-95 transition-all shadow-lg shadow-primary/20"
+              >
+                <span className="material-symbols-outlined text-xl font-black">search</span>
+              </button>
             </div>
           )}
         </div>
