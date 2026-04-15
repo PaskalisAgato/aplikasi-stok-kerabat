@@ -222,7 +222,7 @@ export class AnalyticsService {
             eq(schema.sales.status, 'PAID')
         ))
         .groupBy(schema.recipes.name)
-        .orderBy(sql`totalQty DESC`)
+        .orderBy(desc(sql`SUM(${schema.saleItems.quantity})`))
         .limit(5);
 
         // 4. Payment Methods (Pie Chart)
@@ -256,7 +256,7 @@ export class AnalyticsService {
             eq(schema.sales.status, 'PAID')
         ))
         .groupBy(schema.users.name)
-        .orderBy(sql`salesVolume DESC`);
+        .orderBy(desc(sql`COALESCE(SUM(CAST(${schema.sales.totalAmount} AS DECIMAL)), 0)`));
 
         // 6. Alerts
         const alerts = [];
