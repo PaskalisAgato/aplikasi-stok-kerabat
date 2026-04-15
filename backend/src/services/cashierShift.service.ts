@@ -293,24 +293,37 @@ export class CashierShiftService {
     }
 
     static async deleteShift(id: number, currentUserId: string) {
-        const [oldShift] = await db.select().from(schema.shifts).where(eq(schema.shifts.id, id)).limit(1);
-        if (!oldShift) throw new Error('Shift tidak ditemukan.');
+        return await db.transaction(async (tx) => {
+            const [oldShift] = await tx.select().from(schema.shifts).where(eq(schema.shifts.id, id)).limit(1);
+            if (!oldShift) throw new Error('Shift tidak ditemukan.');
 
-        const [updatedShift] = await db.update(schema.shifts)
-            .set({ isDeleted: true })
-            .where(eq(schema.shifts.id, id))
-            .returning();
+            // 1. Soft-delete the shift
+            const [updatedShift] = await tx.update(schema.shifts)
+                .set({ isDeleted: true })
+                .where(eq(schema.shifts.id, id))
+                .returning();
 
-        if (updatedShift) {
-            await db.insert(schema.auditLogs).values({
-                userId: currentUserId,
-                action: `DELETE_CASHIER_SHIFT ID: ${id}`,
-                tableName: 'shifts',
-                oldData: JSON.stringify(oldShift),
-                createdAt: new Date()
-            });
-        }
+            // 2. Cascading soft-delete: associated sales
+            await tx.update(schema.sales)
+                .set({ isDeleted: true })
+                .where(eq(schema.sales.shiftId, id));
 
-        return updatedShift;
+            // 3. Cascading soft-delete: associated expenses
+            await tx.update(schema.expenses)
+                .set({ isDeleted: true })
+                .where(eq(schema.expenses.shiftId, id));
+
+            if (updatedShift) {
+                await tx.insert(schema.auditLogs).values({
+                    userId: currentUserId,
+                    action: `DELETE_CASHIER_SHIFT_CASCADE ID: ${id}`,
+                    tableName: 'shifts',
+                    oldData: JSON.stringify(oldShift),
+                    createdAt: new Date()
+                });
+            }
+
+            return updatedShift;
+        });
     }
 }
