@@ -8,6 +8,12 @@ export class AnalyticsController {
             const monitoring = await AnalyticsService.getShiftMonitoring();
             const ranking = await AnalyticsService.getCashierPerformance();
 
+            console.log(`[Analytics] Sending Dashboard Data:`, { 
+                revenue: summary.revenue, 
+                cash: summary.cash, 
+                activeShifts: monitoring.activeShifts.length 
+            });
+
             res.json({
                 success: true,
                 data: {
