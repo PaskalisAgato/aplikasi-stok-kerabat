@@ -80,24 +80,8 @@ function App() {
     }
   };
 
-  const exportToCSV = () => {
-    if (reports.length === 0) return;
+  const exportToCSV = (reportsOrReport) => {
     const headers = ['Tanggal', 'Periode', 'Kasir', 'Status', 'Mulai', 'Penjualan', 'Pengeluaran', 'Laci Kasir', 'Profit', 'Transaksi'];
-    
-    const rows = reports.map(r => [
-      r.date, 
-      `${r.startTime}-${r.endTime}`,
-      r.cashierName,
-      r.status,
-      r.initialCash,
-      r.totalSales,
-      r.totalExpenses,
-      r.cashDrawer,
-      r.profit,
-      r.totalTransactions
-    ]);
-
-    // Format fields: escape quotes and wrap in quotes if contains comma
     const formatCSVField = (val) => {
       if (val === null || val === undefined) return '';
       const str = val.toString();
@@ -107,22 +91,42 @@ function App() {
       return str;
     };
 
-    const csvRows = [
-      headers.map(formatCSVField).join(','),
-      ...rows.map(row => row.map(formatCSVField).join(','))
-    ].join('\n');
+    const downloadCSV = (dataReports, filename) => {
+      const rows = dataReports.map(r => [
+        r.date, 
+        `${r.startTime}-${r.endTime}`,
+        r.cashierName,
+        r.status,
+        r.initialCash,
+        r.totalSales,
+        r.totalExpenses,
+        r.cashDrawer,
+        r.profit,
+        r.totalTransactions
+      ]);
 
-    // Add UTF-8 BOM for Excel compatibility
-    const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `Laporan_Harian_Kerabat_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const csvRows = [
+        headers.map(formatCSVField).join(','),
+        ...rows.map(row => row.map(formatCSVField).join(','))
+      ].join('\n');
+
+      const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    if (Array.isArray(reportsOrReport)) {
+      if (reportsOrReport.length === 0) return;
+      downloadCSV(reportsOrReport, `Laporan_Harian_Kerabat_${new Date().toISOString().split('T')[0]}.csv`);
+    } else {
+      downloadCSV([reportsOrReport], `Laporan_Shift_${reportsOrReport.cashierName}_${reportsOrReport.date}.csv`);
+    }
   };
 
   useEffect(() => {
@@ -431,7 +435,7 @@ function App() {
                       </div>
                        <div className="flex items-center gap-2">
                            <button 
-                             onClick={exportToCSV}
+                             onClick={() => exportToCSV(reports)}
                              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
                            >
                                <span className="material-symbols-outlined text-lg text-primary">description</span>
@@ -449,11 +453,12 @@ function App() {
                       ) : (
                           <>
                               {reports.map((report) => (
-                                  <DailyReportCard 
-                                    key={report.id} 
-                                    report={report} 
-                                    onDelete={handleDeleteReport}
-                                  />
+                                   <DailyReportCard 
+                                     key={report.id} 
+                                     report={report} 
+                                     onDelete={handleDeleteReport}
+                                     onExport={() => exportToCSV(report)}
+                                   />
                               ))}
                               
                               {reports.length === 0 && (
