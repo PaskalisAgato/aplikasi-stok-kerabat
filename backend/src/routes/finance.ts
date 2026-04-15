@@ -11,16 +11,20 @@ import { IdempotencyService } from '../services/idempotency.service.js';
 export const financeRouter = Router();
 
 // GET all expenses with pagination
+// GET all expenses with pagination
 financeRouter.get('/expenses', async (req: Request, res: Response) => {
     try {
+        console.log(`[API] GET /finance/expenses | Params: limit=${req.query.limit}, offset=${req.query.offset}`);
+        
+        // 1. Strict validation with safe fallbacks
         const rawLimit = parseInt(req.query.limit as string);
         const rawOffset = parseInt(req.query.offset as string);
         
         const limit = !isNaN(rawLimit) && rawLimit > 0 ? rawLimit : 20;
         const offset = !isNaN(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
 
-        // Fetch limit+1 to detect if there are more pages (avoids extra count query)
-        const _expenses = await db.select({
+        // 2. Simplest possible, infallible query (NO raw sql blocks in select)
+        const rawExpenses = await db.select({
             id: schema.expenses.id,
             title: schema.expenses.title,
             vendor: schema.expenses.vendor,
@@ -30,7 +34,6 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             expenseDate: schema.expenses.expenseDate,
             createdAt: schema.expenses.createdAt,
             receiptUrl: schema.expenses.receiptUrl,
-            hasReceipt: sql`CASE WHEN ${schema.expenses.receiptUrl} IS NOT NULL THEN true ELSE false END`,
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
             fundSource: schema.expenses.fundSource
         })
@@ -40,14 +43,37 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         .limit(limit + 1)
         .offset(offset);
 
-        const hasMore = _expenses.length > limit;
-        const data = hasMore ? _expenses.slice(0, limit) : _expenses;
+        // 3. Fallback logic: Ensure we always have an array
+        if (!rawExpenses || !Array.isArray(rawExpenses)) {
+            console.warn('[WARNING] Query returned undefined/null. Overriding with empty array.');
+            return res.json({ success: true, data: [], meta: { limit, offset, total: 0, page: 0, hasMore: false } });
+        }
+
+        // 4. Safe pagination mapping via JavaScript
+        const hasMore = rawExpenses.length > limit;
+        const boundedExpenses = hasMore ? rawExpenses.slice(0, limit) : rawExpenses;
         
-        res.json({ 
+        // 5. Robust mapping to handle potentially null data gracefully
+        const mappedData = boundedExpenses.map(e => ({
+            id: e.id,
+            title: e.title || "Tanpa Judul",
+            vendor: e.vendor || null,
+            category: e.category || "Uncategorized",
+            amount: e.amount || "0",
+            userId: e.userId || null,
+            expenseDate: e.expenseDate || e.createdAt,
+            createdAt: e.createdAt,
+            receiptUrl: e.receiptUrl || null,
+            externalReceiptUrl: e.externalReceiptUrl || null,
+            hasReceipt: !!(e.receiptUrl || e.externalReceiptUrl),
+            fundSource: e.fundSource || "CASHIER"
+        }));
+        
+        res.status(200).json({ 
             success: true, 
-            data,
+            data: mappedData,
             meta: {
-                total: offset + data.length + (hasMore ? 1 : 0),
+                total: offset + mappedData.length + (hasMore ? 1 : 0),
                 limit,
                 offset,
                 page: Math.floor(offset / limit),
@@ -55,12 +81,15 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error(`[ERROR] GET /finance/expenses?limit=${req.query.limit}&offset=${req.query.offset}`);
-        console.error('Stack trace:', error.stack || error);
+        console.error(`[CRITICAL ERROR] GET /finance/expenses`);
+        console.error(`=> Query Params: limit=${req.query.limit}, offset=${req.query.offset}`);
+        console.error(`=> Message: ${error?.message || 'Unknown Error'}`);
+        console.error(`=> Stack:`, error?.stack || error);
+        
         res.status(500).json({ 
             success: false, 
             message: 'Gagal mengambil data pengeluaran',
-            error: error.message || 'Unknown database error'
+            error: error?.message || 'Unknown database error'
         });
     }
 });
