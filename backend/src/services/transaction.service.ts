@@ -271,13 +271,15 @@ export class TransactionService {
             });
 
             // 6. Record to Cash Ledger (Anti-Fraud)
-            await tx.insert(schema.cashLedger).values({
-                shiftId: activeShift.id,
-                type: 'sale',
-                amount: newSale.totalAmount.toString(),
-                referenceId: newSale.id,
-                description: `Pemasukan Penjualan ${paymentMethod}`
-            });
+            if (saleValues.paymentMethod === 'CASH' && saleValues.status === 'PAID') {
+                await tx.insert(schema.cashLedger).values({
+                    shiftId: activeShift.id,
+                    type: 'sale',
+                    amount: newSale.totalAmount.toString(),
+                    referenceId: newSale.id,
+                    description: `Pemasukan Penjualan ${saleValues.paymentMethod}`
+                });
+            }
 
             return { success: true, transactionId: newSale.id };
         });
@@ -601,13 +603,15 @@ export class TransactionService {
             await TransactionService.revertStockForSaleItems(tx, oldItems, id);
 
             // Negative Cash Ledger Record (Refund)
-            await tx.insert(schema.cashLedger).values({
-                shiftId: activeShift.id, // Use current active shift for the refund ledger entry
-                type: 'refund',
-                amount: (-parseFloat(sale.totalAmount)).toString(),
-                referenceId: sale.id,
-                description: `Pembatalan Transaksi (Void) - Alasan: ${reason}${adminPin ? ' (Approved by Admin)' : ''}`
-            });
+            if (sale.paymentMethod === 'CASH') {
+                await tx.insert(schema.cashLedger).values({
+                    shiftId: activeShift.id, // Use current active shift for the refund ledger entry
+                    type: 'refund',
+                    amount: (-parseFloat(sale.totalAmount)).toString(),
+                    referenceId: sale.id,
+                    description: `Pembatalan Transaksi (Void) - Alasan: ${reason}${adminPin ? ' (Approved by Admin)' : ''}`
+                });
+            }
 
             // Log to Void Logs
             await tx.insert(schema.voidLogs).values({
