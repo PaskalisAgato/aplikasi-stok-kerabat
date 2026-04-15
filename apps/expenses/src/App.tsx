@@ -19,22 +19,37 @@ interface ExpenseItem {
 function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    d.setDate(1); // Default to start of month
-    d.setHours(0, 0, 0, 0);
+    const saved = localStorage.getItem('expenseFilter');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.startDate) return parsed.startDate;
+        } catch (e) { console.error("Filter parse error", e); }
+    }
+    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
   const [endDate, setEndDate] = useState(() => {
-    const d = new Date();
-    d.setHours(23, 59, 59, 999);
+    const saved = localStorage.getItem('expenseFilter');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.endDate) return parsed.endDate;
+        } catch (e) { console.error("Filter parse error", e); }
+    }
+    const d = new Date(); d.setHours(23, 59, 59, 999);
     return d.toISOString().slice(0, 16);
   });
+
+  useEffect(() => {
+    localStorage.setItem('expenseFilter', JSON.stringify({ startDate, endDate }));
+  }, [startDate, endDate]);
 
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
   const [page, setPage] = useState(0);
-  const [summary, setSummary] = useState<{ totalExpenses: number; totalTransactions: number }>({ totalExpenses: 0, totalTransactions: 0 });
+  const [summary, setSummary] = useState<{ totalExpenses: number; totalTransactions: number } | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const PAGE_SIZE = 20;
@@ -136,7 +151,7 @@ function App() {
         }
     };
 
-  const totalExps = summary.totalExpenses;
+  const totalExps = summary?.totalExpenses || 0;
 
   const ExpenseSidebar = (
     <div className="space-y-10 animate-in fade-in slide-in-from-left duration-700">
@@ -163,13 +178,13 @@ function App() {
 
         <div className="mt-10 pt-10 border-t border-[var(--border-dim)] space-y-4">
             <SummaryCard 
-                total={summary.totalExpenses} 
+                total={summary?.totalExpenses || 0} 
                 title={expensesList.length > 0 ? 'Total Filter Periode' : 'Total Pengeluaran'}
                 compact 
             />
             <div className="glass p-5 rounded-2xl space-y-2 border border-white/5">
                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Total Transaksi</p>
-                <p className="text-xl font-black text-[var(--text-main)]">{summary.totalTransactions} Slip</p>
+                <p className="text-xl font-black text-[var(--text-main)]">{summary?.totalTransactions || 0} Slip</p>
             </div>
         </div>
     </div>
@@ -208,15 +223,15 @@ function App() {
            />
       </div>
 
-      {/* Date Filter Section */}
-      <div className="glass rounded-[2rem] p-6 mb-10 border border-white/5 space-y-6">
+      {/* Date Filter Section (Responsive Overhaul) */}
+      <div className="glass rounded-[2rem] p-5 md:p-8 mb-10 border border-white/5 space-y-6">
           <div className="flex items-center gap-3 px-2">
               <span className="material-symbols-outlined text-primary font-black">calendar_month</span>
               <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Periode Laporan</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] items-end gap-6 bg-black/20 p-6 rounded-3xl border border-white/5">
-              <div className="space-y-3">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-5 bg-black/20 p-5 md:p-6 rounded-[2rem] border border-white/5">
+              <div className="flex-1 space-y-3">
                   <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Dari</label>
                   <input 
                       type="datetime-local" 
@@ -230,7 +245,7 @@ function App() {
                   <span className="material-symbols-outlined font-black">arrow_forward</span>
               </div>
 
-              <div className="space-y-3">
+              <div className="flex-1 space-y-3">
                   <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Sampai</label>
                   <input 
                       type="datetime-local" 
@@ -240,35 +255,23 @@ function App() {
                   />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 min-w-fit">
                   <button 
                       onClick={() => fetchExpenses()}
-                      className="btn-primary px-8 py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest transition-all active:scale-90"
+                      className="btn-primary w-full sm:w-auto px-10 py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
                   >
                       Cari
                   </button>
                   <button 
                       onClick={() => {
-                          const d = new Date();
-                          d.setDate(1); d.setHours(0,0,0,0);
+                          const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
                           setStartDate(d.toISOString().slice(0, 16));
-                          const now = new Date();
-                          now.setHours(23,59,59,999);
+                          const now = new Date(); now.setHours(23,59,59,999);
                           setEndDate(now.toISOString().slice(0, 16));
-                          // Note: state updates are async, so we manually call with defaults
-                          apiClient.getExpenses(PAGE_SIZE, 0, d.toISOString().slice(0, 16), now.toISOString().slice(0, 16))
-                              .then(res => {
-                                  setExpensesList(res.data.map((exp: any) => ({
-                                      id: exp.id, title: exp.title || 'Untitled', category: exp.category || 'General',
-                                      date: exp.expenseDate || exp.date, amount: exp.amount, 
-                                      receiptUrl: exp.externalReceiptUrl || exp.receiptUrl, hasReceipt: !!exp.hasReceipt
-                                  })));
-                                  setSummary(res.summary);
-                                  setPage(0);
-                                  setHasMore(res.meta.hasMore);
-                              });
+                          localStorage.removeItem('expenseFilter');
+                          fetchExpenses();
                       }}
-                      className="glass px-6 py-4 rounded-2xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all"
+                      className="glass w-full sm:w-auto px-8 py-4 rounded-2xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all active:scale-95"
                   >
                       Reset
                   </button>
