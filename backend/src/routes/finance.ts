@@ -16,15 +16,14 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 20;
         const offset = parseInt(req.query.offset as string) || 0;
 
-        // Get real total count (separate query) for correct pagination
-        // PostgreSQL returns count as string, so we use sql<string> and parseInt
-        const [countResult] = await db.select({
-            count: sql<string>`count(*)`
+        // Get real total count - use CAST to ensure Postgres returns integer
+        const countRows = await db.select({
+            count: sql<number>`cast(count(*) as integer)`
         })
         .from(schema.expenses)
         .where(eq(schema.expenses.isDeleted, false));
         
-        const totalCount = parseInt(countResult?.count || '0', 10);
+        const totalCount = countRows[0]?.count ?? 0;
 
         const _expenses = await db.select({
             id: schema.expenses.id,
