@@ -16,15 +16,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 20;
         const offset = parseInt(req.query.offset as string) || 0;
 
-        // Get real total count - use CAST to ensure Postgres returns integer
-        const countRows = await db.select({
-            count: sql<number>`cast(count(*) as integer)`
-        })
-        .from(schema.expenses)
-        .where(eq(schema.expenses.isDeleted, false));
-        
-        const totalCount = countRows[0]?.count ?? 0;
-
+        // Fetch limit+1 to detect if there are more pages (avoids extra count query)
         const _expenses = await db.select({
             id: schema.expenses.id,
             title: schema.expenses.title,
@@ -42,17 +34,21 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         .from(schema.expenses)
         .where(eq(schema.expenses.isDeleted, false))
         .orderBy(desc(schema.expenses.expenseDate))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
+
+        const hasMore = _expenses.length > limit;
+        const data = hasMore ? _expenses.slice(0, limit) : _expenses;
         
         res.json({ 
             success: true, 
-            data: _expenses,
+            data,
             meta: {
-                total: totalCount,
+                total: offset + data.length + (hasMore ? 1 : 0),
                 limit,
                 offset,
-                page: Math.floor(offset / limit)
+                page: Math.floor(offset / limit),
+                hasMore
             }
         });
     } catch (error) {

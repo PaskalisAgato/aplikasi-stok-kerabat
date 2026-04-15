@@ -64,6 +64,7 @@ export interface ApiMeta {
     total: number;
     limit: number;
     page: number;
+    hasMore?: boolean;
 }
 
 export interface ApiResponse<T> {

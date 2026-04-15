@@ -61,7 +61,7 @@ function App() {
         } else {
             setExpensesList(formatted);
         }
-        setHasMore(data.length >= responseMeta.limit);
+        setHasMore(responseMeta.hasMore ?? (data.length >= responseMeta.limit));
     } catch (error) {
         console.error("Failed fetching expenses", error);
     } finally {
