@@ -164,9 +164,13 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
 
             let userFriendlyMessage = error.message || 'Unknown error';
             if (error.status === 403) {
-                userFriendlyMessage = "Akses ditolak (403). Pastikan akun Anda memiliki izin yang cukup.";
+                // Backend returns the real reason in error.message — show it directly
+                // e.g. "KEAMANAN: Tidak bisa mencatat pengeluaran tanpa shift aktif."
+                userFriendlyMessage = error.message || "Akses ditolak. Pastikan shift kasir sudah dibuka sebelum mencatat pengeluaran.";
             } else if (error.status === 401) {
-                userFriendlyMessage = "Sesi berakhir (401). Silakan log out dan login kembali.";
+                userFriendlyMessage = "Sesi berakhir. Silakan log out dan login kembali.";
+            } else if (error.status === 500) {
+                userFriendlyMessage = "Terjadi kesalahan di server. Silakan coba lagi.";
             }
 
             alert(`Gagal merekam pengeluaran: ${userFriendlyMessage}`);

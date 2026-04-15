@@ -16,6 +16,15 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 20;
         const offset = parseInt(req.query.offset as string) || 0;
 
+        // Get real total count (separate query) for correct pagination
+        const [countResult] = await db.select({
+            count: sql<number>`count(*)`
+        })
+        .from(schema.expenses)
+        .where(eq(schema.expenses.isDeleted, false));
+        
+        const totalCount = Number(countResult?.count || 0);
+
         const _expenses = await db.select({
             id: schema.expenses.id,
             title: schema.expenses.title,
@@ -25,7 +34,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             userId: schema.expenses.userId,
             expenseDate: schema.expenses.expenseDate,
             createdAt: schema.expenses.createdAt,
-            receiptUrl: schema.expenses.receiptUrl, // Added
+            receiptUrl: schema.expenses.receiptUrl,
             hasReceipt: sql`CASE WHEN ${schema.expenses.receiptUrl} IS NOT NULL THEN true ELSE false END`,
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
             fundSource: schema.expenses.fundSource
@@ -40,9 +49,10 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             success: true, 
             data: _expenses,
             meta: {
-                total: _expenses.length,
+                total: totalCount,
                 limit,
-                offset
+                offset,
+                page: Math.floor(offset / limit)
             }
         });
     } catch (error) {
