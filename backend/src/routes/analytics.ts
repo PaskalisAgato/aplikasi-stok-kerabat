@@ -6,3 +6,6 @@ export const analyticsRouter = Router();
 
 // Owner Dashboard Endpoint (Owner/Admin Only)
 analyticsRouter.get('/dashboard', requireAuth, AnalyticsController.getDashboardAnalytics);
+analyticsRouter.get('/reports', requireAuth, AnalyticsController.getShiftReports);
+
+export default analyticsRouter;

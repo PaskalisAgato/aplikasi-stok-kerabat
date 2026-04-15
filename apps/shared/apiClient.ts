@@ -369,7 +369,22 @@ export const apiClient = {
     triggerBackup: () => apiFetch<any>('/system/backups/trigger', { method: 'POST' }),
 
     // ---- ANALYTICS & OWNER DASHBOARD ----
-    getAnalyticsDashboard: () => apiFetch<any>('/analytics/dashboard'),
+    getAnalyticsDashboard: (params?: any) => {
+        let url = '/analytics/dashboard';
+        if (params) {
+            const query = new URLSearchParams(params).toString();
+            url += `?${query}`;
+        }
+        return apiFetch<any>(url);
+    },
+    getShiftReports: (params?: any) => {
+        let url = '/analytics/reports';
+        if (params) {
+            const query = new URLSearchParams(params).toString();
+            url += `?${query}`;
+        }
+        return apiFetch<any>(url);
+    },
 
     // ---- GENERIC HELPERS ----
     get: (path: string) => apiFetch<any>(path),

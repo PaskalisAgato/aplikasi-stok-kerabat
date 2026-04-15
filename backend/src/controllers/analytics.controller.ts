@@ -5,38 +5,54 @@ export class AnalyticsController {
     static async getDashboardAnalytics(req: Request, res: Response) {
         try {
             const { date, startDate, endDate } = req.query;
-            
-            // Default to Today in WIB
-            const now = new Date();
-            const jakartaStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
-            let start = new Date(`${jakartaStr}T00:00:00+07:00`);
-            let end = new Date(`${jakartaStr}T23:59:59+07:00`);
+            let start = new Date();
+            let end = new Date();
 
-            if (date === 'yesterday') {
-                const yesterday = new Date(start);
+            if (date === 'today') {
+                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+                start = new Date(`${jakartaDate}T00:00:00+07:00`);
+                end = new Date(`${jakartaDate}T23:59:59+07:00`);
+            } else if (date === 'yesterday') {
+                const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                start = yesterday;
-                const yesterdayEnd = new Date(yesterday);
-                yesterdayEnd.setHours(23, 59, 59, 999);
-                end = yesterdayEnd;
+                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(yesterday);
+                start = new Date(`${jakartaDate}T00:00:00+07:00`);
+                end = new Date(`${jakartaDate}T23:59:59+07:00`);
             } else if (startDate && endDate) {
-                // Parse custom date strings (assuming YYYY-MM-DD)
-                start = new Date(`${startDate}T00:00:00+07:00`);
-                end = new Date(`${endDate}T23:59:59+07:00`);
+                start = new Date(startDate as string);
+                end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
             }
 
             const data = await AnalyticsService.getDashboardAnalytics({ start, end });
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Gagal memuat data dashboard' });
+        }
+    }
 
-            res.json({
-                success: true,
-                data
-            });
-        } catch (error: any) {
-            console.error('[AnalyticsController] Error fetching dashboard diagnostics:', error);
-            res.status(500).json({ 
-                success: false, 
-                message: error.message || 'Gagal memuat data dashboard.' 
-            });
+    static async getShiftReports(req: Request, res: Response) {
+        try {
+            const { startDate, endDate } = req.query;
+            let start = new Date();
+            let end = new Date();
+
+            if (startDate && endDate) {
+                start = new Date(startDate as string);
+                end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
+            } else {
+                // Default to last 7 days
+                start.setDate(start.getDate() - 7);
+                start.setHours(0, 0, 0, 0);
+            }
+
+            const data = await AnalyticsService.getShiftReports({ start, end });
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Gagal memuat laporan harian' });
         }
     }
 }

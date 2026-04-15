@@ -335,6 +335,73 @@ export class AnalyticsService {
                     .limit(5)
             }
         };
+    /**
+     * Detailed Shift-based Daily Reports for Owner
+     */
+    static async getShiftReports(range: { start: Date; end: Date }) {
+        const { start, end } = range;
+
+        const reports = await db.select({
+            id: schema.shifts.id,
+            startTime: schema.shifts.startTime,
+            endTime: schema.shifts.endTime,
+            initialCash: schema.shifts.initialCash,
+            closingCash: schema.shifts.actualCash,
+            status: schema.shifts.status,
+            cashierName: schema.users.name,
+            totalSales: sql<number>`COALESCE((
+                SELECT SUM(CAST(total_amount AS DECIMAL)) 
+                FROM sales 
+                WHERE shift_id = ${schema.shifts.id} 
+                    AND is_voided = false 
+                    AND is_deleted = false 
+                    AND status = 'PAID'
+            ), 0)`,
+            totalExpenses: sql<number>`COALESCE((
+                SELECT SUM(CAST(amount AS DECIMAL)) 
+                FROM expenses 
+                WHERE shift_id = ${schema.shifts.id} 
+                    AND is_deleted = false
+            ), 0)`,
+            transactionCount: sql<number>`(
+                SELECT COUNT(*) 
+                FROM sales 
+                WHERE shift_id = ${schema.shifts.id} 
+                    AND is_deleted = false 
+                    AND status = 'PAID'
+            )`
+        })
+        .from(schema.shifts)
+        .innerJoin(schema.users, eq(schema.shifts.userId, schema.users.id))
+        .where(and(
+            gte(schema.shifts.startTime, start),
+            lte(schema.shifts.startTime, end)
+        ))
+        .orderBy(desc(schema.shifts.startTime));
+
+        return reports.map(r => {
+            const initial = Number(r.initialCash || 0);
+            const sales = Number(r.totalSales || 0);
+            const expenses = Number(r.totalExpenses || 0);
+            
+            const cashDrawer = initial + sales - expenses;
+            const profit = sales - expenses;
+
+            return {
+                id: r.id,
+                date: new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(r.startTime)),
+                startTime: new Date(r.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                endTime: r.endTime ? new Date(r.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Masih Berjalan',
+                initialCash: initial,
+                totalSales: sales,
+                totalExpenses: expenses,
+                cashDrawer: cashDrawer,
+                profit: profit,
+                status: r.status,
+                cashierName: r.cashierName,
+                totalTransactions: Number(r.transactionCount || 0)
+            };
+        });
     }
 }
 

@@ -5,6 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area 
 } from 'recharts';
+import DailyReportCard from './components/DailyReportCard';
 
 const COLORS = ['#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
 
@@ -13,6 +14,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('today');
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
+  const [reports, setReports] = useState([]);
+  const [isReportsLoading, setIsReportsLoading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -23,11 +26,48 @@ function App() {
       
       const response = await apiClient.getAnalyticsDashboard(params);
       setData(response.data);
+      
+      // Fetch shift reports separately
+      fetchReports();
     } catch (error) {
       console.error('Failed to fetch analytics', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchReports = async () => {
+    try {
+      setIsReportsLoading(true);
+      const range = dateFilter === 'custom'
+        ? { startDate: customRange.start, endDate: customRange.end }
+        : dateFilter === 'today'
+          ? { startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] }
+          : { startDate: new Date(Date.now() - 86400000).toISOString().split('T')[0], endDate: new Date(Date.now() - 86400000).toISOString().split('T')[0] };
+
+      const response = await apiClient.getShiftReports(range);
+      setReports(response.data);
+    } catch (error) {
+      console.error('Failed to fetch reports', error);
+    } finally {
+      setIsReportsLoading(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    if (reports.length === 0) return;
+    const headers = ['Tanggal', 'Kasir', 'Mulai', 'Penjualan', 'Pengeluaran', 'Laci Kasir', 'Profit', 'Transaksi'];
+    const rows = reports.map(r => [
+      r.date, r.cashierName, r.initialCash, r.totalSales, r.totalExpenses, r.cashDrawer, r.profit, r.totalTransactions
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Laporan_Harian_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
   };
 
   useEffect(() => {
@@ -299,6 +339,45 @@ function App() {
                     ))}
                     {expenses.recent.length === 0 && <p className="col-span-5 text-center py-10 opacity-20 text-[10px] uppercase font-bold">Tidak ada pengeluaran</p>}
                  </div>
+              </div>
+
+              {/* 6. DAILY REPORTS SECTION (THE SHIFT HISTORY STYLE) */}
+              <div className="lg:col-span-12 space-y-8 mt-10">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div>
+                          <h2 className="text-2xl font-black tracking-tight text-white uppercase">Laporan Penjualan Harian</h2>
+                          <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                          <button 
+                            onClick={exportToCSV}
+                            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all border border-white/5"
+                          >
+                              <span className="material-symbols-outlined text-sm text-primary">download</span>
+                              Export CSV
+                          </button>
+                      </div>
+                  </div>
+
+                  <div className="space-y-6">
+                      {isReportsLoading ? (
+                          <div className="col-span-full py-20 flex flex-col items-center justify-center opacity-40">
+                              <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4"></div>
+                              <p className="text-[9px] font-black uppercase tracking-widest">Memuat Laporan...</p>
+                          </div>
+                      ) : (
+                          reports.map((report) => (
+                              <DailyReportCard key={report.id} report={report} />
+                          ))
+                      )}
+                      
+                      {!isReportsLoading && reports.length === 0 && (
+                          <div className="py-20 bg-white/5 rounded-[2.5rem] border border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
+                              <span className="material-symbols-outlined text-4xl opacity-10 mb-4">history</span>
+                              <p className="text-xs font-black text-white/20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
+                          </div>
+                      )}
+                  </div>
               </div>
 
             </div>
