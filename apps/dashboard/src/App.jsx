@@ -71,7 +71,7 @@ function App() {
     if (!window.confirm('Apakah Anda yakin ingin menghapus laporan shift ini? Tindakan ini tidak dapat dibatalkan.')) return;
     
     try {
-      await apiClient.deleteShift(id);
+      await apiClient.deleteCashierShift(id);
       setReports(prev => prev.filter(r => r.id !== id));
       // Also refresh dashboard data since sales might be affected if shift was active
       fetchData();

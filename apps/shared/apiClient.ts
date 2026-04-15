@@ -338,6 +338,7 @@ export const apiClient = {
         apiFetch<any>(`/cashier-shifts/close/${id}`, { method: 'POST', body: JSON.stringify(data) }),
     handoverCashierShift: (data: { currentShiftId: number; cashAmount: number; nextCashierName: string; adminPin: string }) =>
         apiFetch<any>('/cashier-shifts/handover', { method: 'POST', body: JSON.stringify(data) }),
+    deleteCashierShift: (id: number) => apiFetch<any>(`/cashier-shifts/${id}`, { method: 'DELETE' }),
 
     // ---- ATTENDANCE ----
     getTodayAttendance: () => apiFetch<any>('/attendance/today'),

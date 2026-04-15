@@ -66,4 +66,19 @@ export class CashierShiftController {
             res.status(400).json({ success: false, message: error.message });
         }
     }
+
+    static async deleteShift(req: Request, res: Response) {
+        try {
+            const currentUserId = (req as any).user?.id;
+            const id = parseInt(req.params.id as string);
+            
+            if (!currentUserId) return res.status(401).json({ error: 'Unauthorized' });
+            if (isNaN(id)) return res.status(400).json({ error: 'Invalid shift ID' });
+
+            const result = await CashierShiftService.deleteShift(id, currentUserId);
+            res.json({ success: true, data: result });
+        } catch (error: any) {
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
 }

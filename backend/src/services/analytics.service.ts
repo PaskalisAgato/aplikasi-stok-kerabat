@@ -385,7 +385,8 @@ export class AnalyticsService {
         .innerJoin(schema.users, eq(schema.shifts.userId, schema.users.id))
         .where(and(
             gte(schema.shifts.startTime, start),
-            lte(schema.shifts.startTime, end)
+            lte(schema.shifts.startTime, end),
+            eq(schema.shifts.isDeleted, false)
         ))
         .orderBy(desc(schema.shifts.startTime));
 

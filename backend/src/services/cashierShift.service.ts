@@ -291,4 +291,26 @@ export class CashierShiftService {
             return newShift;
         });
     }
+
+    static async deleteShift(id: number, currentUserId: string) {
+        const [oldShift] = await db.select().from(schema.shifts).where(eq(schema.shifts.id, id)).limit(1);
+        if (!oldShift) throw new Error('Shift tidak ditemukan.');
+
+        const [updatedShift] = await db.update(schema.shifts)
+            .set({ isDeleted: true })
+            .where(eq(schema.shifts.id, id))
+            .returning();
+
+        if (updatedShift) {
+            await db.insert(schema.auditLogs).values({
+                userId: currentUserId,
+                action: `DELETE_CASHIER_SHIFT ID: ${id}`,
+                tableName: 'shifts',
+                oldData: JSON.stringify(oldShift),
+                createdAt: new Date()
+            });
+        }
+
+        return updatedShift;
+    }
 }

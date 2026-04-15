@@ -170,9 +170,11 @@ export const shifts = pgTable('shifts', {
     totalSalesCount: integer('total_sales_count').default(0).notNull(),
     totalItemsSold: integer('total_items_sold').default(0).notNull(),
     ledgerSnapshot: text('ledger_snapshot'), // New: Immutable JSON snapshot of accounting state at closing
+    isDeleted: boolean('is_deleted').default(false).notNull(),
 }, (t: any) => ({
     userIdx: index('shifts_user_idx').on(t.userId),
-    statusIdx: index('shifts_status_idx').on(t.status)
+    statusIdx: index('shifts_status_idx').on(t.status),
+    isDeletedIdx: index('shifts_is_deleted_idx').on(t.isDeleted)
 }));
 
 export const sales = pgTable('sales', {

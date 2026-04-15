@@ -10,5 +10,6 @@ router.get('/active', CashierShiftController.getActiveShift);
 router.post('/open', CashierShiftController.openShift);
 router.get('/summary/:id', CashierShiftController.getShiftSummary);
 router.post('/close/:id', CashierShiftController.closeShift);
+router.delete('/:id', CashierShiftController.deleteShift);
 
 export { router as cashierShiftRoutes };
