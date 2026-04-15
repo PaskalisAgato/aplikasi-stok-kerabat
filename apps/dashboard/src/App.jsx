@@ -70,18 +70,47 @@ function App() {
 
   const exportToCSV = () => {
     if (reports.length === 0) return;
-    const headers = ['Tanggal', 'Kasir', 'Mulai', 'Penjualan', 'Pengeluaran', 'Laci Kasir', 'Profit', 'Transaksi'];
+    const headers = ['Tanggal', 'Periode', 'Kasir', 'Status', 'Mulai', 'Penjualan', 'Pengeluaran', 'Laci Kasir', 'Profit', 'Transaksi'];
+    
     const rows = reports.map(r => [
-      r.date, r.cashierName, r.initialCash, r.totalSales, r.totalExpenses, r.cashDrawer, r.profit, r.totalTransactions
+      r.date, 
+      `${r.startTime}-${r.endTime}`,
+      r.cashierName,
+      r.status,
+      r.initialCash,
+      r.totalSales,
+      r.totalExpenses,
+      r.cashDrawer,
+      r.profit,
+      r.totalTransactions
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
-    const encodedUri = encodeURI(csvContent);
+
+    // Format fields: escape quotes and wrap in quotes if contains comma
+    const formatCSVField = (val) => {
+      if (val === null || val === undefined) return '';
+      const str = val.toString();
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [
+      headers.map(formatCSVField).join(','),
+      ...rows.map(row => row.map(formatCSVField).join(','))
+    ].join('\n');
+
+    // Add UTF-8 BOM for Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Laporan_Harian_${new Date().toISOString().split('T')[0]}.csv`);
+    link.href = url;
+    link.setAttribute("download", `Laporan_Harian_Kerabat_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
