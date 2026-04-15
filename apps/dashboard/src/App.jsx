@@ -158,15 +158,16 @@ function App() {
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
-        <div className="flex flex-col gap-6 bg-white/5 p-5 rounded-[2rem] border border-white/5 shadow-2xl">
-          <div className="flex flex-row justify-between items-center gap-4">
-            <div className="flex gap-2 p-1 bg-black/20 rounded-lg overflow-x-auto">
+        <div className="flex flex-col gap-4 bg-white/5 p-4 rounded-[2.5rem] border border-white/5 shadow-2xl">
+          {/* Top Row: Preset Selection & Main Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 overflow-x-auto">
               {['today', 'yesterday', 'custom'].map((f) => (
                 <button
                   key={f}
                   onClick={() => setDateFilter(f)}
-                  className={`px-3 py-1.5 rounded-md text-[13px] font-bold transition-all min-w-[80px] ${
-                    dateFilter === f ? 'bg-primary text-slate-950' : 'text-white/40 hover:text-white'
+                  className={`px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all min-w-[90px] ${
+                    dateFilter === f ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20' : 'text-white/40 hover:text-white'
                   }`}
                 >
                   {f === 'today' ? 'Hari Ini' : f === 'yesterday' ? 'Kemarin' : 'Kustom'}
@@ -177,30 +178,36 @@ function App() {
             <button 
                onClick={fetchData}
                disabled={isLoading}
-               className={`size-9 rounded-md bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
+               className={`size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all shrink-0 active:scale-95 ${isLoading ? 'opacity-50' : ''}`}
+               title="Refresh Data"
              >
-               <span className={`material-symbols-outlined text-lg ${isLoading ? 'animate-spin text-primary' : 'text-white/60'}`}>sync</span>
+               <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-white/60'}`}>sync</span>
              </button>
           </div>
 
+          {/* Bottom Row: Custom Date Range (Conditional) */}
           {dateFilter === 'custom' && (
-            <div className="flex flex-row items-center gap-2 animate-in slide-in-from-top-4 p-4 bg-black/20 rounded-2xl border border-white/5">
-              <div className="flex-1 flex flex-row items-center gap-2">
+            <div className="flex flex-row items-center gap-2 animate-in slide-in-from-top-4 p-3 bg-black/40 rounded-2xl border border-white/5">
+              <div className="flex-1 flex flex-row items-center gap-1.5 min-w-0">
                 <input 
                   type="date" 
-                  className="bg-black/40 border border-white/10 rounded-md px-2 py-0 h-9 text-[12px] font-bold text-white outline-none focus:border-primary min-w-0 flex-1 md:max-w-[200px]"
+                  className="bg-black/60 border border-white/10 rounded-lg px-2 h-9 text-[11px] font-bold text-white outline-none focus:border-primary w-full md:max-w-[160px] cursor-pointer"
                   value={customRange.start}
                   onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
                 />
-                <span className="text-[10px] font-black uppercase opacity-30 px-1">to</span>
+                <span className="text-[9px] font-black uppercase opacity-20 px-0.5 shrink-0">to</span>
                 <input 
                   type="date" 
-                  className="bg-black/40 border border-white/10 rounded-md px-2 py-0 h-9 text-[12px] font-bold text-white outline-none focus:border-primary min-w-0 flex-1 md:max-w-[200px]"
+                  className="bg-black/60 border border-white/10 rounded-lg px-2 h-9 text-[11px] font-bold text-white outline-none focus:border-primary w-full md:max-w-[160px] cursor-pointer"
                   value={customRange.end}
                   onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
                 />
               </div>
-              <button onClick={fetchData} className="size-9 bg-primary text-slate-950 rounded-md flex items-center justify-center hover:bg-primary/80 transition-all shrink-0 shadow-lg shadow-primary/10">
+              <button 
+                onClick={fetchData} 
+                title="Search Filter"
+                className="size-9 bg-primary text-slate-950 rounded-lg flex items-center justify-center hover:bg-primary/80 transition-all shrink-0 shadow-lg shadow-primary/20 active:scale-95"
+              >
                   <span className="material-symbols-outlined text-lg font-black">search</span>
               </button>
             </div>
