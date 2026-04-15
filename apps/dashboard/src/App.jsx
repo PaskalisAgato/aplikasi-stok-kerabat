@@ -1,193 +1,329 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, AreaChart, Area 
+} from 'recharts';
+
+const COLORS = ['#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
 
 function App() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('today');
+  const [customRange, setCustomRange] = useState({ start: '', end: '' });
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const params = dateFilter === 'custom' 
+        ? { startDate: customRange.start, endDate: customRange.end }
+        : { date: dateFilter };
+      
+      const response = await apiClient.getAnalyticsDashboard(params);
+      setData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch analytics', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.getAnalyticsDashboard();
-        setData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch analytics', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchData();
-    const interval = setInterval(fetchData, 30000); // 30s auto-refresh
+    const interval = setInterval(fetchData, 60000); // 1-minute auto-refresh
     return () => clearInterval(interval);
-  }, []);
+  }, [dateFilter]);
 
   const summary = data?.summary || {};
-  const monitoring = data?.monitoring || { activeShifts: [], riskIndicator: {} };
-  const ranking = data?.ranking || [];
-  const recentSales = data?.recentSales || [];
+  const hourlySales = data?.hourlySales || [];
+  const topProducts = data?.topProducts || [];
+  const paymentMethods = data?.paymentMethods || [];
+  const cashierPerformance = data?.cashierPerformance || [];
+  const alerts = data?.alerts || [];
+  const expenses = data?.expenses || { total: 0, recent: [] };
+
+  // Prepare chart data
+  const chartData = Array.from({ length: 24 }).map((_, i) => {
+    const found = hourlySales.find(h => parseInt(h.hour) === i);
+    return {
+      hour: `${i}:00`,
+      total: found ? parseFloat(found.total) : 0
+    };
+  });
+
+  const pieData = paymentMethods.map(pm => ({
+    name: pm.method,
+    value: parseFloat(pm.total)
+  }));
 
   return (
-    <Layout currentPort={5173} title="Owner Dashboard" subtitle="Real-time Business Control">
-      {isLoading && !data ? (
-        <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-           <span className="material-symbols-outlined text-primary text-5xl mb-4">monitoring</span>
-           <p className="text-xs font-black uppercase tracking-widest text-primary">Memuat Analisis Real-time...</p>
-        </div>
-      ) : (
-        <div className="space-y-8 animate-in fade-in duration-500">
-          
-          {/* A. DAILY SUMMARY */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <SummaryCard title="Total Revenue" value={summary.revenue} icon="payments" color="text-primary" />
-            <SummaryCard title="Cash in Drawer" value={summary.cash} icon="account_balance_wallet" color="text-emerald-500" />
-            <SummaryCard title="Non-Cash (QRIS/EDC)" value={summary.nonCash} icon="qr_code_2" color="text-blue-500" />
-            <SummaryCard title="Operational Exp" value={summary.expenses} icon="shopping_bag" color="text-red-500" />
-            <SummaryCard title="Net Profit (Gross)" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight />
+    <Layout currentPort={5173} title="Enterprise Dashboard" subtitle="Data-Driven Business Control">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        
+        {/* HEADER: Filter & Refresh */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/5">
+          <div className="flex gap-2 p-1 bg-black/20 rounded-2xl">
+            {['today', 'yesterday', 'custom'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setDateFilter(f)}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  dateFilter === f ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20' : 'text-white/40 hover:text-white'
+                }`}
+              >
+                {f === 'today' ? 'Hari Ini' : f === 'yesterday' ? 'Kemarin' : 'Kustom'}
+              </button>
+            ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* B. SHIFT MONITORING & RISK */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="card-glass border border-white/5 p-6 rounded-3xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-black uppercase tracking-widest text-xs opacity-60">Status Shift Aktif</h3>
-                  {monitoring.riskIndicator.fraudAlarms > 0 && (
-                     <div className="bg-red-500 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1">
-                       <span className="material-symbols-outlined text-xs">warning</span>
-                       {monitoring.riskIndicator.fraudAlarms} FRAUD DETECTED
-                     </div>
-                  )}
-                </div>
-                
-                <div className="space-y-3">
-                  {monitoring.activeShifts.length === 0 ? (
-                    <div className="text-center py-10 opacity-30 text-[10px] uppercase font-black tracking-widest">Tidak ada shift aktif</div>
-                  ) : monitoring.activeShifts.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between bg-white/5 border border-white/5 p-4 rounded-2xl hover:bg-white/10 transition-all">
-                       <div className="flex items-center gap-4">
-                         <div className="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                           <span className="material-symbols-outlined">person</span>
-                         </div>
-                         <div>
-                           <p className="font-black text-white uppercase text-xs">{s.cashier}</p>
-                           <p className="text-[10px] text-[var(--text-muted)]">Mulai: {new Date(s.startTime).toLocaleTimeString()}</p>
-                         </div>
-                       </div>
-                       <div className="text-right">
-                         <p className="text-[10px] font-bold text-primary">Rp {parseFloat(s.initialCash).toLocaleString()} (Modal)</p>
-                         <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase">Online</span>
-                       </div>
-                    </div>
-                  ))}
-                </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {dateFilter === 'custom' && (
+              <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
+                <input 
+                  type="date" 
+                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+                  value={customRange.start}
+                  onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
+                />
+                <span className="text-xs opacity-40">s/d</span>
+                <input 
+                  type="date" 
+                  className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-primary"
+                  value={customRange.end}
+                  onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
+                />
+                <button onClick={fetchData} className="size-10 bg-primary text-slate-950 rounded-xl flex items-center justify-center hover:scale-105 transition-all">
+                  <span className="material-symbols-outlined font-black">search</span>
+                </button>
               </div>
+            )}
+            <button 
+              onClick={fetchData}
+              disabled={isLoading}
+              className={`size-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all ${isLoading ? 'animate-spin opacity-50' : ''}`}
+            >
+              <span className="material-symbols-outlined text-xl">refresh</span>
+            </button>
+          </div>
+        </div>
 
-              {/* D. NEW: DAILY SALES LIST (REAL-TIME REPORT) */}
-              <div className="card-glass border border-white/5 p-6 rounded-3xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-black uppercase tracking-widest text-xs opacity-60">Laporan Penjualan Hari Ini</h3>
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase">Real-time</span>
-                </div>
-                
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-white/5 text-[10px] uppercase font-black tracking-widest opacity-40">
-                                <th className="pb-4">Waktu</th>
-                                <th className="pb-4">Kasir</th>
-                                <th className="pb-4">No. Meja/Pelanggan</th>
-                                <th className="pb-4">Total</th>
-                                <th className="pb-4">Metode</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {recentSales.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="py-10 text-center opacity-20 text-[10px] uppercase font-black tracking-widest">Belum ada transaksi hari ini</td>
-                                </tr>
-                            ) : recentSales.map((sale) => (
-                                <tr key={sale.id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="py-4 text-xs font-bold whitespace-nowrap opacity-60">
-                                        {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </td>
-                                    <td className="py-4 text-xs font-black uppercase">{sale.cashier}</td>
-                                    <td className="py-4 text-xs opacity-80">{sale.customerInfo || '-'}</td>
-                                    <td className="py-4 text-xs font-black text-white">Rp {parseFloat(sale.totalAmount).toLocaleString()}</td>
-                                    <td className="py-4">
-                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                                            sale.paymentMethod === 'CASH' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'
-                                        }`}>
-                                            {sale.paymentMethod}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-              </div>
-
-              {/* RISK INDICATORS (RED FLAGS) */}
-              {(monitoring.riskIndicator.fraudAlarms > 0) && (
-                <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-3xl space-y-4">
-                    <h3 className="text-red-500 font-black uppercase text-xs tracking-widest flex items-center gap-2">
-                      <span className="material-symbols-outlined">report</span>
-                      Indikator Risiko Kritis
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {monitoring.riskIndicator.fraudAlarms > 0 && (
-                        <div className="bg-red-500 p-4 rounded-2xl text-white">
-                          <p className="text-[10px] font-black uppercase opacity-80">Alat Deteksi Fraud</p>
-                          <p className="text-xl font-black">{monitoring.riskIndicator.fraudAlarms} Upaya Manipulasi Harga</p>
-                          <p className="text-[9px] font-medium mt-1">Sistem otomatis memblokir transaksi ini.</p>
-                        </div>
-                      )}
-                    </div>
-                </div>
-              )}
+        {isLoading && !data ? (
+           <div className="flex flex-col items-center justify-center py-40">
+              <div className="size-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-6"></div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Menganalisis Data Perusahaan...</p>
+           </div>
+        ) : (
+          <>
+            {/* 1. SUMMARY CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-amber-500" />
+              <SummaryCard title="Total Transaksi" value={summary.totalTransactions} icon="shopping_cart" color="text-blue-500" suffix="Order" noCurrency />
+              <SummaryCard title="Avg. Order" value={summary.avgOrderValue} icon="analytics" color="text-emerald-500" />
+              <SummaryCard title="Total Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-red-500" />
+              <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight />
             </div>
 
-            {/* C. CASHIER PERFORMANCE RANKING */}
-            <div className="lg:col-span-4 card-glass border border-white/5 p-6 rounded-3xl overflow-hidden h-fit">
-              <h3 className="font-black uppercase tracking-widest text-xs opacity-60 mb-6">Peringkat Kasir</h3>
-              <div className="space-y-4">
-                {ranking.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xl font-black ${i === 0 ? 'text-primary' : 'opacity-20'}`}># {i + 1}</span>
-                      <div>
-                        <p className="text-[11px] font-black text-white uppercase">{c.name}</p>
-                        <p className="text-[9px] text-[var(--text-muted)] font-bold">{c.voidCount} Void</p>
-                      </div>
-                    </div>
-                    <p className="text-xs font-black text-white">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* 2. MAIN CHART: HOURLY SALES */}
+              <div className="lg:col-span-8 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+                <div className="flex justify-between items-center mb-10">
+                  <div>
+                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40">Tren Penjualan Per Jam</h3>
+                    <p className="text-[10px] font-bold text-primary mt-1">Berdasarkan Total Transaksi (WIB)</p>
                   </div>
-                ))}
+                </div>
+                <div className="h-[350px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis 
+                        dataKey="hour" 
+                        stroke="#ffffff20" 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        dy={10}
+                      />
+                      <YAxis 
+                        stroke="#ffffff20" 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tickFormatter={(v) => `Rp ${v/1000}k`}
+                      />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }}
+                        itemStyle={{ color: '#fbbf24' }}
+                        formatter={(val) => [`Rp ${val.toLocaleString()}`, 'Penjualan']}
+                      />
+                      <Area type="monotone" dataKey="total" stroke="#fbbf24" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
 
-          </div>
-        </div>
-      )}
+              {/* 3. PAYMENT BREAKDOWN (PIE CHART) */}
+              <div className="lg:col-span-4 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
+                <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 w-full mb-8">Metode Pembayaran</h3>
+                <div className="h-[250px] w-full relative">
+                   <ResponsiveContainer width="100%" height="100%">
+                     <PieChart>
+                       <Pie
+                         data={pieData}
+                         cx="50%"
+                         cy="50%"
+                         innerRadius={60}
+                         outerRadius={80}
+                         paddingAngle={8}
+                         dataKey="value"
+                       >
+                         {pieData.map((entry, index) => (
+                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={4} />
+                         ))}
+                       </Pie>
+                       <Tooltip 
+                         contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '10px' }}
+                       />
+                     </PieChart>
+                   </ResponsiveContainer>
+                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <div className="text-center">
+                        <p className="text-[10px] uppercase font-black opacity-40">Mix</p>
+                        <p className="text-sm font-black text-white">{paymentMethods.length} Cara</p>
+                     </div>
+                   </div>
+                </div>
+                <div className="w-full mt-6 space-y-2">
+                   {pieData.map((d, i) => (
+                     <div key={d.name} className="flex justify-between items-center text-[10px] font-black uppercase">
+                       <div className="flex items-center gap-2">
+                         <div className="size-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                         <span className="opacity-60">{d.name}</span>
+                       </div>
+                       <span>Rp {d.value.toLocaleString()}</span>
+                     </div>
+                   ))}
+                </div>
+              </div>
+
+              {/* 4. TOP PRODUCTS & CASHIER PERFORMANCE */}
+              <div className="lg:col-span-8 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 mb-8">5 Produk Terlaris</h3>
+                 <div className="space-y-6">
+                    {topProducts.map((p, i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="flex justify-between items-end text-xs">
+                          <p className="font-black text-white uppercase">{p.name}</p>
+                          <p className="text-primary font-black uppercase tracking-tighter">{p.totalQty} terjual</p>
+                        </div>
+                        <div className="h-3 bg-white/5 rounded-full overflow-hidden flex">
+                          <div 
+                            className="bg-primary h-full transition-all duration-1000" 
+                            style={{ width: `${(p.totalQty / topProducts[0].totalQty) * 100}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-[10px] font-bold opacity-40 text-right">Revenue: Rp {parseFloat(p.totalRevenue).toLocaleString()}</p>
+                      </div>
+                    ))}
+                    {topProducts.length === 0 && <p className="text-center py-10 opacity-20 text-[10px] uppercase font-bold">Belum ada data penjualan</p>}
+                 </div>
+              </div>
+
+              <div className="lg:col-span-4 space-y-6">
+                  {/* CASHIER RANKING */}
+                  <div className="bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 mb-6">Performa Kasir</h3>
+                    <div className="space-y-4">
+                      {cashierPerformance.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xl font-black ${i === 0 ? 'text-primary' : 'opacity-20'}`}># {i + 1}</span>
+                            <p className="text-[11px] font-black text-white uppercase">{c.name}</p>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-xs font-black text-white">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
+                             <p className="text-[9px] font-bold text-primary">{c.transactionCount} Tx</p>
+                          </div>
+                        </div>
+                      ))}
+                      {cashierPerformance.length === 0 && <p className="text-center py-6 opacity-20 text-[10px] uppercase font-bold">Data tidak tersedia</p>}
+                    </div>
+                  </div>
+
+                  {/* ALERT CENTER (CRITICAL ANOMALIES) */}
+                  <div className="bg-[#0f172a] border border-red-500/20 rounded-[2.5rem] p-8 bg-red-500/5">
+                     <h3 className="font-black uppercase tracking-[0.2em] text-xs text-red-500 mb-6 flex items-center gap-2">
+                       <span className="material-symbols-outlined text-base">report</span>
+                       Laporan Anomali
+                     </h3>
+                     <div className="space-y-4">
+                        {alerts.length === 0 ? (
+                          <div className="text-center py-6 opacity-40 flex flex-col items-center gap-2">
+                             <span className="material-symbols-outlined text-3xl">verified</span>
+                             <p className="text-[9px] font-black uppercase tracking-widest">Operasional Aman</p>
+                          </div>
+                        ) : alerts.map((a, i) => (
+                          <div key={i} className={`p-4 rounded-2xl border ${a.type === 'VOID' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                             <p className="text-[10px] font-black text-white leading-tight">{a.message}</p>
+                             <p className="text-[9px] opacity-60 mt-2 italic">Ket: {a.detail}</p>
+                             <p className="text-[8px] font-black uppercase tracking-tighter text-primary mt-1">{new Date(a.time).toLocaleTimeString()}</p>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+              </div>
+
+              {/* 5. RECENT EXPENSES */}
+              <div className="lg:col-span-12 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+                 <div className="flex justify-between items-center mb-8">
+                   <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40">5 Pengeluaran Terbaru</h3>
+                   <span className="text-[11px] font-black text-red-500">Total: Rp {expenses.total.toLocaleString()}</span>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {expenses.recent.map((exp, i) => (
+                      <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase opacity-40 mb-1">{exp.category}</p>
+                         <p className="text-xs font-black text-white truncate">{exp.title}</p>
+                         <p className="text-sm font-black text-red-500 mt-2">Rp {parseFloat(exp.amount).toLocaleString()}</p>
+                         <p className="text-[8px] font-black uppercase tracking-tighter mt-1 opacity-40">{new Date(exp.expenseDate).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                    {expenses.recent.length === 0 && <p className="col-span-5 text-center py-10 opacity-20 text-[10px] uppercase font-bold">Tidak ada pengeluaran</p>}
+                 </div>
+              </div>
+
+            </div>
+          </>
+        )}
+      </div>
     </Layout>
   );
 }
 
-function SummaryCard({ title, value, icon, color, isHighlight }) {
+function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffix }) {
   return (
-    <div className={`p-5 rounded-3xl border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:bg-white/10'}`}>
-      <div className="flex justify-between items-start mb-4">
-        <span className={`material-symbols-outlined ${isHighlight ? 'text-slate-900' : color} text-2xl opacity-80`}>{icon}</span>
-        {isHighlight && <div className="text-[8px] font-black uppercase bg-slate-950/20 px-1.5 py-0.5 rounded">UTAMA</div>}
+    <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-[#0f172a] border-white/5 text-white hover:border-white/20'}`}>
+      <div className="flex justify-between items-start mb-6">
+        <div className={`size-12 rounded-2xl flex items-center justify-center ${isHighlight ? 'bg-slate-950/10' : 'bg-white/5'}`}>
+          <span className={`material-symbols-outlined ${isHighlight ? 'text-slate-900' : color} text-2xl`}>{icon}</span>
+        </div>
+        {isHighlight && <div className="text-[8px] font-black uppercase bg-slate-950/20 px-2 py-1 rounded-full">Primary Metric</div>}
       </div>
       <div>
-        <p className={`text-[10px] font-black uppercase tracking-widest ${isHighlight ? 'text-slate-950/60' : 'opacity-40'}`}>{title}</p>
-        <p className={`text-lg font-black tracking-tight mt-1 ${isHighlight ? 'text-slate-950' : 'text-white'}`}>
-           <span className="text-[10px] mr-0.5">Rp</span>
+        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-slate-950/60' : 'opacity-40'}`}>{title}</p>
+        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-slate-950' : 'text-white'}`}>
+           {!noCurrency && <span className="text-[10px] mr-1 uppercase opacity-60">Rp</span>}
            {parseFloat(value || 0).toLocaleString()}
+           {suffix && <span className="text-[10px] ml-1 uppercase opacity-60">{suffix}</span>}
         </p>
       </div>
     </div>
@@ -195,3 +331,4 @@ function SummaryCard({ title, value, icon, color, isHighlight }) {
 }
 
 export default App;
+

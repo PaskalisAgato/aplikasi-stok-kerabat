@@ -5,4 +5,4 @@ import { requireAuth } from '../middleware/auth.js';
 export const analyticsRouter = Router();
 
 // Owner Dashboard Endpoint (Owner/Admin Only)
-analyticsRouter.get('/dashboard', requireAuth, AnalyticsController.getTodayDashboard);
+analyticsRouter.get('/dashboard', requireAuth, AnalyticsController.getDashboardAnalytics);
