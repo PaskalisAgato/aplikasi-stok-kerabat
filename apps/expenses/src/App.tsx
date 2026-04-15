@@ -18,6 +18,16 @@ interface ExpenseItem {
 
 function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
+  const [page, setPage] = useState(0);
+  const [summary, setSummary] = useState<{ totalExpenses: number; totalTransactions: number } | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const PAGE_SIZE = 20;
+
+  // 1. Initial State from LocalStorage
   const [startDate, setStartDate] = useState(() => {
     const saved = localStorage.getItem('expenseFilter');
     if (saved) {
@@ -29,6 +39,7 @@ function App() {
     const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
+
   const [endDate, setEndDate] = useState(() => {
     const saved = localStorage.getItem('expenseFilter');
     if (saved) {
@@ -41,19 +52,12 @@ function App() {
     return d.toISOString().slice(0, 16);
   });
 
+  // 2. Persist State
   useEffect(() => {
     localStorage.setItem('expenseFilter', JSON.stringify({ startDate, endDate }));
   }, [startDate, endDate]);
 
-  const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
-  const [page, setPage] = useState(0);
-  const [summary, setSummary] = useState<{ totalExpenses: number; totalTransactions: number } | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const PAGE_SIZE = 20;
-
+  // 3. Single Source of Truth Fetching
   const fetchExpenses = async (isLoadMore = false) => {
     try {
         if (!isLoadMore) {
@@ -63,7 +67,6 @@ function App() {
         }
 
         const currentPage = isLoadMore ? page + 1 : 0;
-        console.log(`[ExpensesApp] Fetching: Page ${currentPage}, Start: ${startDate}, End: ${endDate}`);
         
         const response: ApiResponse<any> = await apiClient.getExpenses(
             PAGE_SIZE, 
@@ -74,10 +77,9 @@ function App() {
         
         const { data, summary: responseSummary, meta } = response;
         
-        if (responseSummary) {
-            setSummary(responseSummary);
-        }
-        
+        setSummary(responseSummary || { totalExpenses: 0, totalTransactions: 0 });
+        setHasMore(!!meta?.hasMore);
+
         if (!Array.isArray(data)) {
             if (!isLoadMore) setExpensesList([]);
             return;
@@ -99,7 +101,6 @@ function App() {
         } else {
             setExpensesList(formatted);
         }
-        setHasMore(!!meta?.hasMore);
     } catch (error: any) {
         console.error("Failed fetching expenses", error);
         setErrorMsg(error.message || "Gagal memuat data pengeluaran.");
@@ -108,12 +109,13 @@ function App() {
     }
   };
 
+  // 4. Auto-fetch on date change
   useEffect(() => {
-    fetchExpenses();
-  }, []);
+    fetchExpenses(false);
+  }, [startDate, endDate]);
 
   const handleAddExpense = () => {
-    fetchExpenses();
+    fetchExpenses(false);
   };
 
   const handleEditExpense = (expense: any) => {
@@ -125,7 +127,7 @@ function App() {
     if (!window.confirm('Hapus kartu pengeluaran ini?')) return;
     try {
       await apiClient.deleteExpense(id);
-      fetchExpenses();
+      fetchExpenses(false);
     } catch (error) {
       console.error("Failed to delete expense", error);
       alert("Gagal menghapus data.");
@@ -223,55 +225,50 @@ function App() {
            />
       </div>
 
-      {/* Date Filter Section (Responsive Overhaul) */}
+      {/* Optimized Filter UI (Mobile First) */}
       <div className="glass rounded-[2rem] p-5 md:p-8 mb-10 border border-white/5 space-y-6">
           <div className="flex items-center gap-3 px-2">
               <span className="material-symbols-outlined text-primary font-black">calendar_month</span>
-              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Periode Laporan</p>
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Laporan</p>
           </div>
 
-          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-5 bg-black/20 p-5 md:p-6 rounded-[2rem] border border-white/5">
-              <div className="flex-1 space-y-3">
-                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Dari</label>
+          <div className="flex flex-wrap items-end gap-3 md:gap-4 bg-black/20 p-5 rounded-[2rem] border border-white/5">
+              <div className="flex-1 min-w-[140px] space-y-2">
+                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 opacity-50">Dari</label>
                   <input 
                       type="datetime-local" 
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-[var(--text-main)] focus:border-primary/50 outline-none transition-all"
+                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-[var(--text-main)] outline-none"
                   />
               </div>
 
-              <div className="hidden md:flex items-center pb-5 opacity-30">
-                  <span className="material-symbols-outlined font-black">arrow_forward</span>
-              </div>
-
-              <div className="flex-1 space-y-3">
-                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Sampai</label>
+              <div className="flex-1 min-w-[140px] space-y-2">
+                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 opacity-50">Sampai</label>
                   <input 
                       type="datetime-local" 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-[var(--text-main)] focus:border-primary/50 outline-none transition-all"
+                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-[var(--text-main)] outline-none"
                   />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 min-w-fit">
+              <div className="flex gap-2 w-full md:w-auto">
                   <button 
-                      onClick={() => fetchExpenses()}
-                      className="btn-primary w-full sm:w-auto px-10 py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20"
+                      onClick={() => fetchExpenses(false)}
+                      className="btn-primary flex-1 md:flex-none px-6 py-3 rounded-xl text-[10px] uppercase font-black tracking-widest shadow-lg shadow-primary/10"
                   >
                       Cari
                   </button>
                   <button 
                       onClick={() => {
-                          const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
-                          setStartDate(d.toISOString().slice(0, 16));
-                          const now = new Date(); now.setHours(23,59,59,999);
-                          setEndDate(now.toISOString().slice(0, 16));
                           localStorage.removeItem('expenseFilter');
-                          fetchExpenses();
+                          const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
+                          const now = new Date(); now.setHours(23,59,59,999);
+                          setStartDate(d.toISOString().slice(0, 16));
+                          setEndDate(now.toISOString().slice(0, 16));
                       }}
-                      className="glass w-full sm:w-auto px-8 py-4 rounded-2xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all active:scale-95"
+                      className="glass px-4 py-3 rounded-xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all active:scale-95"
                   >
                       Reset
                   </button>
