@@ -1,5 +1,8 @@
+// @ts-ignore - TS NodeNext resolution workaround
 import { betterAuth } from "better-auth";
+// @ts-ignore
 import { admin } from "better-auth/plugins";
+// @ts-ignore
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db.js";
 import * as schema from "../db/schema.js";

@@ -4,7 +4,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
-import { rateLimit } from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
+// @ts-ignore - TS NodeNext resolution workaround
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
 
@@ -40,11 +41,10 @@ const limiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 100, // limit each IP to 100 requests per windowMs
     message: {
+        status: 429,
         success: false,
         message: 'Terlalu banyak permintaan dari IP ini. Mohon tunggu sebentar.'
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
+    }
 });
 
 const app = express();
