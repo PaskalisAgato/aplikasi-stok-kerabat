@@ -137,7 +137,6 @@ html, body {
 
   /* Multi-line auto-wrap: clamps to 2 lines with ellipsis */
   .text-auto-wrap {
-    line-clamp: 2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -146,7 +145,6 @@ html, body {
   }
 
   .text-auto-wrap-3 {
-    line-clamp: 3;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -193,10 +191,9 @@ html, body {
   }
 }
 
-/* Force standard text scaling to satisfy modern CSS parsers and avoid warnings */
+/* Force standard text scaling */
 html {
   -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 

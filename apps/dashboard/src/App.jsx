@@ -12,14 +12,21 @@ const COLORS = ['#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
 function App() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [dateFilter, setDateFilter] = useState('today');
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [reports, setReports] = useState([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
 
   const fetchData = async () => {
+    // API Call Logic: Don't send request if custom parameters are empty
+    if (dateFilter === 'custom' && (!customRange.start || !customRange.end)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setError(null);
       const params = dateFilter === 'custom' 
         ? { startDate: customRange.start, endDate: customRange.end }
         : { date: dateFilter };
@@ -31,12 +38,17 @@ function App() {
       fetchReports();
     } catch (error) {
       console.error('Failed to fetch analytics', error);
+      setError('Gagal memuat data dashboard. Silakan periksa koneksi internet Anda dan coba lagi.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchReports = async () => {
+    // Prevent call if custom range is incomplete
+    if (dateFilter === 'custom' && (!customRange.start || !customRange.end)) {
+      return;
+    }
     try {
       setIsReportsLoading(true);
       const range = dateFilter === 'custom'
@@ -218,39 +230,46 @@ function App() {
                     <p className="text-[10px] font-bold text-primary mt-1">Berdasarkan Total Transaksi (WIB)</p>
                   </div>
                 </div>
-                <div className="h-[350px] w-full min-w-0">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                      <XAxis 
-                        dataKey="hour" 
-                        stroke="#ffffff20" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        dy={10}
-                      />
-                      <YAxis 
-                        stroke="#ffffff20" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tickFormatter={(v) => `Rp ${v/1000}k`}
-                      />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#fbbf24' }}
-                        formatter={(val) => [`Rp ${val.toLocaleString()}`, 'Penjualan']}
-                      />
-                      <Area type="monotone" dataKey="total" stroke="#fbbf24" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="h-[350px] w-full min-w-0 bg-white/[0.01] rounded-3xl overflow-hidden">
+                  {chartData.some(d => d.total > 0) ? (
+                    <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                        <XAxis 
+                          dataKey="hour" 
+                          stroke="#ffffff20" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          dy={10}
+                        />
+                        <YAxis 
+                          stroke="#ffffff20" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false}
+                          tickFormatter={(v) => `Rp ${v/1000}k`}
+                        />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' }}
+                          itemStyle={{ color: '#fbbf24' }}
+                          formatter={(val) => [`Rp ${val.toLocaleString()}`, 'Penjualan']}
+                        />
+                        <Area type="monotone" dataKey="total" stroke="#fbbf24" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center opacity-20 gap-3">
+                       <span className="material-symbols-outlined text-4xl">monitoring</span>
+                       <p className="text-[10px] font-black uppercase tracking-widest">Belum ada aktivitas penjualan</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -258,30 +277,36 @@ function App() {
               <div className="lg:col-span-4 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 w-full mb-8">Metode Pembayaran</h3>
                 <div className="h-[250px] w-full relative min-w-0">
-                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                     <PieChart>
-                       <Pie
-                         data={pieData}
-                         cx="50%"
-                         cy="50%"
-                         innerRadius={60}
-                         outerRadius={80}
-                         paddingAngle={8}
-                         dataKey="value"
-                       >
-                         {pieData.map((entry, index) => (
-                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={4} />
-                         ))}
-                       </Pie>
-                       <Tooltip 
-                         contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '10px' }}
-                       />
-                     </PieChart>
-                   </ResponsiveContainer>
+                   {pieData.length > 0 ? (
+                     <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                       <PieChart>
+                         <Pie
+                           data={pieData}
+                           cx="50%"
+                           cy="50%"
+                           innerRadius={60}
+                           outerRadius={80}
+                           paddingAngle={8}
+                           dataKey="value"
+                         >
+                           {pieData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={4} />
+                           ))}
+                         </Pie>
+                         <Tooltip 
+                           contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '10px' }}
+                         />
+                       </PieChart>
+                     </ResponsiveContainer>
+                   ) : (
+                      <div className="h-full w-full flex items-center justify-center opacity-10">
+                         <span className="material-symbols-outlined text-5xl">pie_chart</span>
+                      </div>
+                   )}
                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                      <div className="text-center">
                         <p className="text-[10px] uppercase font-black opacity-40">Mix</p>
-                        <p className="text-sm font-black text-white">{paymentMethods.length} Cara</p>
+                        <p className="text-sm font-black text-white">{paymentMethods.length || 0} Cara</p>
                      </div>
                    </div>
                 </div>
