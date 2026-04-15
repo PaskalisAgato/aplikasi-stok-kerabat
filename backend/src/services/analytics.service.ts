@@ -274,7 +274,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, true)
+            eq(schema.sales.isVoided, true),
+            eq(schema.sales.isDeleted, false)
         ))
         .limit(10);
 
@@ -299,6 +300,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.shifts.endTime, start),
             lte(schema.shifts.endTime, end),
+            eq(schema.shifts.isDeleted, false),
             sql`CAST(${schema.shifts.discrepancy} AS DECIMAL) != 0`
         ))
         .limit(5);
