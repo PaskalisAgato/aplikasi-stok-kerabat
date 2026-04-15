@@ -22,9 +22,14 @@ export class AnalyticsController {
                     ranking
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('[AnalyticsController] Error fetching dashboard:', error);
-            res.status(500).json({ success: false, message: 'Gagal memuat data dashboard' });
+            // Return specific error for debugging on production
+            res.status(500).json({ 
+                success: false, 
+                message: `Gagal memuat data dashboard: ${error.message || 'Unknown Error'}`,
+                debug: error.stack?.split('\n')[0]
+            });
         }
     }
 }
