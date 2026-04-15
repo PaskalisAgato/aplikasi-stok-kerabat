@@ -211,12 +211,6 @@ function App() {
                    />
                 </div>
               </div>
-              <button 
-                onClick={fetchData}
-                className="w-full sm:w-14 h-11 bg-primary text-slate-950 rounded-xl flex items-center justify-center hover:bg-primary/80 active:scale-95 transition-all shadow-lg shadow-primary/20"
-              >
-                <span className="material-symbols-outlined text-xl font-black">search</span>
-              </button>
             </div>
           )}
         </div>
