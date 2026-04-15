@@ -26,6 +26,7 @@ function App() {
   const summary = data?.summary || {};
   const monitoring = data?.monitoring || { activeShifts: [], riskIndicator: {} };
   const ranking = data?.ranking || [];
+  const recentSales = data?.recentSales || [];
 
   return (
     <Layout currentPort={5173} title="Owner Dashboard" subtitle="Real-time Business Control">
@@ -84,6 +85,51 @@ function App() {
                 </div>
               </div>
 
+              {/* D. NEW: DAILY SALES LIST (REAL-TIME REPORT) */}
+              <div className="card-glass border border-white/5 p-6 rounded-3xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-black uppercase tracking-widest text-xs opacity-60">Laporan Penjualan Hari Ini</h3>
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase">Real-time</span>
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/5 text-[10px] uppercase font-black tracking-widest opacity-40">
+                                <th className="pb-4">Waktu</th>
+                                <th className="pb-4">Kasir</th>
+                                <th className="pb-4">No. Meja/Pelanggan</th>
+                                <th className="pb-4">Total</th>
+                                <th className="pb-4">Metode</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {recentSales.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="py-10 text-center opacity-20 text-[10px] uppercase font-black tracking-widest">Belum ada transaksi hari ini</td>
+                                </tr>
+                            ) : recentSales.map((sale) => (
+                                <tr key={sale.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="py-4 text-xs font-bold whitespace-nowrap opacity-60">
+                                        {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </td>
+                                    <td className="py-4 text-xs font-black uppercase">{sale.cashier}</td>
+                                    <td className="py-4 text-xs opacity-80">{sale.customerInfo || '-'}</td>
+                                    <td className="py-4 text-xs font-black text-white">Rp {parseFloat(sale.totalAmount).toLocaleString()}</td>
+                                    <td className="py-4">
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                                            sale.paymentMethod === 'CASH' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'
+                                        }`}>
+                                            {sale.paymentMethod}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+
               {/* RISK INDICATORS (RED FLAGS) */}
               {(monitoring.riskIndicator.fraudAlarms > 0) && (
                 <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-3xl space-y-4">
@@ -105,7 +151,7 @@ function App() {
             </div>
 
             {/* C. CASHIER PERFORMANCE RANKING */}
-            <div className="lg:col-span-4 card-glass border border-white/5 p-6 rounded-3xl">
+            <div className="lg:col-span-4 card-glass border border-white/5 p-6 rounded-3xl overflow-hidden h-fit">
               <h3 className="font-black uppercase tracking-widest text-xs opacity-60 mb-6">Peringkat Kasir</h3>
               <div className="space-y-4">
                 {ranking.map((c, i) => (

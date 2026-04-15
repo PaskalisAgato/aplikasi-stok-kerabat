@@ -67,8 +67,6 @@ export class AnalyticsService {
         // Cash in drawer = Modal + Penjualan Tunai - Pengeluaran
         const currentCashInDrawer = initialCash + cashSales - expenses;
 
-        console.log(`[Analytics] Daily summary processed. Revenue: ${revenue}, CashInDrawer: ${currentCashInDrawer}`);
-
         return {
             revenue,
             cash: currentCashInDrawer,
@@ -77,6 +75,33 @@ export class AnalyticsService {
             grossProfit,
             netCash: currentCashInDrawer
         };
+    }
+
+    /**
+     * Recent transactions from today
+     */
+    static async getTodayRecentSales(limit = 10) {
+        const now = new Date();
+        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now); 
+        const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
+
+        return await db.select({
+            id: schema.sales.id,
+            totalAmount: schema.sales.totalAmount,
+            paymentMethod: schema.sales.paymentMethod,
+            customerInfo: schema.sales.customerInfo,
+            status: schema.sales.status,
+            createdAt: schema.sales.createdAt,
+            cashier: schema.users.name
+        })
+        .from(schema.sales)
+        .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+        .where(and(
+            gte(schema.sales.createdAt, todayStart),
+            eq(schema.sales.isDeleted, false)
+        ))
+        .orderBy(desc(schema.sales.createdAt))
+        .limit(limit);
     }
 
     /**

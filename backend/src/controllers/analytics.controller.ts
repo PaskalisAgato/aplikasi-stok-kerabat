@@ -7,28 +7,22 @@ export class AnalyticsController {
             const summary = await AnalyticsService.getDailySummary();
             const monitoring = await AnalyticsService.getShiftMonitoring();
             const ranking = await AnalyticsService.getCashierPerformance();
-
-            console.log(`[Analytics] Sending Dashboard Data:`, { 
-                revenue: summary.revenue, 
-                cash: summary.cash, 
-                activeShifts: monitoring.activeShifts.length 
-            });
+            const recentSales = await AnalyticsService.getTodayRecentSales(20);
 
             res.json({
                 success: true,
                 data: {
                     summary,
                     monitoring,
-                    ranking
+                    ranking,
+                    recentSales
                 }
             });
         } catch (error: any) {
             console.error('[AnalyticsController] Error fetching dashboard:', error);
-            // Return specific error for debugging on production
             res.status(500).json({ 
                 success: false, 
-                message: `Gagal memuat data dashboard: ${error.message || 'Unknown Error'}`,
-                debug: error.stack?.split('\n')[0]
+                message: 'Gagal memuat data dashboard. Silakan coba beberapa saat lagi.' 
             });
         }
     }
