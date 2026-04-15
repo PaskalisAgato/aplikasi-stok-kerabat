@@ -18,11 +18,23 @@ interface ExpenseItem {
 
 function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(1); // Default to start of month
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString().slice(0, 16);
+  });
+
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
   const [page, setPage] = useState(0);
-  const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
+  const [summary, setSummary] = useState<{ totalExpenses: number; totalTransactions: number }>({ totalExpenses: 0, totalTransactions: 0 });
   const [hasMore, setHasMore] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const PAGE_SIZE = 20;
@@ -36,11 +48,20 @@ function App() {
         }
 
         const currentPage = isLoadMore ? page + 1 : 0;
-        console.log(`[ExpensesApp] Fetching expenses: Page ${currentPage}, Limit ${PAGE_SIZE}`);
-        const response: ApiResponse<any> = await apiClient.getExpenses(PAGE_SIZE, currentPage * PAGE_SIZE);
-        const { data, meta: responseMeta } = response;
-        console.log(`[ExpensesApp] Success: Received ${data?.length || 0} items. Total available: ${responseMeta.total}`);
-        if (responseMeta.page !== undefined) setMeta({ page: responseMeta.page, limit: responseMeta.limit, total: responseMeta.total });
+        console.log(`[ExpensesApp] Fetching: Page ${currentPage}, Start: ${startDate}, End: ${endDate}`);
+        
+        const response: ApiResponse<any> = await apiClient.getExpenses(
+            PAGE_SIZE, 
+            currentPage * PAGE_SIZE,
+            startDate,
+            endDate
+        );
+        
+        const { data, summary: responseSummary, meta } = response;
+        
+        if (responseSummary) {
+            setSummary(responseSummary);
+        }
         
         if (!Array.isArray(data)) {
             if (!isLoadMore) setExpensesList([]);
@@ -63,7 +84,7 @@ function App() {
         } else {
             setExpensesList(formatted);
         }
-        setHasMore(responseMeta.hasMore ?? (data.length >= responseMeta.limit));
+        setHasMore(!!meta?.hasMore);
     } catch (error: any) {
         console.error("Failed fetching expenses", error);
         setErrorMsg(error.message || "Gagal memuat data pengeluaran.");
@@ -115,7 +136,7 @@ function App() {
         }
     };
 
-  const totalExps = expensesList.reduce((sum, exp) => sum + parseFloat((exp.amount || 0).toString()), 0);
+  const totalExps = summary.totalExpenses;
 
   const ExpenseSidebar = (
     <div className="space-y-10 animate-in fade-in slide-in-from-left duration-700">
@@ -141,7 +162,15 @@ function App() {
         </div>
 
         <div className="mt-10 pt-10 border-t border-[var(--border-dim)] space-y-4">
-            <SummaryCard total={totalExps} compact />
+            <SummaryCard 
+                total={summary.totalExpenses} 
+                title={expensesList.length > 0 ? 'Total Filter Periode' : 'Total Pengeluaran'}
+                compact 
+            />
+            <div className="glass p-5 rounded-2xl space-y-2 border border-white/5">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Total Transaksi</p>
+                <p className="text-xl font-black text-[var(--text-main)]">{summary.totalTransactions} Slip</p>
+            </div>
         </div>
     </div>
   );
@@ -173,7 +202,78 @@ function App() {
       }
     >
       <div className="lg:hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-           <SummaryCard total={totalExps} />
+           <SummaryCard 
+                total={totalExps} 
+                title={expensesList.length > 0 ? 'Total Filter Periode' : 'Total Pengeluaran'}
+           />
+      </div>
+
+      {/* Date Filter Section */}
+      <div className="glass rounded-[2rem] p-6 mb-10 border border-white/5 space-y-6">
+          <div className="flex items-center gap-3 px-2">
+              <span className="material-symbols-outlined text-primary font-black">calendar_month</span>
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Periode Laporan</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] items-end gap-6 bg-black/20 p-6 rounded-3xl border border-white/5">
+              <div className="space-y-3">
+                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Dari</label>
+                  <input 
+                      type="datetime-local" 
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-[var(--text-main)] focus:border-primary/50 outline-none transition-all"
+                  />
+              </div>
+
+              <div className="hidden md:flex items-center pb-5 opacity-30">
+                  <span className="material-symbols-outlined font-black">arrow_forward</span>
+              </div>
+
+              <div className="space-y-3">
+                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Sampai</label>
+                  <input 
+                      type="datetime-local" 
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-[var(--text-main)] focus:border-primary/50 outline-none transition-all"
+                  />
+              </div>
+
+              <div className="flex gap-3">
+                  <button 
+                      onClick={() => fetchExpenses()}
+                      className="btn-primary px-8 py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest transition-all active:scale-90"
+                  >
+                      Cari
+                  </button>
+                  <button 
+                      onClick={() => {
+                          const d = new Date();
+                          d.setDate(1); d.setHours(0,0,0,0);
+                          setStartDate(d.toISOString().slice(0, 16));
+                          const now = new Date();
+                          now.setHours(23,59,59,999);
+                          setEndDate(now.toISOString().slice(0, 16));
+                          // Note: state updates are async, so we manually call with defaults
+                          apiClient.getExpenses(PAGE_SIZE, 0, d.toISOString().slice(0, 16), now.toISOString().slice(0, 16))
+                              .then(res => {
+                                  setExpensesList(res.data.map((exp: any) => ({
+                                      id: exp.id, title: exp.title || 'Untitled', category: exp.category || 'General',
+                                      date: exp.expenseDate || exp.date, amount: exp.amount, 
+                                      receiptUrl: exp.externalReceiptUrl || exp.receiptUrl, hasReceipt: !!exp.hasReceipt
+                                  })));
+                                  setSummary(res.summary);
+                                  setPage(0);
+                                  setHasMore(res.meta.hasMore);
+                              });
+                      }}
+                      className="glass px-6 py-4 rounded-2xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all"
+                  >
+                      Reset
+                  </button>
+              </div>
+          </div>
       </div>
 
       {isLoading ? (
@@ -181,7 +281,7 @@ function App() {
               <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               <div className="text-center space-y-2">
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan Server...</p>
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60 italic">Mengambil data transaksi terbaru</p>
+                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60 italic">Mengambil data filter terbaru</p>
               </div>
           </div>
       ) : errorMsg ? (
@@ -197,6 +297,14 @@ function App() {
               >
                   Coba Lagi
               </button>
+          </div>
+      ) : expensesList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-6 glass rounded-[3rem] border border-dashed border-white/10 opacity-70">
+              <span className="material-symbols-outlined text-6xl text-[var(--text-muted)] opacity-20">inventory_2</span>
+              <div className="text-center space-y-2">
+                  <p className="text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Data Tidak Ditemukan</p>
+                  <p className="text-[10px] text-[var(--text-muted)] opacity-60 uppercase tracking-widest font-black italic">Tidak ada pengeluaran di periode ini</p>
+              </div>
           </div>
       ) : (
           <div className="grid grid-cols-1 gap-10 animate-in fade-in zoom-in duration-700">

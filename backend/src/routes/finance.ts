@@ -14,16 +14,27 @@ export const financeRouter = Router();
 // GET all expenses with pagination
 financeRouter.get('/expenses', async (req: Request, res: Response) => {
     try {
-        console.log(`[API] GET /finance/expenses | Params: limit=${req.query.limit}, offset=${req.query.offset}`);
+        const { limit: qLimit, offset: qOffset, startDate, endDate } = req.query;
+        console.log(`[API] GET /finance/expenses | Params: limit=${qLimit}, offset=${qOffset}, start=${startDate}, end=${endDate}`);
         
-        // 1. Strict validation with safe fallbacks
-        const rawLimit = parseInt(req.query.limit as string);
-        const rawOffset = parseInt(req.query.offset as string);
-        
-        const limit = !isNaN(rawLimit) && rawLimit > 0 ? rawLimit : 20;
-        const offset = !isNaN(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
+        const limit = parseInt(qLimit as string) || 20;
+        const offset = parseInt(qOffset as string) || 0;
 
-        // 2. Simplest possible, infallible query (NO raw sql blocks in select)
+        // 1. Build dynamic where clause
+        const filters = [eq(schema.expenses.isDeleted, false)];
+        
+        if (startDate) {
+            const d = new Date(startDate as string);
+            if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
+        }
+        if (endDate) {
+            const d = new Date(endDate as string);
+            if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
+        }
+
+        const whereClause = and(...filters);
+
+        // 2. Fetch Expenses with Pagination
         const rawExpenses = await db.select({
             id: schema.expenses.id,
             title: schema.expenses.title,
@@ -38,22 +49,27 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             fundSource: schema.expenses.fundSource
         })
         .from(schema.expenses)
-        .where(eq(schema.expenses.isDeleted, false))
+        .where(whereClause)
         .orderBy(desc(schema.expenses.expenseDate))
         .limit(limit + 1)
         .offset(offset);
 
-        // 3. Fallback logic: Ensure we always have an array
-        if (!rawExpenses || !Array.isArray(rawExpenses)) {
-            console.warn('[WARNING] Query returned undefined/null. Overriding with empty array.');
-            return res.json({ success: true, data: [], meta: { limit, offset, total: 0, page: 0, hasMore: false } });
-        }
+        // 3. Fetch Summary for the SAME filtered period (MANDATORY)
+        const summaryResult = await db.select({
+            totalAmount: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`,
+            count: sql<number>`COUNT(*)`
+        })
+        .from(schema.expenses)
+        .where(whereClause);
 
-        // 4. Safe pagination mapping via JavaScript
+        const summary = {
+            totalExpenses: Number(summaryResult[0].totalAmount),
+            totalTransactions: Number(summaryResult[0].count)
+        };
+
         const hasMore = rawExpenses.length > limit;
         const boundedExpenses = hasMore ? rawExpenses.slice(0, limit) : rawExpenses;
         
-        // 5. Robust mapping to handle potentially null data gracefully
         const mappedData = boundedExpenses.map(e => ({
             id: e.id,
             title: e.title || "Tanpa Judul",
@@ -72,8 +88,9 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         res.status(200).json({ 
             success: true, 
             data: mappedData,
+            summary,
             meta: {
-                total: offset + mappedData.length + (hasMore ? 1 : 0),
+                total: summary.totalTransactions,
                 limit,
                 offset,
                 page: Math.floor(offset / limit),
@@ -81,11 +98,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error(`[CRITICAL ERROR] GET /finance/expenses`);
-        console.error(`=> Query Params: limit=${req.query.limit}, offset=${req.query.offset}`);
-        console.error(`=> Message: ${error?.message || 'Unknown Error'}`);
-        console.error(`=> Stack:`, error?.stack || error);
-        
+        console.error(`[CRITICAL ERROR] GET /finance/expenses`, error);
         res.status(500).json({ 
             success: false, 
             message: 'Gagal mengambil data pengeluaran',

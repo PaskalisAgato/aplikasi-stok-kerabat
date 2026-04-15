@@ -2,10 +2,11 @@ import React from 'react';
 
 interface SummaryCardProps {
     total: number;
+    title?: string;
     compact?: boolean;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ total, compact }) => {
+const SummaryCard: React.FC<SummaryCardProps> = ({ total, title, compact }) => {
     return (
         <div className={`card group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] ${compact ? 'p-6' : 'p-10'}`}>
             {/* Background Glow */}
@@ -18,7 +19,9 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ total, compact }) => {
                 </div>
                 
                 <div className="space-y-1">
-                    <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Total Pengeluaran Bulan Ini</h2>
+                    <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">
+                        {title || 'Total Pengeluaran Periode Ini'}
+                    </h2>
                     <p className={`${compact ? 'text-3xl' : 'text-5xl'} font-black text-[var(--text-main)] font-display tracking-tighter uppercase`}>
                         Rp {(total || 0).toLocaleString('id-ID')}
                     </p>

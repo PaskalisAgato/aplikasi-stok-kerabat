@@ -70,6 +70,9 @@ export interface ApiMeta {
 export interface ApiResponse<T> {
     data: T[];
     meta: ApiMeta;
+    summary?: any;
+    success?: boolean;
+    message?: string;
 }
 
 // ── Resilience Config ────────────────────────────────────────────────────────
@@ -303,7 +306,12 @@ export const apiClient = {
 
     // ---- FINANCE ----
     getFinanceReports: () => apiFetch<any>('/finance/reports'),
-    getExpenses: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/finance/expenses?limit=${limit}&offset=${offset}`),
+    getExpenses: (limit = 20, offset = 0, startDate?: string, endDate?: string) => {
+        let url = `/finance/expenses?limit=${limit}&offset=${offset}`;
+        if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
+        if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
+        return apiFetch<ApiResponse<any>>(url);
+    },
     getExpenseById: (id: number) => apiFetch<any>(`/finance/expenses/${id}`),
     exportExpensesExcel: () => apiFetch<Blob>('/finance/expenses/export', { method: 'GET' }, true),
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
