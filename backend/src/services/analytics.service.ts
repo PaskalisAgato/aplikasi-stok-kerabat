@@ -12,8 +12,6 @@ export class AnalyticsService {
         const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now); 
         const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
 
-        console.log(`[Analytics] Calculating daily summary from: ${todayStart.toISOString()} (WIB Today)`);
-
         // 1. Revenue & Sales
         const salesData = await db.select({
             totalRevenue: sql<number>`COALESCE(SUM(CAST(${schema.sales.totalAmount} AS DECIMAL)), 0)`,
@@ -55,18 +53,21 @@ export class AnalyticsService {
         .from(schema.shifts)
         .where(eq(schema.shifts.status, 'OPEN'));
 
-        const revenue = Number(salesData[0].totalRevenue);
-        const cashSales = Number(salesData[0].cashRevenue);
-        const nonCash = Number(salesData[0].nonCashRevenue);
-        const expenses = Number(expenseData[0].totalExpenses);
-        const initialCash = Number(activeShiftsCash[0].totalInitial);
+        // Extract values safely
+        const revenue = salesData[0] ? Number(salesData[0].totalRevenue) : 0;
+        const cashSales = salesData[0] ? Number(salesData[0].cashRevenue) : 0;
+        const nonCash = salesData[0] ? Number(salesData[0].nonCashRevenue) : 0;
+        const expenses = expenseData[0] ? Number(expenseData[0].totalExpenses) : 0;
+        const initialCash = activeShiftsCash[0] ? Number(activeShiftsCash[0].totalInitial) : 0;
         
-        const costOfGoods = Number(profitData[0].totalCost);
-        const grossProfit = Number(profitData[0].totalSelling) - costOfGoods;
+        const costOfGoods = profitData[0] ? Number(profitData[0].totalCost) : 0;
+        const totalSelling = profitData[0] ? Number(profitData[0].totalSelling) : 0;
+        const grossProfit = totalSelling - costOfGoods;
 
         // Cash in drawer = Modal + Penjualan Tunai - Pengeluaran
-        // NOTE: This assumes expenses are paid by CASH (common in POS)
         const currentCashInDrawer = initialCash + cashSales - expenses;
+
+        console.log(`[Analytics] Daily summary processed. Revenue: ${revenue}, CashInDrawer: ${currentCashInDrawer}`);
 
         return {
             revenue,
