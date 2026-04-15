@@ -135,8 +135,8 @@ function App() {
                     <p className="text-[10px] font-bold text-primary mt-1">Berdasarkan Total Transaksi (WIB)</p>
                   </div>
                 </div>
-                <div className="h-[350px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[350px] w-full min-w-0">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <AreaChart data={chartData}>
                       <defs>
                         <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -174,8 +174,8 @@ function App() {
               {/* 3. PAYMENT BREAKDOWN (PIE CHART) */}
               <div className="lg:col-span-4 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 w-full mb-8">Metode Pembayaran</h3>
-                <div className="h-[250px] w-full relative">
-                   <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[250px] w-full relative min-w-0">
+                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                      <PieChart>
                        <Pie
                          data={pieData}

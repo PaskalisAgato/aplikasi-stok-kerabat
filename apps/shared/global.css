@@ -195,7 +195,13 @@ html, body {
 
 /* Force standard text scaling to satisfy modern CSS parsers and avoid warnings */
 html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+.recharts-wrapper {
+  min-width: 0 !important;
 }
 
 /* Touch optimization for mobile */
