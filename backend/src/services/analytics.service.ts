@@ -132,7 +132,7 @@ export class AnalyticsService {
             eq(schema.sales.status, 'PAID')
         ))
         .groupBy(schema.users.name)
-        .orderBy(desc(sql`sales_volume`));
+        .orderBy((t) => desc(t.salesVolume));
 
         return performance;
     }
