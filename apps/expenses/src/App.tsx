@@ -24,6 +24,7 @@ function App() {
   const [page, setPage] = useState(0);
   const [_meta, setMeta] = useState<{ page: number; limit: number; total: number } | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const PAGE_SIZE = 20;
 
   const fetchExpenses = async (isLoadMore = false) => {
@@ -31,6 +32,7 @@ function App() {
         if (!isLoadMore) {
             setIsLoading(true);
             setPage(0);
+            setErrorMsg(null);
         }
 
         const currentPage = isLoadMore ? page + 1 : 0;
@@ -62,8 +64,9 @@ function App() {
             setExpensesList(formatted);
         }
         setHasMore(responseMeta.hasMore ?? (data.length >= responseMeta.limit));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed fetching expenses", error);
+        setErrorMsg(error.message || "Gagal memuat data pengeluaran.");
     } finally {
         setIsLoading(false);
     }
@@ -180,6 +183,20 @@ function App() {
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan Server...</p>
                   <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60 italic">Mengambil data transaksi terbaru</p>
               </div>
+          </div>
+      ) : errorMsg ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-6 glass rounded-[3rem]">
+              <span className="material-symbols-outlined text-5xl text-red-400">cloud_off</span>
+              <div className="text-center space-y-2">
+                  <p className="text-sm font-black text-red-400">Gagal memuat data</p>
+                  <p className="text-[10px] text-[var(--text-muted)] max-w-xs">{errorMsg}</p>
+              </div>
+              <button
+                  onClick={() => fetchExpenses()}
+                  className="px-8 py-3 rounded-2xl bg-primary/10 text-primary font-black text-xs uppercase tracking-widest hover:bg-primary/20 active:scale-95 transition-all"
+              >
+                  Coba Lagi
+              </button>
           </div>
       ) : (
           <div className="grid grid-cols-1 gap-10 animate-in fade-in zoom-in duration-700">

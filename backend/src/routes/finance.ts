@@ -13,8 +13,11 @@ export const financeRouter = Router();
 // GET all expenses with pagination
 financeRouter.get('/expenses', async (req: Request, res: Response) => {
     try {
-        const limit = parseInt(req.query.limit as string) || 20;
-        const offset = parseInt(req.query.offset as string) || 0;
+        const rawLimit = parseInt(req.query.limit as string);
+        const rawOffset = parseInt(req.query.offset as string);
+        
+        const limit = !isNaN(rawLimit) && rawLimit > 0 ? rawLimit : 20;
+        const offset = !isNaN(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
 
         // Fetch limit+1 to detect if there are more pages (avoids extra count query)
         const _expenses = await db.select({
@@ -51,9 +54,14 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
                 hasMore
             }
         });
-    } catch (error) {
-        console.error('Error fetching expenses:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil data pengeluaran' });
+    } catch (error: any) {
+        console.error(`[ERROR] GET /finance/expenses?limit=${req.query.limit}&offset=${req.query.offset}`);
+        console.error('Stack trace:', error.stack || error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Gagal mengambil data pengeluaran',
+            error: error.message || 'Unknown database error'
+        });
     }
 });
 
