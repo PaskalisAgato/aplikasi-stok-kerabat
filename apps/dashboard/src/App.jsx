@@ -46,11 +46,25 @@ function App() {
           : { startDate: new Date(Date.now() - 86400000).toISOString().split('T')[0], endDate: new Date(Date.now() - 86400000).toISOString().split('T')[0] };
 
       const response = await apiClient.getShiftReports(range);
-      setReports(response.data);
+      setReports(response.data || []);
     } catch (error) {
       console.error('Failed to fetch reports', error);
+      setReports([]);
     } finally {
       setIsReportsLoading(false);
+    }
+  };
+
+  const handleDeleteReport = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus laporan shift ini? Tindakan ini tidak dapat dibatalkan.')) return;
+    
+    try {
+      await apiClient.deleteShift(id);
+      setReports(prev => prev.filter(r => r.id !== id));
+      // Also refresh dashboard data since sales might be affected if shift was active
+      fetchData();
+    } catch (error) {
+      alert('Gagal menghapus laporan: ' + error.message);
     }
   };
 
@@ -359,27 +373,32 @@ function App() {
                       </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-10">
                       {isReportsLoading ? (
-                          <div className="col-span-full py-20 flex flex-col items-center justify-center opacity-40">
+                          <div className="py-20 flex flex-col items-center justify-center opacity-40">
                               <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4"></div>
                               <p className="text-[9px] font-black uppercase tracking-widest">Memuat Laporan...</p>
                           </div>
                       ) : (
-                          reports.map((report) => (
-                              <DailyReportCard key={report.id} report={report} />
-                          ))
-                      )}
-                      
-                      {!isReportsLoading && reports.length === 0 && (
-                          <div className="py-20 bg-white/5 rounded-[2.5rem] border border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
-                              <span className="material-symbols-outlined text-4xl opacity-10 mb-4">history</span>
-                              <p className="text-xs font-black text-white/20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
-                          </div>
+                          <>
+                              {reports.map((report) => (
+                                  <DailyReportCard 
+                                    key={report.id} 
+                                    report={report} 
+                                    onDelete={handleDeleteReport}
+                                  />
+                              ))}
+                              
+                              {reports.length === 0 && (
+                                  <div className="py-20 bg-white/5 rounded-[2.5rem] border border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
+                                      <span className="material-symbols-outlined text-4xl opacity-10 mb-4">history</span>
+                                      <p className="text-xs font-black text-white/20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
+                                  </div>
+                              )}
+                          </>
                       )}
                   </div>
               </div>
-
             </div>
           </>
         )}

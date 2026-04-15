@@ -335,6 +335,8 @@ export class AnalyticsService {
                     .limit(5)
             }
         };
+    }
+
     /**
      * Detailed Shift-based Daily Reports for Owner
      */
@@ -346,7 +348,6 @@ export class AnalyticsService {
             startTime: schema.shifts.startTime,
             endTime: schema.shifts.endTime,
             initialCash: schema.shifts.initialCash,
-            closingCash: schema.shifts.actualCash,
             status: schema.shifts.status,
             cashierName: schema.users.name,
             totalSales: sql<number>`COALESCE((
@@ -356,6 +357,15 @@ export class AnalyticsService {
                     AND is_voided = false 
                     AND is_deleted = false 
                     AND status = 'PAID'
+            ), 0)`,
+            cashSales: sql<number>`COALESCE((
+                SELECT SUM(CAST(total_amount AS DECIMAL)) 
+                FROM sales 
+                WHERE shift_id = ${schema.shifts.id} 
+                    AND is_voided = false 
+                    AND is_deleted = false 
+                    AND status = 'PAID'
+                    AND payment_method = 'CASH'
             ), 0)`,
             totalExpenses: sql<number>`COALESCE((
                 SELECT SUM(CAST(amount AS DECIMAL)) 
@@ -382,9 +392,11 @@ export class AnalyticsService {
         return reports.map(r => {
             const initial = Number(r.initialCash || 0);
             const sales = Number(r.totalSales || 0);
+            const cashSales = Number(r.cashSales || 0);
             const expenses = Number(r.totalExpenses || 0);
             
-            const cashDrawer = initial + sales - expenses;
+            // cashDrawer = initialCash + cashSales - expenses
+            const cashDrawer = initial + cashSales - expenses;
             const profit = sales - expenses;
 
             return {
@@ -395,6 +407,8 @@ export class AnalyticsService {
                 initialCash: initial,
                 totalSales: sales,
                 totalExpenses: expenses,
+                cashIn: 0, // Fallback as requested
+                cashOut: expenses,
                 cashDrawer: cashDrawer,
                 profit: profit,
                 status: r.status,
