@@ -117,8 +117,8 @@ function App() {
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/5">
-          <div className="flex gap-2 p-1 bg-black/20 rounded-2xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white/5 p-5 rounded-[2rem] border border-white/5 shadow-2xl">
+          <div className="flex gap-4 p-1.5 bg-black/20 rounded-2xl w-full md:w-auto overflow-x-auto">
             {['today', 'yesterday', 'custom'].map((f) => (
               <button
                 key={f}
@@ -132,7 +132,7 @@ function App() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-5 w-full md:w-auto mt-4 md:mt-0">
             {dateFilter === 'custom' && (
               <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
                 <input 
@@ -362,7 +362,7 @@ function App() {
                           <h2 className="text-2xl font-black tracking-tight text-white uppercase">Laporan Penjualan Harian</h2>
                           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-6">
                           <button 
                             onClick={exportToCSV}
                             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all border border-white/5"

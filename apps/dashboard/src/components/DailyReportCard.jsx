@@ -148,7 +148,7 @@ const DailyReportCard = ({ report, onDelete }) => {
       </div>
 
       {/* FOOTER: ACTIONS */}
-      <div className="px-6 md:px-10 py-4 md:py-5 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-3 md:gap-4 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
+      <div className="px-6 md:px-10 py-6 md:py-8 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-5 md:gap-8 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
           <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-white/5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
               <span className="material-symbols-outlined text-base md:text-lg">visibility</span>
               <span className="hidden sm:inline">Detail Pelaporan</span>
