@@ -157,6 +157,7 @@ function App() {
     const [printQueueCount, setPrintQueueCount] = useState<number>(0);
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+    const [isShiftModalDismissed, setIsShiftModalDismissed] = useState(false);
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -964,8 +965,9 @@ function App() {
     return (
         <>
             <OpenShiftModal 
-                isOpen={isAuthenticated && !activeShift && !isActiveLoading && view === 'pos'} 
+                isOpen={isAuthenticated && !activeShift && !isActiveLoading && view === 'pos' && !isShiftModalDismissed} 
                 onOpen={handleOpenShift} 
+                onCancel={() => setIsShiftModalDismissed(true)}
             />
 
             {activeShift && (
@@ -1001,6 +1003,24 @@ function App() {
             <div className="space-y-4 md:space-y-8">
                 {view === 'pos' && (
                     <>
+                        {/* MANUAL SHIFT TRIGGER (Shown when modal is dismissed but shift not open) */}
+                        {!activeShift && !isActiveLoading && (
+                            <div className="bg-amber-500/10 border border-amber-500/30 p-6 rounded-3xl flex flex-col items-center text-center gap-4 mb-4 animate-in slide-in-from-top duration-500">
+                                <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center border border-amber-500/20">
+                                    <span className="material-symbols-outlined text-3xl text-amber-500">lock_open</span>
+                                </div>
+                                <div>
+                                    <h3 className="font-black uppercase tracking-tight text-amber-500">Shift Belum Dibuka</h3>
+                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Anda harus membuka shift kasir sebelum bisa melakukan transaksi penjualan.</p>
+                                </div>
+                                <button 
+                                    onClick={() => setIsShiftModalDismissed(false)}
+                                    className="px-8 py-3 bg-amber-500 text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    Buka Shift Sekarang
+                                </button>
+                            </div>
+                        )}
                         {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
                         <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
                             <button
