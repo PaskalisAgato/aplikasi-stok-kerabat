@@ -147,13 +147,13 @@ function App() {
         
         {/* HEADER: Filter & Refresh */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white/5 p-5 rounded-[2rem] border border-white/5 shadow-2xl">
-          <div className="flex gap-4 p-1.5 bg-black/20 rounded-2xl w-full md:w-auto overflow-x-auto">
+          <div className="flex gap-2 p-1 bg-black/20 rounded-lg w-full md:w-auto overflow-x-auto">
             {['today', 'yesterday', 'custom'].map((f) => (
               <button
                 key={f}
                 onClick={() => setDateFilter(f)}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  dateFilter === f ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20' : 'text-white/40 hover:text-white'
+                className={`px-3 py-1.5 rounded-md text-[13px] font-bold transition-all min-w-[80px] ${
+                  dateFilter === f ? 'bg-primary text-slate-950' : 'text-white/40 hover:text-white'
                 }`}
               >
                 {f === 'today' ? 'Hari Ini' : f === 'yesterday' ? 'Kemarin' : 'Kustom'}
@@ -177,18 +177,18 @@ function App() {
                   value={customRange.end}
                   onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
                 />
-                <button onClick={fetchData} className="size-10 bg-primary text-slate-950 rounded-xl flex items-center justify-center hover:scale-105 transition-all">
-                  <span className="material-symbols-outlined font-black">search</span>
-                </button>
+                 <button onClick={fetchData} className="px-2.5 py-1.5 bg-primary text-slate-950 rounded-md flex items-center justify-center hover:bg-primary/80 transition-all min-w-[40px]">
+                   <span className="material-symbols-outlined text-lg font-black">search</span>
+                 </button>
               </div>
             )}
-            <button 
-              onClick={fetchData}
-              disabled={isLoading}
-              className={`size-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all ${isLoading ? 'animate-spin opacity-50' : ''}`}
-            >
-              <span className="material-symbols-outlined text-xl">refresh</span>
-            </button>
+             <button 
+               onClick={fetchData}
+               disabled={isLoading}
+               className={`px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all min-w-[40px] ${isLoading ? 'opacity-50' : ''}`}
+             >
+               <span className={`material-symbols-outlined text-lg ${isLoading ? 'animate-spin' : ''}`}>sync</span>
+             </button>
           </div>
         </div>
 
@@ -391,15 +391,15 @@ function App() {
                           <h2 className="text-2xl font-black tracking-tight text-white uppercase">Laporan Penjualan Harian</h2>
                           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
                       </div>
-                      <div className="flex items-center gap-6">
-                          <button 
-                            onClick={exportToCSV}
-                            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all border border-white/5"
-                          >
-                              <span className="material-symbols-outlined text-sm text-primary">download</span>
-                              Export CSV
-                          </button>
-                      </div>
+                       <div className="flex items-center gap-2">
+                           <button 
+                             onClick={exportToCSV}
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
+                           >
+                               <span className="material-symbols-outlined text-lg text-primary">description</span>
+                               CSV
+                           </button>
+                       </div>
                   </div>
 
                   <div className="space-y-10">

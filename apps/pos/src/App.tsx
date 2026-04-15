@@ -714,14 +714,14 @@ function App() {
                         <button
                             key={method.id}
                             onClick={() => setPaymentMethod(method.id as any)}
-                            className={`flex items-center justify-center gap-1.5 py-2 rounded-lg border transition-all active:scale-95 ${
+                            className={`flex items-center justify-center gap-2 py-1.5 rounded-md border transition-all active:scale-95 ${
                                 paymentMethod === method.id 
-                                    ? 'bg-primary/10 border-primary text-primary shadow-sm' 
-                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-black/5'
+                                    ? 'bg-primary/20 border-primary text-primary shadow-sm' 
+                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-white/5'
                             }`}
                         >
-                            <span className="material-symbols-outlined text-[14px] font-black">{method.icon}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest">{method.label}</span>
+                            <span className="material-symbols-outlined text-base font-black">{method.icon}</span>
+                            <span className="text-[13px] font-bold uppercase tracking-tight">{method.label}</span>
                         </button>
                     ))}
                 </div>
@@ -735,7 +735,7 @@ function App() {
                             <button 
                                 key={idx}
                                 onClick={() => setAmountPaid(amount)}
-                                className={`flex-1 min-w-[50px] py-2 rounded-lg border font-black text-[9px] transition-all active:scale-95 ${
+                                className={`flex-1 min-w-[60px] py-1.5 rounded-md border font-bold text-[13px] transition-all active:scale-95 ${
                                     amountPaid === amount 
                                         ? 'bg-primary border-primary text-slate-900 shadow-md' 
                                         : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:bg-white/5'
@@ -793,7 +793,7 @@ function App() {
                         id="btn-checkout"
                         onClick={() => handleCheckout(true)}
                         disabled={isCheckingOut || totalItems === 0 || (paymentMethod === 'CASH' && amountPaid < totalSalesValue)}
-                        className={`flex-1 h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                        className={`flex-1 h-12 rounded-lg font-bold text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
                             (paymentMethod === 'CASH' && amountPaid >= totalSalesValue) || paymentMethod !== 'CASH'
                                 ? 'bg-primary text-slate-950 shadow-primary/20' 
                                 : 'bg-white/5 text-[var(--text-muted)] border border-white/5'

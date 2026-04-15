@@ -148,22 +148,21 @@ const DailyReportCard = ({ report, onDelete }) => {
       </div>
 
       {/* FOOTER: ACTIONS */}
-      <div className="px-6 md:px-10 py-6 md:py-8 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-5 md:gap-8 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-white/5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/5">
-              <span className="material-symbols-outlined text-base md:text-lg">visibility</span>
-              <span className="hidden sm:inline">Detail Pelaporan</span>
-              <span className="sm:hidden">Detail</span>
+      <div className="px-6 md:px-10 py-5 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-2 md:gap-3 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
+          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/10 min-w-[80px]">
+              <span className="material-symbols-outlined text-lg">visibility</span>
+              Detail
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-primary text-slate-950 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined text-base md:text-lg">download</span>
-              Export <span className="hidden sm:inline">PDF</span>
+          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/10 min-w-[80px]">
+              <span className="material-symbols-outlined text-lg text-primary">description</span>
+              CSV
           </button>
           <button 
             onClick={() => onDelete && onDelete(report.id)}
-            className="flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-red-500/10 text-red-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+            className="flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-red-500/10 text-red-500 text-[13px] font-bold hover:bg-red-500 hover:text-white transition-all border border-red-500/20 min-w-[80px]"
           >
-              <span className="material-symbols-outlined text-base md:text-lg">delete</span>
-              <span className="hidden sm:inline">Hapus</span>
+              <span className="material-symbols-outlined text-lg">delete</span>
+              Hapus
           </button>
       </div>
     </div>
