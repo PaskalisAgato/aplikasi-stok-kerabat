@@ -7,6 +7,8 @@ const safeNumber = (val: any) => {
     const n = Number(val);
     return isNaN(n) ? 0 : n;
 };
+
+function App() {
     const [hppData, setHppData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [sellingPrice, setSellingPrice] = useState<number>(() => {
