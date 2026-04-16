@@ -552,7 +552,8 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .where(
             and(
                 gte(schema.sales.createdAt, thirtyDaysAgo),
-                eq(schema.sales.isDeleted, false)
+                eq(schema.sales.isDeleted, false),
+                eq(schema.sales.isVoided, false)
             )
         );
 
@@ -576,7 +577,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
             )
         )
         .groupBy(schema.inventory.id, schema.inventory.name)
-        .orderBy(sql`total_cost DESC`)
+        .orderBy(sql`SUM(${schema.saleItems.quantity} * CAST(${schema.recipeIngredients.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)) DESC`)
         .limit(10);
 
         res.json({ success: true, data: { totalHPP, ingredientsHPP, recipeHPP: [] }, meta: { total: 1, limit: 1, page: 1 } });
