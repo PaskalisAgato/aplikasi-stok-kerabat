@@ -376,7 +376,7 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
 
         // 1. Optimized Total Waste Value (Native SQL SUM)
         const totalWasteResult = await db.select({
-            total: sql<number>`COALESCE(SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit}), 0)`
+            total: sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
@@ -388,24 +388,24 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
         );
 
         // 2. Top Waste Offenders (Already O(1) SQL)
-        const topOffenders = await db.select({
+        const topOffendersRaw = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
             unit: schema.inventory.unit,
-            totalWasteValue: sql<number>`SUM(${schema.stockMovements.quantity} * ${schema.inventory.pricePerUnit})`
+            totalWasteValue: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
         .where(eq(schema.stockMovements.type, 'WASTE'))
         .groupBy(schema.inventory.id, schema.inventory.name, schema.inventory.unit)
-        .orderBy(sql`total_waste_value DESC`)
+        .orderBy(sql`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)) DESC`)
         .limit(5);
 
         res.json({
             success: true,
             data: {
-                totalValueMonth: Number(totalWasteResult[0].total),
-                topOffenders
+                totalValueMonth: Number(totalWasteResult[0]?.total || 0),
+                topOffenders: topOffendersRaw
             }
         });
     } catch (error) {
