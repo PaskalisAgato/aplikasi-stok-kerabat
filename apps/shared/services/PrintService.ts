@@ -503,16 +503,12 @@ export class PrintService {
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
 
-            // FIX DOUBLE PRINTING (V2): Ensure we only process each printer ONCE per slip type
             const printerKey = `${printer.connectionType}:${printer.name}:${printer.ip || ''}:${printer.deviceId || ''}`;
             if (processedPrinters.has(printerKey)) continue;
             processedPrinters.add(printerKey);
 
-            // Skip printers without categories (should only used for Receipt).
             const cats = printer.categories || [];
-            if (cats.length === 0) {
-                continue;
-            }
+            if (cats.length === 0) continue;
 
             const filteredItems = data.items.filter(item => 
                 item.category && cats.includes(item.category)
@@ -527,7 +523,6 @@ export class PrintService {
                 } else if (printer.connectionType === 'serial') {
                     this.sendToSerial(buffer).catch(err => console.error('Serial Checker failed', err));
                 } else if (printer.connectionType === 'bridge') {
-                    // Enqueue for cloud/bridge
                     const bufferBase64 = btoa(String.fromCharCode(...buffer));
                     await db.offlineActions.add({
                         id: `ck_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -548,7 +543,10 @@ export class PrintService {
                     });
                 }
             }
-        }    public static async printOrder(data: PrintData, isManual = false) {
+        }
+    }
+
+    public static async printOrder(data: PrintData, isManual = false) {
         const settings = await this.getSettings();
         
         if (settings.length === 0) {
@@ -569,19 +567,11 @@ export class PrintService {
             if (processedPrinters.has(printerKey)) continue;
             processedPrinters.add(printerKey);
 
-            let filteredItems = data.items;
-
-            // FIX DOUBLE PRINTING (V2): printOrder is for CUSTOMER RECEIPTS.
-            // Only auto-print to main printers (those with NO categories assigned).
-            // Printers WITH categories are handled by printChecker.
             const cats = printer.categories || [];
-            if (!isManual && cats.length > 0) {
-                continue;
-            }
+            if (!isManual && cats.length > 0) continue;
 
-            if (filteredItems.length > 0) {
+            if (data.items.length > 0) {
                 if (printer.connectionType === 'bluetooth') {
-                    // Bluetooth requires active User Gesture. Cannot be queued asynchronously.
                     console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
                     const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket: false });
                     this.sendToBluetooth(buffer).catch(err => {
@@ -599,13 +589,10 @@ export class PrintService {
                         console.error('Immediate Serial Print failed', err);
                     });
                 } else if (printer.connectionType === 'bridge') {
-                    // Optimized: Encode once, set status to PENDING
                     await this.enqueuePrintJob(data, printer, false, isManual);
                 }
             }
         }
-    }
-  }
         
         // Start worker for bridge jobs
         this.startQueueWorker();
