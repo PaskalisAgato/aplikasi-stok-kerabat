@@ -19,9 +19,8 @@ export class AnalyticsController {
                 start = new Date(`${jakartaDate}T00:00:00+07:00`);
                 end = new Date(`${jakartaDate}T23:59:59+07:00`);
             } else if (startDate && endDate) {
-                start = new Date(startDate as string);
-                end = new Date(endDate as string);
-                end.setHours(23, 59, 59, 999);
+                start = new Date(`${startDate}T00:00:00+07:00`);
+                end = new Date(`${endDate}T23:59:59.999+07:00`);
             }
 
             const data = await AnalyticsService.getDashboardAnalytics({ start, end });

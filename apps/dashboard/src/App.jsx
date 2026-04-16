@@ -51,11 +51,14 @@ function App() {
     }
     try {
       setIsReportsLoading(true);
+      const getJakartaDate = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(d);
+      const todayWib = getJakartaDate(new Date());
+      const yesterdayWib = getJakartaDate(new Date(Date.now() - 86400000));
       const range = dateFilter === 'custom'
         ? { startDate: customRange.start, endDate: customRange.end }
         : dateFilter === 'today'
-          ? { startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] }
-          : { startDate: new Date(Date.now() - 86400000).toISOString().split('T')[0], endDate: new Date(Date.now() - 86400000).toISOString().split('T')[0] };
+          ? { startDate: todayWib, endDate: todayWib }
+          : { startDate: yesterdayWib, endDate: yesterdayWib };
 
       const response = await apiClient.getShiftReports(range);
       setReports(response.data || []);
