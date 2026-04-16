@@ -13,28 +13,20 @@ function App() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateFilter, setDateFilter] = useState('today');
-  const [customRange, setCustomRange] = useState({ start: '', end: '' });
+  const getJakartaDate = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(d);
+  const todayWib = getJakartaDate(new Date());
+  const [customRange, setCustomRange] = useState({ start: todayWib, end: todayWib });
   const [reports, setReports] = useState([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
 
   const fetchData = async () => {
-    // API Call Logic: Don't send request if custom parameters are empty
-    if (dateFilter === 'custom' && (!customRange.start || !customRange.end)) {
-      return;
-    }
-
+    if (!customRange.start || !customRange.end) return;
     try {
       setIsLoading(true);
       setError(null);
-      const params = dateFilter === 'custom' 
-        ? { startDate: customRange.start, endDate: customRange.end }
-        : { date: dateFilter };
-      
+      const params = { startDate: customRange.start, endDate: customRange.end };
       const response = await apiClient.getAnalyticsDashboard(params);
       setData(response.data);
-      
-      // Fetch shift reports separately
       fetchReports();
     } catch (error) {
       console.error('Failed to fetch analytics', error);
@@ -45,22 +37,10 @@ function App() {
   };
 
   const fetchReports = async () => {
-    // Prevent call if custom range is incomplete
-    if (dateFilter === 'custom' && (!customRange.start || !customRange.end)) {
-      return;
-    }
+    if (!customRange.start || !customRange.end) return;
     try {
       setIsReportsLoading(true);
-      const getJakartaDate = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(d);
-      const todayWib = getJakartaDate(new Date());
-      const yesterdayWib = getJakartaDate(new Date(Date.now() - 86400000));
-      const range = dateFilter === 'custom'
-        ? { startDate: customRange.start, endDate: customRange.end }
-        : dateFilter === 'today'
-          ? { startDate: todayWib, endDate: todayWib }
-          : { startDate: yesterdayWib, endDate: yesterdayWib };
-
-      const response = await apiClient.getShiftReports(range);
+      const response = await apiClient.getShiftReports({ startDate: customRange.start, endDate: customRange.end });
       setReports(response.data || []);
     } catch (error) {
       console.error('Failed to fetch reports', error);
@@ -134,9 +114,9 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 60000); // 1-minute auto-refresh
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
-  }, [dateFilter]);
+  }, [customRange]);
 
   const summary = data?.summary || {};
   const hourlySales = data?.hourlySales || [];
@@ -165,57 +145,50 @@ function App() {
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
-        <div className="bg-white/5 p-4 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-4">
-          {/* Action Row: Presets + Sync */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex gap-1 p-1 bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
-              {['today', 'yesterday', 'custom'].map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setDateFilter(f)}
-                  className={`flex-1 py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    dateFilter === f ? 'bg-primary text-slate-950 shadow-lg shadow-primary/10' : 'text-white/40 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {f === 'today' ? 'Hari' : f === 'yesterday' ? 'Malam' : 'Pilih'}
-                </button>
-              ))}
-            </div>
+        <div className="bg-white/5 p-4 rounded-[2.5rem] border border-white/5 shadow-2xl">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {/* Tombol Hari */}
+            <button
+              onClick={() => {
+                const today = getJakartaDate(new Date());
+                setCustomRange({ start: today, end: today });
+              }}
+              className="shrink-0 py-2.5 px-5 rounded-2xl bg-primary text-slate-950 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 hover:bg-primary/90 active:scale-95 transition-all"
+            >
+              Hari Ini
+            </button>
 
-            <button 
-               onClick={fetchData}
-               disabled={isLoading}
-               className={`size-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
-             >
-               <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-white/60'}`}>sync</span>
-             </button>
-          </div>
-
-          {/* Custom Date Row: Stacked & Responsive */}
-          {dateFilter === 'custom' && (
-            <div className="flex flex-col sm:flex-row items-center gap-3 animate-in slide-in-from-top-4 p-4 bg-black/40 rounded-[1.5rem] border border-white/5">
-              <div className="w-full sm:flex-1 flex items-center gap-2">
-                <div className="flex-1">
-                   <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Dari</p>
-                   <input 
-                     type="date" 
-                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
-                     value={customRange.start}
-                     onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
-                   />
-                </div>
-                <div className="flex-1">
-                   <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Sampai</p>
-                   <input 
-                     type="date" 
-                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
-                     value={customRange.end}
-                     onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
-                   />
-                </div>
+            {/* Date Range */}
+            <div className="flex-1 flex items-center gap-2 w-full">
+              <div className="flex-1">
+                <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Dari</p>
+                <input
+                  type="date"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                  value={customRange.start}
+                  onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Sampai</p>
+                <input
+                  type="date"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                  value={customRange.end}
+                  onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
+                />
               </div>
             </div>
-          )}
+
+            {/* Sync Button */}
+            <button
+              onClick={fetchData}
+              disabled={isLoading}
+              className={`size-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
+            >
+              <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-white/60'}`}>sync</span>
+            </button>
+          </div>
         </div>
 
         {isLoading && !data ? (
