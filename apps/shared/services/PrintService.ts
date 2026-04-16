@@ -502,13 +502,15 @@ export class PrintService {
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
 
-            // Checker only prints for specific categories if printer has categories defined
-            let filteredItems = data.items;
-            if (printer.categories && printer.categories.length > 0) {
-                filteredItems = data.items.filter(item => 
-                    item.category && printer.categories.includes(item.category)
-                );
+            // Checker ONLY prints for specific categories (Kitchen/Bar).
+            // This avoids double-printing on the main cashier printer (which has no categories).
+            if (!printer.categories || printer.categories.length === 0) {
+                continue;
             }
+
+            const filteredItems = data.items.filter(item => 
+                item.category && printer.categories.includes(item.category)
+            );
 
             if (filteredItems.length > 0) {
                 const checkerData = { ...data, items: filteredItems };
@@ -560,20 +562,19 @@ export class PrintService {
             if (printer.autoPrint === false) continue;
 
             let filteredItems = data.items;
-            let isPrepTicket = false;
 
-            if (printer.categories.length > 0) {
-                filteredItems = data.items.filter(item => 
-                    item.category && printer.categories.includes(item.category)
-                );
-                isPrepTicket = true;
+            // FIX DOUBLE PRINTING: printOrder is for CUSTOMER RECEIPTS.
+            // Only auto-print to main printers (those with NO categories assigned).
+            // Printers WITH categories are handled by printChecker.
+            if (!isManual && printer.categories.length > 0) {
+                continue;
             }
 
             if (filteredItems.length > 0) {
                 if (printer.connectionType === 'bluetooth') {
                     // Bluetooth requires active User Gesture. Cannot be queued asynchronously.
                     console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
-                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
+                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket: false });
                     this.sendToBluetooth(buffer).catch(err => {
                         console.error('Immediate BT Print failed', err);
                         if (isManual) {
@@ -584,13 +585,13 @@ export class PrintService {
                     });
                 } else if (printer.connectionType === 'serial') {
                     console.log(`[PrintService] Executing Serial print immediately for ${printer.name}`);
-                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket });
+                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket: false });
                     this.sendToSerial(buffer).catch(err => {
                         console.error('Immediate Serial Print failed', err);
                     });
                 } else if (printer.connectionType === 'bridge') {
                     // Optimized: Encode once, set status to PENDING
-                    await this.enqueuePrintJob(data, printer, isPrepTicket, isManual);
+                    await this.enqueuePrintJob(data, printer, false, isManual);
                 }
             }
         }
@@ -778,11 +779,6 @@ Terima Kasih!
         const encoder = new EscPosEncoder();
         const width = config.width || 32;
 
-        const centerText = (text: string) => {
-            const padSize = Math.max(0, Math.floor((width - text.length) / 2));
-            return ' '.repeat(padSize) + text;
-        };
-
         encoder.initialize();
         
         // --- 1. Header (Beep + Bold Center) ---
@@ -814,7 +810,7 @@ Terima Kasih!
         data.items.forEach((item: any) => {
             encoder.line(`${item.quantity}x ${item.name}`);
             if (item.notes) {
-                encoder.italic(true).line(`   * ${item.notes}`).italic(false);
+                encoder.bold(true).line(`   * ${item.notes}`).bold(false);
             }
         });
         encoder.bold(false);

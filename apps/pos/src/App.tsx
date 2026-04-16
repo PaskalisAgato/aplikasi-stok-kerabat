@@ -424,23 +424,23 @@ function App() {
                 tableNumber: customerInfo
             };
 
-            // 1. Queue & Trigger Auto-Print
-            PrintService.queueReceipt(printData).then(() => {
-                // --- NEW: KITCHEN CHECKER (PRINT FIRST) ---
-                PrintService.printChecker(printData).catch(err => {
-                    console.error('Checker print error', err);
-                });
+            // 1. Trigger Auto-Print (Checker First, then Receipt with delay)
+            // --- KITCHEN CHECKER (PRINT FIRST) ---
+            PrintService.printChecker(printData).catch(err => {
+                console.error('Checker print error', err);
+            });
 
-                // --- PAYMENT RECEIPT (PRINT AFTER) ---
+            // --- 2 SECOND DELAY BEFORE PAYMENT RECEIPT ---
+            setTimeout(() => {
                 PrintService.printOrder(printData).catch(err => {
                     console.error('Auto-print error', err);
                 });
-            }).finally(() => {
-                // Refresh badge counter
-                PrintService.getPendingJobs().then(jobs => {
-                    setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
-                });
-            });
+            }, 2000);
+
+            // Refresh badge counter (non-blocking)
+            PrintService.getPendingJobs().then(jobs => {
+                setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
+            }).catch(() => {});
 
             // 2. Save to Offline Queue & Trigger Sync
             await syncEngine.enqueue('CHECKOUT', { ...checkoutData, status: 'PAID', customerInfo });
