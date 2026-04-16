@@ -13,6 +13,7 @@ import { syncEngine } from '@shared/services/SyncEngine';
 import { PerformanceSettings } from '@shared/services/performance';
 import { useCashierShift } from '@shared/hooks/useCashierShift';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
+import ShiftRequired from './components/ShiftRequired';
 import SyncWidget from './components/SyncWidget';
 
 interface Recipe {
@@ -999,214 +1000,201 @@ function App() {
                 onDrawerClose={() => setDrawerOpen(false)}
             >
             <div className="space-y-4 md:space-y-8">
-                {view === 'pos' && (
+                {view === 'pos' && !isActiveLoading && (
                     <>
-                        {/* POS CONTENT - blocked if no active shift */}
-                        {!activeShift && !isActiveLoading && (
-                            <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-6">
-                                <div className="size-24 bg-red-500/10 rounded-3xl flex items-center justify-center border border-red-500/20">
-                                    <span className="material-symbols-outlined text-5xl text-red-400">lock</span>
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-black uppercase tracking-tight text-white">Shift Belum Dibuka</h2>
-                                    <p className="text-sm text-white/50 font-bold uppercase tracking-widest mt-2">Anda harus membuka shift kasir untuk mengakses halaman penjualan.</p>
-                                </div>
-                                <button 
-                                    onClick={() => setView('pos')}
-                                    className="px-10 py-4 bg-primary text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    Buka Shift Sekarang
-                                </button>
-                            </div>
-                        )}
-                        {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
-                        <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
-                            <button
-                                onClick={() => setMobileTab('menu')}
-                                className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                                    mobileTab === 'menu' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[18px]">restaurant_menu</span>
-                                <span className="uppercase tracking-widest text-[10px]">Menu</span>
-                            </button>
-                            
-                            <button
-                                onClick={() => setMobileTab('cart')}
-                                className={`flex-[1.2] py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                                    mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
-                                <span className="uppercase tracking-widest text-[10px]">Keranjang</span>
-                                {totalItems > 0 && (
-                                    <span className={`ml-1 size-5 rounded-full text-[9px] flex items-center justify-center font-black ${
-                                        mobileTab === 'cart' ? 'bg-slate-950 text-primary' : 'bg-primary text-slate-950'
-                                    }`}>
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-
-                        {/* SECTION: OPEN BILLS (Only in Menu/Bills tab on mobile) */}
-                        {(mobileTab === 'menu' || mobileTab === 'bills') && openBills.length > 0 && !currentBillId && (
-                            <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl flex flex-col gap-3 shrink-0">
-                                <div className="flex items-center justify-between px-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-primary text-sm">receipt_long</span>
-                                        <h3 className="font-black uppercase tracking-tighter text-xs text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
-                                    </div>
-                                    <span className="bg-primary text-slate-950 text-[9px] px-2 py-0.5 rounded-full font-black uppercase shadow-sm">{openBills.length} Meja</span>
-                                </div>
-                                <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 snap-x">
-                                    {openBills.map(bill => (
-                                        <div 
-                                            key={bill.id}
-                                            onClick={() => loadBill(bill)}
-                                            className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer transition-all shrink-0 w-[200px] snap-start flex flex-col justify-between"
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="text-[12px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
-                                                <div className="flex gap-1.5">
-                                                    <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
-                                                    <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
-                                                    <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
-                                                </div>
-                                            </div>
-                                            <div className="pt-2 mt-2 border-t border-white/5">
-                                                <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ULTRA-FAST 1-SCREEN 3-COLUMN LAYOUT */}
-                        <div className="flex flex-col md:flex-row h-[calc(100vh-180px)] min-h-[600px] gap-4 w-full">
-                            
-                            {/* Column 1: Kategori (Left - 15%) */}
-                            <div className="hidden lg:flex w-[15%] flex-col gap-2 shrink-0 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-3 overflow-y-auto custom-scrollbar">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mb-2 px-1">Kategori</h4>
-                                <button 
-                                    onClick={() => setSelectedCategory(null)}
-                                    className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
-                                >
-                                    Semua Menu
-                                </button>
-                                {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
-                                    <button 
-                                        key={cat}
-                                        onClick={() => setSelectedCategory(cat)}
-                                        className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent overflow-hidden text-ellipsis'}`}
+                        {!activeShift ? (
+                            <ShiftRequired onOpenShift={() => setView('pos')} />
+                        ) : (
+                            <>
+                                {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
+                                <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
+                                    <button
+                                        onClick={() => setMobileTab('menu')}
+                                        className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                            mobileTab === 'menu' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
+                                        }`}
                                     >
-                                        {cat}
+                                        <span className="material-symbols-outlined text-[18px]">restaurant_menu</span>
+                                        <span className="uppercase tracking-widest text-[10px]">Menu</span>
                                     </button>
-                                ))}
-                            </div>
-
-                            {/* Column 2: Daftar Menu (Center - 55%) */}
-                            <div className={`w-full lg:w-[50%] flex-col gap-4 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
-                                <div className="relative group shrink-0">
-                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
-                                    <input 
-                                        ref={searchInputRef}
-                                        type="text" 
-                                        placeholder="Cari Menu... (Tekan '/')" 
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
-
-                                {/* HORIZONTAL CATEGORIES (Mobile Only) */}
-                                <div className="!flex lg:!hidden gap-2 overflow-x-auto pb-2 px-1 custom-scrollbar shrink-0">
-                                    <button 
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedCategory ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
-                                    >
-                                        Semua
-                                    </button>
-                                    {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
-                                        <button 
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${selectedCategory === cat ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
-                                    {isLoading ? (
-                                        Array.from({ length: 12 }).map((_, i) => (
-                                            <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
-                                        ))
-                                    ) : filteredRecipes.map((item, index) => (
-                                        <MemoizedProductCard 
-                                            key={item.id} 
-                                            item={item} 
-                                            saleCount={sales[item.id] || 0} 
-                                            isHighlighted={index === highlightedIndex}
-                                            onUpdateQty={updateQty} 
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Column 3: Cart & Quick Pay (Right - 30%) */}
-                            <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
-                                {/* Cart Header */}
-                                <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all shrink-0">
-                                            <span className="material-symbols-outlined text-xl">shopping_cart</span>
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2 truncate">
-                                                Keranjang
-                                            </h2>
-                                            <p className="text-[10px] font-bold text-primary uppercase mt-0.5">{totalItems} Item</p>
-                                        </div>
-                                    </div>
                                     
-                                    <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2.5 flex items-center gap-1.5 rounded-xl shrink-0 transition-all active:scale-95 border border-red-500/20">
-                                        <span className="material-symbols-outlined text-base">delete_sweep</span> 
-                                        <span className="xs:inline hidden">Riset</span>
+                                    <button
+                                        onClick={() => setMobileTab('cart')}
+                                        className={`flex-[1.2] py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                            mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+                                        <span className="uppercase tracking-widest text-[10px]">Keranjang</span>
+                                        {totalItems > 0 && (
+                                            <span className={`ml-1 size-5 rounded-full text-[9px] flex items-center justify-center font-black ${
+                                                mobileTab === 'cart' ? 'bg-slate-950 text-primary' : 'bg-primary text-slate-950'
+                                            }`}>
+                                                {totalItems}
+                                            </span>
+                                        )}
                                     </button>
                                 </div>
                                 
-                                {/* Active Table Bar */}
-                                {currentBillId && (
-                                    <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 shrink-0">
-                                        <span className="material-symbols-outlined text-primary text-xs">room_service</span>
-                                        <span className="text-[10px] font-black text-primary uppercase flex-1 truncate">{customerInfo}</span>
-                                        <button onClick={(e) => { e.stopPropagation(); setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-primary/60 hover:text-primary transition-all">
-                                            <span className="material-symbols-outlined text-xs">close</span>
-                                        </button>
+                                {/* SECTION: OPEN BILLS (Only in Menu/Bills tab on mobile) */}
+                                {(mobileTab === 'menu' || mobileTab === 'bills') && openBills.length > 0 && !currentBillId && (
+                                    <div className="bg-primary/5 border border-primary/20 p-3 rounded-2xl flex flex-col gap-3 shrink-0">
+                                        <div className="flex items-center justify-between px-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary text-sm">receipt_long</span>
+                                                <h3 className="font-black uppercase tracking-tighter text-xs text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
+                                            </div>
+                                            <span className="bg-primary text-slate-950 text-[9px] px-2 py-0.5 rounded-full font-black uppercase shadow-sm">{openBills.length} Meja</span>
+                                        </div>
+                                        <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 snap-x">
+                                            {openBills.map(bill => (
+                                                <div 
+                                                    key={bill.id}
+                                                    onClick={() => loadBill(bill)}
+                                                    className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer transition-all shrink-0 w-[200px] snap-start flex flex-col justify-between"
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="text-[12px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
+                                                        <div className="flex gap-1.5">
+                                                            <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
+                                                            <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
+                                                            <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="pt-2 mt-2 border-t border-white/5">
+                                                        <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Cart Items List */}
-                                <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-                                    {activeCartItems.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center opacity-30">
-                                            <span className="material-symbols-outlined text-4xl mb-2">remove_shopping_cart</span>
-                                            <p className="text-[10px] font-black uppercase tracking-widest">Kosong</p>
-                                        </div>
-                                    ) : activeCartItems.map((item) => (
-                                        <MemoizedCartItem key={item.id} item={item} salesCount={sales[item.id]} updateQty={updateQty} />
-                                    ))}
-                                </div>
+                                {/* ULTRA-FAST 1-SCREEN 3-COLUMN LAYOUT */}
+                                <div className="flex flex-col md:flex-row h-[calc(100vh-180px)] min-h-[600px] gap-4 w-full">
+                                    {/* Column 1: Kategori (Left - 15%) */}
+                                    <div className="hidden lg:flex w-[15%] flex-col gap-2 shrink-0 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-3 overflow-y-auto custom-scrollbar">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mb-2 px-1">Kategori</h4>
+                                        <button 
+                                            onClick={() => setSelectedCategory(null)}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
+                                        >
+                                            Semua Menu
+                                        </button>
+                                        {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
+                                            <button 
+                                                key={cat}
+                                                onClick={() => setSelectedCategory(cat)}
+                                                className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent overflow-hidden text-ellipsis'}`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
 
-                                {/* Compact Embedded PosFooter (Desktop Only) */}
-                                <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20 hidden lg:block">
-                                    {PosFooter}
+                                    {/* Column 2: Daftar Menu (Center - 55%) */}
+                                    <div className={`w-full lg:w-[50%] flex-col gap-4 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
+                                        <div className="relative group shrink-0">
+                                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
+                                            <input 
+                                                ref={searchInputRef}
+                                                type="text" 
+                                                placeholder="Cari Menu... (Tekan '/')" 
+                                                className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* HORIZONTAL CATEGORIES (Mobile Only) */}
+                                        <div className="!flex lg:!hidden gap-2 overflow-x-auto pb-2 px-1 custom-scrollbar shrink-0">
+                                            <button 
+                                                onClick={() => setSelectedCategory(null)}
+                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedCategory ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                            >
+                                                Semua
+                                            </button>
+                                            {Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => (
+                                                <button 
+                                                    key={cat}
+                                                    onClick={() => setSelectedCategory(cat)}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${selectedCategory === cat ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
+                                            {isLoading ? (
+                                                Array.from({ length: 12 }).map((_, i) => (
+                                                    <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
+                                                ))
+                                            ) : filteredRecipes.map((item, index) => (
+                                                <MemoizedProductCard 
+                                                    key={item.id} 
+                                                    item={item} 
+                                                    saleCount={sales[item.id] || 0} 
+                                                    isHighlighted={index === highlightedIndex}
+                                                    onUpdateQty={updateQty} 
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Column 3: Cart & Quick Pay (Right - 30%) */}
+                                    <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
+                                        {/* Cart Header */}
+                                        <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all shrink-0">
+                                                    <span className="material-symbols-outlined text-xl">shopping_cart</span>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2 truncate">
+                                                        Keranjang
+                                                    </h2>
+                                                    <p className="text-[10px] font-bold text-primary uppercase mt-0.5">{totalItems} Item</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2.5 flex items-center gap-1.5 rounded-xl shrink-0 transition-all active:scale-95 border border-red-500/20">
+                                                <span className="material-symbols-outlined text-base">delete_sweep</span> 
+                                                <span className="xs:inline hidden">Riset</span>
+                                            </button>
+                                        </div>
+                                        
+                                        {/* Active Table Bar */}
+                                        {currentBillId && (
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 shrink-0">
+                                                <span className="material-symbols-outlined text-primary text-xs">room_service</span>
+                                                <span className="text-[10px] font-black text-primary uppercase flex-1 truncate">{customerInfo}</span>
+                                                <button onClick={(e) => { e.stopPropagation(); setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-primary/60 hover:text-primary transition-all">
+                                                    <span className="material-symbols-outlined text-xs">close</span>
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Cart Items List */}
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
+                                            {activeCartItems.length === 0 ? (
+                                                <div className="h-full flex flex-col items-center justify-center opacity-30">
+                                                    <span className="material-symbols-outlined text-4xl mb-2">remove_shopping_cart</span>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest">Kosong</p>
+                                                </div>
+                                            ) : activeCartItems.map((item) => (
+                                                <MemoizedCartItem key={item.id} item={item} salesCount={sales[item.id]} updateQty={updateQty} />
+                                            ))}
+                                        </div>
+
+                                        {/* Compact Embedded PosFooter (Desktop Only) */}
+                                        <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20 hidden lg:block">
+                                            {PosFooter}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
                 </>
             )}
 

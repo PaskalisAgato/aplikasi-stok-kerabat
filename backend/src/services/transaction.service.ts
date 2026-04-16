@@ -291,6 +291,12 @@ export class TransactionService {
             throw new Error('No items to add');
         }
 
+        // 0. Active Shift Guard
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        if (!activeShift) {
+            throw new Error('Shift belum dibuka. Tidak bisa memodifikasi pesanan.');
+        }
+
         return await db.transaction(async (tx: any) => {
             const oldSaleArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, saleId), eq(schema.sales.status, 'OPEN'))).limit(1);
             if (oldSaleArr.length === 0) throw new Error('Open transaction not found or already paid');
@@ -668,6 +674,12 @@ export class TransactionService {
             throw new Error('ID bill sumber tidak valid');
         }
 
+        // 0. Active Shift Guard
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        if (!activeShift) {
+            throw new Error('Shift belum dibuka. Tidak bisa menggabungkan meja.');
+        }
+
         return await db.transaction(async (tx: any) => {
             // 1. Fetch target bill
             const targetBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, targetId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
@@ -730,6 +742,12 @@ export class TransactionService {
         console.log(`--- splitBill execution started ---`, { sourceId, targetInfo, itemsToMoveLength: itemsToMove.length });
         if (!itemsToMove || itemsToMove.length === 0) {
             throw new Error('Tidak ada item yang dipilih untuk dipisah');
+        }
+
+        // 0. Active Shift Guard
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        if (!activeShift) {
+            throw new Error('Shift belum dibuka. Tidak bisa melakukan pisah meja.');
         }
 
         return await db.transaction(async (tx: any) => {
