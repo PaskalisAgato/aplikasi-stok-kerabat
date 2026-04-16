@@ -375,8 +375,9 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         // 1. Optimized Total Waste Value (Native SQL SUM)
+        const totalValueExpr = sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`;
         const totalWasteResult = await db.select({
-            total: sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`
+            total: totalValueExpr
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
@@ -388,29 +389,41 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
         );
 
         // 2. Top Waste Offenders (Already O(1) SQL)
-        const topOffendersRaw = await db.select({
+        const wasteValueExpr = sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`.as('total_waste_value');
+        
+        const topOffenders = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
             unit: schema.inventory.unit,
-            totalWasteValue: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`
+            totalWasteValue: wasteValueExpr
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
         .where(eq(schema.stockMovements.type, 'WASTE'))
         .groupBy(schema.inventory.id, schema.inventory.name, schema.inventory.unit)
-        .orderBy(sql`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)) DESC`)
+        .orderBy(desc(wasteValueExpr))
         .limit(5);
+
+        console.log(`[WasteSummary] Success. Months Total: ${totalWasteResult[0]?.total}, Offenders: ${topOffenders.length}`);
 
         res.json({
             success: true,
             data: {
                 totalValueMonth: Number(totalWasteResult[0]?.total || 0),
-                topOffenders: topOffendersRaw
+                topOffenders
             }
         });
-    } catch (error) {
-        console.error('Waste Summary Error:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil ringkasan limbah' });
+    } catch (error: any) {
+        console.error('Waste Summary Critical Error:', {
+            message: error.message,
+            stack: error.stack,
+            query: 'GET /waste/summary'
+        });
+        res.status(500).json({ 
+            success: false, 
+            message: 'Gagal mengambil ringkasan limbah',
+            details: error.message 
+        });
     }
 });
 
