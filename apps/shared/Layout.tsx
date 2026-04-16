@@ -233,7 +233,7 @@ const Layout: React.FC<LayoutProps> = ({
                     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                         {/* Shell Header (Glass) */}
                         {!hideHeader && (
-                            <header className="p-3 md:px-6 md:py-4 shrink-0 w-full z-10">
+                            <header className="p-3 md:px-6 md:py-4 pt-[max(0.75rem,env(safe-area-inset-top))] shrink-0 w-full z-10">
                                 <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm`}>
                                     
                                     {/* Kiri: Hamburger + Logo */}
