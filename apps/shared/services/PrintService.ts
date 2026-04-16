@@ -502,14 +502,15 @@ export class PrintService {
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
 
-            // Checker ONLY prints for specific categories (Kitchen/Bar).
-            // This avoids double-printing on the main cashier printer (which has no categories).
-            if (!printer.categories || printer.categories.length === 0) {
+            // FIX DOUBLE PRINTING (V2): Ensure we only process each printer ONCE per slip type
+            // and skip printers without categories (should only used for Receipt).
+            const cats = printer.categories || [];
+            if (cats.length === 0) {
                 continue;
             }
 
             const filteredItems = data.items.filter(item => 
-                item.category && printer.categories.includes(item.category)
+                item.category && cats.includes(item.category)
             );
 
             if (filteredItems.length > 0) {
@@ -563,10 +564,11 @@ export class PrintService {
 
             let filteredItems = data.items;
 
-            // FIX DOUBLE PRINTING: printOrder is for CUSTOMER RECEIPTS.
+            // FIX DOUBLE PRINTING (V2): printOrder is for CUSTOMER RECEIPTS.
             // Only auto-print to main printers (those with NO categories assigned).
             // Printers WITH categories are handled by printChecker.
-            if (!isManual && printer.categories.length > 0) {
+            const cats = printer.categories || [];
+            if (!isManual && cats.length > 0) {
                 continue;
             }
 
