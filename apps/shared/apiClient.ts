@@ -259,7 +259,19 @@ export const apiClient = {
         apiFetch<ApiResponse<any>>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     submitOpname: (adjustments: Array<{ inventoryId: number, physicalStock: string | number, reason: string }>) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
-    getWasteSummary: () => apiFetch<any>('/inventory/waste/summary'),
+    getWasteSummary: async (params?: any) => {
+        try {
+            let url = '/finance/waste-analysis';
+            if (params) {
+                const query = new URLSearchParams(params).toString();
+                url += `?${query}`;
+            }
+            return await apiFetch<any>(url);
+        } catch (err) {
+            console.error('[apiClient] getWasteSummary Error:', err);
+            return { success: false, data: null };
+        }
+    },
     getStockInHistory: () => apiFetch<ApiResponse<any>>('/inventory/movements/in'),
     getItemWaste: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/waste`),
     deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
@@ -395,13 +407,18 @@ export const apiClient = {
         }
         return apiFetch<ApiResponse<any>>(url);
     },
-    getWasteAnalysis: (params?: any) => {
-        let url = '/finance/waste-analysis';
-        if (params) {
-            const query = new URLSearchParams(params).toString();
-            url += `?${query}`;
+    getWasteAnalysis: async (params?: any) => {
+        try {
+            let url = '/finance/waste-analysis';
+            if (params) {
+                const query = new URLSearchParams(params).toString();
+                url += `?${query}`;
+            }
+            return await apiFetch<ApiResponse<any>>(url);
+        } catch (err) {
+            console.error('[apiClient] getWasteAnalysis Error:', err);
+            return { success: false, data: null };
         }
-        return apiFetch<ApiResponse<any>>(url);
     },
     getShiftReports: (params?: any) => {
         let url = '/analytics/reports';

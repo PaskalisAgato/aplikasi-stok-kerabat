@@ -882,7 +882,10 @@ financeRouter.get('/waste-analysis', requireAdmin, async (req: Request, res: Res
                 wasteRatio: wasteRatioPercent,
                 status,
                 wasteByReason,
-                breakdownByInventory
+                breakdownByInventory,
+                // Compatibility for older apps/waste
+                totalValueMonth: totalWasteCost,
+                topOffenders: breakdownByInventory
             }
         });
     } catch (error) {

@@ -3,27 +3,51 @@ import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import LogWasteModal from './components/LogWasteModal';
 
+const safeNumber = (val: any) => {
+    const n = Number(val);
+    return isNaN(n) ? 0 : n;
+};
+
 function App() {
-    const [wasteSummary, setWasteSummary] = useState<any>(null);
+    const [wasteSummary, setWasteSummary] = useState<any>({
+        totalValueMonth: 0,
+        topOffenders: [],
+        status: 'NORMAL'
+    });
     const [isLoading, setIsLoading] = useState(true);
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const response = await apiClient.getWasteSummary();
+            const data = response?.data || {};
+            
+            console.log("Waste API response:", response);
+
+            setWasteSummary({
+                totalValueMonth: safeNumber(data.totalValueMonth),
+                topOffenders: Array.isArray(data.topOffenders) ? data.topOffenders : [],
+                status: data.status || "NORMAL"
+            });
+        } catch (error) {
+            console.error('Failed to fetch waste summary', error);
+            setWasteSummary({
+                totalValueMonth: 0,
+                topOffenders: [],
+                status: "ERROR"
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const summary = await apiClient.getWasteSummary();
-                setWasteSummary(summary);
-            } catch (error) {
-                console.error('Failed to fetch waste summary', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchData();
     }, []);
 
-    const totalWasteValue = wasteSummary?.totalValueMonth || 0;
-    const topOffenders = wasteSummary?.topOffenders || [];
+    const totalWasteValue = safeNumber(wasteSummary?.totalValueMonth);
+    const topOffenders = Array.isArray(wasteSummary?.topOffenders) ? wasteSummary.topOffenders : [];
 
     return (
         <Layout
@@ -57,9 +81,17 @@ function App() {
                                     <span className="material-symbols-outlined font-black" style={{ fontSize: '240px' }}>delete_outline</span>
                                 </div>
                                 <div className="relative z-10 space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-primary text-sm font-black">warning</span>
-                                        <p className="text-[10px] font-black tracking-[0.4em] text-primary uppercase opacity-80">Total Pengeluaran Sia-Sia</p>
+                                    <div className="flex border-b border-white/5 pb-4 mb-4 justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary text-sm font-black">warning</span>
+                                            <p className="text-[10px] font-black tracking-[0.4em] text-primary uppercase opacity-80">Total Pengeluaran Sia-Sia</p>
+                                        </div>
+                                        {wasteSummary?.status === 'ERROR' && (
+                                            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl animate-pulse">
+                                                <span className="material-symbols-outlined text-red-500 text-sm font-black">error</span>
+                                                <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Data tidak tersedia</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <h2 className="text-5xl font-black text-[var(--text-main)] tracking-tighter uppercase font-display leading-tight">
