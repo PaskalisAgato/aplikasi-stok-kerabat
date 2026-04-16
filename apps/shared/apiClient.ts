@@ -321,6 +321,7 @@ export const apiClient = {
     addExpenseCategory: (data: unknown) => apiFetch<any>('/finance/expenses/categories', { method: 'POST', body: JSON.stringify(data) }),
     deleteExpenseCategory: (id: number) => apiFetch<any>(`/finance/expenses/categories/${id}`, { method: 'DELETE' }),
     getHPPAnalysis: () => apiFetch<ApiResponse<any>>('/finance/hpp'),
+    getCOGSAnalysis: () => apiFetch<ApiResponse<any>>('/finance/cogs'),
     getExpensePhoto: (id: number) => apiFetch<any>(`/finance/expenses/${id}/photo`),
     getRecipePhoto: (id: number) => apiFetch<any>(`/products/${id}/photo`),
 

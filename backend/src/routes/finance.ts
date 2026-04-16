@@ -586,3 +586,94 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: 'Gagal menghitung HPP' });
     }
 });
+
+// GET COGS (Cost of Procurement)
+// Fetches total spend on 'IN' stock movements for the current month and compares with last month.
+financeRouter.get('/cogs', async (req: Request, res: Response) => {
+    try {
+        const nowStr = new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"});
+        const d = new Date(nowStr);
+        
+        const currentMonthStart = new Date(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-01T00:00:00+07:00`);
+        
+        let lastMonthY = d.getFullYear();
+        let lastMonthM = d.getMonth();
+        if (lastMonthM === 0) {
+            lastMonthM = 12;
+            lastMonthY -= 1;
+        }
+        const lastMonthStart = new Date(`${lastMonthY}-${lastMonthM.toString().padStart(2, '0')}-01T00:00:00+07:00`);
+
+        // Total Procurement This Month
+        const currentMonthProcurement = await db.select({
+            totalAmount: sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(
+            and(
+                eq(schema.stockMovements.type, 'IN'),
+                gte(schema.stockMovements.createdAt, currentMonthStart)
+            )
+        );
+
+        // Total Procurement Last Month
+        const lastMonthProcurement = await db.select({
+            totalAmount: sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(
+            and(
+                eq(schema.stockMovements.type, 'IN'),
+                gte(schema.stockMovements.createdAt, lastMonthStart),
+                lte(schema.stockMovements.createdAt, currentMonthStart)
+            )
+        );
+
+        const currentTotal = Number(currentMonthProcurement[0]?.totalAmount || 0);
+        const lastTotal = Number(lastMonthProcurement[0]?.totalAmount || 0);
+
+        let trendPercentage = 0;
+        if (lastTotal > 0) {
+            trendPercentage = ((currentTotal - lastTotal) / lastTotal) * 100;
+        }
+
+        // Top Expenditure Items (This Month)
+        const topExpenditureItems = await db.select({
+            id: schema.inventory.id,
+            name: schema.inventory.name,
+            unit: schema.inventory.unit,
+            imageUrl: schema.inventory.imageUrl,
+            totalCost: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`,
+            totalQty: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float))`
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(
+            and(
+                eq(schema.stockMovements.type, 'IN'),
+                gte(schema.stockMovements.createdAt, currentMonthStart)
+            )
+        )
+        .groupBy(schema.inventory.id, schema.inventory.name, schema.inventory.unit, schema.inventory.imageUrl)
+        .orderBy(sql`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)) DESC`)
+        .limit(10);
+
+        res.json({
+            success: true,
+            data: {
+                totalProcurement: currentTotal,
+                trendPercentage: Number(trendPercentage.toFixed(1)),
+                topExpenditureItems: topExpenditureItems.map(item => ({
+                    ...item,
+                    totalCost: Number(item.totalCost),
+                    totalQty: Number(item.totalQty)
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching COGS:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil data COGS' });
+    }
+});
