@@ -1003,7 +1003,7 @@ function App() {
                     <>
                         {/* POS CONTENT - blocked if no active shift */}
                         {!activeShift && !isActiveLoading && (
-                            <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-8 text-center gap-6">
+                            <div className="flex flex-col items-center justify-center py-20 px-8 text-center gap-6">
                                 <div className="size-24 bg-red-500/10 rounded-3xl flex items-center justify-center border border-red-500/20">
                                     <span className="material-symbols-outlined text-5xl text-red-400">lock</span>
                                 </div>
