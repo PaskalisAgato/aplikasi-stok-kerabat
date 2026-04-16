@@ -232,7 +232,7 @@ const Layout: React.FC<LayoutProps> = ({
                     {/* Main Viewport */}
                     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
                         {/* Shell Header (Glass) - Changed to fixed for robustness on mobile */}
-                        {!hideHeader && (
+                        {!hideHeader && !drawerOpen && (
                             <header 
                                 className="fixed top-0 left-0 right-0 lg:relative p-3 md:px-6 md:py-4 shrink-0 w-full z-[150]"
                                 style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}

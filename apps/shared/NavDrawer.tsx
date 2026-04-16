@@ -66,7 +66,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex">
+        <div className="fixed inset-0 z-[200] flex">
             <div
                 className="absolute inset-0 bg-slate-950/60 backdrop-blur-md transition-opacity duration-500"
                 onClick={onClose}
