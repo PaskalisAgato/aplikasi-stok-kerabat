@@ -1,0 +1,27 @@
+vite v7.3.2 building client environment for production...
+transforming...
+✓ 3 modules transformed.
+✗ Build failed in 540ms
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/apps/hpp/src/App.tsx:207:0: ERROR: Unexpected "}"
+file: /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/apps/hpp/src/App.tsx:207:0
+
+Unexpected "}"
+205 |          </Layout>
+206 |      );
+207 |  }
+    |  ^
+208 |  
+209 |  export default App;
+
+    at failureErrorWithLog (/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/node_modules/vite/node_modules/esbuild/lib/main.js:1748:15)
+    at /home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/node_modules/vite/node_modules/esbuild/lib/main.js:1017:50
+    at responseCallbacks.<computed> (/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/node_modules/vite/node_modules/esbuild/lib/main.js:884:9)
+    at handleIncomingPacket (/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/node_modules/vite/node_modules/esbuild/lib/main.js:939:12)
+    at Socket.readFromStdout (/home/paskalis-agato/Documents/APLIKASI POS STOK KERABAT/node_modules/vite/node_modules/esbuild/lib/main.js:862:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)

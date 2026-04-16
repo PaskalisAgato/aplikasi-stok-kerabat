@@ -677,3 +677,104 @@ financeRouter.get('/cogs', async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: 'Gagal mengambil data COGS' });
     }
 });
+
+// GET Real Profit & Loss Report
+financeRouter.get('/profit-loss', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        // 1. Build date filter for Sales
+        let salesFilters = [];
+        if (startDate) {
+            const d = new Date(`${startDate}T00:00:00+07:00`);
+            if (!isNaN(d.getTime())) salesFilters.push(gte(schema.sales.createdAt, d));
+        }
+        if (endDate) {
+            const d = new Date(`${endDate}T23:59:59.999+07:00`);
+            if (!isNaN(d.getTime())) salesFilters.push(lte(schema.sales.createdAt, d));
+        }
+        salesFilters.push(eq(schema.sales.isDeleted, false));
+        const salesWhereClause = and(...salesFilters);
+
+        // 2. Build date filter for Expenses
+        let expenseFilters = [];
+        if (startDate) {
+            const d = new Date(`${startDate}T00:00:00+07:00`);
+            if (!isNaN(d.getTime())) expenseFilters.push(gte(schema.expenses.expenseDate, d));
+        }
+        if (endDate) {
+            const d = new Date(`${endDate}T23:59:59.999+07:00`);
+            if (!isNaN(d.getTime())) expenseFilters.push(lte(schema.expenses.expenseDate, d));
+        }
+        expenseFilters.push(eq(schema.expenses.isDeleted, false));
+        const expenseWhereClause = and(...expenseFilters);
+
+        // 3. Calculate Total Expenses
+        const expensesResult = await db.select({
+            total: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`
+        })
+        .from(schema.expenses)
+        .where(expenseWhereClause);
+        
+        const totalExpenses = Number(expensesResult[0].total) || 0;
+
+        // 4. Calculate Revenue, HPP and Breakdown from saleItems
+        const breakdownRaw = await db.select({
+            productId: schema.recipes.id,
+            name: schema.recipes.name,
+            totalSold: sql<number>`SUM(CAST(${schema.saleItems.quantity} AS float))`,
+            revenue: sql<number>`SUM(CAST(${schema.saleItems.subtotal} AS float))`,
+            totalHPP: sql<number>`SUM(CAST(${schema.saleItems.quantity} AS float) * CAST(${schema.recipes.costPrice} AS float))`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+        .where(salesWhereClause)
+        .groupBy(schema.recipes.id, schema.recipes.name)
+        .orderBy(sql`SUM(CAST(${schema.saleItems.subtotal} AS float)) DESC`);
+
+        let revenue = 0;
+        let totalHPP = 0;
+
+        const breakdown = breakdownRaw.map(item => {
+            const rev = Number(item.revenue || 0);
+            const hpp = Number(item.totalHPP || 0);
+            revenue += rev;
+            totalHPP += hpp;
+            
+            return {
+                productId: item.productId,
+                name: item.name,
+                totalSold: Number(item.totalSold || 0),
+                revenue: rev,
+                totalHPP: hpp,
+                profit: rev - hpp
+            };
+        });
+
+        // 5. Final Calculation
+        const grossProfit = revenue - totalHPP;
+        const netProfit = grossProfit - totalExpenses;
+        
+        let status = 'PROFIT';
+        if (netProfit < 0) status = 'LOSS';
+        else if (netProfit === 0) status = 'BREAK_EVEN';
+
+        res.json({
+            success: true,
+            data: {
+                revenue,
+                totalHPP,
+                totalExpenses,
+                grossProfit,
+                netProfit,
+                status,
+                breakdown
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching profit-loss:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil laporan laba rugi' });
+    }
+});

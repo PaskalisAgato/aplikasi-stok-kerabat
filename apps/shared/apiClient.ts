@@ -387,6 +387,14 @@ export const apiClient = {
         }
         return apiFetch<any>(url);
     },
+    getProfitLossReport: (params?: any) => {
+        let url = '/finance/profit-loss';
+        if (params) {
+            const query = new URLSearchParams(params).toString();
+            url += `?${query}`;
+        }
+        return apiFetch<ApiResponse<any>>(url);
+    },
     getShiftReports: (params?: any) => {
         let url = '/analytics/reports';
         if (params) {
