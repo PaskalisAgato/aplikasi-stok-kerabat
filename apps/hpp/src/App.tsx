@@ -158,11 +158,11 @@ function App() {
                                 ingredientsHPP.map((ing: any) => (
                                     <div key={ing.id} className="card group p-5 flex items-center justify-between gap-6 hover:scale-[1.01] active:scale-[0.99] transition-all border-white/5">
                                         <div className="flex items-center gap-5 flex-1 min-w-0">
-                                            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group-hover:rotate-6 transition-transform">
+                                            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group-hover:rotate-6 transition-transform shrink-0">
                                                 <span className="material-symbols-outlined text-primary text-2xl font-black">inventory_2</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight truncate">{ing.name}</h3>
+                                                <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight break-words">{ing.name}</h3>
                                                 <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60">{safeNumber(ing.totalQty).toFixed(2)} unit digunakan</p>
                                             </div>
                                         </div>
