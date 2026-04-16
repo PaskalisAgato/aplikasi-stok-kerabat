@@ -3,7 +3,10 @@ import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
 import { getTargetUrl } from '@shared/navigation';
 
-function App() {
+const safeNumber = (val: any) => {
+    const n = Number(val);
+    return isNaN(n) ? 0 : n;
+};
     const [hppData, setHppData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [sellingPrice, setSellingPrice] = useState<number>(() => {
@@ -75,7 +78,7 @@ function App() {
                                 </h2>
                             </div>
                             <div className="mt-4 pt-4 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Margin: {sellingPrice > 0 ? (((sellingPrice - (totalHPPBahan / (hppData?.totalSalesCount || 1))) / sellingPrice) * 100).toFixed(1) : 0}%</span>
+                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Margin: {sellingPrice > 0 ? safeNumber(((sellingPrice - (totalHPPBahan / (hppData?.totalSalesCount || 1))) / sellingPrice) * 100).toFixed(1) : 0}%</span>
                             </div>
                         </div>
 
@@ -158,15 +161,15 @@ function App() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight truncate">{ing.name}</h3>
-                                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60">{ing.totalQty.toFixed(2)} unit digunakan</p>
+                                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60">{safeNumber(ing.totalQty).toFixed(2)} unit digunakan</p>
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0 space-y-1.5">
                                             <p className="text-xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase whitespace-nowrap">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
                                             <div className="flex items-center justify-end gap-1.5">
-                                                <span className="text-[8px] font-black text-primary uppercase tracking-widest">{( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}%</span>
+                                                <span className="text-[8px] font-black text-primary uppercase tracking-widest">{safeNumber( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}%</span>
                                                 <div className="w-12 bg-white/5 h-1 rounded-full overflow-hidden">
-                                                    <div className="bg-primary h-full rounded-full" style={{ width: `${(ing.totalCost / totalHPPBahan * 100)}%` }}></div>
+                                                    <div className="bg-primary h-full rounded-full" style={{ width: `${safeNumber(ing.totalCost / totalHPPBahan * 100)}%` }}></div>
                                                 </div>
                                             </div>
                                         </div>
