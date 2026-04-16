@@ -71,7 +71,8 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
     );
 }, (prev, next) => prev.item.id === next.item.id && prev.saleCount === next.saleCount && prev.isHighlighted === next.isHighlighted);
 
-const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void }) => {
+const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void, note?: string, onNoteChange: (id: number, note: string) => void }) => {
+    const [showNoteInput, setShowNoteInput] = useState(false);
     return (
         <div className="flex items-center justify-between group py-1.5 border-b border-[var(--border-dim)] last:border-0 hover:bg-[var(--glass-bg)] -mx-1 px-1 rounded-lg transition-colors">
             <div className="flex-1 min-w-0 pr-2">
@@ -93,6 +94,26 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty }: { item: Recipe &
                     +
                 </button>
             </div>
+            
+            <button 
+                onClick={() => setShowNoteInput(!showNoteInput)}
+                className={`size-6 rounded flex items-center justify-center transition-all ${note ? 'bg-amber-500/20 text-amber-500' : 'text-[var(--text-muted)] hover:bg-white/10'}`}
+                title="Serta Catatan"
+            >
+                <span className="material-symbols-outlined text-xs">notes</span>
+            </button>
+
+            {showNoteInput && (
+                <div className="absolute top-full left-0 right-0 z-20 mt-1 p-2 glass rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2">
+                    <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:outline-none focus:border-primary transition-all"
+                        placeholder="Catatan pesanan (contoh: Pedas, No MSG)..."
+                        value={note || ''}
+                        onChange={(e) => onNoteChange(item.id, e.target.value)}
+                        autoFocus
+                    />
+                </div>
+            )}
         </div>
     );
 });
@@ -158,6 +179,7 @@ function App() {
     const [printQueueCount, setPrintQueueCount] = useState<number>(0);
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+    const [itemNotes, setItemNotes] = useState<Record<number, string>>({});
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -396,19 +418,27 @@ function App() {
                     quantity: sales[item.id],
                     price: item.price,
                     subtotal: item.price * sales[item.id],
-                    category: item.category
-                }))
+                    category: item.category,
+                    notes: itemNotes[item.id]
+                })),
+                tableNumber: customerInfo
             };
 
             // 1. Queue & Trigger Auto-Print
             PrintService.queueReceipt(printData).then(() => {
+                // --- NEW: KITCHEN CHECKER (PRINT FIRST) ---
+                PrintService.printChecker(printData).catch(err => {
+                    console.error('Checker print error', err);
+                });
+
+                // --- PAYMENT RECEIPT (PRINT AFTER) ---
                 PrintService.printOrder(printData).catch(err => {
                     console.error('Auto-print error', err);
-                }).finally(() => {
-                    // Refresh badge counter
-                    PrintService.getPendingJobs().then(jobs => {
-                        setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
-                    });
+                });
+            }).finally(() => {
+                // Refresh badge counter
+                PrintService.getPendingJobs().then(jobs => {
+                    setPrintQueueCount(jobs.filter(j => j.status === 'PENDING').length);
                 });
             });
 
@@ -417,6 +447,7 @@ function App() {
 
             // 3. UI Optimistic Success
             setSales({});
+            setItemNotes({});
             setPaymentMethod('CASH');
             setAmountPaid(0);
             setCustomerInfo('');
@@ -467,7 +498,8 @@ function App() {
                     recipeId: item.id,
                     quantity: sales[item.id],
                     price: item.price,
-                    subtotal: (item.price || 0) * (sales[item.id] || 0)
+                    subtotal: (item.price || 0) * (sales[item.id] || 0),
+                    notes: itemNotes[item.id]
                 })),
                 status: 'OPEN',
                 customerInfo: info,
@@ -478,7 +510,27 @@ function App() {
 
             await apiClient.post('/transactions', checkoutData);
             showNotification('Bill berhasil disimpan!', "success");
+
+            // --- AUTO PRINT CHECKER FOR NEW BILL ---
+            const printDataForChecker = {
+                id: checkoutData.id,
+                date: new Date().toISOString(),
+                paymentMethod: 'CASH',
+                total: totalSalesValue,
+                items: activeCartItems.map(item => ({
+                    name: item.name,
+                    quantity: sales[item.id],
+                    price: item.price,
+                    subtotal: item.price * sales[item.id],
+                    category: item.category,
+                    notes: itemNotes[item.id]
+                })),
+                tableNumber: info
+            };
+            PrintService.printChecker(printDataForChecker).catch(err => console.error('Checker print failed:', err));
+
             setSales({});
+            setItemNotes({});
             setCustomerInfo('');
             setCurrentBillId(null);
             
@@ -499,7 +551,8 @@ function App() {
             const items = activeCartItems.map(item => ({
                 recipeId: item.id,
                 quantity: sales[item.id],
-                price: item.price
+                price: item.price,
+                notes: itemNotes[item.id]
             }));
 
             await syncEngine.enqueue('ADD_ITEMS_TO_BILL', { id: currentBillId, items });
@@ -509,6 +562,28 @@ function App() {
             apiClient.get('/transactions/open-bills').then((response: any) => {
                 if (response && response.data) setOpenBills(response.data);
             }).catch(() => {});
+
+            // --- AUTO PRINT CHECKER FOR UPDATED ITEMS ---
+            // Note: Ideally we only print the NEW items, but for now we print the whole consolidated checker
+            const printDataUpdate = {
+                id: currentBillId,
+                date: new Date().toISOString(),
+                paymentMethod: 'CASH',
+                total: totalSalesValue,
+                items: activeCartItems.map(item => ({
+                    name: item.name,
+                    quantity: sales[item.id],
+                    price: item.price,
+                    subtotal: item.price * sales[item.id],
+                    category: item.category,
+                    notes: itemNotes[item.id]
+                })),
+                tableNumber: customerInfo
+            };
+            PrintService.printChecker(printDataUpdate).catch(err => console.error('Checker print failed (update):', err));
+
+            setSales({});
+            setItemNotes({});
         } catch (error) {
             showNotification('Gagal memperbarui bill', "error");
         } finally {
@@ -518,10 +593,13 @@ function App() {
 
     const loadBill = (bill: any) => {
         const newSales: Record<number, number> = {};
+        const newNotes: Record<number, string> = {};
         bill.items.forEach((item: any) => {
             newSales[item.recipeId] = item.quantity;
+            if (item.notes) newNotes[item.recipeId] = item.notes;
         });
         setSales(newSales);
+        setItemNotes(newNotes);
         setCurrentBillId(bill.id);
         setCustomerInfo(bill.customerInfo);
         showNotification(`Memuat Bill: ${bill.customerInfo}`, "info");
@@ -1183,7 +1261,14 @@ function App() {
                                                     <p className="text-[10px] font-black uppercase tracking-widest">Kosong</p>
                                                 </div>
                                             ) : activeCartItems.map((item) => (
-                                                <MemoizedCartItem key={item.id} item={item} salesCount={sales[item.id]} updateQty={updateQty} />
+                                                <MemoizedCartItem 
+                                                    key={item.id} 
+                                                    item={item} 
+                                                    salesCount={sales[item.id]} 
+                                                    updateQty={updateQty} 
+                                                    note={itemNotes[item.id]}
+                                                    onNoteChange={(id, note) => setItemNotes(prev => ({ ...prev, [id]: note }))}
+                                                />
                                             ))}
                                         </div>
 

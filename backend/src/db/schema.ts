@@ -212,6 +212,7 @@ export const saleItems = pgTable('sale_items', {
     recipeId: integer('recipe_id').notNull().references(() => recipes.id),
     quantity: integer('quantity').notNull(),
     subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
+    notes: text('notes'),
     costPrice: decimal('cost_price', { precision: 12, scale: 2 }).notNull().default('0') // Capture HPP at time of sale
 }, (t: any) => ({
     saleIdx: index('sale_items_sale_idx').on(t.saleId),

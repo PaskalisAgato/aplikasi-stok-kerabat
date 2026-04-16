@@ -108,6 +108,7 @@ export interface PrintItem {
     price: number;
     subtotal: number;
     category?: string;
+    notes?: string;
 }
 
 export interface PrintData {
@@ -119,6 +120,8 @@ export interface PrintData {
     amountPaid?: number;
     change_due?: number; 
     cashier_id?: string;
+    tableNumber?: string | number;
+    customerName?: string;
 }
 
 export class PosDatabase extends Dexie {

@@ -494,6 +494,55 @@ export class PrintService {
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
+    public static async printChecker(data: PrintData, isManual = false) {
+        const settings = await this.getSettings();
+        
+        if (settings.length === 0) return;
+
+        for (const printer of settings) {
+            if (printer.autoPrint === false) continue;
+
+            // Checker only prints for specific categories if printer has categories defined
+            let filteredItems = data.items;
+            if (printer.categories && printer.categories.length > 0) {
+                filteredItems = data.items.filter(item => 
+                    item.category && printer.categories.includes(item.category)
+                );
+            }
+
+            if (filteredItems.length > 0) {
+                const checkerData = { ...data, items: filteredItems };
+                const buffer = this.encodeChecker(checkerData, printer);
+                
+                if (printer.connectionType === 'bluetooth') {
+                    this.sendToBluetooth(buffer).catch(err => console.error('BT Checker failed', err));
+                } else if (printer.connectionType === 'serial') {
+                    this.sendToSerial(buffer).catch(err => console.error('Serial Checker failed', err));
+                } else if (printer.connectionType === 'bridge') {
+                    // Enqueue for cloud/bridge
+                    const bufferBase64 = btoa(String.fromCharCode(...buffer));
+                    await db.offlineActions.add({
+                        id: `ck_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                        type: 'ENQUEUE_PRINT',
+                        payload: {
+                            payload: checkerData,
+                            printerName: printer.name,
+                            isPrepTicket: true,
+                            bufferBase64,
+                            printerIp: printer.ip || '127.0.0.1',
+                            isManual
+                        },
+                        sync_status: 'PENDING',
+                        retry_count: 0,
+                        idempotency_key: `ckp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                        created_at: new Date().toISOString(),
+                        sequence_number: Date.now()
+                    });
+                }
+            }
+        }
+    }
+
     public static async printOrder(data: PrintData, isManual = false) {
         const settings = await this.getSettings();
         
@@ -723,6 +772,63 @@ Terima Kasih!
         }
         
         this.isPrinting = false;
+    }
+
+    public static encodeChecker(data: _PrTrData, config: _PrTrConf): Uint8Array {
+        const encoder = new EscPosEncoder();
+        const width = config.width || 32;
+
+        const centerText = (text: string) => {
+            const padSize = Math.max(0, Math.floor((width - text.length) / 2));
+            return ' '.repeat(padSize) + text;
+        };
+
+        encoder.initialize();
+        
+        // --- 1. Header (Beep + Bold Center) ---
+        // Beep command (Some printers use 0x07, others ESC B n t)
+        encoder.raw([0x1b, 0x42, 0x02, 0x01]); // ESC B 2 1: Beep 2 times
+        encoder.raw([0x07]); // BEL (fallback)
+
+        encoder
+            .align('center')
+            .bold(true)
+            .line('KERABAT KOPI TIAM')
+            .line('ORDER CHECK')
+            .bold(false)
+            .line('-'.repeat(width));
+
+        // --- 2. Metadata ---
+        encoder.align('left');
+        const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
+        encoder.bold(true).line(`No: #${orderIdShort}`).bold(false);
+        
+        // Note: data.customerName or data.id might contain table info in the current schema
+        encoder.line(`Meja: ${data.customerName || data.tableNumber || '-'}`);
+        encoder.line(`Waktu: ${new Date(data.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`);
+        encoder.line(`Kasir: ${data.cashier_id || 'Staff'}`);
+        encoder.line('-'.repeat(width));
+
+        // --- 3. Items ---
+        encoder.line('Items:').bold(true);
+        data.items.forEach((item: any) => {
+            encoder.line(`${item.quantity}x ${item.name}`);
+            if (item.notes) {
+                encoder.italic(true).line(`   * ${item.notes}`).italic(false);
+            }
+        });
+        encoder.bold(false);
+
+        // --- 4. Footer ---
+        encoder
+            .line('-'.repeat(width))
+            .align('center')
+            .bold(true)
+            .line('*** SEGERA DIPROSES ***')
+            .line('-'.repeat(width));
+
+        encoder.newline().newline().cut();
+        return encoder.encode();
     }
 
     public static encodeReceipt(data: _PrTrData, options: { config: _PrTrConf, isPrepTicket?: boolean }): Uint8Array {

@@ -31,6 +31,7 @@ export class TransactionService {
             recipeId: schema.saleItems.recipeId,
             quantity: schema.saleItems.quantity,
             subtotal: schema.saleItems.subtotal,
+            notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
             // recipeImage is intentionally excluded in list view
             externalRecipeImage: schema.recipes.externalImageUrl
@@ -68,6 +69,7 @@ export class TransactionService {
             recipeId: schema.saleItems.recipeId,
             quantity: schema.saleItems.quantity,
             subtotal: schema.saleItems.subtotal,
+            notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
         })
         .from(schema.saleItems)
@@ -111,6 +113,7 @@ export class TransactionService {
             recipeId: schema.saleItems.recipeId,
             quantity: schema.saleItems.quantity,
             subtotal: schema.saleItems.subtotal,
+            notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
             recipePrice: schema.recipes.price
         })
@@ -208,6 +211,7 @@ export class TransactionService {
                     recipeId: item.recipeId,
                     quantity: item.quantity,
                     subtotal: (verifiedPrice * item.quantity).toString(),
+                    notes: item.notes || null,
                     costPrice: snapCostPrice.toString()
                 };
             });
@@ -314,7 +318,8 @@ export class TransactionService {
                     saleId: saleId,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: subtotal.toString()
+                    subtotal: subtotal.toString(),
+                    notes: item.notes || null
                 };
             });
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
@@ -477,7 +482,8 @@ export class TransactionService {
                     saleId: saleId,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
-                    subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString()
+                    subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString(),
+                    notes: item.notes || null
                 };
             });
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
@@ -814,7 +820,8 @@ export class TransactionService {
                         saleId: targetId,
                         recipeId: originalItem.recipeId,
                         quantity: moveQty,
-                        subtotal: (moveQty * pricePerUnit).toString()
+                        subtotal: (moveQty * pricePerUnit).toString(),
+                        notes: originalItem.notes
                     });
                 }
             }
