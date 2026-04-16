@@ -3,14 +3,10 @@
   "short_name": "Kerabat",
   "description": "Premium Coffee Shop POS & System",
   "scope": "/",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
-  "display_override": [
-    "standalone",
-    "window-controls-overlay"
-  ],
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "portrait",
   "icons": [
     {
