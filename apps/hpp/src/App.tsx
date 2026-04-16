@@ -156,21 +156,21 @@ function App() {
                                 </div>
                             ) : (
                                 ingredientsHPP.map((ing: any) => (
-                                    <div key={ing.id} className="card group p-5 flex items-center justify-between gap-6 hover:scale-[1.01] active:scale-[0.99] transition-all border-white/5">
-                                        <div className="flex items-center gap-5 flex-1 min-w-0">
-                                            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group-hover:rotate-6 transition-transform shrink-0">
-                                                <span className="material-symbols-outlined text-primary text-2xl font-black">inventory_2</span>
+                                    <div key={ing.id} className="card group p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6 hover:scale-[1.01] active:scale-[0.99] transition-all border-white/5">
+                                        <div className="flex items-center gap-4 sm:gap-5 w-full sm:w-auto">
+                                            <div className="size-12 sm:size-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner group-hover:rotate-6 transition-transform shrink-0">
+                                                <span className="material-symbols-outlined text-primary text-xl sm:text-2xl font-black">inventory_2</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight break-words">{ing.name}</h3>
-                                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60">{safeNumber(ing.totalQty).toFixed(2)} unit digunakan</p>
+                                                <h3 className="text-base sm:text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight line-clamp-2">{ing.name}</h3>
+                                                <p className="text-[9px] sm:text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-60 mt-0.5">{safeNumber(ing.totalQty).toFixed(2)} unit digunakan</p>
                                             </div>
                                         </div>
-                                        <div className="text-right shrink-0 space-y-1.5">
-                                            <p className="text-xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase whitespace-nowrap">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
-                                            <div className="flex items-center justify-end gap-1.5">
+                                        <div className="text-left sm:text-right shrink-0 space-y-1 w-full sm:w-auto pl-16 sm:pl-0">
+                                            <p className="text-lg sm:text-xl font-black text-emerald-400 font-display tracking-tighter uppercase whitespace-nowrap">Rp {ing.totalCost.toLocaleString('id-ID')}</p>
+                                            <div className="flex items-center justify-start sm:justify-end gap-1.5">
                                                 <span className="text-[8px] font-black text-primary uppercase tracking-widest">{safeNumber( ing.totalCost / totalHPPBahan * 100 ).toFixed(1)}%</span>
-                                                <div className="w-12 bg-white/5 h-1 rounded-full overflow-hidden">
+                                                <div className="w-16 sm:w-12 bg-white/5 h-1 rounded-full overflow-hidden">
                                                     <div className="bg-primary h-full rounded-full" style={{ width: `${safeNumber(ing.totalCost / totalHPPBahan * 100)}%` }}></div>
                                                 </div>
                                             </div>
