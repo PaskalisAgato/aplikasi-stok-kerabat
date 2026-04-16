@@ -543,7 +543,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
 
         // 3. Optimized HPP Calculation (Single Query Aggregate)
         const hppResult = await db.select({
-            totalHPP: sql<number>`COALESCE(SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit}), 0)`
+            totalHPP: sql<number>`COALESCE(SUM(CAST(${schema.saleItems.quantity} AS float) * CAST(${schema.recipeIngredients.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float)), 0)`
         })
         .from(schema.saleItems)
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
@@ -563,8 +563,8 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         const ingredientsHPP = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
-            totalCost: sql<number>`SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity} * ${schema.inventory.pricePerUnit})`,
-            totalQty: sql<number>`SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity})`
+            totalCost: sql<number>`SUM(CAST(${schema.saleItems.quantity} AS float) * CAST(${schema.recipeIngredients.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`,
+            totalQty: sql<number>`SUM(CAST(${schema.saleItems.quantity} AS float) * CAST(${schema.recipeIngredients.quantity} AS float))`
         })
         .from(schema.saleItems)
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
