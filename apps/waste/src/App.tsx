@@ -126,20 +126,29 @@ function App() {
                                     <p className="text-3xl font-black tracking-tighter text-primary font-display uppercase">Rp {(totalWasteValue / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}</p>
                                 </div>
                                 <div className="h-48 w-full relative">
-                                    <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-                                        <defs>
-                                            <linearGradient id="wasteChartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
-                                                <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4"></stop>
-                                                <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"></stop>
-                                            </linearGradient>
-                                            <filter id="glow">
-                                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                                <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                                            </filter>
-                                        </defs>
-                                        <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10 L 400 100 L 0 100 Z" fill="url(#wasteChartGradient)" className="animate-pulse duration-[3s]"></path>
-                                        <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
-                                    </svg>
+                                    {totalWasteValue > 0 ? (
+                                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                                            <defs>
+                                                <linearGradient id="wasteChartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+                                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4"></stop>
+                                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"></stop>
+                                                </linearGradient>
+                                                <filter id="glow">
+                                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                                    <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                                </filter>
+                                            </defs>
+                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10 L 400 100 L 0 100 Z" fill="url(#wasteChartGradient)" className="animate-pulse duration-[3s]"></path>
+                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
+                                        </svg>
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+                                            <div className="w-full h-[1px] bg-white/10 relative">
+                                                <div className="absolute inset-0 bg-primary/20 blur-sm"></div>
+                                            </div>
+                                            <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.3em]">Belum ada aktivitas waste</p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex justify-between mt-6 text-[8px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em] opacity-40 relative z-10">
                                     <span>Awal Bulan</span><span>Mid Periode</span><span>Minggu Ke-3</span><span>Realtime</span>
