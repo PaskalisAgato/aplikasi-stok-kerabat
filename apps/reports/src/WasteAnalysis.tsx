@@ -33,17 +33,29 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
     const fetchReports = async () => {
         setIsLoading(true);
         try {
-            const data = await apiClient.getWasteAnalysis(dateRange);
+            const response = await apiClient.getWasteAnalysis(dateRange);
+            const report = response?.data || {};
+
+            console.log("Waste Analysis API response:", response);
+
             setWasteData({
-                totalWasteQty: safeNumber(data.data.totalWasteQty),
-                totalWasteCost: safeNumber(data.data.totalWasteCost),
-                wasteRatio: safeNumber(data.data.wasteRatio),
-                status: data.data.status,
-                wasteByReason: data.data.wasteByReason || [],
-                breakdownByInventory: data.data.breakdownByInventory || []
+                totalWasteQty: safeNumber(report.totalWasteQty),
+                totalWasteCost: safeNumber(report.totalWasteCost),
+                wasteRatio: safeNumber(report.wasteRatio),
+                status: report.status || "UNKNOWN",
+                wasteByReason: Array.isArray(report.wasteByReason) ? report.wasteByReason : [],
+                breakdownByInventory: Array.isArray(report.breakdownByInventory) ? report.breakdownByInventory : []
             });
         } catch (error) {
             console.error("Failed to load waste analysis", error);
+            setWasteData({
+                totalWasteQty: 0,
+                totalWasteCost: 0,
+                wasteRatio: 0,
+                status: "NO_DATA",
+                wasteByReason: [],
+                breakdownByInventory: []
+            });
         } finally {
             setIsLoading(false);
         }

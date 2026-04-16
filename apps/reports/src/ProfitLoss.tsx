@@ -35,18 +35,31 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
     const fetchReports = async () => {
         setIsLoading(true);
         try {
-            const data = await apiClient.getProfitLossReport(dateRange);
+            const response = await apiClient.getProfitLossReport(dateRange);
+            const report = response?.data || {};
+            
+            console.log("Profit Loss API response:", response);
+
             setFinanceData({
-                revenue: safeNumber(data.data.revenue),
-                totalHPP: safeNumber(data.data.totalHPP),
-                expenses: safeNumber(data.data.totalExpenses),
-                grossProfit: safeNumber(data.data.grossProfit),
-                netProfit: safeNumber(data.data.netProfit),
-                status: data.data.status,
-                breakdown: data.data.breakdown || []
+                revenue: safeNumber(report.revenue),
+                totalHPP: safeNumber(report.totalHPP),
+                expenses: safeNumber(report.totalExpenses),
+                grossProfit: safeNumber(report.grossProfit),
+                netProfit: safeNumber(report.netProfit),
+                status: report.status || "UNKNOWN",
+                breakdown: Array.isArray(report.breakdown) ? report.breakdown : []
             });
         } catch (error) {
             console.error("Failed to load finance reports", error);
+            setFinanceData({
+                revenue: 0,
+                totalHPP: 0,
+                expenses: 0,
+                grossProfit: 0,
+                netProfit: 0,
+                status: "NO_DATA",
+                breakdown: []
+            });
         } finally {
             setIsLoading(false);
         }
