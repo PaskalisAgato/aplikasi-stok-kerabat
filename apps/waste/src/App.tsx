@@ -195,21 +195,31 @@ function App() {
                             </div>
                             <div className="card p-8 space-y-8 overflow-hidden">
                                 <div className="space-y-6">
-                                    {[
-                                        { label: 'Expired / Kedaluwarsa', pct: 54, color: 'bg-primary shadow-primary/20' }, 
-                                        { label: 'Spillage / Kerusakan', pct: 28, color: 'bg-orange-500 shadow-orange-500/20' }, 
-                                        { label: 'Kesalahan Pembuatan', pct: 18, color: 'bg-slate-400 shadow-slate-400/20' }
-                                    ].map(r => (
-                                        <div key={r.label} className="space-y-3 group/item transition-all hover:translate-x-1">
-                                            <div className="flex justify-between items-end">
-                                                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] opacity-80 group-hover/item:text-primary transition-colors">{r.label}</span>
-                                                <span className="text-sm font-black text-[var(--text-main)] font-display tracking-wide">{r.pct}%</span>
-                                            </div>
-                                            <div className="w-full bg-[var(--bg-app)] h-3 rounded-full overflow-hidden shadow-inner border border-white/5">
-                                                <div className={`${r.color} h-full rounded-full transition-all duration-1000 ease-out accent-glow`} style={{ width: `${r.pct}%` }}></div>
-                                            </div>
+                                    {(wasteSummary?.wasteByReason?.length > 0) ? (
+                                        wasteSummary.wasteByReason.map((r: any) => {
+                                            const totalCost = safeNumber(wasteSummary.totalValueMonth);
+                                            const pct = totalCost > 0 ? Math.round((safeNumber(r.wasteCost) / totalCost) * 100) : 0;
+                                            
+                                            return (
+                                                <div key={r.reason} className="space-y-3 group/item transition-all hover:translate-x-1">
+                                                    <div className="flex justify-between items-end">
+                                                        <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.15em] opacity-80 group-hover/item:text-primary transition-colors">{r.reason || 'Lainnya'}</span>
+                                                        <span className="text-sm font-black text-[var(--text-main)] font-display tracking-wide">{pct}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-[var(--bg-app)] h-3 rounded-full overflow-hidden shadow-inner border border-white/5">
+                                                        <div 
+                                                            className={`bg-primary shadow-primary/20 h-full rounded-full transition-all duration-1000 ease-out accent-glow`} 
+                                                            style={{ width: `${pct}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-10 opacity-40">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Belum ada data penyebab kerugian</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         </section>
@@ -226,21 +236,24 @@ function App() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 gap-4">
-                                {[
-                                    { icon: 'shopping_cart_checkout', title: 'Optimalkan Stok Susu', desc: 'Pesan dalam batch lebih kecil (2L vs 5L) untuk mengurangi risiko expired hingga 30%.' },
-                                    { icon: 'groups', title: 'Retraining Barista', desc: 'Lakukan tinjauan SOP pembuatan kopi susu secara berkala untuk mengurangi spillage harian.' },
-                                ].map(rec => (
-                                    <div key={rec.title} className="card group p-6 flex gap-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 relative overflow-hidden border-white/5">
-                                        <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-all border border-primary/20 shadow-inner">
-                                            <span className="material-symbols-outlined text-primary text-3xl font-black group-hover:rotate-12 transition-transform">{rec.icon}</span>
+                                {totalWasteValue > 0 ? (
+                                    <>
+                                        <div className="card group p-6 flex gap-6 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 relative overflow-hidden border-white/5">
+                                            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-all border border-primary/20 shadow-inner">
+                                                <span className="material-symbols-outlined text-primary text-3xl font-black group-hover:rotate-12 transition-transform">analytics</span>
+                                            </div>
+                                            <div className="flex-1 space-y-2 relative z-10">
+                                                <p className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight group-hover:text-primary transition-colors">Analisis Terdeteksi</p>
+                                                <p className="text-[10px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest opacity-60">Sistem mendeteksi adanya pemborosan. Tinjau stok barang dengan rasio waste tertinggi di tabel atas.</p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 space-y-2 relative z-10">
-                                            <p className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight group-hover:text-primary transition-colors">{rec.title}</p>
-                                            <p className="text-[10px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest opacity-60">{rec.desc}</p>
-                                        </div>
-                                        <div className="absolute -right-4 -bottom-4 size-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center p-12 text-center glass rounded-[3rem] opacity-40 border-dashed border-2">
+                                        <p className="font-black text-[10px] uppercase tracking-widest">Belum ada saran</p>
+                                        <p className="text-[9px] uppercase tracking-widest mt-1">Saran akan muncul otomatis saat data waste terdeteksi</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </section>
                     </>
