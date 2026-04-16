@@ -33,6 +33,7 @@ export class TransactionService {
             subtotal: schema.saleItems.subtotal,
             notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
+            category: schema.recipes.category,
             // recipeImage is intentionally excluded in list view
             externalRecipeImage: schema.recipes.externalImageUrl
         })
@@ -71,6 +72,7 @@ export class TransactionService {
             subtotal: schema.saleItems.subtotal,
             notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
+            category: schema.recipes.category,
         })
         .from(schema.saleItems)
         .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
@@ -115,7 +117,8 @@ export class TransactionService {
             subtotal: schema.saleItems.subtotal,
             notes: schema.saleItems.notes,
             recipeName: schema.recipes.name,
-            recipePrice: schema.recipes.price
+            recipePrice: schema.recipes.price,
+            category: schema.recipes.category
         })
         .from(schema.saleItems)
         .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))

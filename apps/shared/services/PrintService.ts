@@ -507,12 +507,14 @@ export class PrintService {
             if (processedPrinters.has(printerKey)) continue;
             processedPrinters.add(printerKey);
 
-            const cats = printer.categories || [];
+            const cats = (printer.categories || []).map(c => c.toLowerCase());
             if (cats.length === 0) continue;
 
             const filteredItems = data.items.filter(item => 
-                item.category && cats.includes(item.category)
+                item.category && cats.includes(item.category.toLowerCase())
             );
+
+            console.log(`[PrintService] Printer "${printer.name}" (Cats: ${cats.join(',')}) -> Found ${filteredItems.length}/${data.items.length} matching items.`);
 
             if (filteredItems.length > 0) {
                 const checkerData = { ...data, items: filteredItems };
