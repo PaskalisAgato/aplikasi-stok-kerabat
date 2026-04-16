@@ -778,3 +778,115 @@ financeRouter.get('/profit-loss', requireAdmin, async (req: Request, res: Respon
         res.status(500).json({ success: false, message: 'Gagal mengambil laporan laba rugi' });
     }
 });
+
+// GET Real Waste Analysis Report
+financeRouter.get('/waste-analysis', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        // Build date filter for stockMovements
+        let dateFilters = [];
+        if (startDate) {
+            const d = new Date(`${startDate}T00:00:00+07:00`);
+            if (!isNaN(d.getTime())) dateFilters.push(gte(schema.stockMovements.createdAt, d));
+        }
+        if (endDate) {
+            const d = new Date(`${endDate}T23:59:59.999+07:00`);
+            if (!isNaN(d.getTime())) dateFilters.push(lte(schema.stockMovements.createdAt, d));
+        }
+        
+        // --- 1. Total Used ---
+        // type = 'OUT' represents usage or sales depletion.
+        const outFilter = and(eq(schema.stockMovements.type, 'OUT'), ...dateFilters);
+        const usedResult = await db.select({
+            totalUsed: sql<number>`COALESCE(SUM(CAST(${schema.stockMovements.quantity} AS float)), 0)`
+        })
+        .from(schema.stockMovements)
+        .where(outFilter);
+        
+        const totalUsed = Number(usedResult[0].totalUsed) || 0;
+
+        // --- 2. Total Waste & Breakdown by Category & Inventory ---
+        const wasteFilter = and(eq(schema.stockMovements.type, 'WASTE'), ...dateFilters);
+        
+        const wasteRaw = await db.select({
+            inventoryId: schema.inventory.id,
+            name: schema.inventory.name,
+            reason: schema.stockMovements.reason,
+            wasteQty: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float))`,
+            wasteCost: sql<number>`SUM(CAST(${schema.stockMovements.quantity} AS float) * CAST(${schema.inventory.pricePerUnit} AS float))`
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(wasteFilter)
+        .groupBy(schema.inventory.id, schema.inventory.name, schema.stockMovements.reason);
+
+        let totalWasteQty = 0;
+        let totalWasteCost = 0;
+        
+        // Aggregate reasons
+        const reasonsMap: Record<string, { reason: string, wasteQty: number, wasteCost: number }> = {};
+        // Aggregate top inventory
+        const inventoryMap: Record<number, { inventoryId: number, name: string, wasteQty: number, wasteCost: number }> = {};
+
+        wasteRaw.forEach(item => {
+            const qty = Number(item.wasteQty) || 0;
+            const cost = Number(item.wasteCost) || 0;
+            const reason = item.reason || 'Lainnya';
+            
+            totalWasteQty += qty;
+            totalWasteCost += cost;
+
+            if (!reasonsMap[reason]) {
+                reasonsMap[reason] = { reason, wasteQty: 0, wasteCost: 0 };
+            }
+            reasonsMap[reason].wasteQty += qty;
+            reasonsMap[reason].wasteCost += cost;
+
+            if (!inventoryMap[item.inventoryId]) {
+                inventoryMap[item.inventoryId] = { inventoryId: item.inventoryId, name: item.name, wasteQty: 0, wasteCost: 0 };
+            }
+            inventoryMap[item.inventoryId].wasteQty += qty;
+            inventoryMap[item.inventoryId].wasteCost += cost;
+        });
+
+        const wasteByReason = Object.values(reasonsMap)
+            .sort((a, b) => b.wasteCost - a.wasteCost);
+            
+        const breakdownByInventory = Object.values(inventoryMap)
+            .sort((a, b) => b.wasteCost - a.wasteCost)
+            .slice(0, 10); // top 10
+
+        // --- 3. Ratio ---
+        let wasteRatio = 0;
+        const totalActivity = totalUsed + totalWasteQty;
+        if (totalActivity > 0) {
+            wasteRatio = totalWasteQty / totalActivity;
+        }
+
+        // Output in %
+        const wasteRatioPercent = wasteRatio * 100;
+        
+        let status = 'NORMAL';
+        if (wasteRatioPercent > 20) {
+            status = 'CRITICAL';
+        } else if (wasteRatioPercent > 10) {
+            status = 'WARNING';
+        }
+
+        res.json({
+            success: true,
+            data: {
+                totalWasteQty,
+                totalWasteCost,
+                wasteRatio: wasteRatioPercent,
+                status,
+                wasteByReason,
+                breakdownByInventory
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching waste analysis:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil analisis pemborosan' });
+    }
+});

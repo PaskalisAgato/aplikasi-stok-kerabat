@@ -395,6 +395,14 @@ export const apiClient = {
         }
         return apiFetch<ApiResponse<any>>(url);
     },
+    getWasteAnalysis: (params?: any) => {
+        let url = '/finance/waste-analysis';
+        if (params) {
+            const query = new URLSearchParams(params).toString();
+            url += `?${query}`;
+        }
+        return apiFetch<ApiResponse<any>>(url);
+    },
     getShiftReports: (params?: any) => {
         let url = '/analytics/reports';
         if (params) {
