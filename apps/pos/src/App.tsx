@@ -157,7 +157,6 @@ function App() {
     const [printQueueCount, setPrintQueueCount] = useState<number>(0);
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-    const [isShiftModalDismissed, setIsShiftModalDismissed] = useState(false);
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -965,9 +964,8 @@ function App() {
     return (
         <>
             <OpenShiftModal 
-                isOpen={isAuthenticated && !activeShift && !isActiveLoading && view === 'pos' && !isShiftModalDismissed} 
+                isOpen={isAuthenticated && !activeShift && !isActiveLoading && view === 'pos'} 
                 onOpen={handleOpenShift} 
-                onCancel={() => setIsShiftModalDismissed(true)}
             />
 
             {activeShift && (
@@ -1003,19 +1001,19 @@ function App() {
             <div className="space-y-4 md:space-y-8">
                 {view === 'pos' && (
                     <>
-                        {/* MANUAL SHIFT TRIGGER (Shown when modal is dismissed but shift not open) */}
+                        {/* POS CONTENT - blocked if no active shift */}
                         {!activeShift && !isActiveLoading && (
-                            <div className="bg-amber-500/10 border border-amber-500/30 p-6 rounded-3xl flex flex-col items-center text-center gap-4 mb-4 animate-in slide-in-from-top duration-500">
-                                <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center border border-amber-500/20">
-                                    <span className="material-symbols-outlined text-3xl text-amber-500">lock_open</span>
+                            <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-8 text-center gap-6">
+                                <div className="size-24 bg-red-500/10 rounded-3xl flex items-center justify-center border border-red-500/20">
+                                    <span className="material-symbols-outlined text-5xl text-red-400">lock</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-black uppercase tracking-tight text-amber-500">Shift Belum Dibuka</h3>
-                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Anda harus membuka shift kasir sebelum bisa melakukan transaksi penjualan.</p>
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-white">Shift Belum Dibuka</h2>
+                                    <p className="text-sm text-white/50 font-bold uppercase tracking-widest mt-2">Anda harus membuka shift kasir untuk mengakses halaman penjualan.</p>
                                 </div>
                                 <button 
-                                    onClick={() => setIsShiftModalDismissed(false)}
-                                    className="px-8 py-3 bg-amber-500 text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all"
+                                    onClick={() => setView('pos')}
+                                    className="px-10 py-4 bg-primary text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                 >
                                     Buka Shift Sekarang
                                 </button>

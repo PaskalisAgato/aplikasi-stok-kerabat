@@ -4,10 +4,9 @@ import { useNotification } from '@shared/components/NotificationProvider';
 interface OpenShiftModalProps {
     isOpen: boolean;
     onOpen: (initialCash: number) => Promise<void>;
-    onCancel?: () => void;
 }
 
-export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen, onCancel }) => {
+export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }) => {
     const [initialCash, setInitialCash] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showNotification } = useNotification();
@@ -29,16 +28,6 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen, 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
             <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 relative">
-                
-                {onCancel && (
-                    <button 
-                        onClick={onCancel}
-                        className="absolute right-6 top-6 size-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/5"
-                    >
-                        <span className="material-symbols-outlined">close</span>
-                    </button>
-                )}
-
                 <div className="flex flex-col items-center text-center mb-8">
                     <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <span className="material-symbols-outlined text-4xl text-primary">login</span>
@@ -85,16 +74,6 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen, 
                         >
                             {isSubmitting ? 'Membuka...' : 'Mulai Shift Sekarang'}
                         </button>
-                        
-                        {onCancel && (
-                             <button 
-                                type="button"
-                                onClick={onCancel}
-                                className="w-full bg-white/5 text-[var(--text-muted)] h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5"
-                            >
-                                Nanti Saja / Batal
-                            </button>
-                        )}
                     </div>
                 </form>
             </div>
