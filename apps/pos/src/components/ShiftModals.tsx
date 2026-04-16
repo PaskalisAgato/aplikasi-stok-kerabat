@@ -26,7 +26,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
             <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 relative">
                 <div className="flex flex-col items-center text-center mb-8">
                     <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
@@ -134,7 +134,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
                 
                 {step === 1 ? (
@@ -346,7 +346,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="flex flex-col items-center text-center mb-6">
                     <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/20">

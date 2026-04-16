@@ -269,8 +269,8 @@ const Layout: React.FC<LayoutProps> = ({
                             </header>
                         )}
 
-                        {/* Content Area */}
-                        <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar">
+                        {/* Content Area - Added relative for content-local modals like Shift Guard */}
+                        <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar relative">
                             <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
                                 {/* Page Header (New Location) */}
                                 {!hideTitle && (
