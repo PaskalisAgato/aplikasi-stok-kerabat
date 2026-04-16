@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { desc, eq, gte, inArray, sql, and } from 'drizzle-orm';
+import { desc, eq, gte, lte, inArray, sql, and } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
@@ -24,11 +24,11 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const filters = [eq(schema.expenses.isDeleted, false)];
         
         if (startDate) {
-            const d = new Date(startDate as string);
+            const d = new Date(`${startDate}T00:00:00+07:00`);
             if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
         }
         if (endDate) {
-            const d = new Date(endDate as string);
+            const d = new Date(`${endDate}T23:59:59.999+07:00`);
             if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
         }
 
@@ -430,8 +430,8 @@ financeRouter.put('/expenses/:id', requireAuth, async (req: Request, res: Respon
 // GET Dashboard & P&L Report Summary
 financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) => {
     try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+        const today = new Date(`${jakartaDate}T00:00:00+07:00`);
 
         // 1. Optimized Revenue Calculation (Native SQL SUM)
         const revenueResult = await db.select({ 
