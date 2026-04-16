@@ -230,10 +230,13 @@ const Layout: React.FC<LayoutProps> = ({
                     )}
 
                     {/* Main Viewport */}
-                    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-                        {/* Shell Header (Glass) */}
+                    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+                        {/* Shell Header (Glass) - Changed to fixed for robustness on mobile */}
                         {!hideHeader && (
-                            <header className="p-3 md:px-6 md:py-4 pt-[max(0.75rem,env(safe-area-inset-top))] shrink-0 w-full z-10">
+                            <header 
+                                className="fixed top-0 left-0 right-0 lg:relative p-3 md:px-6 md:py-4 shrink-0 w-full z-[150]"
+                                style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
+                            >
                                 <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-sm`}>
                                     
                                     {/* Kiri: Hamburger + Logo */}
@@ -269,8 +272,8 @@ const Layout: React.FC<LayoutProps> = ({
                             </header>
                         )}
 
-                        {/* Content Area - Added relative for content-local modals like Shift Guard */}
-                        <main className="flex-1 px-4 md:px-10 pb-10 overflow-y-auto custom-scrollbar relative">
+                        {/* Content Area - Added spacer for fixed mobile header */}
+                        <main className="flex-1 px-4 md:px-10 pb-10 pt-[88px] lg:pt-0 overflow-y-auto custom-scrollbar relative">
                             <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
                                 {/* Page Header (New Location) */}
                                 {!hideTitle && (

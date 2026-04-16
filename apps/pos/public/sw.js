@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kerabat-pos-v2';
+const CACHE_NAME = 'kerabat-pos-v3';
 const STATIC_ASSETS = [
     './',
     './index.html',
