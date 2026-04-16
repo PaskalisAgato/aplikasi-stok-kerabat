@@ -499,11 +499,16 @@ export class PrintService {
         
         if (settings.length === 0) return;
 
+        const processedPrinters = new Set<string>();
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
 
             // FIX DOUBLE PRINTING (V2): Ensure we only process each printer ONCE per slip type
-            // and skip printers without categories (should only used for Receipt).
+            const printerKey = `${printer.connectionType}:${printer.name}:${printer.ip || ''}:${printer.deviceId || ''}`;
+            if (processedPrinters.has(printerKey)) continue;
+            processedPrinters.add(printerKey);
+
+            // Skip printers without categories (should only used for Receipt).
             const cats = printer.categories || [];
             if (cats.length === 0) {
                 continue;
@@ -543,10 +548,7 @@ export class PrintService {
                     });
                 }
             }
-        }
-    }
-
-    public static async printOrder(data: PrintData, isManual = false) {
+        }    public static async printOrder(data: PrintData, isManual = false) {
         const settings = await this.getSettings();
         
         if (settings.length === 0) {
@@ -559,8 +561,13 @@ export class PrintService {
             return;
         }
 
+        const processedPrinters = new Set<string>();
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
+
+            const printerKey = `${printer.connectionType}:${printer.name}:${printer.ip || ''}:${printer.deviceId || ''}`;
+            if (processedPrinters.has(printerKey)) continue;
+            processedPrinters.add(printerKey);
 
             let filteredItems = data.items;
 
@@ -597,6 +604,8 @@ export class PrintService {
                 }
             }
         }
+    }
+  }
         
         // Start worker for bridge jobs
         this.startQueueWorker();
