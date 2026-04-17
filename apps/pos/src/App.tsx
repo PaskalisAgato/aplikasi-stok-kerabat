@@ -180,6 +180,21 @@ function App() {
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     const [itemNotes, setItemNotes] = useState<Record<number, string>>({});
+    // ── Loyalty / Member State ────────────────────────────────────────────────
+    const [selectedMember, setSelectedMember] = useState<{ id: number; name: string; phone: string; points: number; level: string } | null>(null);
+    const [memberSearch, setMemberSearch] = useState('');
+    const [memberSearchResults, setMemberSearchResults] = useState<any[]>([]);
+    const [showMemberPanel, setShowMemberPanel] = useState(false);
+    const [pointsToRedeem, setPointsToRedeem] = useState(0);
+    const [selectedDiscount, setSelectedDiscount] = useState<{ id: number; name: string; value: number; type: string } | null>(null);
+    const [availableDiscounts, setAvailableDiscounts] = useState<any[]>([]);
+    const [showDiscountPanel, setShowDiscountPanel] = useState(false);
+
+    const resetLoyaltyState = () => {
+        setSelectedMember(null); setMemberSearch(''); setMemberSearchResults([]);
+        setPointsToRedeem(0); setSelectedDiscount(null); setAvailableDiscounts([]);
+        setShowMemberPanel(false); setShowDiscountPanel(false);
+    };
 
     // Track pending syncs for Shift blocking
     useEffect(() => {
@@ -378,6 +393,32 @@ function App() {
 
     const changeDue = Math.max(0, amountPaid - totalSalesValue);
 
+    // Loyalty computed values (after totalSalesValue & activeCartItems)
+    const POINT_VALUE_PER_PT = 100;
+    const pointsDiscountAmount = pointsToRedeem * POINT_VALUE_PER_PT;
+    const discountAmount = selectedDiscount
+        ? (selectedDiscount.type === 'percent'
+            ? Math.round(totalSalesValue * selectedDiscount.value / 100)
+            : selectedDiscount.value)
+        : 0;
+    const finalTotal = Math.max(0, totalSalesValue - discountAmount - pointsDiscountAmount);
+
+    const searchMembers = useCallback(async (query: string) => {
+        if (!query) { setMemberSearchResults([]); return; }
+        try {
+            const res = await apiClient.get(`/members?search=${encodeURIComponent(query)}`) as any;
+            setMemberSearchResults(res?.data || []);
+        } catch { setMemberSearchResults([]); }
+    }, []);
+
+    const loadDiscounts = useCallback(async () => {
+        try {
+            const cartItems = activeCartItems.map(item => ({ recipeId: item.id, quantity: sales[item.id], price: item.price }));
+            const res = await apiClient.post('/discounts/evaluate', { items: cartItems, memberLevel: selectedMember?.level }) as any;
+            setAvailableDiscounts(res?.data || []);
+        } catch { setAvailableDiscounts([]); }
+    }, [activeCartItems, sales, selectedMember]);
+
     const handleCheckout = async (skipConfirm = false) => {
         console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod, skipConfirm });
         if (totalSalesValue === 0) {
@@ -402,17 +443,22 @@ function App() {
                 })),
                 paymentMethod,
                 subTotal: totalSalesValue,
-                totalAmount: totalSalesValue,
-                taxAmount: 0
+                totalAmount: finalTotal,
+                taxAmount: 0,
+                // Loyalty fields
+                memberId: selectedMember?.id || null,
+                discountId: selectedDiscount?.id || null,
+                discountTotal: discountAmount + pointsDiscountAmount,
+                pointsUsed: pointsToRedeem,
             };
 
             const printData: PrintData = {
                 id: transactionId as any,
                 date: new Date().toISOString(),
                 paymentMethod,
-                total: totalSalesValue,
-                amountPaid: paymentMethod === 'CASH' ? amountPaid : totalSalesValue,
-                change_due: paymentMethod === 'CASH' ? changeDue : 0,
+                total: finalTotal,
+                amountPaid: paymentMethod === 'CASH' ? amountPaid : finalTotal,
+                change_due: paymentMethod === 'CASH' ? Math.max(0, amountPaid - finalTotal) : 0,
                 items: activeCartItems.map(item => ({
                     name: item.name,
                     quantity: sales[item.id],
@@ -444,6 +490,7 @@ function App() {
             setAmountPaid(0);
             setCustomerInfo('');
             setCurrentBillId(null);
+            resetLoyaltyState();
             
             // 4. Trace Log
             await db.auditLog.add({
@@ -857,6 +904,137 @@ function App() {
                         </p>
                     </div>
                 </div>
+
+                {/* ── Loyalty Panels ──────────────────────────────── */}
+                {/* Member Picker */}
+                <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Member</p>
+                        {selectedMember ? (
+                            <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[9px] text-red-400 font-bold">Hapus</button>
+                        ) : null}
+                    </div>
+                    {selectedMember ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                                <p className="text-xs font-bold text-[var(--text-main)]">{selectedMember.name}</p>
+                                <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone} · <span className="capitalize" style={{ color: selectedMember.level === 'gold' ? '#f59e0b' : selectedMember.level === 'silver' ? '#94a3b8' : '#c97a3a' }}>{selectedMember.level}</span></p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[9px] text-[var(--text-muted)]">Poin</p>
+                                <p className="text-sm font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            {!showMemberPanel ? (
+                                <button onClick={() => setShowMemberPanel(true)} className="w-full py-1.5 rounded-lg border border-dashed border-[var(--border-dim)] text-[10px] font-bold text-[var(--text-muted)] hover:border-primary/30 hover:text-primary transition-all">
+                                    <span className="material-symbols-outlined text-sm mr-1" style={{ verticalAlign: 'middle' }}>person_search</span>
+                                    Pilih Member
+                                </button>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <input
+                                        autoFocus
+                                        placeholder="Cari nama / No HP..."
+                                        value={memberSearch}
+                                        onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
+                                        onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
+                                        className="w-full bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-primary/40"
+                                    />
+                                    {memberSearchResults.length > 0 && (
+                                        <div className="max-h-28 overflow-y-auto space-y-0.5">
+                                            {memberSearchResults.map((m: any) => (
+                                                <button key={m.id} onClick={() => {
+                                                    setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
+                                                    setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
+                                                }} className="w-full text-left px-2 py-1 rounded-md hover:bg-primary/10 text-[10px] transition-all">
+                                                    <span className="font-bold text-[var(--text-main)]">{m.name}</span>
+                                                    <span className="ml-2 text-[var(--text-muted)]">{m.phone}</span>
+                                                    <span className="float-right text-primary font-bold">{m.points} pts</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Points Redemption */}
+                    {selectedMember && selectedMember.points > 0 && (
+                        <div className="flex items-center gap-2 pt-1 border-t border-[var(--border-dim)]">
+                            <label className="text-[9px] font-bold text-[var(--text-muted)] whitespace-nowrap">Tukar Poin:</label>
+                            <input
+                                type="number" min={0} max={selectedMember.points}
+                                value={pointsToRedeem || ''}
+                                onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
+                                className="w-16 bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-md px-1.5 py-1 text-xs text-center text-[var(--text-main)] outline-none"
+                                placeholder="0"
+                            />
+                            <p className="text-[9px] text-emerald-400 font-bold">= Rp {pointsDiscountAmount.toLocaleString('id-ID')}</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Discount Selector */}
+                <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Diskon</p>
+                        {selectedDiscount ? (
+                            <button onClick={() => setSelectedDiscount(null)} className="text-[9px] text-red-400 font-bold">Hapus</button>
+                        ) : null}
+                    </div>
+                    {selectedDiscount ? (
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs font-bold text-emerald-400">{selectedDiscount.name}</p>
+                            <p className="text-xs font-black text-emerald-400">-Rp {discountAmount.toLocaleString('id-ID')}</p>
+                        </div>
+                    ) : (
+                        <button onClick={() => { loadDiscounts(); setShowDiscountPanel(!showDiscountPanel); }} className="w-full py-1.5 rounded-lg border border-dashed border-[var(--border-dim)] text-[10px] font-bold text-[var(--text-muted)] hover:border-primary/30 hover:text-primary transition-all">
+                            <span className="material-symbols-outlined text-sm mr-1" style={{ verticalAlign: 'middle' }}>local_offer</span>
+                            Pilih Diskon
+                        </button>
+                    )}
+                    {showDiscountPanel && !selectedDiscount && (
+                        <div className="max-h-28 overflow-y-auto space-y-0.5">
+                            {availableDiscounts.length === 0 ? (
+                                <p className="text-[10px] text-[var(--text-muted)] text-center py-2">Tidak ada diskon yang berlaku</p>
+                            ) : availableDiscounts.map((d: any) => (
+                                <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className="w-full text-left px-2 py-1.5 rounded-md hover:bg-emerald-500/10 text-[10px] transition-all">
+                                    <span className="font-bold text-[var(--text-main)]">{d.name}</span>
+                                    <span className="float-right text-emerald-400 font-bold">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Updated Transaction Summary */}
+                {(discountAmount > 0 || pointsDiscountAmount > 0) && (
+                    <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-1">
+                        <div className="flex justify-between text-[10px]">
+                            <span className="text-[var(--text-muted)]">Subtotal</span>
+                            <span className="text-[var(--text-main)] font-bold">Rp {totalSalesValue.toLocaleString('id-ID')}</span>
+                        </div>
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-[10px]">
+                                <span className="text-emerald-400">Diskon</span>
+                                <span className="text-emerald-400 font-bold">-Rp {discountAmount.toLocaleString('id-ID')}</span>
+                            </div>
+                        )}
+                        {pointsDiscountAmount > 0 && (
+                            <div className="flex justify-between text-[10px]">
+                                <span className="text-amber-400">Poin ({pointsToRedeem} pts)</span>
+                                <span className="text-amber-400 font-bold">-Rp {pointsDiscountAmount.toLocaleString('id-ID')}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between text-xs font-black pt-1 border-t border-[var(--border-dim)]">
+                            <span className="text-[var(--text-main)]">Total Bayar</span>
+                            <span className="text-primary">Rp {finalTotal.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex gap-2">
                     <button 

@@ -154,6 +154,38 @@ export const recipeIngredients = pgTable('recipe_ingredients', {
 // -----------------------------------------------------------------------------
 // 4. POS SALES & FINANCE TRACKER
 // -----------------------------------------------------------------------------
+
+// Member Loyalty System
+export const members = pgTable('members', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    phone: text('phone').notNull().unique(),
+    email: text('email'),
+    points: integer('points').default(0).notNull(),
+    level: text('level').default('bronze').notNull(), // 'bronze', 'silver', 'gold'
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    phoneIdx: index('members_phone_idx').on(t.phone),
+    nameIdx: index('members_name_idx').on(t.name)
+}));
+
+// Discount System
+export const discounts = pgTable('discounts', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    type: text('type').notNull(), // 'percent', 'nominal', 'bundling', 'time-based', 'member'
+    value: decimal('value', { precision: 12, scale: 2 }).notNull().default('0'), // percent or nominal amount
+    conditions: text('conditions'), // JSON: { days, startHour, endHour, productIds, minLevel }
+    isActive: boolean('is_active').default(true).notNull(),
+    startDate: timestamp('start_date'),
+    endDate: timestamp('end_date'),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    typeIdx: index('discounts_type_idx').on(t.type),
+    activeIdx: index('discounts_active_idx').on(t.isActive)
+}));
+
 export const shifts = pgTable('shifts', {
     id: serial('id').primaryKey(),
     userId: text('user_id').notNull().references(() => users.id),
@@ -198,6 +230,12 @@ export const sales = pgTable('sales', {
     isDeleted: boolean('is_deleted').default(false).notNull(),
     offlineId: text('offline_id').unique(),
     paymentReferenceId: text('payment_reference_id'), // New: Proof for Non-Cash (e.g. Card/QRIS Ref Number)
+    // Member & Loyalty fields
+    memberId: integer('member_id').references((): any => members.id),
+    discountId: integer('discount_id').references((): any => discounts.id),
+    discountTotal: decimal('discount_total', { precision: 12, scale: 2 }).default('0').notNull(),
+    pointsUsed: integer('points_used').default(0).notNull(),
+    pointsEarned: integer('points_earned').default(0).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),

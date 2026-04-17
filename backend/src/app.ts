@@ -27,6 +27,8 @@ import { containersRouter } from './routes/containers.js';
 import { cashierShiftRoutes } from './routes/cashierShift.routes.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { printRoutes } from './routes/print.routes.js';
+import { memberRoutes } from './routes/member.routes.js';
+import { discountRoutes } from './routes/discount.routes.js';
 
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
@@ -257,6 +259,8 @@ app.use('/api/cashier-shifts', cashierShiftRoutes);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/containers', containersRouter);
 app.use('/api/print', printRoutes);
+app.use('/api/members', memberRoutes);
+app.use('/api/discounts', discountRoutes);
 
 
 // 5. Better Auth Managed Endpoints (Explicit Regex Match)

@@ -63,6 +63,7 @@ APPS=(
   "attendance:apps/attendance"
   "attendance-history:apps/attendance-history"
   "todo-list:apps/todo-list"
+  "members:apps/members"
 )
 
 # 4. Improved Parallel Execution

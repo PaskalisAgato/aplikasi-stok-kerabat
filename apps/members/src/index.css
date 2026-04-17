@@ -1,0 +1,28 @@
+:root {
+  --bg-app: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-input: #1a1a25;
+  --border: rgba(255,255,255,0.08);
+  --text-main: #f1f5ff;
+  --text-muted: #6b7280;
+  --primary: #a78bfa;
+  --primary-hover: #8b5cf6;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+.material-symbols-outlined { font-size: 1.2em; vertical-align: middle; line-height: 1; }

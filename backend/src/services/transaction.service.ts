@@ -187,7 +187,7 @@ export class TransactionService {
 
         const saleValues: any = {
             offlineId: offlineId || null,
-            shiftId: activeShift.id, // Enforce linkage to active shift
+            shiftId: activeShift.id,
             userId,
             subTotal: serverCalculatedSubTotal.toString(),
             taxAmount: '0',
@@ -196,7 +196,12 @@ export class TransactionService {
             paymentMethod: paymentMethod || 'CASH',
             status: data.status || 'PAID',
             customerInfo: data.customerInfo || null,
-            paymentReferenceId: paymentReferenceId || null
+            paymentReferenceId: paymentReferenceId || null,
+            memberId: data.memberId || null,
+            discountId: data.discountId || null,
+            discountTotal: (data.discountTotal || 0).toString(),
+            pointsUsed: data.pointsUsed || 0,
+            pointsEarned: 0, // calculated below
         };
 
         return await db.transaction(async (tx: any) => {
@@ -286,6 +291,30 @@ export class TransactionService {
                     referenceId: newSale.id,
                     description: `Pemasukan Penjualan ${saleValues.paymentMethod}`
                 });
+            }
+
+            // 7. Loyalty Points: Award & Redeem for Members
+            if (saleValues.memberId && saleValues.status === 'PAID') {
+                const POINTS_RATIO = parseFloat(process.env.POINTS_RATIO || '10000');
+                const pointsEarned = Math.floor(serverCalculatedSubTotal / POINTS_RATIO);
+                const pointsUsed = saleValues.pointsUsed || 0;
+
+                // Update sale with earned points
+                await tx.update(schema.sales)
+                    .set({ pointsEarned })
+                    .where(eq(schema.sales.id, newSale.id));
+
+                // Deduct used & add earned to member
+                const delta = pointsEarned - pointsUsed;
+                await tx.update(schema.members)
+                    .set({ 
+                        points: sql`GREATEST(0, ${schema.members.points} + ${delta})`,
+                        level: sql`CASE 
+                            WHEN (${schema.members.points} + ${delta}) >= 1000 THEN 'gold'
+                            WHEN (${schema.members.points} + ${delta}) >= 300 THEN 'silver'
+                            ELSE 'bronze' END`
+                    })
+                    .where(eq(schema.members.id, saleValues.memberId));
             }
 
             return { success: true, transactionId: newSale.id };
