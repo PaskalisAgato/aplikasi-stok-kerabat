@@ -82,7 +82,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options(/(.*)/, cors(corsOptions));
+
 
 // Explicit OPTIONS fallback and manual headers
 app.use((req: Request, res: Response, next: NextFunction) => {
