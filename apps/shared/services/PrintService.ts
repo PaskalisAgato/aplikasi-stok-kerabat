@@ -854,8 +854,7 @@ Terima Kasih!
 
         encoder
             .align('center')
-            .line('--------------------------------')
-            .raw([0x1d, 0x21, 0x11]) // Double height & width
+            .raw([0x1d, 0x21, 0x11]) // Double height & width for header
             .bold(true)
             .line('ORDER / CHEKERAN')
             .bold(false)
@@ -865,29 +864,27 @@ Terima Kasih!
         // --- 2. Metadata ---
         encoder.align('left');
         const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
-        const timeStr = new Date(data.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeStr = new Date(data.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         
         encoder.line(`No Order : #${orderIdShort}`);
         encoder.line(`Waktu    : ${timeStr}`);
         encoder.line(`Meja     : ${data.customerName || data.tableNumber || '-'}`);
         encoder.line('--------------------------------');
+        encoder.newline();
 
-        // --- 3. Items (Large & Simple) ---
-        encoder.bold(true);
+        // --- 3. Items (Proporsional & Rapi) ---
+        // Normal font per user request so paper is saved
         data.items.forEach((item: any) => {
-            encoder
-                .raw([0x1d, 0x21, 0x11]) // Double size
-                .line(`${item.quantity}x ${item.name}`)
-                .raw([0x1d, 0x21, 0x00]); // Normal size
+            encoder.line(`${item.quantity}x ${item.name}`);
             
             if (item.notes) {
                 encoder.line(`   (Catatan: ${item.notes})`);
             }
         });
-        encoder.bold(false);
 
         // --- 4. Footer ---
         encoder
+            .newline()
             .line('--------------------------------')
             .newline()
             .newline()
@@ -916,54 +913,71 @@ Terima Kasih!
 
         // --- Metadata ---
         const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
-        encoder.line(`No Transaksi: #${orderIdShort}`);
-        encoder.line(`Tanggal     : ${new Date(data.date).toLocaleString('id-ID')}`);
+        encoder.line(`No Order : #${orderIdShort}`);
+        encoder.line(`Waktu    : ${new Date(data.date).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' })}`);
         if (data.tableNumber || data.customerName) {
-            encoder.line(`Pelanggan   : ${data.customerName || data.tableNumber}`);
+            encoder.line(`Meja     : ${data.customerName || data.tableNumber}`);
         }
         encoder.line('--------------------------------');
+        encoder.newline();
 
         // --- Items ---
         data.items.forEach((item: any) => {
-            const qty = `${item.quantity}x `;
-            const name = item.name;
-            const price = (item.subtotal / item.quantity).toLocaleString('id-ID');
-            const total = item.subtotal.toLocaleString('id-ID');
+            const leftPart = `${item.quantity}x ${item.name}`;
+            const rightPart = item.subtotal.toLocaleString('id-ID'); // Only display the subtotal price, e.g. 16.000
             
-            encoder.line(`${qty}${name}`);
-            const priceInfo = `@${price}`;
-            const spaces = width - priceInfo.length - total.length;
-            encoder.line(`${priceInfo}${' '.repeat(Math.max(1, spaces))}${total}`);
+            if (leftPart.length + rightPart.length < width) {
+                const spacesStr = ' '.repeat(width - leftPart.length - rightPart.length);
+                encoder.line(`${leftPart}${spacesStr}${rightPart}`);
+            } else {
+                // If text is too long, print name first, then price aligned right on next line
+                encoder.line(leftPart);
+                const spacesStr = ' '.repeat(Math.max(0, width - rightPart.length));
+                encoder.line(`${spacesStr}${rightPart}`);
+            }
+
+            if (item.notes) {
+                encoder.line(`   (Cat: ${item.notes})`);
+            }
         });
 
+        encoder.newline();
         encoder.line('--------------------------------');
 
         // --- Summary ---
-        const totalLabel = 'TOTAL';
+        const totalLabel = 'TOTAL:';
         const totalValue = `Rp ${data.total.toLocaleString('id-ID')}`;
-        const tSpaces = width - totalLabel.length - totalValue.length;
+        const tSpaces = ' '.repeat(Math.max(1, width - totalLabel.length - totalValue.length));
         
-        encoder.bold(true).line(`${totalLabel}${' '.repeat(Math.max(1, tSpaces))}${totalValue}`).bold(false);
+        encoder.bold(true).line(`${totalLabel}${tSpaces}${totalValue}`).bold(false);
         
         encoder.newline();
-        encoder.line(`Metode Bayar: ${data.paymentMethod}`);
+        
+        // --- Footer ---
+        encoder.align('left');
+        encoder.line(`Metode: ${data.paymentMethod}`);
+        
         if (data.paymentMethod === 'CASH') {
-            const payLabel = 'Bayar';
+            const payLabel = 'Bayar :';
             const payValue = `Rp ${(data.amountPaid || 0).toLocaleString('id-ID')}`;
-            const pSpaces = width - payLabel.length - payValue.length;
-            encoder.line(`${payLabel}${' '.repeat(Math.max(1, pSpaces))}${payValue}`);
+            if (payLabel.length + payValue.length < width) {
+                const pSpaces = ' '.repeat(width - payLabel.length - payValue.length);
+                encoder.line(`${payLabel}${pSpaces}${payValue}`);
+            }
 
-            const changeLabel = 'Kembali';
+            const changeLabel = 'Kembali:';
             const changeValue = `Rp ${(data.change_due || 0).toLocaleString('id-ID')}`;
-            const cSpaces = width - changeLabel.length - changeValue.length;
-            encoder.line(`${changeLabel}${' '.repeat(Math.max(1, cSpaces))}${changeValue}`);
+            if (changeLabel.length + changeValue.length < width) {
+                const cSpaces = ' '.repeat(width - changeLabel.length - changeValue.length);
+                encoder.line(`${changeLabel}${cSpaces}${changeValue}`);
+            }
         }
 
-        // --- Footer ---
         encoder
-            .line('--------------------------------')
+            .newline()
             .align('center')
-            .line(config.footerMessage || 'Terima kasih')
+            .line('--------------------------------')
+            .line(config.footerMessage || 'Terima Kasih')
             .line('Selamat Menikmati')
             .newline()
             .newline();
