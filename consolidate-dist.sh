@@ -27,6 +27,7 @@ APPS=(
   "attendance-history:apps/attendance-history"
   "todo-list:apps/todo-list"
   "printer-settings:apps/printer-settings"
+  "members:apps/members"
 )
 
 for APP_DATA in "${APPS[@]}"; do
