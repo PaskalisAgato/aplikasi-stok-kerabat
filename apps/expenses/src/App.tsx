@@ -16,7 +16,13 @@ interface ExpenseItem {
     hasReceipt?: boolean;
 }
 
+function toLocalISOString(date: Date) {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function App() {
+
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +43,7 @@ function App() {
         } catch (e) { console.error("Filter parse error", e); }
     }
     const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    return toLocalISOString(d);
   });
 
   const [endDate, setEndDate] = useState(() => {
@@ -49,7 +55,7 @@ function App() {
         } catch (e) { console.error("Filter parse error", e); }
     }
     const d = new Date(); d.setHours(23, 59, 59, 999);
-    return d.toISOString().slice(0, 16);
+    return toLocalISOString(d);
   });
 
   // 2. Persist State
@@ -265,8 +271,8 @@ function App() {
                           localStorage.removeItem('expenseFilter');
                           const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
                           const now = new Date(); now.setHours(23,59,59,999);
-                          setStartDate(d.toISOString().slice(0, 16));
-                          setEndDate(now.toISOString().slice(0, 16));
+                          setStartDate(toLocalISOString(d));
+                          setEndDate(toLocalISOString(now));
                       }}
                       className="glass px-4 py-3 rounded-xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all active:scale-95"
                   >

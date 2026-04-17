@@ -24,11 +24,13 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const filters = [eq(schema.expenses.isDeleted, false)];
         
         if (startDate) {
-            const d = new Date(`${startDate}T00:00:00+07:00`);
+            const startStr = (startDate as string).includes('T') ? (startDate as string) : `${startDate}T00:00:00+07:00`;
+            const d = new Date(startStr);
             if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
         }
         if (endDate) {
-            const d = new Date(`${endDate}T23:59:59.999+07:00`);
+            const endStr = (endDate as string).includes('T') ? (endDate as string) : `${endDate}T23:59:59.999+07:00`;
+            const d = new Date(endStr);
             if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
         }
 
