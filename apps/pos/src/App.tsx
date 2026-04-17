@@ -905,111 +905,6 @@ function App() {
                     </div>
                 </div>
 
-                {/* ── Loyalty Panels ──────────────────────────────── */}
-                {/* Member Picker */}
-                <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Member</p>
-                        {selectedMember ? (
-                            <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[9px] text-red-400 font-bold">Hapus</button>
-                        ) : null}
-                    </div>
-                    {selectedMember ? (
-                        <div className="flex items-center gap-2">
-                            <div className="flex-1">
-                                <p className="text-xs font-bold text-[var(--text-main)]">{selectedMember.name}</p>
-                                <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone} · <span className="capitalize" style={{ color: selectedMember.level === 'gold' ? '#f59e0b' : selectedMember.level === 'silver' ? '#94a3b8' : '#c97a3a' }}>{selectedMember.level}</span></p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[9px] text-[var(--text-muted)]">Poin</p>
-                                <p className="text-sm font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div>
-                            {!showMemberPanel ? (
-                                <button onClick={() => setShowMemberPanel(true)} className="w-full py-1.5 rounded-lg border border-dashed border-[var(--border-dim)] text-[10px] font-bold text-[var(--text-muted)] hover:border-primary/30 hover:text-primary transition-all">
-                                    <span className="material-symbols-outlined text-sm mr-1" style={{ verticalAlign: 'middle' }}>person_search</span>
-                                    Pilih Member
-                                </button>
-                            ) : (
-                                <div className="space-y-1.5">
-                                    <input
-                                        autoFocus
-                                        placeholder="Cari nama / No HP..."
-                                        value={memberSearch}
-                                        onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
-                                        onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
-                                        className="w-full bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-primary/40"
-                                    />
-                                    {memberSearchResults.length > 0 && (
-                                        <div className="max-h-28 overflow-y-auto space-y-0.5">
-                                            {memberSearchResults.map((m: any) => (
-                                                <button key={m.id} onClick={() => {
-                                                    setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
-                                                    setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
-                                                }} className="w-full text-left px-2 py-1 rounded-md hover:bg-primary/10 text-[10px] transition-all">
-                                                    <span className="font-bold text-[var(--text-main)]">{m.name}</span>
-                                                    <span className="ml-2 text-[var(--text-muted)]">{m.phone}</span>
-                                                    <span className="float-right text-primary font-bold">{m.points} pts</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Points Redemption */}
-                    {selectedMember && selectedMember.points > 0 && (
-                        <div className="flex items-center gap-2 pt-1 border-t border-[var(--border-dim)]">
-                            <label className="text-[9px] font-bold text-[var(--text-muted)] whitespace-nowrap">Tukar Poin:</label>
-                            <input
-                                type="number" min={0} max={selectedMember.points}
-                                value={pointsToRedeem || ''}
-                                onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
-                                className="w-16 bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-md px-1.5 py-1 text-xs text-center text-[var(--text-main)] outline-none"
-                                placeholder="0"
-                            />
-                            <p className="text-[9px] text-emerald-400 font-bold">= Rp {pointsDiscountAmount.toLocaleString('id-ID')}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Discount Selector */}
-                <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Diskon</p>
-                        {selectedDiscount ? (
-                            <button onClick={() => setSelectedDiscount(null)} className="text-[9px] text-red-400 font-bold">Hapus</button>
-                        ) : null}
-                    </div>
-                    {selectedDiscount ? (
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-emerald-400">{selectedDiscount.name}</p>
-                            <p className="text-xs font-black text-emerald-400">-Rp {discountAmount.toLocaleString('id-ID')}</p>
-                        </div>
-                    ) : (
-                        <button onClick={() => { loadDiscounts(); setShowDiscountPanel(!showDiscountPanel); }} className="w-full py-1.5 rounded-lg border border-dashed border-[var(--border-dim)] text-[10px] font-bold text-[var(--text-muted)] hover:border-primary/30 hover:text-primary transition-all">
-                            <span className="material-symbols-outlined text-sm mr-1" style={{ verticalAlign: 'middle' }}>local_offer</span>
-                            Pilih Diskon
-                        </button>
-                    )}
-                    {showDiscountPanel && !selectedDiscount && (
-                        <div className="max-h-28 overflow-y-auto space-y-0.5">
-                            {availableDiscounts.length === 0 ? (
-                                <p className="text-[10px] text-[var(--text-muted)] text-center py-2">Tidak ada diskon yang berlaku</p>
-                            ) : availableDiscounts.map((d: any) => (
-                                <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className="w-full text-left px-2 py-1.5 rounded-md hover:bg-emerald-500/10 text-[10px] transition-all">
-                                    <span className="font-bold text-[var(--text-main)]">{d.name}</span>
-                                    <span className="float-right text-emerald-400 font-bold">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
                 {/* Updated Transaction Summary */}
                 {(discountAmount > 0 || pointsDiscountAmount > 0) && (
                     <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-1">
@@ -1085,6 +980,134 @@ function App() {
 
     const PosHeaderExtras = (
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
+
+            {/* Loyalty Nav Dropdowns */}
+            <div className="flex items-center gap-2">
+                {/* Member Dropdown */}
+                <div className="relative">
+                    <button 
+                        onClick={() => { setShowMemberPanel(!showMemberPanel); setShowDiscountPanel(false); setIsActionMenuOpen(false); }}
+                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
+                        title="Pilih Member"
+                    >
+                        <span className="material-symbols-outlined text-lg">person_search</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedMember ? selectedMember.name.substring(0,10) : 'Member'}</span>
+                    </button>
+                    {showMemberPanel && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowMemberPanel(false)} />
+                            <div className={`absolute left-0 sm:left-auto sm:right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
+                                        {selectedMember && (
+                                            <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
+                                        )}
+                                    </div>
+                                    {!selectedMember ? (
+                                        <div className="space-y-2">
+                                            <input
+                                                autoFocus
+                                                placeholder="Cari nama / No HP..."
+                                                value={memberSearch}
+                                                onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
+                                                onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
+                                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-primary/40"
+                                            />
+                                            {memberSearchResults.length > 0 && (
+                                                <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
+                                                    {memberSearchResults.map((m) => (
+                                                        <button key={m.id} onClick={() => {
+                                                            setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
+                                                            setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
+                                                        }} className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
+                                                            <div className="text-left">
+                                                                <p className="font-bold text-[11px] text-[var(--text-main)]">{m.name}</p>
+                                                                <p className="text-[9px] text-[var(--text-muted)]">{m.phone}</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className="text-[10px] text-primary font-black">{m.points} pts</span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="bg-[var(--bg-app)] p-3 rounded-xl border border-[var(--border-dim)] flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-black text-[var(--text-main)]">{selectedMember.name}</p>
+                                                    <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider">Total Poin</p>
+                                                    <p className="text-sm font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
+                                                </div>
+                                            </div>
+                                            {selectedMember.points > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Tukar Poin</label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number" min={0} max={selectedMember.points}
+                                                            value={pointsToRedeem || ''}
+                                                            onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
+                                                            className="flex-1 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none"
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <button onClick={() => setShowMemberPanel(false)} className="w-full py-2 bg-primary text-[#0b1220] font-black tracking-widest uppercase text-[10px] rounded-xl hover:opacity-90">Selesai</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* Discount Dropdown */}
+                <div className="relative">
+                    <button 
+                        onClick={() => { setShowDiscountPanel(!showDiscountPanel); setShowMemberPanel(false); loadDiscounts(); setIsActionMenuOpen(false); }}
+                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showDiscountPanel || selectedDiscount ? 'bg-emerald-500 text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
+                        title="Pilih Diskon"
+                    >
+                        <span className="material-symbols-outlined text-lg">local_offer</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedDiscount ? 'Diskon Aktif' : 'Diskon'}</span>
+                    </button>
+                    {showDiscountPanel && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowDiscountPanel(false)} />
+                            <div className={`absolute left-0 sm:left-auto sm:right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
+                                        {selectedDiscount && (
+                                            <button onClick={() => { setSelectedDiscount(null); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
+                                        )}
+                                    </div>
+                                    <div className="max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
+                                        {availableDiscounts.length === 0 ? (
+                                            <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon yang berlaku saat ini</p>
+                                        ) : availableDiscounts.map((d) => (
+                                            <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className={`w-full text-left p-3 rounded-xl transition-all border ${selectedDiscount?.id === d.id ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className={`font-black text-[11px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>{d.name}</span>
+                                                    <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
             {/* Shift Status */}
             {activeShift && (
                 <div className="hidden min-[1100px]:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
