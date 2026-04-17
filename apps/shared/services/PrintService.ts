@@ -856,7 +856,7 @@ Terima Kasih!
             .align('center')
             .raw([0x1d, 0x21, 0x11]) // Double height & width for header
             .bold(true)
-            .line('ORDER / CHEKERAN')
+            .line('ORDERAN')
             .bold(false)
             .raw([0x1d, 0x21, 0x00]) // Normal size
             .line('--------------------------------');
@@ -902,14 +902,14 @@ Terima Kasih!
         const width = config.width || 32;
 
         // --- Header ---
-        encoder.initialize().align('center');
+        encoder.initialize();
         const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
         const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
         
-        encoder.bold(true).line(hTitle).bold(false);
-        if (hSub) encoder.line(hSub);
+        encoder.align('center').bold(true).line(hTitle).bold(false);
+        if (hSub) encoder.align('center').line(hSub);
         
-        encoder.line('--------------------------------').align('left');
+        encoder.align('left').line('--------------------------------');
 
         // --- Metadata ---
         const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
@@ -977,7 +977,9 @@ Terima Kasih!
             .newline()
             .align('center')
             .line('--------------------------------')
+            .align('center')
             .line(config.footerMessage || 'Terima Kasih')
+            .align('center')
             .line('Selamat Menikmati')
             .newline()
             .newline();
