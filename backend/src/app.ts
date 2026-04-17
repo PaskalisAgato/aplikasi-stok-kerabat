@@ -65,8 +65,8 @@ const ALLOWED_ORIGINS = [
     "http://localhost:5173"
 ];
 
-app.use(cors({
-    origin: (origin, callback) => {
+const corsOptions = {
+    origin: (origin: string | undefined, callback: any) => {
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
         if (ALLOWED_ORIGINS.indexOf(origin) !== -1 || origin.includes('localhost')) {
@@ -79,7 +79,27 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
     exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Explicit OPTIONS fallback and manual headers
+app.use((req: Request, res: Response, next: NextFunction) => {
+    const origin = req.headers.origin;
+    if (origin && (ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost'))) {
+        res.header("Access-Control-Allow-Origin", origin);
+    }
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie, X-Idempotency-Key");
+    res.header("Access-Control-Allow-Credentials", "true");
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // SESSION MANAGEMENT (WAJIB)
 app.use(session({
