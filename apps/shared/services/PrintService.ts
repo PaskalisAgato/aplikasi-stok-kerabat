@@ -853,12 +853,13 @@ Terima Kasih!
         encoder.raw([0x07]); // BEL
 
         encoder
-            .align('center')
             .raw([0x1d, 0x21, 0x11]) // Double height & width for header
             .bold(true)
+            .align('center')
             .line('ORDERAN')
-            .bold(false)
             .raw([0x1d, 0x21, 0x00]) // Normal size
+            .bold(false)
+            .align('left')
             .line('--------------------------------');
 
         // --- 2. Metadata ---
@@ -906,7 +907,7 @@ Terima Kasih!
         const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
         const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
         
-        encoder.align('center').bold(true).line(hTitle).bold(false);
+        encoder.bold(true).align('center').line(hTitle).bold(false);
         if (hSub) encoder.align('center').line(hSub);
         
         encoder.align('left').line('--------------------------------');
@@ -975,7 +976,7 @@ Terima Kasih!
 
         encoder
             .newline()
-            .align('center')
+            .align('left')
             .line('--------------------------------')
             .align('center')
             .line(config.footerMessage || 'Terima Kasih')
