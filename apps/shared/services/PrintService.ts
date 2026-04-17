@@ -846,6 +846,12 @@ Terima Kasih!
     public static encodeChecker(data: _PrTrData): Uint8Array {
         const encoder = new EscPosEncoder();
 
+        const padCenter = (text: string, w: number) => {
+            const _t = text.trim();
+            if (_t.length >= w) return _t;
+            return ' '.repeat(Math.floor((w - _t.length) / 2)) + _t;
+        };
+
         encoder.initialize();
         
         // --- 1. Header (Beep + Bold Center) ---
@@ -855,8 +861,8 @@ Terima Kasih!
         encoder
             .raw([0x1d, 0x21, 0x11]) // Double height & width for header
             .bold(true)
-            .align('center')
-            .line('ORDERAN')
+            .align('left')
+            .line(padCenter('ORDERAN', 16))
             .raw([0x1d, 0x21, 0x00]) // Normal size
             .bold(false)
             .align('left')
@@ -902,13 +908,19 @@ Terima Kasih!
 
         const width = config.width || 32;
 
+        const padCenter = (text: string, w: number) => {
+            const _t = text.trim();
+            if (_t.length >= w) return _t;
+            return ' '.repeat(Math.floor((w - _t.length) / 2)) + _t;
+        };
+
         // --- Header ---
         encoder.initialize();
-        const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
-        const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
+        const hTitle = padCenter(config.headerTitle || 'KERABAT KOPI TIAM', width);
+        const hSub = config.headerSubtitle ? padCenter(config.headerSubtitle, width) : padCenter('Premium Coffee & Toast', width);
         
-        encoder.bold(true).align('center').line(hTitle).bold(false);
-        if (hSub) encoder.align('center').line(hSub);
+        encoder.bold(true).align('left').line(hTitle).bold(false);
+        if (hSub) encoder.align('left').line(hSub);
         
         encoder.align('left').line('--------------------------------');
 
@@ -974,14 +986,15 @@ Terima Kasih!
             }
         }
 
+        const footerMsg = padCenter(config.footerMessage || 'Terima Kasih', width);
+        const footerMsg2 = padCenter('Selamat Menikmati', width);
+
         encoder
             .newline()
             .align('left')
             .line('--------------------------------')
-            .align('center')
-            .line(config.footerMessage || 'Terima Kasih')
-            .align('center')
-            .line('Selamat Menikmati')
+            .line(footerMsg)
+            .line(footerMsg2)
             .newline()
             .newline();
 
