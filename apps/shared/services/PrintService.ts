@@ -619,7 +619,7 @@ export class PrintService {
         return totalSuccess;
     }
 
-    public static async printTransaction(data: PrintData) {
+    public static async printTransaction(data: PrintData, options?: { skipChecker?: boolean }) {
         if (this.isPrinting) {
             console.warn('[PrintService] Printing already in progress, skipping sequential request.');
             return;
@@ -628,18 +628,23 @@ export class PrintService {
         try {
             this.isPrinting = true;
 
-            // 1. Print Checker (Kitchen/Bar)
-            console.log('[PrintService] Starting Sequential Print: Checker...');
-            let checkerSuccess = await this.printChecker(data);
-            if (!checkerSuccess) {
-                console.warn('[PrintService] First Checker print failed, retrying once in 1s...');
-                await this.delay(1000);
+            let checkerSuccess = true;
+            if (!options?.skipChecker) {
+                // 1. Print Checker (Kitchen/Bar)
+                console.log('[PrintService] Starting Sequential Print: Checker...');
                 checkerSuccess = await this.printChecker(data);
-            }
+                if (!checkerSuccess) {
+                    console.warn('[PrintService] First Checker print failed, retrying once in 1s...');
+                    await this.delay(1000);
+                    checkerSuccess = await this.printChecker(data);
+                }
 
-            // 2. Mandatory Delay (3 seconds)
-            console.log('[PrintService] Waiting 3000ms before customer receipt...');
-            await this.delay(3000);
+                // 2. Mandatory Delay (3 seconds) only if checker was printed
+                console.log('[PrintService] Waiting 3000ms before customer receipt...');
+                await this.delay(3000);
+            } else {
+                console.log('[PrintService] Skipping Checker print as requested.');
+            }
 
             // 3. Print Customer Receipt
             console.log('[PrintService] Starting Sequential Print: Customer Receipt...');

@@ -424,8 +424,10 @@ function App() {
                 tableNumber: customerInfo
             };
 
-            // 1. Trigger Auto-Print (Checker -> 3s -> Customer Receipt)
-            PrintService.printTransaction(printData);
+            // 1. Trigger Auto-Print
+            // If this is an existing Open Bill being finalized, skip the checker
+            // (it was already printed when the bill was first saved/updated)
+            PrintService.printTransaction(printData, { skipChecker: !!currentBillId });
 
             // Refresh badge counter (non-blocking)
             PrintService.getPendingJobs().then(jobs => {
