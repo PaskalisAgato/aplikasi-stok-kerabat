@@ -18,7 +18,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 // GET /api/members/:id
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
-        const member = await MemberService.getMemberById(parseInt(req.params.id));
+        const member = await MemberService.getMemberById(parseInt(req.params.id as string));
         if (!member) return res.status(404).json({ success: false, message: 'Member tidak ditemukan' });
         res.json({ success: true, data: member });
     } catch (e: any) {
@@ -29,7 +29,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 // GET /api/members/phone/:phone
 router.get('/phone/:phone', requireAuth, async (req: Request, res: Response) => {
     try {
-        const member = await MemberService.getMemberByPhone(req.params.phone);
+        const member = await MemberService.getMemberByPhone(req.params.phone as string);
         if (!member) return res.status(404).json({ success: false, message: 'Member tidak ditemukan' });
         res.json({ success: true, data: member });
     } catch (e: any) {
@@ -52,7 +52,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 // PUT /api/members/:id
 router.put('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
-        const member = await MemberService.updateMember(parseInt(req.params.id), req.body);
+        const member = await MemberService.updateMember(parseInt(req.params.id as string), req.body);
         res.json({ success: true, data: member });
     } catch (e: any) {
         res.status(400).json({ success: false, message: e.message });
@@ -64,7 +64,7 @@ router.post('/:id/adjust-points', requireAdmin, async (req: Request, res: Respon
     try {
         const { delta, reason } = req.body;
         if (delta === undefined) return res.status(400).json({ success: false, message: 'Delta poin wajib diisi' });
-        const result = await MemberService.adjustPoints(parseInt(req.params.id), parseInt(delta), reason);
+        const result = await MemberService.adjustPoints(parseInt(req.params.id as string), parseInt(delta), reason);
         res.json({ success: true, data: result });
     } catch (e: any) {
         res.status(400).json({ success: false, message: e.message });
@@ -74,7 +74,7 @@ router.post('/:id/adjust-points', requireAdmin, async (req: Request, res: Respon
 // DELETE /api/members/:id
 router.delete('/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
-        await MemberService.deleteMember(parseInt(req.params.id));
+        await MemberService.deleteMember(parseInt(req.params.id as string));
         res.json({ success: true, message: 'Member berhasil dihapus' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
