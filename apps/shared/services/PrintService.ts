@@ -494,11 +494,12 @@ export class PrintService {
         return this.sendToBridge(buffer, config.ip || '127.0.0.1');
     }
 
-    public static async printChecker(data: PrintData, isManual = false) {
+    public static async printChecker(data: PrintData, isManual = false): Promise<boolean> {
         const settings = await this.getSettings();
         
-        if (settings.length === 0) return;
+        if (settings.length === 0) return false;
 
+        let totalSuccess = true;
         const processedPrinters = new Set<string>();
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
@@ -518,12 +519,13 @@ export class PrintService {
 
             if (filteredItems.length > 0) {
                 const checkerData = { ...data, items: filteredItems };
-                const buffer = this.encodeChecker(checkerData, printer);
+                const buffer = this.encodeChecker(checkerData);
                 
+                let success = false;
                 if (printer.connectionType === 'bluetooth') {
-                    this.sendToBluetooth(buffer).catch(err => console.error('BT Checker failed', err));
+                    success = await this.sendToBluetooth(buffer);
                 } else if (printer.connectionType === 'serial') {
-                    this.sendToSerial(buffer).catch(err => console.error('Serial Checker failed', err));
+                    success = await this.sendToSerial(buffer);
                 } else if (printer.connectionType === 'bridge') {
                     const bufferBase64 = btoa(String.fromCharCode(...buffer));
                     await db.offlineActions.add({
@@ -543,24 +545,29 @@ export class PrintService {
                         created_at: new Date().toISOString(),
                         sequence_number: Date.now()
                     });
+                    success = true; // Assume success when queued
                 }
+                if (!success) totalSuccess = false;
             }
         }
+        return totalSuccess;
     }
 
-    public static async printOrder(data: PrintData, isManual = false) {
+    public static async printOrder(data: PrintData, isManual = false): Promise<boolean> {
         const settings = await this.getSettings();
         
         if (settings.length === 0) {
             if (isManual) {
                 console.warn('[PrintService] No printers configured. Offering browser print fallback.');
                 this.browserPrint(data);
+                return true;
             } else {
                 console.log('[PrintService] No printers configured. Skipping auto-print silently.');
+                return false;
             }
-            return;
         }
 
+        let totalSuccess = true;
         const processedPrinters = new Set<string>();
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
@@ -573,31 +580,82 @@ export class PrintService {
             if (!isManual && cats.length > 0) continue;
 
             if (data.items.length > 0) {
+                let success = false;
                 if (printer.connectionType === 'bluetooth') {
                     console.log(`[PrintService] Executing Bluetooth print immediately for ${printer.name}`);
-                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket: false });
-                    this.sendToBluetooth(buffer).catch(err => {
-                        console.error('Immediate BT Print failed', err);
-                        if (isManual) {
-                            window.dispatchEvent(new CustomEvent('print-alert', { 
-                                detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
-                            }));
-                        }
-                    });
+                    const buffer = this.encodeReceipt(data, { config: printer });
+                    success = await this.sendToBluetooth(buffer);
+                    if (!success && isManual) {
+                        window.dispatchEvent(new CustomEvent('print-alert', { 
+                            detail: { message: `Printer Bluetooth "${printer.name}" gagal.`, type: 'WARN', data } 
+                        }));
+                    }
                 } else if (printer.connectionType === 'serial') {
                     console.log(`[PrintService] Executing Serial print immediately for ${printer.name}`);
-                    const buffer = this.encodeReceipt(data, { config: printer, isPrepTicket: false });
-                    this.sendToSerial(buffer).catch(err => {
-                        console.error('Immediate Serial Print failed', err);
-                    });
+                    const buffer = this.encodeReceipt(data, { config: printer });
+                    success = await this.sendToSerial(buffer);
                 } else if (printer.connectionType === 'bridge') {
-                    await this.enqueuePrintJob(data, printer, false, isManual);
+                    await this.enqueuePrintJob(data, printer, isManual);
+                    success = true;
                 }
+                if (!success) totalSuccess = false;
             }
         }
         
         // Start worker for bridge jobs
         this.startQueueWorker();
+        return totalSuccess;
+    }
+
+    public static async printTransaction(data: PrintData) {
+        if (this.isPrinting) {
+            console.warn('[PrintService] Printing already in progress, skipping sequential request.');
+            return;
+        }
+
+        try {
+            this.isPrinting = true;
+
+            // 1. Print Checker (Kitchen/Bar)
+            console.log('[PrintService] Starting Sequential Print: Checker...');
+            let checkerSuccess = await this.printChecker(data);
+            if (!checkerSuccess) {
+                console.warn('[PrintService] First Checker print failed, retrying once in 1s...');
+                await this.delay(1000);
+                checkerSuccess = await this.printChecker(data);
+            }
+
+            // 2. Mandatory Delay (3 seconds)
+            console.log('[PrintService] Waiting 3000ms before customer receipt...');
+            await this.delay(3000);
+
+            // 3. Print Customer Receipt
+            console.log('[PrintService] Starting Sequential Print: Customer Receipt...');
+            let orderSuccess = await this.printOrder(data);
+            if (!orderSuccess) {
+                console.warn('[PrintService] First Customer receipt failed, retrying once in 1s...');
+                await this.delay(1000);
+                orderSuccess = await this.printOrder(data);
+            }
+
+            if (!checkerSuccess || !orderSuccess) {
+                window.dispatchEvent(new CustomEvent('print-alert', { 
+                    detail: { 
+                        message: `Beberapa struk gagal dicetak. Harap periksa antrean cetak.`, 
+                        type: 'WARN', 
+                        data 
+                    } 
+                }));
+            }
+
+        } catch (error) {
+            console.error('[PrintService] printTransaction fatal error:', error);
+            window.dispatchEvent(new CustomEvent('print-alert', { 
+                detail: { message: `Sistem printing error: ${String(error)}`, type: 'ERROR', data } 
+            }));
+        } finally {
+            this.isPrinting = false;
+        }
     }
 
     /**
@@ -693,9 +751,9 @@ Terima Kasih!
         URL.revokeObjectURL(url);
     }
 
-    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isPrepTicket = false, isManual = false) {
+    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isManual = false) {
         // Pre-encode the receipt here using frontend settings
-        const buffer = this.encodeReceipt(data, { config, isPrepTicket });
+        const buffer = this.encodeReceipt(data, { config });
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
 
         // Pivot: Instead of local bridge, we send to cloud queue via SyncEngine
@@ -705,7 +763,6 @@ Terima Kasih!
             payload: {
                 payload: data,
                 printerName: config.name,
-                isPrepTicket,
                 bufferBase64, // Included for the Local Agent
                 printerIp: config.ip || '127.0.0.1',
                 isManual
@@ -733,7 +790,7 @@ Terima Kasih!
         this.isPrinting = true;
 
         for (const job of pending) {
-            let { data, config, isPrepTicket } = job.data as { data: _PrTrData, config: _PrTrConf, isPrepTicket: boolean };
+            let { data, config } = job.data as { data: _PrTrData, config: _PrTrConf };
             
             // Backward Compatibility: If 'data' is missing, it might be an old flattened job
             if (!data && (job.data as any).items) {
@@ -743,8 +800,7 @@ Terima Kasih!
             }
 
             const buffer = this.encodeReceipt(data, { 
-                config,
-                isPrepTicket 
+                config
             });
 
             console.log(`[PrintService] Processing job ${job.id} for ${config.name}...`);
@@ -775,162 +831,133 @@ Terima Kasih!
         this.isPrinting = false;
     }
 
-    public static encodeChecker(data: _PrTrData, config: _PrTrConf): Uint8Array {
+    public static encodeChecker(data: _PrTrData): Uint8Array {
         const encoder = new EscPosEncoder();
-        const width = config.width || 32;
 
         encoder.initialize();
         
         // --- 1. Header (Beep + Bold Center) ---
-        // Beep command (Some printers use 0x07, others ESC B n t)
-        encoder.raw([0x1b, 0x42, 0x02, 0x01]); // ESC B 2 1: Beep 2 times
-        encoder.raw([0x07]); // BEL (fallback)
+        encoder.raw([0x1b, 0x42, 0x02, 0x01]); // Beep
+        encoder.raw([0x07]); // BEL
 
         encoder
             .align('center')
+            .line('--------------------------------')
+            .raw([0x1d, 0x21, 0x11]) // Double height & width
             .bold(true)
-            .line('KERABAT KOPI TIAM')
-            .line('ORDER CHECK')
+            .line('ORDER / CHEKERAN')
             .bold(false)
-            .line('-'.repeat(width));
+            .raw([0x1d, 0x21, 0x00]) // Normal size
+            .line('--------------------------------');
 
         // --- 2. Metadata ---
         encoder.align('left');
         const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
-        encoder.bold(true).line(`No: #${orderIdShort}`).bold(false);
+        const timeStr = new Date(data.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
-        // Note: data.customerName or data.id might contain table info in the current schema
-        encoder.line(`Meja: ${data.customerName || data.tableNumber || '-'}`);
-        encoder.line(`Waktu: ${new Date(data.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`);
-        encoder.line(`Kasir: ${data.cashier_id || 'Staff'}`);
-        encoder.line('-'.repeat(width));
+        encoder.line(`No Order : #${orderIdShort}`);
+        encoder.line(`Waktu    : ${timeStr}`);
+        encoder.line(`Meja     : ${data.customerName || data.tableNumber || '-'}`);
+        encoder.line('--------------------------------');
 
-        // --- 3. Items ---
-        encoder.line('Items:').bold(true);
+        // --- 3. Items (Large & Simple) ---
+        encoder.bold(true);
         data.items.forEach((item: any) => {
-            encoder.line(`${item.quantity}x ${item.name}`);
+            encoder
+                .raw([0x1d, 0x21, 0x11]) // Double size
+                .line(`${item.quantity}x ${item.name}`)
+                .raw([0x1d, 0x21, 0x00]); // Normal size
+            
             if (item.notes) {
-                encoder.bold(true).line(`   * ${item.notes}`).bold(false);
+                encoder.line(`   (Catatan: ${item.notes})`);
             }
         });
         encoder.bold(false);
 
         // --- 4. Footer ---
         encoder
-            .line('-'.repeat(width))
-            .align('center')
-            .bold(true)
-            .line('*** SEGERA DIPROSES ***')
-            .line('-'.repeat(width));
-
-        encoder.newline().newline().cut();
+            .line('--------------------------------')
+            .newline()
+            .newline()
+            .cut();
+            
         return encoder.encode();
     }
 
-    public static encodeReceipt(data: _PrTrData, options: { config: _PrTrConf, isPrepTicket?: boolean }): Uint8Array {
+    public static encodeReceipt(data: _PrTrData, options: { config: _PrTrConf }): Uint8Array {
         const encoder = new EscPosEncoder();
-        const { config, isPrepTicket } = options;
+        const { config } = options;
         
-        // Anti-crash guard for malformed job data
-        if (!data) {
-            console.error('[PrintService] encodeReceipt: Missing data object');
-            return encoder.initialize().line('ERR: MISSING DATA').encode();
-        }
+        if (!data) return encoder.initialize().line('ERR: MISSING DATA').encode();
 
         const width = config.width || 32;
 
-        const centerText = (text: string) => {
-            const padSize = Math.max(0, Math.floor((width - text.length) / 2));
-            return ' '.repeat(padSize) + text;
-        };
-
-        if (isPrepTicket) {
-            encoder.align('center').bold(true).line(centerText('ORDER PERSIAPAN')).bold(false);
-        } else {
-            const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
-            const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
-            encoder.align('center').bold(true).line(centerText(hTitle)).bold(false).line(centerText(hSub));
-        }
-
-        encoder
-            .line('--------------------------------')
-            .align('left');
+        // --- Header ---
+        encoder.initialize().align('center');
+        const hTitle = config.headerTitle || 'KERABAT KOPI TIAM';
+        const hSub = config.headerSubtitle || 'Premium Coffee & Toast';
         
-        if (config.showDate !== false) {
-            const printDate = data.date ? new Date(data.date) : new Date();
-            encoder.line(`Date:  ${printDate.toLocaleString('id-ID')}`);
-        }
+        encoder.bold(true).line(hTitle).bold(false);
+        if (hSub) encoder.line(hSub);
         
-        encoder.line(`Order: #${data.id}`)
-            .line('--------------------------------');
+        encoder.line('--------------------------------').align('left');
 
+        // --- Metadata ---
+        const orderIdShort = data.id.toString().split('-')[0].toUpperCase();
+        encoder.line(`No Transaksi: #${orderIdShort}`);
+        encoder.line(`Tanggal     : ${new Date(data.date).toLocaleString('id-ID')}`);
+        if (data.tableNumber || data.customerName) {
+            encoder.line(`Pelanggan   : ${data.customerName || data.tableNumber}`);
+        }
+        encoder.line('--------------------------------');
+
+        // --- Items ---
         data.items.forEach((item: any) => {
             const qty = `${item.quantity}x `;
-            const priceStr = item.subtotal.toLocaleString('id-ID');
-            const inlineNameWidth = width - qty.length - priceStr.length - 1;
-
-            if (item.name.length <= inlineNameWidth) {
-                // Standard inline layout
-                const spaces = width - qty.length - item.name.length - priceStr.length;
-                encoder.line(`${qty}${item.name}${' '.repeat(Math.max(1, spaces))}${priceStr}`);
-            } else {
-                // Wrap name and drop price
-                const availableForName = width - 4;
-                const words = item.name.split(' ');
-                const nameLines = [];
-                let currentLine = '';
-                
-                words.forEach((word: string) => {
-                    if ((currentLine + word).length < availableForName) {
-                        currentLine += (currentLine ? ' ' : '') + word;
-                    } else {
-                        nameLines.push(currentLine);
-                        currentLine = word;
-                    }
-                });
-                if (currentLine) nameLines.push(currentLine);
-
-                encoder.line(`${qty.padEnd(4)}${nameLines[0]}`);
-                for (let i = 1; i < nameLines.length; i++) {
-                    encoder.line(`    ${nameLines[i]}`);
-                }
-                encoder.align('right').line(priceStr).align('left');
-            }
+            const name = item.name;
+            const price = (item.subtotal / item.quantity).toLocaleString('id-ID');
+            const total = item.subtotal.toLocaleString('id-ID');
+            
+            encoder.line(`${qty}${name}`);
+            const priceInfo = `@${price}`;
+            const spaces = width - priceInfo.length - total.length;
+            encoder.line(`${priceInfo}${' '.repeat(Math.max(1, spaces))}${total}`);
         });
 
         encoder.line('--------------------------------');
 
-        if (!isPrepTicket) {
-            const totalLabel = 'TOTAL:';
-            const totalValue = `Rp ${data.total.toLocaleString('id-ID')}`;
-            const spaces = width - totalLabel.length - totalValue.length;
-            const spacer = spaces > 0 ? ' '.repeat(spaces) : ' ';
-            
-            encoder
-                .bold(true)
-                .line(`${totalLabel}${spacer}${totalValue}`)
-                .bold(false)
-                .align('left');
-            
-            if (config.showCashier) {
-                encoder.line(`Kasir: ${data.cashier_id || 'Staff'}`);
-            }
+        // --- Summary ---
+        const totalLabel = 'TOTAL';
+        const totalValue = `Rp ${data.total.toLocaleString('id-ID')}`;
+        const tSpaces = width - totalLabel.length - totalValue.length;
+        
+        encoder.bold(true).line(`${totalLabel}${' '.repeat(Math.max(1, tSpaces))}${totalValue}`).bold(false);
+        
+        encoder.newline();
+        encoder.line(`Metode Bayar: ${data.paymentMethod}`);
+        if (data.paymentMethod === 'CASH') {
+            const payLabel = 'Bayar';
+            const payValue = `Rp ${(data.amountPaid || 0).toLocaleString('id-ID')}`;
+            const pSpaces = width - payLabel.length - payValue.length;
+            encoder.line(`${payLabel}${' '.repeat(Math.max(1, pSpaces))}${payValue}`);
 
-            encoder
-                .line(`Bayar: ${data.paymentMethod}`)
-                .line(`Cash:  Rp ${data.amountPaid?.toLocaleString('id-ID') || 0}`)
-                .line(`Laba:  Rp ${data.change_due?.toLocaleString('id-ID') || 0}`)
-                .line('--------------------------------')
-                .align('center')
-                .line(centerText(config.footerMessage || 'Terima Kasih!'))
-                .line(centerText('Selamat Menikmati'));
+            const changeLabel = 'Kembali';
+            const changeValue = `Rp ${(data.change_due || 0).toLocaleString('id-ID')}`;
+            const cSpaces = width - changeLabel.length - changeValue.length;
+            encoder.line(`${changeLabel}${' '.repeat(Math.max(1, cSpaces))}${changeValue}`);
         }
 
-        encoder.newline().newline();
+        // --- Footer ---
+        encoder
+            .line('--------------------------------')
+            .align('center')
+            .line(config.footerMessage || 'Terima kasih')
+            .line('Selamat Menikmati')
+            .newline()
+            .newline();
 
-        if (config.openCashDrawer && !isPrepTicket && data.paymentMethod === 'CASH') {
-            // Pulse command for cash drawer
-            encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+        if (config.openCashDrawer && data.paymentMethod === 'CASH') {
+            encoder.raw([0x1b, 0x70, 0x00, 0x19, 0xfa]); // Pulse
         }
 
         encoder.cut();
@@ -976,8 +1003,7 @@ Terima Kasih!
             id: `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             data: {
                 data,
-                config: primaryPrinter,
-                isPrepTicket: false
+                config: primaryPrinter
             },
             status: 'PENDING',
             retry_count: 0,
