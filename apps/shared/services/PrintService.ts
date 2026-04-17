@@ -501,6 +501,10 @@ export class PrintService {
 
         let totalSuccess = true;
         const processedPrinters = new Set<string>();
+        
+        // Check if there are any dedicated kitchen printers configured
+        const hasKitchenPrinters = settings.some(p => (p.categories || []).length > 0);
+
         for (const printer of settings) {
             if (printer.autoPrint === false) continue;
 
@@ -509,13 +513,21 @@ export class PrintService {
             processedPrinters.add(printerKey);
 
             const cats = (printer.categories || []).map(c => c.toLowerCase());
-            if (cats.length === 0) continue;
+            let filteredItems: any[] = [];
 
-            const filteredItems = data.items.filter(item => 
-                item.category && cats.includes(item.category.toLowerCase())
-            );
+            if (cats.length === 0) {
+                if (hasKitchenPrinters) {
+                    continue; // Skip cashier printer if we have kitchen printers
+                } else {
+                    filteredItems = data.items; // Fallback: print everything as checker
+                }
+            } else {
+                filteredItems = data.items.filter(item => 
+                    item.category && cats.includes(item.category.toLowerCase())
+                );
+            }
 
-            console.log(`[PrintService] Printer "${printer.name}" (Cats: ${cats.join(',')}) -> Found ${filteredItems.length}/${data.items.length} matching items.`);
+            console.log(`[PrintService] Printer "${printer.name}" (Cats: ${cats.join(',')}) -> Found ${filteredItems.length}/${data.items.length} matching items for checker.`);
 
             if (filteredItems.length > 0) {
                 const checkerData = { ...data, items: filteredItems };
