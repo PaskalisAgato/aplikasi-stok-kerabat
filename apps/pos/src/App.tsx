@@ -53,7 +53,7 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
             className={`cursor-pointer transition-all border p-2.5 sm:p-3 flex flex-col justify-between ${isHighlighted ? 'border-primary ring-2 ring-primary/50 bg-primary/10 scale-[1.02] shadow-md z-10' : 'border-[var(--border-dim)] bg-[var(--bg-app)] hover:bg-[var(--glass-bg)] shadow-sm hover:shadow-md hover:-translate-y-0.5'} rounded-xl h-[72px]`}
         >
             <div className="flex justify-between items-start gap-1">
-                <h3 className="font-black text-[10px] sm:text-[11px] leading-[1.1] text-[var(--text-main)] line-clamp-2 uppercase tracking-tight">{item.name}</h3>
+                <h3 className="font-black text-[10px] sm:text-[11px] leading-[1.1] dark:text-white dark:text-white text-slate-900 line-clamp-2 uppercase tracking-tight">{item.name}</h3>
                 {saleCount > 0 && (
                     <span className="bg-primary text-slate-900 font-black text-[9px] px-1.5 py-0.5 rounded-md shadow-sm shrink-0">
                         x{saleCount}
@@ -76,7 +76,7 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange
     return (
         <div className="flex items-center justify-between group py-1.5 border-b border-[var(--border-dim)] last:border-0 hover:bg-[var(--glass-bg)] -mx-1 px-1 rounded-lg transition-colors">
             <div className="flex-1 min-w-0 pr-2">
-                <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate text-[var(--text-main)] leading-none mb-0.5">{item.name}</p>
+                <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate dark:text-white dark:text-white text-slate-900 leading-none mb-0.5">{item.name}</p>
                 <p className="text-[9px] font-bold text-primary leading-none">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 bg-[var(--bg-app)] rounded-lg p-0.5 sm:p-1 border border-[var(--border-dim)]">
@@ -86,7 +86,7 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange
                 >
                     -
                 </button>
-                <span className="text-[9px] sm:text-[10px] font-black w-4 text-center text-[var(--text-main)]">{salesCount}</span>
+                <span className="text-[9px] sm:text-[10px] font-black w-4 text-center dark:text-white dark:text-white text-slate-900">{salesCount}</span>
                 <button 
                     onClick={() => updateQty(item.id, 1)}
                     className="size-5 sm:size-6 rounded flex items-center justify-center hover:bg-emerald-500/20 text-emerald-500 transition-colors font-black text-[10px] sm:text-xs"
@@ -106,7 +106,7 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange
             {showNoteInput && (
                 <div className="absolute top-full left-0 right-0 z-20 mt-1 p-2 glass rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2">
                     <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-[var(--text-main)] focus:outline-none focus:border-primary transition-all"
+                        className="w-full dark:bg-black bg-white/40 border dark:border-white/10 border-slate-200 rounded-lg px-3 py-2 text-[10px] dark:text-white dark:text-white text-slate-900 focus:outline-none focus:border-primary transition-all"
                         placeholder="Catatan pesanan (contoh: Pedas, No MSG)..."
                         value={note || ''}
                         onChange={(e) => onNoteChange(item.id, e.target.value)}
@@ -849,7 +849,7 @@ function App() {
         <footer className="bg-transparent p-3 shrink-0 flex flex-col gap-3">
             {/* Payment Method Selector */}
             <div className="space-y-1.5">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 px-1">Pembayaran</p>
+                <p className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 px-1">Pembayaran</p>
                 <div className="grid grid-cols-3 gap-2">
                     {[
                         { id: 'CASH', label: 'Tunai', icon: 'payments' },
@@ -862,7 +862,7 @@ function App() {
                             className={`flex items-center justify-center gap-2 py-1.5 rounded-md border transition-all active:scale-95 ${
                                 paymentMethod === method.id 
                                     ? 'bg-primary/20 border-primary text-primary shadow-sm' 
-                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-white/5'
+                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200'
                             }`}
                         >
                             <span className="material-symbols-outlined text-base font-black">{method.icon}</span>
@@ -874,7 +874,7 @@ function App() {
 
             {/* Cash Payment Section */}
             {paymentMethod === 'CASH' && (
-                <div className="bg-black/10 rounded-xl p-2 border border-white/5 space-y-2">
+                <div className="dark:bg-black dark:bg-white/10 bg-white shadow-md border border-slate-200 rounded-xl p-2 border dark:border-white/5 border-slate-200 space-y-2">
                     <div className="flex flex-wrap gap-1.5">
                         {[10000, 20000, 50000, 100000, totalSalesValue].map((amount, idx) => (
                             <button 
@@ -883,7 +883,7 @@ function App() {
                                 className={`flex-1 min-w-[60px] py-1.5 rounded-md border font-bold text-[13px] transition-all active:scale-95 ${
                                     amountPaid === amount 
                                         ? 'bg-primary border-primary text-slate-900 shadow-md' 
-                                        : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:bg-white/5'
+                                        : 'bg-[var(--bg-app)] border-[var(--border-dim)] dark:text-white dark:text-white text-slate-900 hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200'
                                 }`}
                             >
                                 {amount === totalSalesValue ? 'PAS' : `${amount / 1000}k`}
@@ -897,14 +897,14 @@ function App() {
                                 type="number" 
                                 value={amountPaid || ''}
                                 onChange={(e) => setAmountPaid(parseInt(e.target.value) || 0)}
-                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-12 pr-4 py-3 text-sm font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
+                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-12 pr-4 py-3 text-sm font-black dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all"
                                 placeholder="0"
                                 onFocus={(e) => e.target.select()}
                             />
                         </div>
                         <div className={`flex-1 rounded-xl px-3 py-1.5 flex flex-col justify-center border transition-colors ${changeDue > 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/5'}`}>
                             <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Kembalian</p>
-                            <p className={`text-sm font-black leading-none mt-1 ${changeDue > 0 ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}>
+                            <p className={`text-sm font-black leading-none mt-1 ${changeDue > 0 ? 'text-emerald-500' : 'dark:text-slate-400 dark:text-slate-400 text-slate-500'}`}>
                                 Rp {changeDue.toLocaleString('id-ID')}
                             </p>
                         </div>
@@ -923,10 +923,10 @@ function App() {
                 >
                     <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Total Penjualan</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Total Penjualan</p>
                             <span className="lg:hidden px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[8px] font-black uppercase tracking-tighter animate-pulse">Lihat Detail</span>
                         </div>
-                        <p className="text-3xl font-black tracking-tighter text-[var(--text-main)] leading-none">
+                        <p className="text-3xl font-black tracking-tighter dark:text-white dark:text-white text-slate-900 leading-none">
                             <span className="text-primary mr-1 text-sm">Rp</span>
                             {totalSalesValue.toLocaleString('id-ID')}
                         </p>
@@ -937,8 +937,8 @@ function App() {
                 {(discountAmount > 0 || pointsDiscountAmount > 0) && (
                     <div className="bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)] p-2.5 space-y-1">
                         <div className="flex justify-between text-[10px]">
-                            <span className="text-[var(--text-muted)]">Subtotal</span>
-                            <span className="text-[var(--text-main)] font-bold">Rp {totalSalesValue.toLocaleString('id-ID')}</span>
+                            <span className="dark:text-slate-400 dark:text-slate-400 text-slate-500">Subtotal</span>
+                            <span className="dark:text-white dark:text-white text-slate-900 font-bold">Rp {totalSalesValue.toLocaleString('id-ID')}</span>
                         </div>
                         {discountAmount > 0 && (
                             <div className="flex justify-between text-[10px]">
@@ -953,7 +953,7 @@ function App() {
                             </div>
                         )}
                         <div className="flex justify-between text-xs font-black pt-1 border-t border-[var(--border-dim)]">
-                            <span className="text-[var(--text-main)]">Total Bayar</span>
+                            <span className="dark:text-white dark:text-white text-slate-900">Total Bayar</span>
                             <span className="text-primary">Rp {finalTotal.toLocaleString('id-ID')}</span>
                         </div>
                     </div>
@@ -967,7 +967,7 @@ function App() {
                         className={`flex-1 h-12 rounded-lg font-bold text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
                             (paymentMethod === 'CASH' && amountPaid >= totalSalesValue) || paymentMethod !== 'CASH'
                                 ? 'bg-primary text-slate-950 shadow-primary/20' 
-                                : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
+                                : 'dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 border dark:border-white/5 border-slate-200'
                         }`}
                     >
                         {isCheckingOut ? (
@@ -996,7 +996,7 @@ function App() {
                     {!currentBillId && totalItems > 0 && (
                         <button 
                             onClick={handleSaveBill}
-                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5"
+                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] dark:text-white dark:text-white text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5"
                         >
                             <span className="material-symbols-outlined text-sm">save</span> Simpan Bill Baru
                         </button>
@@ -1029,10 +1029,10 @@ function App() {
                     {showMemberPanel && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowMemberPanel(false)} />
-                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border dark:border-white/10 border-slate-200 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
+                                    <div className="flex items-center justify-between border-b dark:border-white/10 border-slate-200 pb-2">
+                                        <h4 className="font-black text-sm uppercase tracking-widest dark:text-white dark:text-white text-slate-900">Pilih Member</h4>
                                         {selectedMember && (
                                             <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
                                         )}
@@ -1045,7 +1045,7 @@ function App() {
                                                 value={memberSearch}
                                                 onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
                                                 onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
-                                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-primary/40"
+                                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/40"
                                             />
                                             {memberSearchResults.length > 0 && (
                                                 <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
@@ -1055,8 +1055,8 @@ function App() {
                                                             setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
                                                         }} className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
                                                             <div className="text-left">
-                                                                <p className="font-bold text-[11px] text-[var(--text-main)]">{m.name}</p>
-                                                                <p className="text-[9px] text-[var(--text-muted)]">{m.phone}</p>
+                                                                <p className="font-bold text-[11px] dark:text-white dark:text-white text-slate-900">{m.name}</p>
+                                                                <p className="text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500">{m.phone}</p>
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-[10px] text-primary font-black">{m.points} pts</span>
@@ -1070,23 +1070,23 @@ function App() {
                                         <div className="space-y-3">
                                             <div className="bg-[var(--bg-app)] p-3 rounded-xl border border-[var(--border-dim)] flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-xs font-black text-[var(--text-main)]">{selectedMember.name}</p>
-                                                    <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone}</p>
+                                                    <p className="text-xs font-black dark:text-white dark:text-white text-slate-900">{selectedMember.name}</p>
+                                                    <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500">{selectedMember.phone}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider">Total Poin</p>
+                                                    <p className="text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-wider">Total Poin</p>
                                                     <p className="text-sm font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
                                                 </div>
                                             </div>
                                             {selectedMember.points > 0 && (
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Tukar Poin</label>
+                                                    <label className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Tukar Poin</label>
                                                     <div className="flex gap-2">
                                                         <input
                                                             type="number" min={0} max={selectedMember.points}
                                                             value={pointsToRedeem || ''}
                                                             onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
-                                                            className="flex-1 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none"
+                                                            className="flex-1 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs dark:text-white dark:text-white text-slate-900 outline-none"
                                                             placeholder="0"
                                                         />
                                                     </div>
@@ -1114,21 +1114,21 @@ function App() {
                     {showDiscountPanel && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowDiscountPanel(false)} />
-                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border dark:border-white/10 border-slate-200 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
+                                    <div className="flex items-center justify-between border-b dark:border-white/10 border-slate-200 pb-2">
+                                        <h4 className="font-black text-sm uppercase tracking-widest dark:text-white dark:text-white text-slate-900">Pilih Diskon</h4>
                                         {selectedDiscount && (
                                             <button onClick={() => { setSelectedDiscount(null); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
                                         )}
                                     </div>
                                     <div className="max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
                                         {availableDiscounts.length === 0 ? (
-                                            <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon yang berlaku saat ini</p>
+                                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon yang berlaku saat ini</p>
                                         ) : availableDiscounts.map((d) => (
                                             <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className={`w-full text-left p-3 rounded-xl transition-all border ${selectedDiscount?.id === d.id ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
                                                 <div className="flex justify-between items-start mb-1">
-                                                    <span className={`font-black text-[11px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>{d.name}</span>
+                                                    <span className={`font-black text-[11px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'dark:text-white dark:text-white text-slate-900'}`}>{d.name}</span>
                                                     <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
                                                 </div>
                                             </button>
@@ -1143,13 +1143,13 @@ function App() {
 
             {/* Shift Status */}
             {activeShift && (
-                <div className="hidden min-[1100px]:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div className="hidden min-[1100px]:flex items-center gap-3 dark:bg-white/5 bg-white shadow-sm border border-slate-200 px-4 py-2 rounded-2xl border dark:border-white/5 border-slate-200">
                     <div className="size-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
                         <span className="material-symbols-outlined text-sm text-primary">person</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-[8px] font-black uppercase text-primary tracking-[0.2em] leading-none mb-1">Shift Aktif</span>
-                        <span className="text-[10px] font-bold text-[var(--text-main)] leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
+                        <span className="text-[10px] font-bold dark:text-white dark:text-white text-slate-900 leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
                     </div>
                     <button
                         onClick={() => setIsHandoverShiftOpen(true)}
@@ -1202,7 +1202,7 @@ function App() {
                             onClick={() => setIsActionMenuOpen(false)}
                         />
                         
-                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border dark:border-white/10 border-slate-200 rounded-2xl p-3 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                             <div className="space-y-3">
                                 {activeShift && (
                                     <>
@@ -1213,7 +1213,7 @@ function App() {
                                                     <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
                                                         <span className="material-symbols-outlined text-sm text-primary">person</span>
                                                     </div>
-                                                    <span className="text-[11px] font-black text-[var(--text-main)] truncate max-w-[120px]">{activeShift.userName || 'Kasir'}</span>
+                                                    <span className="text-[11px] font-black dark:text-white dark:text-white text-slate-900 truncate max-w-[120px]">{activeShift.userName || 'Kasir'}</span>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button
@@ -1249,18 +1249,18 @@ function App() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="h-px bg-white/5 mx-2"></div>
+                                        <div className="h-px dark:bg-white/5 bg-white shadow-sm border border-slate-200 mx-2"></div>
                                     </>
                                 )}
 
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2">Sinkronisasi</p>
-                                    <div className="bg-black/20 rounded-xl p-2">
+                                    <div className="dark:bg-black bg-white/20 rounded-xl p-2">
                                         <SyncWidget />
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-white/5 mx-2"></div>
+                                <div className="h-px dark:bg-white/5 bg-white shadow-sm border border-slate-200 mx-2"></div>
 
                                 {/* Section: Navigasi */}
                                 <div className="space-y-1">
@@ -1293,7 +1293,7 @@ function App() {
                                     </button>
                                 </div>
 
-                                <div className="h-px bg-white/5 mx-2"></div>
+                                <div className="h-px dark:bg-white/5 bg-white shadow-sm border border-slate-200 mx-2"></div>
 
                                 {/* Section: Settings */}
                                 <button 
@@ -1359,7 +1359,7 @@ function App() {
                         ) : (
                             <>
                                 {/* MOBILE ACTION BUTTONS (REPLACES OLD TAB SWITCHER) */}
-                                <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
+                                <div className="!flex lg:!hidden gap-2 dark:bg-white/5 bg-white shadow-sm border border-slate-200 p-1.5 rounded-2xl border dark:border-white/5 border-slate-200 mb-4 shrink-0">
                                     <button
                                         onClick={() => setMobileTab('menu')}
                                         className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
@@ -1394,7 +1394,7 @@ function App() {
                                         <div className="flex items-center justify-between px-2">
                                             <div className="flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-primary text-sm">receipt_long</span>
-                                                <h3 className="font-black uppercase tracking-tighter text-xs text-[var(--text-main)]">Daftar Bill Aktif (Running Order)</h3>
+                                                <h3 className="font-black uppercase tracking-tighter text-xs dark:text-white dark:text-white text-slate-900">Daftar Bill Aktif (Running Order)</h3>
                                             </div>
                                             <span className="bg-primary text-slate-950 text-[9px] px-2 py-0.5 rounded-full font-black uppercase shadow-sm">{openBills.length} Meja</span>
                                         </div>
@@ -1406,14 +1406,14 @@ function App() {
                                                     className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer transition-all shrink-0 w-[200px] snap-start flex flex-col justify-between"
                                                 >
                                                     <div className="min-w-0">
-                                                        <p className="text-[12px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
+                                                        <p className="text-[12px] font-black dark:text-white dark:text-white text-slate-900 truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
                                                         <div className="flex gap-1.5">
                                                             <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
                                                             <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
                                                             <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
                                                         </div>
                                                     </div>
-                                                    <div className="pt-2 mt-2 border-t border-white/5">
+                                                    <div className="pt-2 mt-2 border-t dark:border-white/5 border-slate-200">
                                                         <p className="text-[10px] font-black text-primary">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
                                                     </div>
                                                 </div>
@@ -1426,7 +1426,7 @@ function App() {
                                 <div className="flex flex-col md:flex-row h-[calc(100vh-180px)] min-h-[600px] gap-4 w-full">
                                     {/* Column 1: Kategori (Left - 15%) */}
                                     <div className="hidden lg:flex w-[15%] flex-col gap-2 shrink-0 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-3 overflow-y-auto custom-scrollbar">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mb-2 px-1">Kategori</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 mb-2 px-1">Kategori</h4>
                                         <button 
                                             onClick={() => setSelectedCategory(null)}
                                             className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
@@ -1447,12 +1447,12 @@ function App() {
                                     {/* Column 2: Daftar Menu (Center - 55%) */}
                                     <div className={`w-full lg:w-[50%] flex-col gap-4 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
                                         <div className="relative group shrink-0">
-                                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors text-xl">search</span>
+                                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 dark:text-slate-400 dark:text-slate-400 text-slate-500 group-focus-within:text-primary transition-colors text-xl">search</span>
                                             <input 
                                                 ref={searchInputRef}
                                                 type="text" 
                                                 placeholder="Cari Menu... (Tekan '/')" 
-                                                className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50"
+                                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all placeholder:dark:text-slate-400 dark:text-slate-400 text-slate-500 placeholder:opacity-50"
                                                 value={searchTerm}
                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                             />
@@ -1497,13 +1497,13 @@ function App() {
                                     {/* Column 3: Cart & Quick Pay (Right - 30%) */}
                                     <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
                                         {/* Cart Header */}
-                                        <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
+                                        <div className="p-4 border-b border-[var(--border-dim)] shrink-0 dark:bg-white/5 bg-white shadow-sm border border-slate-200 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all shrink-0">
                                                     <span className="material-symbols-outlined text-xl">shopping_cart</span>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2 truncate">
+                                                    <h2 className="text-sm font-black uppercase tracking-widest dark:text-white dark:text-white text-slate-900 flex items-center gap-2 truncate">
                                                         Keranjang
                                                     </h2>
                                                     <p className="text-[10px] font-bold text-primary uppercase mt-0.5">{totalItems} Item</p>
@@ -1547,7 +1547,7 @@ function App() {
                                         </div>
 
                                         {/* Compact Embedded PosFooter (Desktop Only) */}
-                                        <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20 hidden lg:block">
+                                        <div className="shrink-0 p-0 border-t border-[var(--border-dim)] dark:bg-black bg-white/20 hidden lg:block">
                                             {PosFooter}
                                         </div>
                                     </div>
@@ -1587,11 +1587,11 @@ function App() {
 
             {/* MERGE MODAL (Multi-Selection Ready) */}
             {isMergeModalOpen && targetBillForMerge && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
-                    <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
-                        <header className="glass p-6 flex justify-between items-center border-b border-white/5">
+                <div className="fixed inset-0 z-[100] dark:bg-slate-950 bg-slate-50/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border dark:border-white/10 border-slate-200">
+                        <header className="glass p-6 flex justify-between items-center border-b dark:border-white/5 border-slate-200">
                             <div>
-                                <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">Gabung Meja</h3>
+                                <h3 className="font-black text-xl dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">Gabung Meja</h3>
                                 <p className="text-xs text-primary font-bold mt-1">Menggabungkan ke: {targetBillForMerge.customerInfo}</p>
                             </div>
                             <button onClick={() => setIsMergeModalOpen(false)} className="size-10 rounded-xl glass hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">
@@ -1600,7 +1600,7 @@ function App() {
                         </header>
                         
                         <div className="p-6 overflow-y-auto space-y-3 flex-1 custom-scrollbar">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2">Pilih Meja yang Akan Digabung</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-50 mb-2">Pilih Meja yang Akan Digabung</p>
                             {openBills.filter(b => b.id !== targetBillForMerge.id).length === 0 ? (
                                 <div className="text-center py-10 opacity-30">
                                     <span className="material-symbols-outlined text-4xl mb-2">info</span>
@@ -1618,7 +1618,7 @@ function App() {
                                         }`}
                                     >
                                         <div>
-                                            <p className={`text-[11px] font-black uppercase ${selectedSourceIds.includes(bill.id) ? 'text-primary' : 'text-[var(--text-main)]'}`}>
+                                            <p className={`text-[11px] font-black uppercase ${selectedSourceIds.includes(bill.id) ? 'text-primary' : 'dark:text-white dark:text-white text-slate-900'}`}>
                                                 {bill.customerInfo}
                                             </p>
                                             <p className="text-[10px] font-black opacity-60">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
@@ -1635,10 +1635,10 @@ function App() {
                             )}
                         </div>
                         
-                        <footer className="glass p-6 border-t border-white/5 flex gap-3 shrink-0">
+                        <footer className="glass p-6 border-t dark:border-white/5 border-slate-200 flex gap-3 shrink-0">
                             <button 
                                 onClick={() => setIsMergeModalOpen(false)}
-                                className="flex-1 py-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                className="flex-1 py-4 rounded-xl glass dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black text-[10px] uppercase tracking-widest active:scale-95"
                             >
                                 Batal
                             </button>
@@ -1656,11 +1656,11 @@ function App() {
             )}
             {/* SPLIT MODAL (Pisah Meja / Pisah Bayar) */}
             {isSplitModalOpen && splitSourceBill && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
-                    <div className="card max-w-xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
-                        <header className="glass p-6 flex justify-between items-center border-b border-white/5">
+                <div className="fixed inset-0 z-[100] dark:bg-slate-950 bg-slate-50/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border dark:border-white/10 border-slate-200">
+                        <header className="glass p-6 flex justify-between items-center border-b dark:border-white/5 border-slate-200">
                             <div>
-                                <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">
+                                <h3 className="font-black text-xl dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">
                                     {splitMode === 'pay' ? 'Pisah Bayar' : 'Pisah Meja'}
                                 </h3>
                                 <p className="text-xs text-primary font-bold mt-1">Sumber: {splitSourceBill.customerInfo}</p>
@@ -1672,7 +1672,7 @@ function App() {
                         
                         <div className="p-6 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-50">
                                     {splitMode === 'pay' ? 'Keterangan Pembayaran' : 'Nama Meja Baru'}
                                 </label>
                                 <input 
@@ -1684,7 +1684,7 @@ function App() {
                                 />
                             </div>
 
-                            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Pilih Item & Jumlah</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-50">Pilih Item & Jumlah</p>
                             <div className="space-y-2">
                                 {splitSourceBill.items && splitSourceBill.items.map((item: any) => {
                                     const maxQty = parseInt(item.quantity);
@@ -1693,7 +1693,7 @@ function App() {
                                     return (
                                         <div key={item.id} className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-4 rounded-2xl flex items-center justify-between">
                                             <div className="flex-1 min-w-0 mr-4">
-                                                <p className="text-[11px] font-black text-[var(--text-main)] truncate uppercase">{item.recipeName}</p>
+                                                <p className="text-[11px] font-black dark:text-white dark:text-white text-slate-900 truncate uppercase">{item.recipeName}</p>
                                                 <p className="text-[10px] font-black opacity-50">Rp {parseFloat(item.recipePrice).toLocaleString('id-ID')} x {maxQty}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
@@ -1717,10 +1717,10 @@ function App() {
                             </div>
                         </div>
                         
-                        <footer className="glass p-6 border-t border-white/5 flex gap-3 shrink-0">
+                        <footer className="glass p-6 border-t dark:border-white/5 border-slate-200 flex gap-3 shrink-0">
                             <button 
                                 onClick={() => setIsSplitModalOpen(false)}
-                                className="flex-1 py-4 rounded-xl glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                className="flex-1 py-4 rounded-xl glass dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black text-[10px] uppercase tracking-widest active:scale-95"
                             >
                                 Batal
                             </button>
@@ -1747,21 +1747,21 @@ function App() {
                             </div>
                             <div className="flex-1">
                                 <h4 className="font-black text-xs text-amber-500 uppercase tracking-widest">Printer Bermasalah</h4>
-                                <p className="text-[11px] font-bold text-[var(--text-main)] mt-1 leading-relaxed">
+                                <p className="text-[11px] font-bold dark:text-white dark:text-white text-slate-900 mt-1 leading-relaxed">
                                     {printAlert.message}
                                 </p>
                             </div>
-                            <button onClick={() => setPrintAlert(null)} className="size-6 rounded-lg hover:bg-white/5 flex items-center justify-center transition-all">
+                            <button onClick={() => setPrintAlert(null)} className="size-6 rounded-lg hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 flex items-center justify-center transition-all">
                                 <span className="material-symbols-outlined text-sm">close</span>
                             </button>
                         </div>
-                        <div className="p-3 bg-white/5 grid grid-cols-2 gap-2">
+                        <div className="p-3 dark:bg-white/5 bg-white shadow-sm border border-slate-200 grid grid-cols-2 gap-2">
                             <button 
                                 onClick={() => {
                                     if (printAlert.data) PrintService.browserPrint(printAlert.data);
                                     else alert('Data struk tidak tersedia untuk print browser.');
                                 }}
-                                className="h-10 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all"
+                                className="h-10 rounded-xl glass dark:border-white/5 border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest dark:text-white dark:text-white text-slate-900 transition-all"
                             >
                                 <span className="material-symbols-outlined text-sm">open_in_new</span>
                                 Browser
@@ -1771,13 +1771,13 @@ function App() {
                                     if (printAlert.data) PrintService.downloadPdfReceipt(printAlert.data);
                                     else alert('Data struk tidak tersedia untuk download.');
                                 }}
-                                className="h-10 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all"
+                                className="h-10 rounded-xl glass dark:border-white/5 border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest dark:text-white dark:text-white text-slate-900 transition-all"
                             >
                                 <span className="material-symbols-outlined text-sm">download</span>
                                 Unduh (TXT)
                             </button>
                         </div>
-                        <div className="px-4 py-2 bg-slate-950/20 text-[9px] font-bold text-[var(--text-muted)] italic text-center">
+                        <div className="px-4 py-2 dark:bg-slate-950 bg-slate-50/20 text-[9px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 italic text-center">
                             Transaksi tetap tersimpan meskipun cetak gagal.
                         </div>
                     </div>

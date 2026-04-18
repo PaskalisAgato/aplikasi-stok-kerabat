@@ -110,14 +110,14 @@ const Layout: React.FC<LayoutProps> = ({
                         </div>
                     </div>
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">{title}</h1>
+                        <h1 className="text-2xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase leading-tight">{title}</h1>
                         {subtitle && <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">{subtitle}</p>}
                     </div>
                     <div className="space-y-4">
                         <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary animate-pulse">
                             {retryCount > 0 ? `Sinkronisasi (${retryCount}/${maxRetries})` : 'Membuka Kerabat'}
                         </h2>
-                        <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
+                        <p className="text-sm font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
                         {retryCount > 1 && (
                             <div className={`${PerformanceSettings.getGlassClass()} px-6 py-2 rounded-full animate-bounce`}>
                                 <p className="text-[10px] text-primary font-black uppercase">Server sedang bersiap...</p>
@@ -136,15 +136,15 @@ const Layout: React.FC<LayoutProps> = ({
     // Network Diagnostic / Connection Issue Screen
     if (!session && retryCount >= maxRetries) {
         return (
-            <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)]">
+            <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 dark:text-white dark:text-white text-slate-900">
                 <div className="w-full max-w-md space-y-10 animate-in slide-in-from-bottom duration-500">
                     <div className="text-center space-y-6">
-                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-[var(--text-main)] mx-auto shadow-2xl shadow-primary/30 rotate-3">
+                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center dark:text-white dark:text-white text-slate-900 mx-auto shadow-2xl shadow-primary/30 rotate-3">
                             <span className="material-symbols-outlined text-5xl">wifi_off</span>
                         </div>
                         <div className="space-y-2">
                             <h2 className="text-4xl font-black tracking-tight font-display">Koneksi Terhambat</h2>
-                            <p className="text-base text-[var(--text-muted)] font-medium">
+                            <p className="text-base dark:text-slate-400 dark:text-slate-400 text-slate-500 font-medium">
                                 [DEBUG-V2] {sessionError instanceof Error ? `(${ (sessionError as any).status || '???' }) ${sessionError.message}` : 'Server tidak dapat dijangkau dari jaringan Anda.'}
                             </p>
                         </div>
@@ -180,7 +180,7 @@ const Layout: React.FC<LayoutProps> = ({
                                 localStorage.removeItem('kerabat_auth_token');
                                 window.location.reload();
                             }}
-                            className="w-full py-4 text-[var(--text-muted)] font-black uppercase tracking-widest text-[10px] hover:text-primary transition-colors"
+                            className="w-full py-4 dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black uppercase tracking-widest text-[10px] hover:text-primary transition-colors"
                         >
                             Log Out & Kembali ke Login
                         </button>
@@ -192,7 +192,7 @@ const Layout: React.FC<LayoutProps> = ({
 
     return (
         <ThemeProvider>
-            <div className="bg-[var(--bg-app)] text-[var(--text-main)] antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
+            <div className="bg-[var(--bg-app)] dark:text-white dark:text-white text-slate-900 antialiased min-h-screen w-full transition-colors duration-500 overflow-hidden">
                 <Toaster position="top-right" reverseOrder={false} />
                 <NavDrawer 
                     open={drawerOpen} 
@@ -214,7 +214,7 @@ const Layout: React.FC<LayoutProps> = ({
                     {sidebar && (
                         <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
                             <div className="flex items-center gap-4">
-                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-[var(--text-main)] shadow-lg shadow-primary/20">
+                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center dark:text-white dark:text-white text-slate-900 shadow-lg shadow-primary/20">
                                     <span className="material-symbols-outlined font-black">coffee</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -250,7 +250,7 @@ const Layout: React.FC<LayoutProps> = ({
                                         </button>
                                         
                                         {!sidebar && (
-                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-[var(--text-main)] shadow-md">
+                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center dark:text-white dark:text-white text-slate-900 shadow-md">
                                                 <span className="material-symbols-outlined text-[18px] sm:text-[20px]">coffee</span>
                                             </div>
                                         )}
@@ -279,7 +279,7 @@ const Layout: React.FC<LayoutProps> = ({
                                 {!hideTitle && (
                                     <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
                                         <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
-                                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase dark:text-white dark:text-white text-slate-900 leading-none">{title}</h1>
                                     </div>
                                 )}
                                 {children}

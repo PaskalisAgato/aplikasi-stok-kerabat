@@ -190,9 +190,9 @@ function App() {
                 title={expensesList.length > 0 ? 'Total Filter Periode' : 'Total Pengeluaran'}
                 compact 
             />
-            <div className="glass p-5 rounded-2xl space-y-2 border border-white/5">
-                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Total Transaksi</p>
-                <p className="text-xl font-black text-[var(--text-main)]">{summary?.totalTransactions || 0} Slip</p>
+            <div className="glass p-5 rounded-2xl space-y-2 border dark:border-white/5 border-slate-200">
+                <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">Total Transaksi</p>
+                <p className="text-xl font-black dark:text-white dark:text-white text-slate-900">{summary?.totalTransactions || 0} Slip</p>
             </div>
         </div>
     </div>
@@ -210,13 +210,13 @@ function App() {
         </button>
       }
       footer={
-        <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4 lg:hidden">
+        <footer className="glass border-t dark:border-white/5 border-slate-200 p-8 shrink-0 flex gap-4 lg:hidden">
             <button
                 onClick={() => {
                     setEditingExpense(null);
                     setIsExpenseModalOpen(true);
                 }}
-                className="w-full flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/40 active:scale-95 transition-all border-none group"
+                className="w-full flex items-center justify-center gap-4 accent-gradient dark:text-white dark:text-white text-slate-900 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/40 active:scale-95 transition-all border-none group"
             >
                 <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tambah Pengeluaran Baru</span>
@@ -232,30 +232,30 @@ function App() {
       </div>
 
       {/* Optimized Filter UI (Mobile First) */}
-      <div className="glass rounded-[2rem] p-5 md:p-8 mb-10 border border-white/5 space-y-6">
+      <div className="glass rounded-[2rem] p-5 md:p-8 mb-10 border dark:border-white/5 border-slate-200 space-y-6">
           <div className="flex items-center gap-3 px-2">
               <span className="material-symbols-outlined text-primary font-black">calendar_month</span>
               <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Filter Laporan</p>
           </div>
 
-          <div className="flex flex-wrap items-end gap-3 md:gap-4 bg-black/20 p-5 rounded-[2rem] border border-white/5">
+          <div className="flex flex-wrap items-end gap-3 md:gap-4 dark:bg-black bg-white/20 p-5 rounded-[2rem] border dark:border-white/5 border-slate-200">
               <div className="flex-1 min-w-[140px] space-y-2">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 opacity-50">Dari</label>
+                  <label className="text-[8px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest ml-1 opacity-50">Dari</label>
                   <input 
                       type="datetime-local" 
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-[var(--text-main)] outline-none"
+                      className="w-full bg-[var(--bg-card)] border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-[11px] font-bold dark:text-white dark:text-white text-slate-900 outline-none"
                   />
               </div>
 
               <div className="flex-1 min-w-[140px] space-y-2">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 opacity-50">Sampai</label>
+                  <label className="text-[8px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest ml-1 opacity-50">Sampai</label>
                   <input 
                       type="datetime-local" 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full bg-[var(--bg-card)] border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-[var(--text-main)] outline-none"
+                      className="w-full bg-[var(--bg-card)] border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-[11px] font-bold dark:text-white dark:text-white text-slate-900 outline-none"
                   />
               </div>
 
@@ -274,7 +274,7 @@ function App() {
                           setStartDate(toLocalISOString(d));
                           setEndDate(toLocalISOString(now));
                       }}
-                      className="glass px-4 py-3 rounded-xl text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest hover:bg-white/5 transition-all active:scale-95"
+                      className="glass px-4 py-3 rounded-xl text-[10px] uppercase font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 tracking-widest hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-all active:scale-95"
                   >
                       Reset
                   </button>
@@ -287,7 +287,7 @@ function App() {
               <div className="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
               <div className="text-center space-y-2">
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan Server...</p>
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60 italic">Mengambil data filter terbaru</p>
+                  <p className="text-[8px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60 italic">Mengambil data filter terbaru</p>
               </div>
           </div>
       ) : errorMsg ? (
@@ -295,7 +295,7 @@ function App() {
               <span className="material-symbols-outlined text-5xl text-red-400">cloud_off</span>
               <div className="text-center space-y-2">
                   <p className="text-sm font-black text-red-400">Gagal memuat data</p>
-                  <p className="text-[10px] text-[var(--text-muted)] max-w-xs">{errorMsg}</p>
+                  <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 max-w-xs">{errorMsg}</p>
               </div>
               <button
                   onClick={() => fetchExpenses()}
@@ -305,11 +305,11 @@ function App() {
               </button>
           </div>
       ) : expensesList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-6 glass rounded-[3rem] border border-dashed border-white/10 opacity-70">
-              <span className="material-symbols-outlined text-6xl text-[var(--text-muted)] opacity-20">inventory_2</span>
+          <div className="flex flex-col items-center justify-center py-32 gap-6 glass rounded-[3rem] border border-dashed dark:border-white/10 border-slate-200 opacity-70">
+              <span className="material-symbols-outlined text-6xl dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-20">inventory_2</span>
               <div className="text-center space-y-2">
-                  <p className="text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Data Tidak Ditemukan</p>
-                  <p className="text-[10px] text-[var(--text-muted)] opacity-60 uppercase tracking-widest font-black italic">Tidak ada pengeluaran di periode ini</p>
+                  <p className="text-sm font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-[0.2em]">Data Tidak Ditemukan</p>
+                  <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 uppercase tracking-widest font-black italic">Tidak ada pengeluaran di periode ini</p>
               </div>
           </div>
       ) : (

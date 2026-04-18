@@ -26,7 +26,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, onMenuClick }) 
                     onClick={() => onTabChange('penjualan')}
                     className={`flex-1 flex flex-col items-center justify-center border-b-2 pb-3 pt-2 transition-colors ${activeTab === 'penjualan'
                         ? 'border-primary text-primary'
-                        : 'border-transparent text-[var(--text-muted)] '
+                        : 'border-transparent dark:text-slate-400 dark:text-slate-400 text-slate-500 '
                         }`}
                 >
                     <span className="text-sm font-semibold">Penjualan</span>
@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, onMenuClick }) 
                     onClick={() => onTabChange('pengeluaran')}
                     className={`flex-1 flex flex-col items-center justify-center border-b-2 pb-3 pt-2 transition-colors ${activeTab === 'pengeluaran'
                         ? 'border-primary text-primary'
-                        : 'border-transparent text-[var(--text-muted)] '
+                        : 'border-transparent dark:text-slate-400 dark:text-slate-400 text-slate-500 '
                         }`}
                 >
                     <span className="text-sm font-semibold">Pengeluaran</span>

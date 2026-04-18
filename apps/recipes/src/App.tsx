@@ -80,7 +80,7 @@ function App() {
             title="Menu & Resep"
             subtitle="Manajemen HPP"
             footer={
-                <footer className="glass border-t border-white/5 p-8 shrink-0">
+                <footer className="glass border-t dark:border-white/5 border-slate-200 p-8 shrink-0">
                     <button
                         onClick={() => setSelectedRecipe({
                             id: Date.now(),
@@ -93,7 +93,7 @@ function App() {
                             overhead: 10,
                             ingredients: []
                         })}
-                        className="w-full flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
+                        className="w-full flex items-center justify-center gap-4 accent-gradient dark:text-white dark:text-white text-slate-900 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
                     >
                         <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tambah Menu Baru</span>
@@ -106,7 +106,7 @@ function App() {
                 <div className="relative group w-full">
                     <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">search</span>
                     <input
-                        className="block w-full pl-14 pr-6 py-4 glass border-none rounded-[2rem] focus:ring-4 focus:ring-primary/20 text-[var(--text-main)] placeholder:text-[var(--text-muted)] text-base font-bold shadow-inner"
+                        className="block w-full pl-14 pr-6 py-4 glass border-none rounded-[2rem] focus:ring-4 focus:ring-primary/20 dark:text-white dark:text-white text-slate-900 placeholder:dark:text-slate-400 dark:text-slate-400 text-slate-500 text-base font-bold shadow-inner"
                         placeholder="Cari Menu atau Produk..."
                         type="text"
                         value={searchQuery}
@@ -136,7 +136,7 @@ function App() {
                     <div 
                         key={recipe.id} 
                         style={{ animationDelay: `${idx * 50}ms` }}
-                        className="card group p-6 flex flex-col sm:flex-row gap-6 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] border-white/5 relative"
+                        className="card group p-6 flex flex-col sm:flex-row gap-6 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] dark:border-white/5 border-slate-200 relative"
                     >
                         <RecipeImage 
                             recipe={recipe} 
@@ -145,20 +145,20 @@ function App() {
                         <div className="flex-1 flex flex-col justify-between space-y-4 min-w-0">
                             <div className="space-y-1">
                                 <div className="flex justify-between items-start gap-4">
-                                    <h3 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight group-hover:text-primary transition-colors truncate">{recipe.name}</h3>
+                                    <h3 className="text-xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase leading-tight group-hover:text-primary transition-colors truncate">{recipe.name}</h3>
                                     <div className="glass px-2.5 py-1 rounded-xl border-emerald-500/20 flex flex-col items-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
                                          <span className="text-[6px] font-black text-emerald-500 uppercase tracking-widest opacity-60">Margin</span>
                                          <span className="text-[10px] font-black text-emerald-500">{recipe.margin}%</span>
                                     </div>
                                 </div>
-                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60 leading-relaxed italic line-clamp-1">{recipe.description}</p>
+                                <p className="text-[9px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60 leading-relaxed italic line-clamp-1">{recipe.description}</p>
                             </div>
 
-                            <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                            <div className="flex justify-between items-center pt-4 border-t dark:border-white/5 border-slate-200">
                                 <div className="space-y-0.5">
                                     <div className="flex items-center gap-2">
                                         <span className="text-[7px] font-black text-primary uppercase tracking-widest opacity-60">HPP</span>
-                                        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">Rp {recipe.hpp.toLocaleString('id-ID')}</span>
+                                        <span className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase">Rp {recipe.hpp.toLocaleString('id-ID')}</span>
                                     </div>
                                     <p className="text-xl font-black text-primary font-display uppercase tracking-tight">Rp {recipe.price.toLocaleString('id-ID')}</p>
                                 </div>
@@ -245,7 +245,7 @@ const RecipeImage: React.FC<{
 
     return (
         <div
-            className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3 flex items-center justify-center overflow-hidden"
+            className="size-28 rounded-[2rem] bg-[var(--bg-app)] bg-cover bg-center shrink-0 border-4 dark:border-white/10 border-slate-200 shadow-2xl transition-transform duration-700 group-hover:rotate-3 flex items-center justify-center overflow-hidden"
             style={{ backgroundImage: recipeUrl ? `url('${getOptimizedImageUrl(recipeUrl, { width: 400, height: 400 })}')` : 'none' }}
         >
             {isLoading && (

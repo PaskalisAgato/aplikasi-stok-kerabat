@@ -149,7 +149,7 @@ function MemberTab() {
       {/* Header & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <div className="relative flex-1 group">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">search</span>
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 dark:text-slate-400 dark:text-slate-400 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors">search</span>
           <input
             placeholder="Cari member (Nama / No HP)..."
             value={search}
@@ -166,15 +166,15 @@ function MemberTab() {
 
       {/* Member Display */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse">
+        <div className="flex flex-col items-center justify-center py-20 dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse">
           <div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
           <p className="font-bold uppercase tracking-widest text-[10px]">Memuat data member...</p>
         </div>
       ) : members.length === 0 ? (
         <div className="glass rounded-[2rem] p-12 text-center border-dashed border-2 border-[var(--border-dim)]">
-          <span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">group_off</span>
+          <span className="material-symbols-outlined text-5xl dark:text-slate-400 dark:text-slate-400 text-slate-500 mb-4 opacity-30">group_off</span>
           <h3 className="font-display text-xl font-bold mb-1">Belum ada member</h3>
-          <p className="text-sm text-[var(--text-muted)]">Daftarkan pelanggan Anda untuk mulai mengelola poin loyalty.</p>
+          <p className="text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500">Daftarkan pelanggan Anda untuk mulai mengelola poin loyalty.</p>
         </div>
       ) : (
         <>
@@ -183,34 +183,34 @@ function MemberTab() {
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white/5 border-b border-[var(--border-dim)]">
+                  <tr className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border-b border-[var(--border-dim)]">
                     {['Nama Member', 'Kontak', 'Poin', 'Level', 'Tgl Gabung', 'Aksi'].map(h => (
-                      <th key={h} className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">{h}</th>
+                      <th key={h} className="p-5 text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-dim)]">
                   {members.map(m => (
-                    <tr key={m.id} className="hover:bg-white/5 transition-colors group">
+                    <tr key={m.id} className="hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-colors group">
                       <td className="p-5">
                         <div className="flex items-center gap-3">
                           <div className="size-10 rounded-xl flex items-center justify-center font-black text-sm" style={{ background: `${LEVEL_COLORS[m.level]}22`, color: LEVEL_COLORS[m.level] }}>
                             {m.name.substring(0, 1).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-[var(--text-main)]">{m.name}</p>
+                            <p className="font-bold text-sm dark:text-white dark:text-white text-slate-900">{m.name}</p>
                             {!m.isActive && <span className="text-[9px] font-black uppercase text-red-400">Akun Nonaktif</span>}
                           </div>
                         </div>
                       </td>
                       <td className="p-5">
-                        <p className="text-xs font-medium text-[var(--text-main)]">{m.phone}</p>
-                        <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[150px]">{m.email || '-'}</p>
+                        <p className="text-xs font-medium dark:text-white dark:text-white text-slate-900">{m.phone}</p>
+                        <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 truncate max-w-[150px]">{m.email || '-'}</p>
                       </td>
                       <td className="p-5">
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-[var(--primary)]">{m.points.toLocaleString('id-ID')}</span>
-                          <span className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">Points</span>
+                          <span className="text-[8px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">Points</span>
                         </div>
                       </td>
                       <td className="p-5">
@@ -218,7 +218,7 @@ function MemberTab() {
                           {LEVEL_LABELS[m.level]}
                         </span>
                       </td>
-                      <td className="p-5 text-[var(--text-muted)] text-xs font-medium">
+                      <td className="p-5 dark:text-slate-400 dark:text-slate-400 text-slate-500 text-xs font-medium">
                         {new Date(m.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="p-5">
@@ -255,18 +255,18 @@ function MemberTab() {
                     {m.name.substring(0, 1).toUpperCase()}
                   </div>
                   <div className="min-w-0 pr-16">
-                    <p className="font-bold text-base truncate text-[var(--text-main)]">{m.name}</p>
-                    <p className="text-xs text-[var(--text-muted)] truncate">{m.phone}</p>
+                    <p className="font-bold text-base truncate dark:text-white dark:text-white text-slate-900">{m.name}</p>
+                    <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 truncate">{m.phone}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[var(--border-dim)]">
-                   <div className="bg-black/20 rounded-2xl p-3 flex flex-col items-center">
-                    <span className="text-[8px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Total Points</span>
+                   <div className="dark:bg-black bg-white/20 rounded-2xl p-3 flex flex-col items-center">
+                    <span className="text-[8px] font-black uppercase dark:text-slate-400 dark:text-slate-400 text-slate-500 tracking-widest mb-1">Total Points</span>
                     <span className="text-lg font-black text-[var(--primary)]">{m.points.toLocaleString('id-ID')}</span>
                   </div>
-                  <div className="bg-black/20 rounded-2xl p-3 flex flex-col items-center">
-                    <span className="text-[8px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Member Level</span>
+                  <div className="dark:bg-black bg-white/20 rounded-2xl p-3 flex flex-col items-center">
+                    <span className="text-[8px] font-black uppercase dark:text-slate-400 dark:text-slate-400 text-slate-500 tracking-widest mb-1">Member Level</span>
                     <span className="text-[10px] font-black uppercase tracking-tight" style={{ color: LEVEL_COLORS[m.level] }}>{LEVEL_LABELS[m.level].split(' ')[1]}</span>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ function MemberTab() {
             </Field>
             {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-4">
-              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">Batal</button>
+              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:text-white dark:text-white text-slate-900 transition-colors">Batal</button>
               <button onClick={handleSave} disabled={saving} className="btn-primary flex-2 py-3">
                 {saving ? 'Menyimpan...' : (modal === 'create' ? 'Daftarkan Member' : 'Simpan Perubahan')}
               </button>
@@ -304,10 +304,10 @@ function MemberTab() {
         <Modal title="Penyesuaian Poin Manual" onClose={() => setModal(null)}>
           <div className="space-y-5">
             <div className="glass-lite rounded-3xl p-6 text-center border-amber-500/20 shadow-inner">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2">Member: <span className="text-[var(--text-main)]">{selected.name}</span></p>
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 mb-2">Member: <span className="dark:text-white dark:text-white text-slate-900">{selected.name}</span></p>
                <div className="flex flex-col items-center">
                   <span className="text-3xl font-black text-[var(--primary)]">{selected.points.toLocaleString('id-ID')}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">Total Poin Saat Ini</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 mt-1">Total Poin Saat Ini</span>
                </div>
             </div>
             <div className="space-y-4">
@@ -323,7 +323,7 @@ function MemberTab() {
             </div>
             {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
             <div className="flex gap-4">
-              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)]">Batal</button>
+              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Batal</button>
               <button onClick={handleAdjust} disabled={saving} className="bg-amber-500 text-slate-950 flex-[2] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl flex items-center justify-center h-12">
                 {saving ? 'Memproses...' : 'Simpan Perubahan'}
               </button>
@@ -449,15 +449,15 @@ function DiscountTab() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse">
+        <div className="flex flex-col items-center justify-center py-20 dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse">
           <div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
           <p className="font-black uppercase tracking-widest text-[10px]">Memuat data promosi...</p>
         </div>
       ) : discounts.length === 0 ? (
         <div className="card p-12 text-center border-dashed border-2">
-          <span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">local_offer_off</span>
+          <span className="material-symbols-outlined text-5xl dark:text-slate-400 dark:text-slate-400 text-slate-500 mb-4 opacity-30">local_offer_off</span>
           <h3 className="font-display text-xl font-bold mb-1">Belum ada promo</h3>
-          <p className="text-sm text-[var(--text-muted)]">Mulai buat promo paket bundling atau diskon member untuk meningkatkan penjualan.</p>
+          <p className="text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500">Mulai buat promo paket bundling atau diskon member untuk meningkatkan penjualan.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -472,9 +472,9 @@ function DiscountTab() {
                      <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                         {d.isActive ? '● Aktif' : '○ Nonaktif'}
                      </span>
-                     <span className="material-symbols-outlined text-lg text-[var(--text-muted)] opacity-50">{isBundling ? 'inventory_2' : 'local_offer'}</span>
+                     <span className="material-symbols-outlined text-lg dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-50">{isBundling ? 'inventory_2' : 'local_offer'}</span>
                   </div>
-                  <h4 className="font-display text-base font-black text-[var(--text-main)] leading-tight mb-1">{d.name}</h4>
+                  <h4 className="font-display text-base font-black dark:text-white dark:text-white text-slate-900 leading-tight mb-1">{d.name}</h4>
                   <p className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">{TYPE_LABELS[d.type] || d.type}</p>
                 </div>
 
@@ -483,23 +483,23 @@ function DiscountTab() {
                      <span className="material-symbols-outlined text-[5rem] font-black">{isBundling ? 'package_2' : 'percent'}</span>
                    </div>
                    <div className="relative z-10 flex flex-col items-center">
-                      <span className="text-3xl font-black text-[var(--text-main)] shadow-sm">
+                      <span className="text-3xl font-black dark:text-white dark:text-white text-slate-900 shadow-sm">
                         {d.type === 'percent' ? `${parseFloat(d.value)}%` : formatRp(parseFloat(d.value))}
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-0.5">Potongan Harga</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 mt-0.5">Potongan Harga</span>
                    </div>
                 </div>
 
                 <div className="p-5 space-y-3 flex-1">
                    <div className="space-y-1.5">
                      {cond.days && (
-                       <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
+                       <div className="flex items-center gap-2 text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500">
                          <span className="material-symbols-outlined text-sm">calendar_today</span>
                          <span className="font-bold">{cond.days.map((n: number) => DAYS[n]).join(', ')}</span>
                        </div>
                      )}
                      {cond.startHour !== undefined && (
-                       <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
+                       <div className="flex items-center gap-2 text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500">
                          <span className="material-symbols-outlined text-sm">schedule</span>
                          <span className="font-bold">{cond.startHour}:00 – {cond.endHour}:00</span>
                        </div>
@@ -519,7 +519,7 @@ function DiscountTab() {
                    </div>
 
                    <div className="pt-3 border-t border-[var(--border-dim)] flex items-center justify-between">
-                      <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
+                      <div className="text-[8px] dark:text-slate-400 dark:text-slate-400 text-slate-500 font-bold italic">
                         {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Mulai Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Eternity'}
                       </div>
                       <div className="flex gap-2">
@@ -587,14 +587,14 @@ function DiscountTab() {
                       <Field label="Produk Dalam Paket (Gunakan Katalog >>)">
                         <input value={form.productIds} placeholder="ID Produk..." className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" readOnly />
                       </Field>
-                      <div className="bg-black/40 rounded-2xl p-3">
+                      <div className="dark:bg-black bg-white/40 rounded-2xl p-3">
                          <div className="flex justify-between items-center mb-2">
                            <span className="text-[9px] font-black uppercase text-primary">Katalog Produk</span>
-                           <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-transparent border-b border-white/10 text-[10px] outline-none w-20 px-1" />
+                           <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-transparent border-b dark:border-white/10 border-slate-200 text-[10px] outline-none w-20 px-1" />
                          </div>
                          <div className="max-h-32 overflow-y-auto space-y-1 custom-scrollbar pr-1">
                            {products.filter((p: any) => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map((p: any) => (
-                             <div key={p.id} className="flex items-center justify-between text-[10px] hover:bg-white/5 p-1 rounded transition-colors group">
+                             <div key={p.id} className="flex items-center justify-between text-[10px] hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 p-1 rounded transition-colors group">
                                 <span className="truncate flex-1 pr-2 opacity-70 italic">#{p.id} {p.name}</span>
                                 <button type="button" onClick={() => addProductId(p.id)} className="size-5 bg-emerald-500/20 text-emerald-500 rounded hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center font-black">+</button>
                              </div>
@@ -624,11 +624,11 @@ function DiscountTab() {
              </div>
              <label className="flex items-center gap-3 cursor-pointer group p-3 glass-lite rounded-2xl active:scale-[0.98] transition-all">
                 <input type="checkbox" checked={form.isActive} onChange={e => setForm((f: any) => ({ ...f, isActive: e.target.checked }))} className="size-5 rounded border-2 border-[var(--primary)] text-[var(--primary)] focus:ring-0" />
-                <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors">Promosi Aktif Secara Global</span>
+                <span className="text-sm font-bold dark:text-white dark:text-white text-slate-900 group-hover:text-[var(--primary)] transition-colors">Promosi Aktif Secara Global</span>
              </label>
              {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
              <div className="flex gap-4 pt-4 border-t border-[var(--border-dim)]">
-                <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)]">Batal</button>
+                <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Batal</button>
                 <button onClick={handleSave} disabled={saving} className="btn-primary flex-2 h-12">
                    {saving ? 'Menyimpan...' : 'Rilis Promosi'}
                 </button>
@@ -670,7 +670,7 @@ function LoyaltyTab() {
   };
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse">
+    <div className="flex flex-col items-center justify-center py-20 dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse">
       <div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
       <p className="font-black uppercase tracking-widest text-[10px]">Sinkronisasi data loyalty...</p>
     </div>
@@ -684,32 +684,32 @@ function LoyaltyTab() {
           <div className="size-16 bg-amber-500/10 text-amber-500 rounded-2xl inline-flex items-center justify-center shadow-inner mb-2 border border-amber-500/20">
             <span className="material-symbols-outlined text-3xl">military_tech</span>
           </div>
-          <h2 className="font-display text-2xl font-black text-[var(--text-main)]">Program Loyalty Pelanggan</h2>
-          <p className="text-sm text-[var(--text-muted)]">Konfigurasikan bagaimana sistem memberikan apresiasi kepada pelanggan setia Anda.</p>
+          <h2 className="font-display text-2xl font-black dark:text-white dark:text-white text-slate-900">Program Loyalty Pelanggan</h2>
+          <p className="text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500">Konfigurasikan bagaimana sistem memberikan apresiasi kepada pelanggan setia Anda.</p>
         </div>
         <div className="space-y-6 relative z-10 pt-4">
            <Field label="Rasio Akumulasi (Belanja Rp X = 1 Poin)">
              <div className="relative group">
-               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">IDR</span>
+               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors">IDR</span>
                <input type="number" value={settings.pointRatio} onChange={e => setSettings(s => ({ ...s, pointRatio: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl py-4 pl-14 pr-4 font-black text-base outline-none focus:border-[var(--primary)] transition-all" />
              </div>
            </Field>
            <Field label="Nilai Tukar Poin (1 Poin = Potongan Rp X)">
              <div className="relative group">
-               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">IDR</span>
+               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors">IDR</span>
                <input type="number" value={settings.pointValue} onChange={e => setSettings(s => ({ ...s, pointValue: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl py-4 pl-14 pr-4 font-black text-base outline-none focus:border-[var(--primary)] transition-all" />
              </div>
            </Field>
-           <div className="bg-black/40 rounded-3xl p-5 border border-white/5 space-y-3 shadow-inner">
+           <div className="dark:bg-black bg-white/40 rounded-3xl p-5 border dark:border-white/5 border-slate-200 space-y-3 shadow-inner">
               <p className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">Simulasi Transaksi</p>
               <div className="flex items-center gap-4 text-sm leading-relaxed">
                  <div className="flex-1">
-                   <p className="text-[var(--text-muted)] text-[11px] mb-1">Pelanggan belanja:</p>
+                   <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-[11px] mb-1">Pelanggan belanja:</p>
                    <p className="font-black">Rp {parseInt(settings.pointRatio || '0').toLocaleString('id-ID')}</p>
                  </div>
-                 <span className="material-symbols-outlined text-[var(--text-muted)]">arrow_forward</span>
+                 <span className="material-symbols-outlined dark:text-slate-400 dark:text-slate-400 text-slate-500">arrow_forward</span>
                  <div className="flex-1 text-right">
-                   <p className="text-[var(--text-muted)] text-[11px] mb-1">Mendapatkan:</p>
+                   <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-[11px] mb-1">Mendapatkan:</p>
                    <p className="font-black text-[var(--primary)]">1 POIN LOYALTY</p>
                  </div>
               </div>
@@ -732,7 +732,7 @@ export default function App() {
   const [tab, setTab] = useState<'members' | 'discounts' | 'loyalty'>('members');
 
   const headerTabs = (
-    <nav className="flex p-1.5 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
+    <nav className="flex p-1.5 dark:bg-black bg-white/40 rounded-2xl border dark:border-white/5 border-slate-200 overflow-x-auto no-scrollbar max-w-full">
        {[
          ['members', 'person_search', 'Daftar Member'],
          ['discounts', 'celebration', 'Promo & Bundling'],
@@ -767,11 +767,11 @@ export default function App() {
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] dark:bg-black bg-white/80 backdrop-blur-md flex items-center justify-center p-4">
       <div className={`glass !rounded-[2.5rem] w-full max-h-[95vh] overflow-y-auto flex flex-col shadow-2xl animate-in zoom-in duration-300 ${wide ? 'max-w-4xl' : 'max-w-md'}`}>
         <div className="p-8 pb-4 flex items-center justify-between">
-          <h3 className="font-display text-xl font-black text-[var(--text-main)] uppercase tracking-tight">{title}</h3>
-          <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-main)] transition-all">
+          <h3 className="font-display text-xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">{title}</h3>
+          <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 hover:dark:text-white dark:text-white text-slate-900 transition-all">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -786,7 +786,7 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] ml-1">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 ml-1">{label}</label>
       {children}
     </div>
   );

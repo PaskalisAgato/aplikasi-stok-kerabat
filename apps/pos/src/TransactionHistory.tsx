@@ -211,7 +211,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     </button>
                     <button 
                         onClick={() => setDeleteConfirmId(null)}
-                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg glass text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all`}
+                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg glass dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all`}
                     >
                         Batal
                     </button>
@@ -267,7 +267,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     <div className="size-10 md:size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="material-symbols-outlined text-primary text-xl md:text-2xl font-black">history</span>
                     </div>
-                    <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Riwayat Transaksi</h2>
+                    <h2 className="font-black text-lg md:text-xl uppercase tracking-widest dark:text-white dark:text-white text-slate-900 truncate">Riwayat Transaksi</h2>
                 </div>
                 
                 <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3 w-full md:w-auto">
@@ -285,7 +285,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                 <div className="flex items-center gap-1 animate-in zoom-in duration-300 w-full">
                                     <button 
                                         onClick={() => setShowClearConfirm(false)}
-                                        className="flex-1 px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
+                                        className="flex-1 px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] dark:text-slate-400 dark:text-slate-400 text-slate-500 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
                                     >
                                         Batal
                                     </button>
@@ -314,9 +314,9 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 
                 {/* Header Stats */}
                 <div className="flex justify-between items-center px-2">
-                    <h2 className="font-black text-xl uppercase tracking-widest text-[var(--text-main)]">Daftar Transaksi</h2>
+                    <h2 className="font-black text-xl uppercase tracking-widest dark:text-white dark:text-white text-slate-900">Daftar Transaksi</h2>
                     <div className="text-right">
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[var(--text-muted)]">Total Record</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500">Total Record</p>
                         <p className="text-2xl font-black text-primary">{transactions.length}</p>
                     </div>
                 </div>
@@ -324,9 +324,9 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 {/* Grouped List */}
                 <div className="space-y-4">
                     {isLoading ? (
-                        <div className="card p-20 text-center text-[var(--text-muted)] animate-pulse shadow-xl">Memuat jejak transaksi...</div>
+                        <div className="card p-20 text-center dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse shadow-xl">Memuat jejak transaksi...</div>
                     ) : transactions.length === 0 ? (
-                        <div className="card p-20 text-center text-[var(--text-muted)] shadow-xl">Belum ada transaksi tercatat.</div>
+                        <div className="card p-20 text-center dark:text-slate-400 dark:text-slate-400 text-slate-500 shadow-xl">Belum ada transaksi tercatat.</div>
                     ) : (Object.entries(groupedTransactions) as [string, any[]][]).map(([date, txs]) => {
                         const isExpanded = expandedDates.includes(date);
                         const dayTotal = txs.reduce((sum: number, tx: any) => sum + parseFloat(tx.totalAmount), 0);
@@ -342,16 +342,16 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                             <span className="material-symbols-outlined text-xl">{isExpanded ? 'calendar_month' : 'event'}</span>
                                         </div>
                                         <div className="text-left">
-                                            <h3 className={`font-black uppercase tracking-widest text-sm ${isExpanded ? 'text-primary' : 'text-[var(--text-main)]'}`}>{date}</h3>
-                                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{txs.length} TRANSAKSI</p>
+                                            <h3 className={`font-black uppercase tracking-widest text-sm ${isExpanded ? 'text-primary' : 'dark:text-white dark:text-white text-slate-900'}`}>{date}</h3>
+                                            <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">{txs.length} TRANSAKSI</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-6">
                                         <div className="text-right hidden xs:block">
                                             <p className="text-[9px] font-black text-primary uppercase tracking-widest opacity-60">Total Harian</p>
-                                            <p className="font-black text-[var(--text-main)]">Rp {dayTotal.toLocaleString('id-ID')}</p>
+                                            <p className="font-black dark:text-white dark:text-white text-slate-900">Rp {dayTotal.toLocaleString('id-ID')}</p>
                                         </div>
-                                        <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'text-[var(--text-muted)]'}`}>
+                                        <span className={`material-symbols-outlined transition-transform duration-300 ${isExpanded ? 'rotate-180 text-primary' : 'dark:text-slate-400 dark:text-slate-400 text-slate-500'}`}>
                                             expand_more
                                         </span>
                                     </div>
@@ -363,7 +363,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                         <div className="card hidden lg:block overflow-x-auto shadow-2xl p-0">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
-                                                    <tr className="glass uppercase text-[10px] tracking-widest text-[var(--text-muted)] border-b border-[var(--border-dim)]">
+                                                    <tr className="glass uppercase text-[10px] tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 border-b border-[var(--border-dim)]">
                                                         <th className="p-5 font-black">ID</th>
                                                         <th className="p-5 font-black">Jam</th>
                                                         <th className="p-5 font-black">Kasir</th>
@@ -375,12 +375,12 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                 <tbody className="divide-y divide-[var(--border-dim)]">
                                                     {txs.map((tx: any) => (
                                                         <tr key={tx.id} className="hover:bg-[var(--bg-app)]/50 transition-colors">
-                                                            <td className="p-5 font-black text-[var(--text-main)]">#{tx.id}</td>
-                                                            <td className="p-5 text-sm text-[var(--text-muted)] font-medium">
+                                                            <td className="p-5 font-black dark:text-white dark:text-white text-slate-900">#{tx.id}</td>
+                                                            <td className="p-5 text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500 font-medium">
                                                                 {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                                             </td>
                                                             <td className="p-5 text-sm font-bold text-primary">{tx.cashierName || tx.userId}</td>
-                                                            <td className="p-5 font-black text-[var(--text-main)] text-right">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</td>
+                                                            <td className="p-5 font-black dark:text-white dark:text-white text-slate-900 text-right">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</td>
                                                             <td className="p-5">
                                                                 <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-primary/10 text-primary">
                                                                     {tx.paymentMethod}
@@ -398,15 +398,15 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                         {/* Mobile Card-Based View */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
                                             {txs.map((tx: any) => (
-                                                <div key={tx.id} className="card p-0 overflow-hidden border-white/5 shadow-xl hover:border-white/10 transition-all">
-                                                    <div className="p-4 flex items-center justify-between border-b border-white/5 bg-white/5">
+                                                <div key={tx.id} className="card p-0 overflow-hidden dark:border-white/5 border-slate-200 shadow-xl hover:dark:border-white/10 border-slate-200 transition-all">
+                                                    <div className="p-4 flex items-center justify-between border-b dark:border-white/5 border-slate-200 dark:bg-white/5 bg-white shadow-sm border border-slate-200">
                                                         <div className="flex items-center gap-3">
                                                             <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center">
                                                                 <span className="material-symbols-outlined text-primary text-base font-black">receipt</span>
                                                             </div>
                                                             <div>
-                                                                <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">#{tx.id}</p>
-                                                                <p className="text-[10px] text-[var(--text-muted)] font-bold">
+                                                                <p className="font-black text-xs dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">#{tx.id}</p>
+                                                                <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 font-bold">
                                                                     {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                                                 </p>
                                                             </div>
@@ -417,15 +417,15 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                     </div>
                                                     <div className="p-4 flex items-center justify-between">
                                                         <div>
-                                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Total Transaksi</p>
-                                                            <p className="text-xl font-black text-[var(--text-main)]">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</p>
+                                                            <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-0.5">Total Transaksi</p>
+                                                            <p className="text-xl font-black dark:text-white dark:text-white text-slate-900">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Kasir</p>
+                                                            <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-0.5">Kasir</p>
                                                             <p className="text-xs font-bold text-primary truncate max-w-[100px]">{tx.cashierName || tx.userId}</p>
                                                         </div>
                                                     </div>
-                                                    <div className="p-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2 justify-end">
+                                                    <div className="p-3 bg-white/[0.02] border-t dark:border-white/5 border-slate-200 flex flex-wrap gap-2 justify-end">
                                                         <TableActions tx={tx} compact />
                                                     </div>
                                                 </div>
@@ -441,11 +441,11 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
             {/* DETAIL MODAL */}
             {viewData && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
-                    <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
-                        <header className="glass p-6 flex justify-between items-center border-b border-white/5">
+                <div className="fixed inset-0 z-[100] dark:bg-slate-950 bg-slate-50/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                    <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border dark:border-white/10 border-slate-200">
+                        <header className="glass p-6 flex justify-between items-center border-b dark:border-white/5 border-slate-200">
                             <div>
-                                <h3 className="font-black text-xl text-[var(--text-main)] uppercase tracking-widest">Detail Transaksi #{viewData.id}</h3>
+                                <h3 className="font-black text-xl dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">Detail Transaksi #{viewData.id}</h3>
                                 <p className="text-xs text-primary font-bold mt-1">{new Date(viewData.createdAt).toLocaleString('id-ID')}</p>
                             </div>
                             <button onClick={() => setViewData(null)} className="size-10 rounded-xl glass hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">
@@ -456,15 +456,15 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                             {viewData.items?.map((item: any, idx: number) => (
                                 <div key={idx} className="flex justify-between items-center glass p-4 rounded-2xl">
                                     <div>
-                                        <p className="font-black text-[var(--text-main)] uppercase">{item.recipeName}</p>
-                                        <p className="text-xs text-[var(--text-muted)]">{item.quantity} x Rp {item.recipePrice ? parseFloat(item.recipePrice).toLocaleString('id-ID') : '0'}</p>
+                                        <p className="font-black dark:text-white dark:text-white text-slate-900 uppercase">{item.recipeName}</p>
+                                        <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500">{item.quantity} x Rp {item.recipePrice ? parseFloat(item.recipePrice).toLocaleString('id-ID') : '0'}</p>
                                     </div>
                                     <p className="font-black text-primary">Rp {parseFloat(item.subtotal).toLocaleString('id-ID')}</p>
                                 </div>
                             ))}
                         </div>
-                        <footer className="glass p-6 border-t border-white/5 flex justify-between items-center shrink-0">
-                            <span className="text-sm font-black text-[var(--text-muted)] uppercase tracking-widest">Total Bayar</span>
+                        <footer className="glass p-6 border-t dark:border-white/5 border-slate-200 flex justify-between items-center shrink-0">
+                            <span className="text-sm font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Total Bayar</span>
                             <span className="text-2xl font-black text-primary">Rp {parseFloat(viewData.totalAmount).toLocaleString('id-ID')}</span>
                         </footer>
                     </div>
@@ -473,14 +473,14 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
             {/* EDIT MODAL */}
             {editData && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in zoom-in duration-300">
+                <div className="fixed inset-0 z-[100] dark:bg-slate-950 bg-slate-50/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in zoom-in duration-300">
                     <div className="card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.15)] border border-primary/20">
                         <header className="accent-gradient p-6 flex justify-between items-center shrink-0">
                             <div>
-                                <h3 className="font-black text-2xl text-[var(--text-main)] uppercase tracking-widest">Edit Transaksi #{editData.id}</h3>
-                                <p className="text-xs text-[var(--text-main)]/70 font-bold mt-1 uppercase tracking-widest">Perubahan diaudit dalam log</p>
+                                <h3 className="font-black text-2xl dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">Edit Transaksi #{editData.id}</h3>
+                                <p className="text-xs dark:text-white dark:text-white text-slate-900/70 font-bold mt-1 uppercase tracking-widest">Perubahan diaudit dalam log</p>
                             </div>
-                            <button onClick={() => setEditData(null)} className="size-10 rounded-xl bg-slate-950/20 text-[var(--text-main)] hover:bg-slate-950/30 flex items-center justify-center transition-all">
+                            <button onClick={() => setEditData(null)} className="size-10 rounded-xl dark:bg-slate-950 bg-slate-50/20 dark:text-white dark:text-white text-slate-900 hover:dark:bg-slate-950 bg-slate-50/30 flex items-center justify-center transition-all">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </header>
@@ -488,7 +488,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                         <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar bg-[var(--bg-app)]">
                             {/* Items List */}
                             <div className="space-y-4">
-                                <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest border-b border-[var(--border-dim)] pb-2">Item Terjual</h4>
+                                <h4 className="text-xs font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest border-b border-[var(--border-dim)] pb-2">Item Terjual</h4>
                                 {editData.items?.length === 0 && (
                                     <p className="text-sm text-center py-4 text-red-400 font-bold border border-red-500/20 rounded-xl bg-red-500/5">Item kosong. Transaksi akan ditolak jika disimpan.</p>
                                 )}
@@ -499,10 +499,10 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                     return (
                                         <div key={idx} className="flex items-center gap-4 glass p-3 rounded-2xl relative group">
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-black text-[var(--text-main)] text-auto-fit uppercase">{item.recipeName}</p>
+                                                <p className="font-black dark:text-white dark:text-white text-slate-900 text-auto-fit uppercase">{item.recipeName}</p>
                                                 <p className="text-xs text-primary font-bold">Rp {price.toLocaleString('id-ID')}</p>
                                             </div>
-                                            <div className="flex items-center gap-3 bg-[var(--bg-app)] p-1.5 rounded-xl shrink-0 border border-white/5">
+                                            <div className="flex items-center gap-3 bg-[var(--bg-app)] p-1.5 rounded-xl shrink-0 border dark:border-white/5 border-slate-200">
                                                 <button onClick={() => handleEditItemQty(idx, -1)} className="size-8 rounded-lg bg-[var(--bg-app)] hover:bg-red-500/20 hover:text-red-500 transition-all font-black text-lg flex items-center justify-center">-</button>
                                                 <span className="w-6 text-center font-black text-lg">{item.quantity}</span>
                                                 <button onClick={() => handleEditItemQty(idx, 1)} className="size-8 rounded-lg glass text-primary hover:bg-primary hover:text-slate-950 transition-all font-black text-lg flex items-center justify-center">+</button>
@@ -517,9 +517,9 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
                             {/* Add More Items Dropdown */}
                             <div className="space-y-2 pt-4">
-                                <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Tambah Item Baru</h4>
+                                <h4 className="text-xs font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2">Tambah Item Baru</h4>
                                 <select 
-                                    className="w-full h-12 px-4 rounded-xl glass focus:ring-2 focus:ring-primary border border-white/10 text-sm font-bold appearance-none bg-[var(--bg-app)] cursor-pointer"
+                                    className="w-full h-12 px-4 rounded-xl glass focus:ring-2 focus:ring-primary border dark:border-white/10 border-slate-200 text-sm font-bold appearance-none bg-[var(--bg-app)] cursor-pointer"
                                     onChange={(e) => {
                                         if(e.target.value) {
                                             handleAddEditItem(parseInt(e.target.value));
@@ -537,7 +537,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
                             {/* Payment Method */}
                             <div className="pt-4 border-t border-[var(--border-dim)]">
-                                <h4 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Metode Pembayaran</h4>
+                                <h4 className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2">Metode Pembayaran</h4>
                                 <div className="flex gap-3">
                                     {['CASH', 'QRIS', 'CARD'].map(method => (
                                         <button 
@@ -552,10 +552,10 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                             </div>
                         </div>
 
-                        <footer className="glass p-6 border-t border-white/10 flex justify-between items-center shrink-0">
+                        <footer className="glass p-6 border-t dark:border-white/10 border-slate-200 flex justify-between items-center shrink-0">
                             <div>
                                 <p className="text-[10px] uppercase tracking-widest font-black text-primary">Subtotal Baru</p>
-                                <p className="text-2xl font-black text-[var(--text-main)]">
+                                <p className="text-2xl font-black dark:text-white dark:text-white text-slate-900">
                                     Rp {editData.items.reduce((acc: number, item: any) => acc + ((item.recipePrice || item.price || 0) * item.quantity), 0).toLocaleString('id-ID')}
                                 </p>
                             </div>
@@ -569,7 +569,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
             {/* VOID MODAL */}
             {voidConfirmId && (
-                <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-[110] dark:bg-slate-950 bg-slate-50/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
                     <div className="card max-w-md w-full p-0 overflow-hidden shadow-2xl border border-purple-500/20">
                         <header className="bg-purple-600 p-6 flex justify-between items-center text-[var(--text-main)]">
                             <div>
@@ -581,18 +581,18 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                             </button>
                         </header>
                         <div className="p-6 space-y-4 bg-[var(--bg-app)]">
-                            <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Masukkan Alasan Pembatalan:</p>
+                            <p className="text-sm font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Masukkan Alasan Pembatalan:</p>
                             <textarea 
                                 value={voidReason}
                                 onChange={(e) => setVoidReason(e.target.value)}
                                 placeholder="Contoh: Kesalahan input menu, customer batal, dll..."
-                                className="w-full h-32 p-4 rounded-2xl glass border border-white/10 focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium resize-none"
+                                className="w-full h-32 p-4 rounded-2xl glass border dark:border-white/10 border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none text-sm font-medium resize-none"
                                 autoFocus
                             />
                             <div className="flex gap-3 pt-2">
                                 <button 
                                     onClick={() => setVoidConfirmId(null)}
-                                    className="flex-1 py-3 px-4 rounded-xl glass font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all"
+                                    className="flex-1 py-3 px-4 rounded-xl glass font-black text-[10px] uppercase tracking-widest hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-all"
                                 >
                                     Batal
                                 </button>

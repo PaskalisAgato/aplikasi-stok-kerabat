@@ -80,7 +80,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                                 <option value="Karyawan">Karyawan</option>
                                 <option value="Admin">Admin</option>
                             </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 dark:text-slate-400 dark:text-slate-400 text-slate-500  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
                         </div>
                     </div>
 

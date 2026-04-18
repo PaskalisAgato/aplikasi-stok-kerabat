@@ -180,7 +180,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
 
             {/* Gallery Upload - Always visible for Karyawan */}
             {role === 'Karyawan' && (
-                <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
+                <div className="pt-4 border-t dark:border-white/5 border-slate-200 flex flex-col gap-3">
                     <input 
                         type="file" 
                         id={`gallery-${task.id}`}
@@ -226,7 +226,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                     {selectedPhotos.length > 0 && (
                         <div className="grid grid-cols-3 gap-2">
                             {selectedPhotos.map((photo, index) => (
-                                <div key={index} className="relative aspect-square rounded-xl bg-slate-900 border border-white/10 overflow-hidden group">
+                                <div key={index} className="relative aspect-square rounded-xl dark:bg-slate-900 bg-slate-50 border dark:border-white/10 border-slate-200 overflow-hidden group">
                                     <img src={photo} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
                                     <button 
                                         onClick={() => setSelectedPhotos(prev => prev.filter((_, i) => i !== index))}
@@ -334,7 +334,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
 
             {/* History Details (Admin/Completed) */}
             {isCompleted && task.hasPhotoProof && (
-                <div className="pt-5 border-t border-white/5 space-y-4">
+                <div className="pt-5 border-t dark:border-white/5 border-slate-200 space-y-4">
                      <div className="grid grid-cols-2 gap-2">
                          {isLoadingPhoto ? (
                              <div className="col-span-full flex flex-col items-center gap-2 opacity-40 p-4">
@@ -346,7 +346,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                  <div 
                                     key={idx}
                                     onClick={() => setImageFullscreenIndex(idx)}
-                                    className="w-full aspect-video rounded-xl bg-slate-900 overflow-hidden border border-white/10 cursor-pointer group/thumb relative flex items-center justify-center" 
+                                    className="w-full aspect-video rounded-xl dark:bg-slate-900 bg-slate-50 overflow-hidden border dark:border-white/10 border-slate-200 cursor-pointer group/thumb relative flex items-center justify-center" 
                                  >
                                      <img 
                                         src={getOptimizedImageUrl(url, { width: 400, height: 300 })} 
@@ -354,7 +354,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                         alt={`Bukti ${idx + 1}`} 
                                      />
                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-2">
-                                         <span className="text-[8px] text-[var(--text-main)] font-black uppercase tracking-widest flex items-center gap-1">
+                                         <span className="text-[8px] dark:text-white dark:text-white text-slate-900 font-black uppercase tracking-widest flex items-center gap-1">
                                              <span className="material-symbols-outlined text-[10px]">visibility</span>
                                              Lihat
                                          </span>
@@ -384,13 +384,13 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
             {/* Fullscreen Image Overlay */}
             {imageFullscreenIndex !== null && photoUrls[imageFullscreenIndex] && createPortal(
                 <div 
-                    className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300"
+                    className="fixed inset-0 z-[99999] dark:bg-black bg-white/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300"
                     onClick={() => setImageFullscreenIndex(null)}
                 >
                     <div className="absolute top-0 inset-x-0 p-6 flex justify-end items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
                         <button 
                             onClick={(e) => { e.stopPropagation(); setImageFullscreenIndex(null); }}
-                            className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-[var(--text-main)] active:scale-75 transition-all shadow-2xl"
+                            className="size-12 rounded-full dark:bg-white/10 bg-white shadow-md border border-slate-200 backdrop-blur-xl border border-white/20 flex items-center justify-center dark:text-white dark:text-white text-slate-900 active:scale-75 transition-all shadow-2xl"
                         >
                             <span className="material-symbols-outlined text-2xl font-black">close</span>
                         </button>

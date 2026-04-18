@@ -36,14 +36,14 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
 
     return (
         /* Full-screen overlay */
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end dark:bg-black bg-white/60 backdrop-blur-sm">
             {/* Bottom Sheet */}
             <div className="w-full bg-background-app  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-border-dim">
 
                 {/* Drag Handle Area (Click to close for now) */}
                 <button
                     onClick={onClose}
-                    className="flex h-6 w-full items-center justify-center cursor-pointer hover:bg-black/5 rounded-t-xl transition-colors"
+                    className="flex h-6 w-full items-center justify-center cursor-pointer hover:dark:bg-black dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-t-xl transition-colors"
                 >
                     <div className="h-1.5 w-12 rounded-full bg-border-dim" />
                 </button>
@@ -124,7 +124,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-10 text-[var(--text-muted)] text-sm">
+                                <div className="text-center py-10 dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm">
                                     Belum ada pergerakan stok tercatat.
                                 </div>
                             )}

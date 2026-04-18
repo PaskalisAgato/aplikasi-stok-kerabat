@@ -175,7 +175,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
     const kotorDisplay = (parseFloat(currentStock) || 0) + (parseFloat(containerWeight) || 0);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center dark:bg-black bg-white/60 backdrop-blur-sm p-0 sm:p-4">
             <div className="w-full max-w-md bg-background-app rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] border border-border-dim overflow-hidden">
                 <header className="flex items-center justify-between p-4 border-b border-border-dim bg-background-app sticky top-0 z-10">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
@@ -200,8 +200,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                     {imageBase64 ? (
                                         <>
                                             <img src={imageBase64} alt="Preview" className="size-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="material-symbols-outlined text-[var(--text-main)] text-4xl">edit</span>
+                                            <div className="absolute inset-0 dark:bg-black bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="material-symbols-outlined dark:text-white dark:text-white text-slate-900 text-4xl">edit</span>
                                             </div>
                                         </>
                                     ) : (
@@ -384,7 +384,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                     onChange={(e) => setIsConfirmDelete(e.target.checked)}
                                     className="peer appearance-none size-5 rounded-md border-2 border-red-200 checked:bg-red-500 checked:border-red-500 transition-all cursor-pointer"
                                 />
-                                <span className="material-symbols-outlined absolute text-[var(--text-main)] text-sm opacity-0 peer-checked:opacity-100 pointer-events-none left-1/2 -translate-x-1/2 font-bold">check</span>
+                                <span className="material-symbols-outlined absolute dark:text-white dark:text-white text-slate-900 text-sm opacity-0 peer-checked:opacity-100 pointer-events-none left-1/2 -translate-x-1/2 font-bold">check</span>
                             </div>
                             <span className="text-[11px] font-bold text-red-700 select-none group-hover:text-red-500 transition-colors">Saya yakin ingin menghapus bahan ini</span>
                         </label>
@@ -435,7 +435,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
 
             {/* Image Menu Overlay */}
             {imageMenuOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center dark:bg-black bg-white/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-background-app w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-border-dim space-y-4">
                         <h3 className="text-center font-bold text-main text-lg mb-4">Pilih Sumber Foto</h3>
                         <button 
@@ -464,7 +464,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
 
             {/* Confirmation Save Overlay */}
             {isConfirmSave && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[70] flex items-center justify-center dark:bg-black bg-white/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-background-app w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-border-dim space-y-4">
                         <div className="size-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span className="material-symbols-outlined text-primary text-3xl">help</span>

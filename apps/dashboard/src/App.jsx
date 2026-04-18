@@ -145,7 +145,7 @@ function App() {
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
-        <div className="bg-white/5 p-4 rounded-[2.5rem] border border-white/5 shadow-2xl">
+        <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 p-4 rounded-[2.5rem] border dark:border-white/5 border-slate-200 shadow-2xl">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Tombol Hari */}
             <button
@@ -164,7 +164,7 @@ function App() {
                 <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Dari</p>
                 <input
                   type="date"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-[var(--text-main)] outline-none focus:border-primary cursor-pointer"
+                  className="w-full dark:bg-black bg-white/40 border dark:border-white/10 border-slate-200 rounded-xl px-3 h-11 text-[11px] font-black dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary cursor-pointer"
                   value={customRange.start}
                   onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
                 />
@@ -173,7 +173,7 @@ function App() {
                 <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Sampai</p>
                 <input
                   type="date"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-[var(--text-main)] outline-none focus:border-primary cursor-pointer"
+                  className="w-full dark:bg-black bg-white/40 border dark:border-white/10 border-slate-200 rounded-xl px-3 h-11 text-[11px] font-black dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary cursor-pointer"
                   value={customRange.end}
                   onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
                 />
@@ -184,9 +184,9 @@ function App() {
             <button
               onClick={fetchData}
               disabled={isLoading}
-              className={`size-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
+              className={`size-11 rounded-2xl dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 flex items-center justify-center hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 active:scale-95 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
             >
-              <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-[var(--text-main)]/60'}`}>sync</span>
+              <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'dark:text-white dark:text-white text-slate-900/60'}`}>sync</span>
             </button>
           </div>
         </div>
@@ -210,7 +210,7 @@ function App() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* 2. MAIN CHART: HOURLY SALES */}
-              <div className="lg:col-span-8 glass rounded-[2.5rem] p-8 border-white/5">
+              <div className="lg:col-span-8 glass rounded-[2.5rem] p-8 dark:border-white/5 border-slate-200">
                 <div className="flex justify-between items-center mb-10">
                   <div>
                     <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60">Tren Penjualan Per Jam</h3>
@@ -261,7 +261,7 @@ function App() {
               </div>
 
               {/* 3. PAYMENT BREAKDOWN (PIE CHART) */}
-              <div className="lg:col-span-4 glass border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
+              <div className="lg:col-span-4 glass dark:border-white/5 border-slate-200 rounded-[2.5rem] p-8 flex flex-col items-center">
                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 w-full mb-8">Metode Pembayaran</h3>
                 <div className="h-[250px] w-full relative min-w-0">
                    {pieData.length > 0 ? (
@@ -293,7 +293,7 @@ function App() {
                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                      <div className="text-center">
                         <p className="text-[10px] uppercase font-black opacity-40">Mix</p>
-                        <p className="text-sm font-black text-[var(--text-main)]">{paymentMethods.length || 0} Cara</p>
+                        <p className="text-sm font-black dark:text-white dark:text-white text-slate-900">{paymentMethods.length || 0} Cara</p>
                      </div>
                    </div>
                 </div>
@@ -302,25 +302,25 @@ function App() {
                      <div key={d.name} className="flex justify-between items-center text-[10px] font-black uppercase">
                        <div className="flex items-center gap-2">
                          <div className="size-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                         <span className="text-[var(--text-muted)] opacity-80">{d.name}</span>
+                         <span className="dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-80">{d.name}</span>
                        </div>
-                       <span className="text-[var(--text-main)]">Rp {d.value.toLocaleString()}</span>
+                       <span className="dark:text-white dark:text-white text-slate-900">Rp {d.value.toLocaleString()}</span>
                      </div>
                    ))}
                 </div>
               </div>
 
               {/* 4. TOP PRODUCTS & CASHIER PERFORMANCE */}
-              <div className="lg:col-span-8 glass border-white/5 rounded-[2.5rem] p-8">
+              <div className="lg:col-span-8 glass dark:border-white/5 border-slate-200 rounded-[2.5rem] p-8">
                  <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 mb-8">5 Produk Terlaris</h3>
                  <div className="space-y-6">
                     {topProducts.map((p, i) => (
                       <div key={i} className="space-y-2">
                         <div className="flex justify-between items-end text-xs">
-                          <p className="font-black text-[var(--text-main)] uppercase">{p.name}</p>
+                          <p className="font-black dark:text-white dark:text-white text-slate-900 uppercase">{p.name}</p>
                           <p className="text-primary font-black uppercase tracking-tighter">{p.totalQty} terjual</p>
                         </div>
-                        <div className="h-3 bg-white/5 rounded-full overflow-hidden flex">
+                        <div className="h-3 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-full overflow-hidden flex">
                           <div 
                             className="bg-primary h-full transition-all duration-1000" 
                             style={{ width: `${(p.totalQty / topProducts[0].totalQty) * 100}%` }}
@@ -335,17 +335,17 @@ function App() {
 
               <div className="lg:col-span-4 space-y-6">
                   {/* CASHIER RANKING */}
-                  <div className="glass border-white/5 rounded-[2.5rem] p-8">
+                  <div className="glass dark:border-white/5 border-slate-200 rounded-[2.5rem] p-8">
                     <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 mb-6">Performa Kasir</h3>
                     <div className="space-y-4">
                       {cashierPerformance.map((c, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className={`text-xl font-black ${i === 0 ? 'text-primary' : 'opacity-20'}`}># {i + 1}</span>
-                            <p className="text-[11px] font-black text-[var(--text-main)] uppercase">{c.name}</p>
+                            <p className="text-[11px] font-black dark:text-white dark:text-white text-slate-900 uppercase">{c.name}</p>
                           </div>
                           <div className="text-right">
-                             <p className="text-xs font-black text-[var(--text-main)]">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
+                             <p className="text-xs font-black dark:text-white dark:text-white text-slate-900">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
                              <p className="text-[9px] font-bold text-primary">{c.transactionCount} Tx</p>
                           </div>
                         </div>
@@ -368,8 +368,8 @@ function App() {
                           </div>
                         ) : alerts.map((a, i) => (
                           <div key={i} className={`p-4 rounded-2xl border ${a.type === 'VOID' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                             <p className="text-[10px] font-black text-[var(--text-main)] leading-tight">{a.message}</p>
-                             <p className="text-[9px] text-[var(--text-muted)] mt-2 italic">Ket: {a.detail}</p>
+                             <p className="text-[10px] font-black dark:text-white dark:text-white text-slate-900 leading-tight">{a.message}</p>
+                             <p className="text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500 mt-2 italic">Ket: {a.detail}</p>
                              <p className="text-[8px] font-black uppercase tracking-tighter text-primary mt-1">{new Date(a.time).toLocaleTimeString()}</p>
                           </div>
                         ))}
@@ -378,25 +378,25 @@ function App() {
               </div>
 
               {/* 5. RECENT EXPENSES */}
-              <div className="lg:col-span-12 glass border-white/5 rounded-[2.5rem] p-8">
+              <div className="lg:col-span-12 glass dark:border-white/5 border-slate-200 rounded-[2.5rem] p-8">
                  <div className="flex justify-between items-center mb-8">
                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60">5 Pengeluaran Terbaru</h3>
                    <span className="text-[11px] font-black text-red-500">Total: Rp {expenses.total.toLocaleString()}</span>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {expenses.recent.map((exp, i) => (
-                      <div key={i} className="p-4 glass-lite border border-white/5 rounded-2xl relative overflow-hidden">
+                      <div key={i} className="p-4 glass-lite border dark:border-white/5 border-slate-200 rounded-2xl relative overflow-hidden">
                          <div className="flex justify-between items-start mb-1">
-                            <p className="text-[10px] font-black uppercase text-[var(--text-muted)] opacity-60">{exp.category}</p>
+                            <p className="text-[10px] font-black uppercase dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">{exp.category}</p>
                             {exp.fundSource === 'OWNER' ? (
                                <span className="text-[7px] font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Owner</span>
                             ) : (
                                <span className="text-[7px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase">Kasir</span>
                             )}
                          </div>
-                         <p className="text-xs font-black text-[var(--text-main)] truncate mt-1">{exp.title}</p>
+                         <p className="text-xs font-black dark:text-white dark:text-white text-slate-900 truncate mt-1">{exp.title}</p>
                          <p className="text-sm font-black text-red-500 mt-2">Rp {parseFloat(exp.amount).toLocaleString()}</p>
-                         <p className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[var(--text-muted)] opacity-60">{new Date(exp.expenseDate).toLocaleDateString()}</p>
+                         <p className="text-[8px] font-black uppercase tracking-tighter mt-1 dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">{new Date(exp.expenseDate).toLocaleDateString()}</p>
                       </div>
                     ))}
                     {expenses.recent.length === 0 && <p className="col-span-5 text-center py-10 opacity-20 text-[10px] uppercase font-bold">Tidak ada pengeluaran</p>}
@@ -407,13 +407,13 @@ function App() {
               <div className="lg:col-span-12 space-y-8 mt-10">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                       <div>
-                          <h2 className="text-2xl font-black tracking-tight text-[var(--text-main)] uppercase">Laporan Penjualan Harian</h2>
+                          <h2 className="text-2xl font-black tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Laporan Penjualan Harian</h2>
                           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
                       </div>
                        <div className="flex items-center gap-2">
                            <button 
                              onClick={() => exportToCSV(reports)}
-                             className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)] hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-md dark:bg-white/5 bg-white shadow-sm border border-slate-200 text-[13px] font-bold dark:text-white dark:text-white text-slate-900 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 transition-all border dark:border-white/10 border-slate-200 min-w-[100px]"
                            >
                                <span className="material-symbols-outlined text-lg text-primary">description</span>
                                CSV
@@ -439,9 +439,9 @@ function App() {
                               ))}
                               
                               {reports.length === 0 && (
-                                  <div className="py-20 glass border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
-                                      <span className="material-symbols-outlined text-4xl text-[var(--text-main)] opacity-10 mb-4">history</span>
-                                      <p className="text-xs font-black text-[var(--text-main)] opacity-20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
+                                  <div className="py-20 glass dark:border-white/5 border-slate-200 border-dashed flex flex-col items-center justify-center text-center p-10">
+                                      <span className="material-symbols-outlined text-4xl dark:text-white dark:text-white text-slate-900 opacity-10 mb-4">history</span>
+                                      <p className="text-xs font-black dark:text-white dark:text-white text-slate-900 opacity-20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
                                   </div>
                               )}
                           </>
@@ -460,14 +460,14 @@ function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffi
   return (
     <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:border-white/20'}`}>
       <div className="flex justify-between items-start mb-6">
-        <div className={`size-12 rounded-2xl flex items-center justify-center ${isHighlight ? 'bg-slate-950/10' : 'bg-white/5'}`}>
-          <span className={`material-symbols-outlined ${isHighlight ? 'text-[var(--text-main)]' : color} text-2xl`}>{icon}</span>
+        <div className={`size-12 rounded-2xl flex items-center justify-center ${isHighlight ? 'dark:bg-slate-950 bg-slate-50/10' : 'dark:bg-white/5 bg-white shadow-sm border border-slate-200'}`}>
+          <span className={`material-symbols-outlined ${isHighlight ? 'dark:text-white dark:text-white text-slate-900' : color} text-2xl`}>{icon}</span>
         </div>
-        {isHighlight && <div className="text-[8px] font-black uppercase bg-slate-950/20 px-2 py-1 rounded-full">Primary Metric</div>}
+        {isHighlight && <div className="text-[8px] font-black uppercase dark:bg-slate-950 bg-slate-50/20 px-2 py-1 rounded-full">Primary Metric</div>}
       </div>
       <div>
-        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-[var(--text-main)]/60' : 'text-[var(--text-muted)] opacity-60'}`}>{title}</p>
-        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-[var(--text-main)]' : 'text-[var(--text-main)]'}`}>
+        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'dark:text-white dark:text-white text-slate-900/60' : 'dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60'}`}>{title}</p>
+        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'dark:text-white dark:text-white text-slate-900' : 'dark:text-white dark:text-white text-slate-900'}`}>
            {!noCurrency && <span className="text-[10px] mr-1 uppercase opacity-60">Rp</span>}
            {parseFloat(value || 0).toLocaleString()}
            {suffix && <span className="text-[10px] ml-1 uppercase opacity-60">{suffix}</span>}

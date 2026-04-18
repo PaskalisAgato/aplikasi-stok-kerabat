@@ -49,9 +49,9 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+            <div className="absolute inset-0 dark:bg-slate-950 bg-slate-50/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
             
-            <div className="relative w-full max-w-lg bg-surface rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+            <div className="relative w-full max-w-lg bg-surface rounded-[2.5rem] border dark:border-white/10 border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
                 <div className="p-8 space-y-8">
                     <div className="flex justify-between items-center">
                         <div className="space-y-1">
@@ -71,7 +71,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                 type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20"
+                                    className="w-full h-14 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:border-white/10 border-slate-200 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20"
                                     placeholder="Contoh: Nyalakan Mesin Kopi"
                             />
                         </div>
@@ -101,7 +101,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                 <span className="material-symbols-outlined text-[10px]">photo_library</span>
                                 Mode Bukti Foto
                             </label>
-                            <div className="flex p-1.5 bg-white/5 border border-white/10 rounded-2xl items-stretch h-14">
+                            <div className="flex p-1.5 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl items-stretch h-14">
                                 {[
                                     { id: 'camera', label: 'Kamera', icon: 'photo_camera' },
                                     { id: 'gallery', label: 'Galeri', icon: 'imagesmode' },
@@ -114,7 +114,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                         className={`flex-1 flex items-center justify-center gap-2 rounded-xl transition-all active:scale-95 ${
                                             photoUploadMode === option.id 
                                             ? 'bg-primary text-slate-950 font-black' 
-                                            : 'text-muted hover:bg-white/5 font-bold'
+                                            : 'text-muted hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 font-bold'
                                         }`}
                                     >
                                         <span className="material-symbols-outlined text-lg">{option.icon}</span>
@@ -126,7 +126,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
 
                         {/* Interval Settings (Allow for all except REQUEST) */}
                         {category !== 'Request' && (
-                            <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
+                            <div className="p-5 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-[2rem] space-y-4">
                                 <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-1">Pengaturan Perulangan</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-2">
@@ -134,7 +134,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                         <select
                                             value={intervalType}
                                             onChange={(e) => setIntervalType(e.target.value)}
-                                            className="w-full h-12 bg-white/5 border-white/10 rounded-xl px-4 text-xs text-main font-bold outline-none cursor-pointer"
+                                            className="w-full h-12 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:border-white/10 border-slate-200 rounded-xl px-4 text-xs text-main font-bold outline-none cursor-pointer"
                                         >
                                             <option value="daily">Harian</option>
                                             <option value="weekly">Mingguan</option>
@@ -148,7 +148,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                             type="number"
                                             value={intervalValue}
                                             onChange={(e) => setIntervalValue(parseInt(e.target.value))}
-                                            className="w-full h-12 bg-white/5 border-white/10 rounded-xl px-4 text-xs text-main font-bold outline-none"
+                                            className="w-full h-12 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:border-white/10 border-slate-200 rounded-xl px-4 text-xs text-main font-bold outline-none"
                                             min="1"
                                         />
                                     </div>
@@ -179,7 +179,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                              const mins = deadlineTime.split(':')[1] || '00';
                                              setDeadlineTime(`${e.target.value}:${mins}`);
                                          }}
-                                         className="flex-1 h-14 bg-white/5 border border-white/10 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
+                                         className="flex-1 h-14 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
                                      >
                                          {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')).map(h => (
                                              <option key={h} value={h}>{h}</option>
@@ -192,7 +192,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                              const hrs = deadlineTime.split(':')[0] || '08';
                                              setDeadlineTime(`${hrs}:${e.target.value}`);
                                          }}
-                                         className="flex-1 h-14 bg-white/5 border border-white/10 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
+                                         className="flex-1 h-14 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 text-center text-xl text-main font-black focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer appearance-none"
                                      >
                                          {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0')).map(m => (
                                              <option key={m} value={m}>{m}</option>
@@ -204,7 +204,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                                      type="datetime-local"
                                      value={deadline}
                                      onChange={(e) => setDeadline(e.target.value)}
-                                     className="w-full h-14 bg-white/5 border-white/10 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                     className="w-full h-14 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:border-white/10 border-slate-200 rounded-2xl px-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                  />
                              )}
                         </div>
@@ -215,7 +215,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full h-24 bg-white/5 border-white/10 rounded-2xl p-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20 resize-none"
+                                className="w-full h-24 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:border-white/10 border-slate-200 rounded-2xl p-6 text-main font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:opacity-20 resize-none"
                                 placeholder="..."
                             />
                         </div>

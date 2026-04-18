@@ -77,13 +77,13 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
     const Content = (
         <div className={`${isFullPage ? 'w-full' : 'bg-[var(--bg-app)] border border-[var(--border-dim)] w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in duration-300'}`}>
             {/* Header */}
-            <div className={`p-8 border-b border-white/5 flex items-center justify-between shrink-0 ${isFullPage ? 'px-0' : ''}`}>
+            <div className={`p-8 border-b dark:border-white/5 border-slate-200 flex items-center justify-between shrink-0 ${isFullPage ? 'px-0' : ''}`}>
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-[var(--text-main)] mb-1">Pengaturan Printer</h2>
-                    <p className="text-xs text-[var(--text-muted)] opacity-60">Konfigurasi jembatan cetak & rute kategori</p>
+                    <h2 className="text-xl font-bold tracking-tight dark:text-white dark:text-white text-slate-900 mb-1">Pengaturan Printer</h2>
+                    <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Konfigurasi jembatan cetak & rute kategori</p>
                 </div>
                 {!isFullPage && (
-                    <button onClick={onClose} className="size-10 flex items-center justify-center rounded-xl hover:bg-white/5 text-[var(--text-muted)]">
+                    <button onClick={onClose} className="size-10 flex items-center justify-center rounded-xl hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 )}
@@ -92,7 +92,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
             {/* Content Body */}
             <div className={`p-8 overflow-y-auto space-y-8 custom-scrollbar ${isFullPage ? 'px-0' : ''}`}>
                 {config.map((printer) => (
-                    <div key={printer.id} className="glass p-6 rounded-3xl space-y-6 border border-white/5">
+                    <div key={printer.id} className="glass p-6 rounded-3xl space-y-6 border dark:border-white/5 border-slate-200">
                         <div className="flex items-center justify-between">
                             <input 
                                 value={printer.name}
@@ -106,11 +106,11 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Tipe Koneksi</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Tipe Koneksi</label>
                                 <select 
                                     value={printer.connectionType || 'bridge'}
                                     onChange={(e) => updatePrinter(printer.id, { connectionType: e.target.value as any })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
+                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
                                 >
                                     <option value="bridge">Local Bridge (IP)</option>
                                     <option value="bluetooth">Bluetooth (Direct BLE)</option>
@@ -118,11 +118,11 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paper Width</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Paper Width</label>
                                 <select 
                                     value={printer.width}
                                     onChange={(e) => updatePrinter(printer.id, { width: parseInt(e.target.value) as 32 | 48 })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
+                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
                                 >
                                     <option value={32}>58mm (32 chars)</option>
                                     <option value={48}>80mm (48 chars)</option>
@@ -142,9 +142,9 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                         Jika printer tidak terdeteksi, gunakan tipe **"Serial / Legacy Bluetooth"**.
                                     </p>
                                 </div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Paired Bluetooth Device (BLE Only)</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Paired Bluetooth Device (BLE Only)</label>
                                 <div className="flex gap-2">
-                                    <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)]">
+                                    <div className="flex-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500">
                                         {printer.bluetoothDeviceName || 'Not Paired'}
                                     </div>
                                     {PrintService.isBluetoothSupported() ? (
@@ -188,9 +188,9 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                         <li>Klik "Select Port" dan pilih <b>COM/RFCOMM</b> yang muncul.</li>
                                     </ul>
                                 </div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Serial / COM Port (Legacy BT)</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Serial / COM Port (Legacy BT)</label>
                                 <div className="flex gap-2">
-                                    <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--text-muted)] flex flex-col gap-1">
+                                    <div className="flex-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500 flex flex-col gap-1">
                                         <p className="font-bold">{printer.bluetoothDeviceName || 'Port Belum Dipilih'}</p>
                                         <p className="text-[9px] opacity-60">Pilih virtual port yang sesuai dengan printer Anda.</p>
                                     </div>
@@ -226,31 +226,31 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Alamat IP Printer</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Alamat IP Printer</label>
                                 <input 
                                     value={printer.ip}
                                     onChange={(e) => updatePrinter(printer.id, { ip: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
+                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
                                     placeholder="192.168.1.100"
                                 />
                             </div>
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Kategori Rute (Pisahkan koma)</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Kategori Rute (Pisahkan koma)</label>
                             <input 
                                 value={printer.categories.join(', ')}
                                 onChange={(e) => updatePrinter(printer.id, { categories: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
+                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all"
                                 placeholder="Minuman, Kopi, dsb"
                             />
-                            <p className="text-[10px] text-[var(--text-muted)] opacity-40 italic">Kosongkan jika ingin mencetak semua struk pembayaran di sini.</p>
+                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-40 italic">Kosongkan jika ingin mencetak semua struk pembayaran di sini.</p>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 group-hover:border-primary/20 transition-all">
+                        <div className="flex items-center justify-between p-4 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-2xl border dark:border-white/10 border-slate-200 group-hover:border-primary/20 transition-all">
                             <div className="space-y-0.5">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-primary">Auto Cetak</label>
-                                <p className="text-[9px] text-[var(--text-muted)] opacity-60">Cetak struk otomatis saat checkout</p>
+                                <p className="text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Cetak struk otomatis saat checkout</p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input 
@@ -265,16 +265,16 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
 
                         {/* Advanced Settings Section */}
                         <details className="group/adv">
-                            <summary className="list-none cursor-pointer flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-40 hover:opacity-100 transition-opacity py-2">
+                            <summary className="list-none cursor-pointer flex items-center gap-2 text-[10px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-40 hover:opacity-100 transition-opacity py-2">
                                 <span className="material-symbols-outlined text-[16px] group-open/adv:rotate-180 transition-transform">expand_more</span>
                                 Pengaturan Lanjutan (Drawer & Branding)
                             </summary>
                             
                             <div className="space-y-6 pt-4 animate-in slide-in-from-top-2 duration-300">
-                                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                                <div className="flex items-center justify-between p-4 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-2xl border dark:border-white/10 border-slate-200">
                                     <div className="space-y-0.5">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Buka Laci Otomatis</label>
-                                        <p className="text-[9px] text-[var(--text-muted)] opacity-60">Picu laci kasir saat pembayaran tunai</p>
+                                        <p className="text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Picu laci kasir saat pembayaran tunai</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input 
@@ -289,29 +289,29 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
 
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Judul Header (Nama Toko)</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Judul Header (Nama Toko)</label>
                                         <input 
                                             value={printer.headerTitle || ''}
                                             onChange={(e) => updatePrinter(printer.id, { headerTitle: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
                                             placeholder="KERABAT KOPI TIAM"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Sub-judul Header</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Sub-judul Header</label>
                                         <input 
                                             value={printer.headerSubtitle || ''}
                                             onChange={(e) => updatePrinter(printer.id, { headerSubtitle: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
                                             placeholder="Premium Coffee & Toast"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Pesan Footer (Terima Kasih)</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Pesan Footer (Terima Kasih)</label>
                                         <input 
                                             value={printer.footerMessage || ''}
                                             onChange={(e) => updatePrinter(printer.id, { footerMessage: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
+                                            className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-xl px-4 py-2 text-xs focus:border-primary outline-none transition-all"
                                             placeholder="Terima Kasih! Selamat Menikmati"
                                         />
                                     </div>
@@ -319,15 +319,15 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
 
                                 <div className="flex gap-4">
                                     <div className="flex-1 space-y-2">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Info Struk</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Info Struk</label>
                                         <div className="flex gap-4">
                                             <label className="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" checked={printer.showDate !== false} onChange={(e) => updatePrinter(printer.id, { showDate: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
-                                                <span className="text-[10px] text-[var(--text-main)]/60">Tgl/Jam</span>
+                                                <input type="checkbox" checked={printer.showDate !== false} onChange={(e) => updatePrinter(printer.id, { showDate: e.target.checked })} className="rounded dark:border-white/10 border-slate-200 dark:bg-white/5 bg-white shadow-sm border border-slate-200 text-primary" />
+                                                <span className="text-[10px] dark:text-white dark:text-white text-slate-900/60">Tgl/Jam</span>
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" checked={!!printer.showCashier} onChange={(e) => updatePrinter(printer.id, { showCashier: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
-                                                <span className="text-[10px] text-[var(--text-main)]/60">Nama Kasir</span>
+                                                <input type="checkbox" checked={!!printer.showCashier} onChange={(e) => updatePrinter(printer.id, { showCashier: e.target.checked })} className="rounded dark:border-white/10 border-slate-200 dark:bg-white/5 bg-white shadow-sm border border-slate-200 text-primary" />
+                                                <span className="text-[10px] dark:text-white dark:text-white text-slate-900/60">Nama Kasir</span>
                                             </label>
                                         </div>
                                     </div>
@@ -362,7 +362,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
 
                 <button 
                     onClick={addPrinter}
-                    className="w-full py-4 rounded-2xl border-2 border-dashed border-white/10 text-[var(--text-muted)] hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl border-2 border-dashed dark:border-white/10 border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
                 >
                     <span className="material-symbols-outlined">add_circle</span>
                     Tambah Printer Baru
@@ -370,10 +370,10 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
             </div>
 
             {/* Footer */}
-            <div className={`p-8 border-t border-white/5 bg-white/[0.02] flex gap-4 shrink-0 ${isFullPage ? 'px-0' : ''}`}>
+            <div className={`p-8 border-t dark:border-white/5 border-slate-200 bg-white/[0.02] flex gap-4 shrink-0 ${isFullPage ? 'px-0' : ''}`}>
                 <button 
                     onClick={onClose}
-                    className="flex-1 py-4 rounded-2xl border border-white/10 font-bold text-sm tracking-wide hover:bg-white/5 transition-all"
+                    className="flex-1 py-4 rounded-2xl border dark:border-white/10 border-slate-200 font-bold text-sm tracking-wide hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-all"
                 >
                     {isFullPage ? 'Kembali' : 'Batal'}
                 </button>
@@ -391,7 +391,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
     if (isFullPage) return Content;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 dark:bg-black bg-white/60 backdrop-blur-sm animate-in fade-in duration-300">
             {Content}
         </div>
     );

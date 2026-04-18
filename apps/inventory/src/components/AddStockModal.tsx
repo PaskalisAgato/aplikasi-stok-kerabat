@@ -210,7 +210,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end dark:bg-black bg-white/60 backdrop-blur-sm">
             <div className="w-full bg-background-app rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-border-dim">
                 <header className="flex items-center p-4 border-b border-border-dim">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
@@ -268,7 +268,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-4 text-center text-[var(--text-muted)] text-sm">
+                                    <div className="p-4 text-center dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm">
                                         Tidak ada bahan ditemukan
                                     </div>
                                 )}

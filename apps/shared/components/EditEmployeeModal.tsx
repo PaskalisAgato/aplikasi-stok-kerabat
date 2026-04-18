@@ -57,7 +57,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 dark:bg-slate-950 bg-slate-50/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
@@ -171,7 +171,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
                     <button 
                         onClick={handleSave}
                         disabled={updateMutation.isPending}
-                        className="w-full h-14 bg-gradient-to-r from-primary to-primary-dark text-[var(--text-main)] font-black rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-14 bg-gradient-to-r from-primary to-primary-dark dark:text-white dark:text-white text-slate-900 font-black rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {updateMutation.isPending && <span className="material-symbols-outlined animate-spin">refresh</span>}
                         {updateMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}

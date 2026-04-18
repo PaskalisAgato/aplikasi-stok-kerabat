@@ -150,10 +150,10 @@ function App() {
             title="Daftar Tugas"
             subtitle={`${role} Dashboard`}
             footer={role === 'Admin' && (
-                <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4">
+                <footer className="glass border-t dark:border-white/5 border-slate-200 p-8 shrink-0 flex gap-4">
                     <button
                         onClick={() => { setSelectedTask(null); setIsCreateModalOpen(true); }}
-                        className="flex-1 flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
+                        className="flex-1 flex items-center justify-center gap-4 accent-gradient dark:text-white dark:text-white text-slate-900 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
                     >
                         <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tambah Tugas Baru</span>
@@ -219,7 +219,7 @@ function App() {
                                 <button
                                     onClick={handleLoadMore}
                                     disabled={isHistoryLoading}
-                                    className="glass px-12 py-4 rounded-full border border-white/10 hover:bg-white/5 active:scale-95 transition-all flex items-center gap-3 group disabled:opacity-50"
+                                    className="glass px-12 py-4 rounded-full border dark:border-white/10 border-slate-200 hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 active:scale-95 transition-all flex items-center gap-3 group disabled:opacity-50"
                                 >
                                     {isHistoryLoading ? (
                                         <div className="size-4 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>

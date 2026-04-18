@@ -45,25 +45,25 @@ function App() {
                 <div className="space-y-10">
                     {/* Ingredient Summary */}
                     <section className="animate-in fade-in slide-in-from-top-4 duration-700">
-                        <div className="card group p-8 flex flex-col sm:flex-row gap-8 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border-white/5 relative overflow-hidden">
+                        <div className="card group p-8 flex flex-col sm:flex-row gap-8 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] dark:border-white/5 border-slate-200 relative overflow-hidden">
                             {topItem ? (
                                 <>
                                     <div
-                                        className="size-32 rounded-[2rem] bg-[var(--bg-app)] bg-center bg-no-repeat bg-cover border-4 border-white/10 shadow-2xl transition-transform duration-700 group-hover:rotate-3 group-hover:scale-110 shrink-0"
+                                        className="size-32 rounded-[2rem] bg-[var(--bg-app)] bg-center bg-no-repeat bg-cover border-4 dark:border-white/10 border-slate-200 shadow-2xl transition-transform duration-700 group-hover:rotate-3 group-hover:scale-110 shrink-0"
                                         style={{ backgroundImage: `url('${topItem.imageUrl || ''}')` }}
                                         title={topItem.name}
                                     ></div>
                                     
                                     <div className="flex-1 space-y-4 relative z-10">
                                         <div className="space-y-1">
-                                            <h3 className="text-3xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase leading-none group-hover:text-primary transition-colors">{topItem.name}</h3>
+                                            <h3 className="text-3xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase leading-none group-hover:text-primary transition-colors">{topItem.name}</h3>
                                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Bahan Termahal (Bulan Ini)</p>
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-3xl font-black text-primary font-display tracking-tighter uppercase leading-none">Rp {safeNumber(topItem.totalCost).toLocaleString('id-ID')} <span className="text-xs opacity-40 font-bold">/ {safeNumber(topItem.totalQty).toFixed(1)} {topItem.unit}</span></p>
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-xs text-[var(--text-muted)] font-black">inventory</span>
-                                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Sumbangsih pengeluaran terbesar</p>
+                                                <span className="material-symbols-outlined text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black">inventory</span>
+                                                <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">Sumbangsih pengeluaran terbesar</p>
                                             </div>
                                         </div>
                                     </div>
@@ -71,8 +71,8 @@ function App() {
                             ) : (
                                 <div className="flex-1 flex flex-col items-center justify-center py-10 opacity-40 relative z-10">
                                     <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">inventory_2</span>
-                                    <h3 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Belum Ada Pengadaan</h3>
-                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-2">Tidak ada data stok masuk bulan ini</p>
+                                    <h3 className="text-xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Belum Ada Pengadaan</h3>
+                                    <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mt-2">Tidak ada data stok masuk bulan ini</p>
                                 </div>
                             )}
                             
@@ -83,13 +83,13 @@ function App() {
 
                     {/* KPI Cards */}
                     <section className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                        <div className="card group p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 border-white/5 relative overflow-hidden">
+                        <div className="card group p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-500 dark:border-white/5 border-slate-200 relative overflow-hidden">
                             <div className="space-y-2 relative z-10">
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Total Pengadaan (Bulan Ini)</p>
-                                <h2 className="text-5xl font-black text-[var(--text-main)] font-display tracking-tighter uppercase leading-none">Rp {totalProcurement.toLocaleString('id-ID')}</h2>
+                                <h2 className="text-5xl font-black dark:text-white dark:text-white text-slate-900 font-display tracking-tighter uppercase leading-none">Rp {totalProcurement.toLocaleString('id-ID')}</h2>
                             </div>
-                            <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between relative z-10">
-                                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">Dibandingkan bulan lalu</span>
+                            <div className="mt-8 pt-6 border-t dark:border-white/5 border-slate-200 flex items-center justify-between relative z-10">
+                                <span className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-40 italic">Dibandingkan bulan lalu</span>
                                 <div className="flex items-center gap-2">
                                     <span className={`material-symbols-outlined text-sm font-black ${isTrendUp ? 'text-red-500' : 'text-emerald-500'}`}>
                                         {isTrendUp ? 'trending_up' : 'trending_down'}
@@ -112,8 +112,8 @@ function App() {
                                     <span className="material-symbols-outlined text-3xl font-black">analytics</span>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-black font-display tracking-tight text-[var(--text-main)] uppercase">Metrik COGS Dinamis</h3>
-                                    <p className="text-[11px] font-bold text-[var(--text-muted)] leading-relaxed uppercase tracking-widest opacity-60 italic">
+                                    <h3 className="text-lg font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Metrik COGS Dinamis</h3>
+                                    <p className="text-[11px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 leading-relaxed uppercase tracking-widest opacity-60 italic">
                                         Data COGS ditarik secara realtime dari pergerakan stok 'MASUK' dan disinkronkan dengan harga beli terbaru. Membantu identifikasi produk dengan beban biaya tertinggi.
                                     </p>
                                 </div>

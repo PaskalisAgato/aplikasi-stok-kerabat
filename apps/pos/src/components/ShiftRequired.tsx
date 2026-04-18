@@ -11,8 +11,8 @@ const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
                 <span className="material-symbols-outlined text-5xl text-red-500">lock</span>
             </div>
             <div className="max-w-md">
-                <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--text-main)]">Shift Belum Dibuka</h2>
-                <p className="text-sm text-[var(--text-main)]/50 font-bold uppercase tracking-widest mt-3 leading-relaxed">
+                <h2 className="text-2xl font-black uppercase tracking-tight dark:text-white dark:text-white text-slate-900">Shift Belum Dibuka</h2>
+                <p className="text-sm dark:text-white dark:text-white text-slate-900/50 font-bold uppercase tracking-widest mt-3 leading-relaxed">
                     Anda harus membuka shift kasir dengan memasukkan modal awal (Petty Cash) untuk mulai melakukan transaksi penjualan.
                 </p>
             </div>
@@ -23,7 +23,7 @@ const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
                 <span className="material-symbols-outlined font-black">login</span>
                 Mulai Buka Shift
             </button>
-            <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+            <div className="flex items-center gap-2 mt-4 px-4 py-2 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-full border dark:border-white/5 border-slate-200">
                 <span className="material-symbols-outlined text-xs text-primary">info</span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#a0a0a0]">Halaman laporan dan menu lainnya tetap dapat diakses.</span>
             </div>

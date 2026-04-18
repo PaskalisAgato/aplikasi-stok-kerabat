@@ -37,12 +37,12 @@ export default function KPICards({ reports }) {
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                        <span className="material-symbols-outlined text-8xl transition-all group-hover:scale-110">{card.icon}</span>
                     </div>
-                    <div className={`size-20 rounded-[1.5rem] bg-slate-900 flex items-center justify-center mb-6 shadow-xl ${card.gradient === 'accent-gradient' ? 'accent-gradient' : `bg-gradient-to-br ${card.gradient}`} text-[var(--text-main)]`}>
+                    <div className={`size-20 rounded-[1.5rem] dark:bg-slate-900 bg-slate-50 flex items-center justify-center mb-6 shadow-xl ${card.gradient === 'accent-gradient' ? 'accent-gradient' : `bg-gradient-to-br ${card.gradient}`} dark:text-white dark:text-white text-slate-900`}>
                         <span className="material-symbols-outlined text-4xl font-black">{card.icon}</span>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">{card.label}</p>
-                        <p className={`text-3xl font-black font-display tracking-tight ${card.label === 'Profit Bersih' ? 'text-primary' : 'text-[var(--text-main)]'}`}>
+                        <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-[0.3em]">{card.label}</p>
+                        <p className={`text-3xl font-black font-display tracking-tight ${card.label === 'Profit Bersih' ? 'text-primary' : 'dark:text-white dark:text-white text-slate-900'}`}>
                             Rp {(card.val || 0).toLocaleString('id-ID')}
                         </p>
                     </div>
