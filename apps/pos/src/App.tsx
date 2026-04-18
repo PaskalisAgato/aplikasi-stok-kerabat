@@ -189,6 +189,7 @@ function App() {
     const [selectedDiscount, setSelectedDiscount] = useState<{ id: number; name: string; value: number; type: string } | null>(null);
     const [availableDiscounts, setAvailableDiscounts] = useState<any[]>([]);
     const [showDiscountPanel, setShowDiscountPanel] = useState(false);
+    const [loyaltySettings, setLoyaltySettings] = useState({ pointRatio: 10000, pointValue: 100 });
 
     const resetLoyaltyState = () => {
         setSelectedMember(null); setMemberSearch(''); setMemberSearchResults([]);
@@ -309,6 +310,14 @@ function App() {
         };
         fetchOpenBills();
 
+        // Fetch Loyalty Settings
+        apiClient.get('/loyalty/settings').then((res: any) => {
+            if (res) setLoyaltySettings({ 
+                pointRatio: parseFloat(res.pointRatio) || 10000, 
+                pointValue: parseFloat(res.pointValue) || 100 
+            });
+        }).catch(console.error);
+
         return () => {
             window.removeEventListener('sync-auth-failed', handleSyncAuthFailed);
             window.removeEventListener('open-printer-settings', handleOpenPrinterSettings);
@@ -394,13 +403,17 @@ function App() {
     const changeDue = Math.max(0, amountPaid - totalSalesValue);
 
     // Loyalty computed values (after totalSalesValue & activeCartItems)
-    const POINT_VALUE_PER_PT = 100;
-    const pointsDiscountAmount = pointsToRedeem * POINT_VALUE_PER_PT;
-    const discountAmount = selectedDiscount
-        ? (selectedDiscount.type === 'percent'
-            ? Math.round(totalSalesValue * selectedDiscount.value / 100)
-            : selectedDiscount.value)
-        : 0;
+    const pointsDiscountAmount = pointsToRedeem * loyaltySettings.pointValue;
+    
+    // Find calculated amount from available discounts if possible
+    const currentDiscountData = availableDiscounts.find(d => d.id === selectedDiscount?.id);
+    const discountAmount = currentDiscountData 
+        ? currentDiscountData.discountAmount 
+        : (selectedDiscount
+            ? (selectedDiscount.type === 'percent'
+                ? Math.round(totalSalesValue * selectedDiscount.value / 100)
+                : selectedDiscount.value)
+            : 0);
     const finalTotal = Math.max(0, totalSalesValue - discountAmount - pointsDiscountAmount);
 
     const searchMembers = useCallback(async (query: string) => {
@@ -414,10 +427,22 @@ function App() {
     const loadDiscounts = useCallback(async () => {
         try {
             const cartItems = activeCartItems.map(item => ({ recipeId: item.id, quantity: sales[item.id], price: item.price }));
+            if (cartItems.length === 0) { setAvailableDiscounts([]); return; }
             const res = await apiClient.post('/discounts/evaluate', { items: cartItems, memberLevel: selectedMember?.level }) as any;
-            setAvailableDiscounts(res?.data || []);
+            const fetched = res?.data || [];
+            setAvailableDiscounts(fetched);
+            
+            // If currently selected discount is no longer applicable, clear it
+            if (selectedDiscount && !fetched.some((d: any) => d.id === selectedDiscount.id)) {
+                setSelectedDiscount(null);
+            }
         } catch { setAvailableDiscounts([]); }
-    }, [activeCartItems, sales, selectedMember]);
+    }, [activeCartItems, sales, selectedMember, selectedDiscount]);
+
+    // Auto-refresh discounts on cart change
+    useEffect(() => {
+        loadDiscounts();
+    }, [totalSalesValue, selectedMember?.id]);
 
     const handleCheckout = async (skipConfirm = false) => {
         console.log('🚀 Checkout triggered', { totalSalesValue, totalItems, paymentMethod, skipConfirm });
