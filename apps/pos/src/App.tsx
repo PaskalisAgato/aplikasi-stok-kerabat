@@ -485,6 +485,10 @@ function App() {
         setIsCheckingOut(true);
         try {
             const transactionId = crypto.randomUUID();
+            
+            const pointsEarned = selectedMember ? Math.floor(finalTotal / 10000) : 0;
+            const newPointBalance = selectedMember ? (selectedMember.points - pointsToRedeem + pointsEarned) : undefined;
+
             const checkoutData = {
                 id: transactionId, 
                 items: activeCartItems.map(item => ({
@@ -505,9 +509,6 @@ function App() {
                 pointsEarned,
                 sourceId: currentBillId, // Correctly link to the open bill being PAID
             };
-
-            const pointsEarned = selectedMember ? Math.floor(finalTotal / 10000) : 0;
-            const newPointBalance = selectedMember ? (selectedMember.points - pointsToRedeem + pointsEarned) : undefined;
 
             const printData: PrintData = {
                 id: transactionId as any,
