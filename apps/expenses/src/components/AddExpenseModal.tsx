@@ -253,7 +253,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     onChange={e => setName(e.target.value)}
                                     placeholder="e.g. Arabica Beans Supply"
                                     required
-                                    className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
+                                    className="w-full h-14 px-4 rounded-lg bg-white border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-black placeholder:text-slate-500"
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
@@ -264,7 +264,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     onChange={e => setVendor(e.target.value)}
                                     placeholder="e.g. Toko Makmur"
                                     required
-                                    className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  placeholder:text-slate-500"
+                                    className="w-full h-14 px-4 rounded-lg bg-white border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-black placeholder:text-slate-500"
                                 />
                             </div>
                         </div>
@@ -280,7 +280,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     onChange={e => setAmount(e.target.value)}
                                     placeholder="0"
                                     required
-                                    className="w-full h-14 pl-12 pr-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  text-xl font-bold"
+                                    className="w-full h-14 pl-12 pr-4 rounded-lg bg-white border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-black text-xl font-bold"
                                 />
                             </div>
                         </div>
@@ -292,7 +292,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                 type="date"
                                 value={expenseDate}
                                 onChange={e => setExpenseDate(e.target.value)}
-                                className="w-full h-14 px-4 rounded-lg bg-primary/5 border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all  font-medium"
+                                className="w-full h-14 px-4 rounded-lg bg-white border border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-black font-medium"
                             />
                         </div>
     
