@@ -290,8 +290,8 @@ function DiscountTab() {
         apiFetch('/discounts'),
         apiFetch('/products')
       ]);
-      setDiscounts(dRes || []);
-      setProducts(pRes.data || []);
+      setDiscounts(dRes.data || []);
+      setProducts(pRes || []);
     }
     catch (e: any) { console.error(e); }
     finally { setLoading(false); }
