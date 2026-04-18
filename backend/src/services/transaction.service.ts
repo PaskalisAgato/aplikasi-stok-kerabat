@@ -192,14 +192,13 @@ export class TransactionService {
             const saleValues = {
                 offlineId: offlineId || null,
                 shiftId: activeShift.id,
-                kasirId: userId,
+                userId: userId,
                 memberId: data.memberId || null,
-                tableNumber: data.tableNumber || null,
-                customerName: data.customerName || null,
+                customerInfo: data.customerInfo || null,
                 subTotal: serverCalculatedSubTotal.toString(),
                 totalAmount: serverCalculatedSubTotal.toString(), // Using server calculated for security
-                tax: data.tax?.toString() || '0',
-                discount: data.discount?.toString() || '0',
+                taxAmount: data.taxAmount?.toString() || '0',
+                discountAmount: data.discountTotal?.toString() || data.discountAmount?.toString() || '0',
                 paymentMethod: data.paymentMethod || 'CASH',
                 paymentReferenceId: data.paymentReferenceId || null,
                 status: data.status || 'PAID',
