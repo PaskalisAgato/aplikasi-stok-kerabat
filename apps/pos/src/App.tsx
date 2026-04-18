@@ -422,7 +422,7 @@ function App() {
 
     const handleCreateMember = async () => {
         if (!newMemberName || !newMemberPhone) {
-            setNotification({ type: 'error', message: 'Nama dan No HP wajib diisi' });
+            showNotification('Nama dan No HP wajib diisi', 'error');
             return;
         }
         setIsCreatingMember(true);
@@ -435,10 +435,10 @@ function App() {
                 setShowMemberPanel(false);
                 setNewMemberName('');
                 setNewMemberPhone('');
-                setNotification({ type: 'success', message: 'Member berhasil didaftarkan' });
+                showNotification('Member berhasil didaftarkan', 'success');
             }
         } catch (error) {
-            setNotification({ type: 'error', message: 'Gagal mendaftarkan member' });
+            showNotification('Gagal mendaftarkan member', 'error');
         } finally {
             setIsCreatingMember(false);
         }
