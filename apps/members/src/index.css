@@ -1,28 +1,39 @@
-:root {
-  --bg-app: #0a0a0f;
-  --bg-card: #12121a;
-  --bg-input: #1a1a25;
-  --border: rgba(255,255,255,0.08);
-  --text-main: #f1f5ff;
-  --text-muted: #6b7280;
-  --primary: #a78bfa;
-  --primary-hover: #8b5cf6;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --warning: #f59e0b;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import "../../shared/global.css";
 
+/* Local overrides or specific classes for Members App */
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg-app);
-  color: var(--text-main);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background: var(--bg-app);
 }
 
-button { cursor: pointer; font-family: inherit; }
-input, select, textarea { font-family: inherit; }
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
 
-.material-symbols-outlined { font-size: 1.2em; vertical-align: middle; line-height: 1; }
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-[var(--primary)] rounded-full opacity-30;
+}
+
+.modal-backdrop {
+    @apply fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4;
+}
+
+.modal-content {
+    @apply glass rounded-[2rem] w-full max-h-[90vh] overflow-y-auto;
+}
+
+/* Mobile Table Transformer */
+@media (max-width: 640px) {
+    .responsive-table-header {
+        display: none;
+    }
+}
