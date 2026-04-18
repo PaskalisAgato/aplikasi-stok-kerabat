@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import Layout from '@shared/Layout';
 
 
 // ─── API Client ───────────────────────────────────────────────────────────────
@@ -730,44 +731,35 @@ function LoyaltyTab() {
 export default function App() {
   const [tab, setTab] = useState<'members' | 'discounts' | 'loyalty'>('members');
 
+  const headerTabs = (
+    <nav className="flex p-1.5 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
+       {[
+         ['members', 'person_search', 'Daftar Member'],
+         ['discounts', 'celebration', 'Promo & Bundling'],
+         ['loyalty', 'auto_fix', 'Aturan Poin']
+       ].map(([key, icon, label]) => (
+         <button
+           key={key}
+           onClick={() => setTab(key as any)}
+           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === key ? 'bg-primary text-slate-900 shadow-lg' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+         >
+           <span className="material-symbols-outlined text-sm">{icon}</span>
+           {label}
+         </button>
+       ))}
+    </nav>
+  );
+
   return (
-    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] font-body flex flex-col selection:bg-[var(--primary)] selection:text-slate-950">
-      <header className="sticky top-0 z-[50] glass border-b !border-[var(--border-dim)] flex flex-col sm:flex-row items-center justify-between px-6 py-4 gap-4">
-        <div className="flex items-center gap-4">
-          <div className="size-12 accent-gradient rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 accent-glow">
-            <span className="material-symbols-outlined text-slate-950 text-2xl font-black">loyalty</span>
-          </div>
-          <div>
-            <h1 className="font-display text-lg font-black tracking-tight leading-none mb-1 uppercase">Members & Rewards</h1>
-            <p className="text-[10px] font-medium text-[var(--text-muted)] flex items-center gap-1">
-              <span className="material-symbols-outlined text-[10px] text-emerald-500">verified</span>
-              Kerabat POS Ecosystem
-            </p>
-          </div>
-        </div>
-        <nav className="flex p-1.5 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
-           {[
-             ['members', 'person_search', 'Daftar Member'],
-             ['discounts', 'celebration', 'Promo & Bundling'],
-             ['loyalty', 'auto_fix', 'Aturan Poin']
-           ].map(([key, icon, label]) => (
-             <button
-               key={key}
-               onClick={() => setTab(key as any)}
-               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === key ? 'bg-primary text-slate-900 shadow-lg' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-             >
-               <span className="material-symbols-outlined text-sm">{icon}</span>
-               {label}
-             </button>
-           ))}
-        </nav>
-      </header>
-      <main className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="max-w-[1400px] mx-auto">
-           {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
-        </div>
-      </main>
-    </div>
+    <Layout
+      currentPort={5193}
+      title="Members & Rewards"
+      subtitle="Kerabat POS Ecosystem"
+      headerExtras={headerTabs}
+      maxWidth="1400px"
+    >
+      {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
+    </Layout>
   );
 }
 
