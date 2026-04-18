@@ -385,9 +385,16 @@ function App() {
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {expenses.recent.map((exp, i) => (
-                      <div key={i} className="p-4 glass-lite border border-white/5 rounded-2xl">
-                         <p className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">{exp.category}</p>
-                         <p className="text-xs font-black text-[var(--text-main)] truncate">{exp.title}</p>
+                      <div key={i} className="p-4 glass-lite border border-white/5 rounded-2xl relative overflow-hidden">
+                         <div className="flex justify-between items-start mb-1">
+                            <p className="text-[10px] font-black uppercase text-[var(--text-muted)] opacity-60">{exp.category}</p>
+                            {exp.fundSource === 'OWNER' ? (
+                               <span className="text-[7px] font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Owner</span>
+                            ) : (
+                               <span className="text-[7px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase">Kasir</span>
+                            )}
+                         </div>
+                         <p className="text-xs font-black text-[var(--text-main)] truncate mt-1">{exp.title}</p>
                          <p className="text-sm font-black text-red-500 mt-2">Rp {parseFloat(exp.amount).toLocaleString()}</p>
                          <p className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[var(--text-muted)] opacity-60">{new Date(exp.expenseDate).toLocaleDateString()}</p>
                       </div>

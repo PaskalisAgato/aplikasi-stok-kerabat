@@ -205,7 +205,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
                     <button 
                         onClick={() => handleDelete(tx.id)}
-                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg bg-red-500 text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all`}
+                        className={`${compact ? 'h-9 px-4' : 'h-8 px-3'} rounded-lg bg-red-500 text-[var(--text-main)] font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all`}
                     >
                         Hapus
                     </button>
@@ -223,7 +223,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             <div className="flex gap-2">
                 <button 
                     onClick={() => setViewData(tx)}
-                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-blue-500 hover:bg-blue-500 hover:text-[var(--text-main)] transition-all flex items-center justify-center shrink-0`}
                     title="Lihat Detail"
                 >
                     <span className="material-symbols-outlined text-[20px]">visibility</span>
@@ -231,7 +231,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 
                 <button 
                     onClick={() => setDeleteConfirmId(tx.id)}
-                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-red-500 hover:bg-red-500 hover:text-[var(--text-main)] transition-all flex items-center justify-center shrink-0`}
                     title="Hapus Transaksi"
                 >
                     <span className="material-symbols-outlined text-[20px]">delete</span>
@@ -239,7 +239,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 
                 <button 
                     onClick={() => setVoidConfirmId(tx.id)}
-                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass transition-all flex items-center justify-center shrink-0 ${tx.isVoided ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-purple-500 hover:bg-purple-500 hover:text-white'}`}
+                    className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass transition-all flex items-center justify-center shrink-0 ${tx.isVoided ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-purple-500 hover:bg-purple-500 hover:text-[var(--text-main)]'}`}
                     title={tx.isVoided ? "Sudah dibatalkan" : "Void/Batalkan Transaksi"}
                     disabled={tx.isVoided}
                 >
@@ -249,7 +249,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 {isAdmin && (
                     <button 
                         onClick={() => openEdit(tx)}
-                        className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shrink-0`}
+                        className={`${compact ? 'size-10' : 'size-8'} rounded-lg glass text-orange-500 hover:bg-orange-500 hover:text-[var(--text-main)] transition-all flex items-center justify-center shrink-0`}
                         title="Edit Transaksi"
                     >
                         <span className="material-symbols-outlined text-[20px]">edit_square</span>
@@ -291,7 +291,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                     </button>
                                     <button 
                                         onClick={handleClearHistory}
-                                        className="flex-[2] flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-600 text-white shadow-lg shadow-red-600/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
+                                        className="flex-[2] flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-600 text-[var(--text-main)] shadow-lg shadow-red-600/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
                                     >
                                         <span className="material-symbols-outlined text-sm font-black">check</span>
                                         Ya, Hapus
@@ -507,7 +507,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                 <span className="w-6 text-center font-black text-lg">{item.quantity}</span>
                                                 <button onClick={() => handleEditItemQty(idx, 1)} className="size-8 rounded-lg glass text-primary hover:bg-primary hover:text-slate-950 transition-all font-black text-lg flex items-center justify-center">+</button>
                                             </div>
-                                            <button onClick={() => handleRemoveEditItem(idx)} className="absolute -top-2 -right-2 size-6 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100">
+                                            <button onClick={() => handleRemoveEditItem(idx)} className="absolute -top-2 -right-2 size-6 rounded-full bg-red-500 text-[var(--text-main)] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100">
                                                 <span className="material-symbols-outlined text-[14px]">close</span>
                                             </button>
                                         </div>
@@ -571,7 +571,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             {voidConfirmId && (
                 <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
                     <div className="card max-w-md w-full p-0 overflow-hidden shadow-2xl border border-purple-500/20">
-                        <header className="bg-purple-600 p-6 flex justify-between items-center text-white">
+                        <header className="bg-purple-600 p-6 flex justify-between items-center text-[var(--text-main)]">
                             <div>
                                 <h3 className="font-black text-xl uppercase tracking-widest">Batalkan Transaksi</h3>
                                 <p className="text-xs font-bold mt-1 opacity-80 uppercase tracking-widest">Audit LOG: VOID #{voidConfirmId}</p>
@@ -598,7 +598,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                 </button>
                                 <button 
                                     onClick={() => handleVoid(voidConfirmId)}
-                                    className="flex-1 py-3 px-4 rounded-xl bg-purple-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
+                                    className="flex-1 py-3 px-4 rounded-xl bg-purple-600 text-[var(--text-main)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
                                 >
                                     Konfirmasi VOID
                                 </button>

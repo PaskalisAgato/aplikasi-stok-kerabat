@@ -394,13 +394,14 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Res
         await db.update(schema.expenses).set({ isDeleted: true }).where(eq(schema.expenses.id, id));
 
         // 2. Reverse Ledger (insert negative expense)
-        if (expenseToReverse.shiftId) {
+        // ONLY if it was originally from CASHIER fund source
+        if (expenseToReverse.shiftId && expenseToReverse.fundSource === 'CASHIER') {
             await CashLedgerService.addEntry({
                 shiftId: expenseToReverse.shiftId,
                 type: 'expense', // Keeping type identical but value negative neutralizes the sum
                 amount: -parseFloat(expenseToReverse.amount),
                 referenceId: expenseToReverse.id,
-                description: `Reverse Pengeluaran: ${expenseToReverse.title}`
+                description: `Reverse Pengeluaran (KASIR): ${expenseToReverse.title}`
             });
         }
 

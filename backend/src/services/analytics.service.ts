@@ -41,7 +41,8 @@ export class AnalyticsService {
 
         // 3. Expenses
         const expenseData = await db.select({
-            totalExpenses: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`
+            totalExpenses: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`,
+            cashierExpenses: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'CASHIER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
         })
         .from(schema.expenses)
         .where(and(gte(schema.expenses.createdAt, todayStart), eq(schema.expenses.isDeleted, false)));
@@ -58,14 +59,15 @@ export class AnalyticsService {
         const cashSales = salesData[0] ? Number(salesData[0].cashRevenue) : 0;
         const nonCash = salesData[0] ? Number(salesData[0].nonCashRevenue) : 0;
         const expenses = expenseData[0] ? Number(expenseData[0].totalExpenses) : 0;
+        const cashierExpenses = expenseData[0] ? Number(expenseData[0].cashierExpenses) : 0;
         const initialCash = activeShiftsCash[0] ? Number(activeShiftsCash[0].totalInitial) : 0;
         
         const costOfGoods = profitData[0] ? Number(profitData[0].totalCost) : 0;
         const totalSelling = profitData[0] ? Number(profitData[0].totalSelling) : 0;
         const grossProfit = totalSelling - costOfGoods;
 
-        // Cash in drawer = Modal + Penjualan Tunai - Pengeluaran
-        const currentCashInDrawer = initialCash + cashSales - expenses;
+        // Cash in drawer = Modal + Penjualan Tunai - Pengeluaran (TIDAK TERMASUK UANG OWNER)
+        const currentCashInDrawer = initialCash + cashSales - cashierExpenses;
 
         return {
             revenue,
@@ -167,7 +169,8 @@ export class AnalyticsService {
         const avgOrder = transCount > 0 ? revenue / transCount : 0;
 
         const expenseData = await db.select({
-            total: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`
+            total: sql<number>`COALESCE(SUM(CAST(${schema.expenses.amount} AS DECIMAL)), 0)`,
+            cashierTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'CASHIER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
         })
         .from(schema.expenses)
         .where(and(
@@ -176,6 +179,7 @@ export class AnalyticsService {
             eq(schema.expenses.isDeleted, false)
         ));
         const totalExpenses = Number(expenseData[0]?.total || 0);
+        const cashierExpensesTotal = Number(expenseData[0]?.cashierTotal || 0);
 
         const profitData = await db.select({
             totalCost: sql<number>`COALESCE(SUM(CAST(${schema.saleItems.costPrice} AS DECIMAL) * ${schema.saleItems.quantity}), 0)`,
@@ -320,8 +324,8 @@ export class AnalyticsService {
                 totalTransactions: transCount,
                 avgOrderValue: avgOrder,
                 totalExpenses,
-                grossProfit: grossProfit - totalExpenses // User wants Profit Kotor (Revenue - Expenses) or (Total Selling - Cost - Expenses)?
-                // Goal description: Profit Kotor (Revenue - Expenses)
+                // Net Profit = Revenue (All Sales - Discounts) - COGS - All Expenses
+                grossProfit: grossProfit - totalExpenses 
             },
             hourlySales: hourlySales.rows,
             topProducts,
@@ -375,6 +379,13 @@ export class AnalyticsService {
                 WHERE shift_id = ${schema.shifts.id} 
                     AND is_deleted = false
             ), 0)`,
+            cashierExpenses: sql<number>`COALESCE((
+                SELECT SUM(CAST(amount AS DECIMAL)) 
+                FROM expenses 
+                WHERE shift_id = ${schema.shifts.id} 
+                    AND is_deleted = false
+                    AND fund_source = 'CASHIER'
+            ), 0)`,
             transactionCount: sql<number>`(
                 SELECT COUNT(*) 
                 FROM sales 
@@ -397,9 +408,10 @@ export class AnalyticsService {
             const sales = Number(r.totalSales || 0);
             const cashSales = Number(r.cashSales || 0);
             const expenses = Number(r.totalExpenses || 0);
+            const cashierExpenses = Number(r.cashierExpenses || 0);
             
-            // cashDrawer = initialCash + cashSales - expenses
-            const cashDrawer = initial + cashSales - expenses;
+            // cashDrawer = initialCash + cashSales - cashierExpenses (Exclude Owner Money)
+            const cashDrawer = initial + cashSales - cashierExpenses;
             const profit = sales - expenses;
 
             return {

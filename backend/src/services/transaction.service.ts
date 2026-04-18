@@ -129,7 +129,7 @@ export class TransactionService {
 
     // 3. PROCESS CHECKOUT (CREATE)
     static async processCheckout(data: any, userId: string) {
-        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod, paymentReferenceId } = data;
+        const { id: offlineId, shiftId, items, subTotal, totalAmount, paymentMethod, paymentReferenceId, sourceId } = data;
 
         // 0. Idempotency Check (Offline ID)
         if (offlineId) {
@@ -185,37 +185,88 @@ export class TransactionService {
             throw new Error('Shift belum dibuka. Tidak bisa melakukan transaksi.');
         }
 
-        const saleValues: any = {
-            offlineId: offlineId || null,
-            shiftId: activeShift.id,
-            userId,
-            subTotal: serverCalculatedSubTotal.toString(),
-            taxAmount: '0',
-            serviceChargeAmount: '0',
-            totalAmount: serverCalculatedSubTotal.toString(),
-            paymentMethod: paymentMethod || 'CASH',
-            status: data.status || 'PAID',
-            customerInfo: data.customerInfo || null,
-            paymentReferenceId: paymentReferenceId || null,
-            memberId: data.memberId || null,
-            discountId: data.discountId || null,
-            discountTotal: (data.discountTotal || 0).toString(),
-            pointsUsed: data.pointsUsed || 0,
-            pointsEarned: 0, // calculated below
-        };
-
         return await db.transaction(async (tx: any) => {
-            const [newSale] = await tx.insert(schema.sales).values(saleValues).returning({
-                id: schema.sales.id,
-                totalAmount: schema.sales.totalAmount
-            });
+            let finalizedSaleId: number;
+            let finalizedTotalAmount: string;
+
+            if (sourceId) {
+                // --- TRANSITION MODE: Transition OPEN Bill to PAID ---
+                const [existingSale] = await tx.select().from(schema.sales).where(eq(schema.sales.id, sourceId)).limit(1);
+                if (!existingSale) throw new Error('Bill asal tidak ditemukan');
+                
+                // 1. Revert Stock for Old Items
+                const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, sourceId));
+                if (oldItems.length > 0) {
+                    const oldRecipeIds = oldItems.map((i: any) => i.recipeId);
+                    const oldBoms = await tx.select({
+                        recipeId: schema.recipeIngredients.recipeId,
+                        inventoryId: schema.recipeIngredients.inventoryId,
+                        quantity: schema.recipeIngredients.quantity
+                    }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, oldRecipeIds));
+
+                    // Fetch inventory units for intelligent deduction (kg/l handling)
+                    const oldInvIds = [...new Set(oldBoms.map((b: any) => b.inventoryId))] as number[];
+                    let oldInvMap = new Map<number, string>();
+                    if (oldInvIds.length > 0) {
+                        const oldInvItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, oldInvIds));
+                        oldInvMap = new Map(oldInvItems.map((i: any) => [i.id, i.unit]));
+                    }
+
+                    const revertMap = new Map<number, number>();
+                    for (const item of oldItems) {
+                        const boms = oldBoms.filter((b: any) => b.recipeId === item.recipeId);
+                        for (const b of boms) {
+                            const unit = oldInvMap.get(b.inventoryId);
+                            if (!unit) continue;
+                            let qty = parseFloat(b.quantity) * item.quantity;
+                            if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) qty /= 1000;
+                            revertMap.set(b.inventoryId, (revertMap.get(b.inventoryId) || 0) + qty);
+                        }
+                    }
+
+                    for (const [invId, qty] of revertMap.entries()) {
+                        await tx.update(schema.inventory)
+                            .set({ currentStock: sql`${schema.inventory.currentStock} + ${qty}` })
+                            .where(eq(schema.inventory.id, invId));
+                        
+                        await tx.insert(schema.stockMovements).values({
+                            inventoryId: invId,
+                            type: 'IN',
+                            quantity: qty.toString(),
+                            reason: `Revert for Bill Checkout #${sourceId}`
+                        });
+                    }
+
+                    // 2. Clear Old Items
+                    await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, sourceId));
+                }
+
+                // 3. Update Sale Record
+                const [updatedSale] = await tx.update(schema.sales).set({
+                    ...saleValues,
+                    id: undefined, // Don't overwrite ID
+                    offlineId: offlineId || existingSale.offlineId,
+                    createdAt: new Date(), // Reset time to payment time
+                }).where(eq(schema.sales.id, sourceId)).returning();
+                
+                finalizedSaleId = updatedSale.id;
+                finalizedTotalAmount = updatedSale.totalAmount;
+            } else {
+                // --- CREATE MODE: New Transaction ---
+                const [newSale] = await tx.insert(schema.sales).values(saleValues).returning({
+                    id: schema.sales.id,
+                    totalAmount: schema.sales.totalAmount
+                });
+                finalizedSaleId = newSale.id;
+                finalizedTotalAmount = newSale.totalAmount;
+            }
 
             // 1. Bulk insert saleItems using server-verified prices
             const saleItemsInsertData = items.map((item: any) => {
                 const verifiedPrice = priceMap.get(item.recipeId) || 0;
                 const snapCostPrice = costMap.get(item.recipeId) || 0;
                 return {
-                    saleId: newSale.id,
+                    saleId: finalizedSaleId,
                     recipeId: item.recipeId,
                     quantity: item.quantity,
                     subtotal: (verifiedPrice * item.quantity).toString(),
@@ -260,7 +311,7 @@ export class TransactionService {
                     inventoryId: invId,
                     type: 'OUT',
                     quantity: qty.toString(),
-                    reason: `POS Transaction #${newSale.id}`
+                    reason: `POS Transaction #${finalizedSaleId}`
                 }));
                 await tx.insert(schema.stockMovements).values(movementsData);
 
@@ -278,18 +329,18 @@ export class TransactionService {
                 action: 'CREATE_TRANSACTION',
                 tableName: 'sales',
                 oldData: null,
-                newData: JSON.stringify({ sale: newSale, items }),
+                newData: JSON.stringify({ saleId: finalizedSaleId, items }),
                 createdAt: new Date()
             });
 
             // 6. Record to Cash Ledger (Anti-Fraud)
-            if (saleValues.paymentMethod === 'CASH' && saleValues.status === 'PAID') {
+            if (data.paymentMethod === 'CASH' && (data.status === 'PAID' || saleValues.status === 'PAID')) {
                 await tx.insert(schema.cashLedger).values({
                     shiftId: activeShift.id,
                     type: 'sale',
-                    amount: newSale.totalAmount.toString(),
-                    referenceId: newSale.id,
-                    description: `Pemasukan Penjualan ${saleValues.paymentMethod}`
+                    amount: finalizedTotalAmount.toString(),
+                    referenceId: finalizedSaleId,
+                    description: `Pemasukan Penjualan ${data.paymentMethod || 'CASH'}`
                 });
             }
 
@@ -302,7 +353,7 @@ export class TransactionService {
                 // Update sale with earned points
                 await tx.update(schema.sales)
                     .set({ pointsEarned })
-                    .where(eq(schema.sales.id, newSale.id));
+                    .where(eq(schema.sales.id, finalizedSaleId));
 
                 // Deduct used & add earned to member
                 const delta = pointsEarned - pointsUsed;
@@ -317,7 +368,7 @@ export class TransactionService {
                     .where(eq(schema.members.id, saleValues.memberId));
             }
 
-            return { success: true, transactionId: newSale.id };
+            return { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
         });
     }
 

@@ -475,6 +475,7 @@ function App() {
                 discountId: selectedDiscount?.id || null,
                 discountTotal: discountAmount + pointsDiscountAmount,
                 pointsUsed: pointsToRedeem,
+                sourceId: currentBillId, // Correctly link to the open bill being PAID
             };
 
             const printData: PrintData = {
@@ -1205,7 +1206,7 @@ function App() {
                                                     <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
                                                         <span className="material-symbols-outlined text-sm text-primary">person</span>
                                                     </div>
-                                                    <span className="text-[11px] font-black text-white truncate max-w-[120px]">{activeShift.userName || 'Kasir'}</span>
+                                                    <span className="text-[11px] font-black text-[var(--text-main)] truncate max-w-[120px]">{activeShift.userName || 'Kasir'}</span>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button
