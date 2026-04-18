@@ -302,9 +302,9 @@ function App() {
                      <div key={d.name} className="flex justify-between items-center text-[10px] font-black uppercase">
                        <div className="flex items-center gap-2">
                          <div className="size-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                         <span className="opacity-60">{d.name}</span>
+                         <span className="text-[var(--text-muted)] opacity-80">{d.name}</span>
                        </div>
-                       <span>Rp {d.value.toLocaleString()}</span>
+                       <span className="text-[var(--text-main)]">Rp {d.value.toLocaleString()}</span>
                      </div>
                    ))}
                 </div>
@@ -317,7 +317,7 @@ function App() {
                     {topProducts.map((p, i) => (
                       <div key={i} className="space-y-2">
                         <div className="flex justify-between items-end text-xs">
-                          <p className="font-black text-white uppercase">{p.name}</p>
+                          <p className="font-black text-[var(--text-main)] uppercase">{p.name}</p>
                           <p className="text-primary font-black uppercase tracking-tighter">{p.totalQty} terjual</p>
                         </div>
                         <div className="h-3 bg-white/5 rounded-full overflow-hidden flex">
@@ -342,10 +342,10 @@ function App() {
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className={`text-xl font-black ${i === 0 ? 'text-primary' : 'opacity-20'}`}># {i + 1}</span>
-                            <p className="text-[11px] font-black text-white uppercase">{c.name}</p>
+                            <p className="text-[11px] font-black text-[var(--text-main)] uppercase">{c.name}</p>
                           </div>
                           <div className="text-right">
-                             <p className="text-xs font-black text-white">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
+                             <p className="text-xs font-black text-[var(--text-main)]">Rp {parseFloat(c.salesVolume).toLocaleString()}</p>
                              <p className="text-[9px] font-bold text-primary">{c.transactionCount} Tx</p>
                           </div>
                         </div>
@@ -368,8 +368,8 @@ function App() {
                           </div>
                         ) : alerts.map((a, i) => (
                           <div key={i} className={`p-4 rounded-2xl border ${a.type === 'VOID' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                             <p className="text-[10px] font-black text-white leading-tight">{a.message}</p>
-                             <p className="text-[9px] opacity-60 mt-2 italic">Ket: {a.detail}</p>
+                             <p className="text-[10px] font-black text-[var(--text-main)] leading-tight">{a.message}</p>
+                             <p className="text-[9px] text-[var(--text-muted)] mt-2 italic">Ket: {a.detail}</p>
                              <p className="text-[8px] font-black uppercase tracking-tighter text-primary mt-1">{new Date(a.time).toLocaleTimeString()}</p>
                           </div>
                         ))}
@@ -385,11 +385,11 @@ function App() {
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {expenses.recent.map((exp, i) => (
-                      <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl">
-                         <p className="text-[10px] font-black uppercase opacity-40 mb-1">{exp.category}</p>
-                         <p className="text-xs font-black text-white truncate">{exp.title}</p>
+                      <div key={i} className="p-4 glass-lite border border-white/5 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">{exp.category}</p>
+                         <p className="text-xs font-black text-[var(--text-main)] truncate">{exp.title}</p>
                          <p className="text-sm font-black text-red-500 mt-2">Rp {parseFloat(exp.amount).toLocaleString()}</p>
-                         <p className="text-[8px] font-black uppercase tracking-tighter mt-1 opacity-40">{new Date(exp.expenseDate).toLocaleDateString()}</p>
+                         <p className="text-[8px] font-black uppercase tracking-tighter mt-1 text-[var(--text-muted)] opacity-60">{new Date(exp.expenseDate).toLocaleDateString()}</p>
                       </div>
                     ))}
                     {expenses.recent.length === 0 && <p className="col-span-5 text-center py-10 opacity-20 text-[10px] uppercase font-bold">Tidak ada pengeluaran</p>}
@@ -400,7 +400,7 @@ function App() {
               <div className="lg:col-span-12 space-y-8 mt-10">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                       <div>
-                          <h2 className="text-2xl font-black tracking-tight text-white uppercase">Laporan Penjualan Harian</h2>
+                          <h2 className="text-2xl font-black tracking-tight text-[var(--text-main)] uppercase">Laporan Penjualan Harian</h2>
                           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
                       </div>
                        <div className="flex items-center gap-2">
@@ -432,9 +432,9 @@ function App() {
                               ))}
                               
                               {reports.length === 0 && (
-                                  <div className="py-20 bg-white/5 rounded-[2.5rem] border border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
-                                      <span className="material-symbols-outlined text-4xl opacity-10 mb-4">history</span>
-                                      <p className="text-xs font-black text-white/20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
+                                  <div className="py-20 glass border-white/5 border-dashed flex flex-col items-center justify-center text-center p-10">
+                                      <span className="material-symbols-outlined text-4xl text-[var(--text-main)] opacity-10 mb-4">history</span>
+                                      <p className="text-xs font-black text-[var(--text-main)] opacity-20 uppercase tracking-[0.2em]">Belum ada riwayat laporan untuk periode ini</p>
                                   </div>
                               )}
                           </>
@@ -459,8 +459,8 @@ function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffi
         {isHighlight && <div className="text-[8px] font-black uppercase bg-slate-950/20 px-2 py-1 rounded-full">Primary Metric</div>}
       </div>
       <div>
-        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-slate-950/60' : 'opacity-40'}`}>{title}</p>
-        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-slate-950' : 'text-white'}`}>
+        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-slate-950/60' : 'text-[var(--text-muted)] opacity-60'}`}>{title}</p>
+        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-slate-950' : 'text-[var(--text-main)]'}`}>
            {!noCurrency && <span className="text-[10px] mr-1 uppercase opacity-60">Rp</span>}
            {parseFloat(value || 0).toLocaleString()}
            {suffix && <span className="text-[10px] ml-1 uppercase opacity-60">{suffix}</span>}

@@ -2,7 +2,7 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
   const isProfit = report.profit >= 0;
 
   return (
-    <div className="bg-[#0f172a] border border-white/5 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 group" id={`report-${report.id}`}>
+    <div className="glass border border-white/5 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 group" id={`report-${report.id}`}>
       {/* ... existing header and body ... */}
       {/* HEADER: WAKTU & KASIR */}
       <div className="p-4 md:p-6 border-b border-white/5 bg-white/[0.03] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -13,12 +13,12 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
             </span>
           </div>
           <div>
-            <h4 className="text-sm md:text-base font-black text-white uppercase tracking-tight">{report.date}</h4>
+            <h4 className="text-sm md:text-base font-black text-[var(--text-main)] uppercase tracking-tight">{report.date}</h4>
             <div className="flex items-center gap-2 md:gap-3 mt-1">
-              <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest ${report.status === 'OPEN' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'bg-white/10 text-white/60'}`}>
+              <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest ${report.status === 'OPEN' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'bg-white/10 text-[var(--text-main)] opacity-60'}`}>
                 {report.status === 'OPEN' ? 'Open' : 'Closed'}
               </span>
-              <p className="text-[10px] md:text-[11px] font-bold text-white/40 flex items-center gap-1">
+              <p className="text-[10px] md:text-[11px] font-bold text-[var(--text-muted)] flex items-center gap-1">
                 <span className="material-symbols-outlined text-[12px] md:text-[14px]">schedule</span>
                 {report.startTime} — {report.endTime}
               </p>
@@ -31,8 +31,8 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
                 <span className="material-symbols-outlined text-lg md:text-xl text-primary font-black">person</span>
             </div>
             <div className="text-left">
-                <p className="text-[8px] md:text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Partner</p>
-                <p className="text-[10px] md:text-xs font-black text-white uppercase tracking-tight">{report.cashierName}</p>
+                <p className="text-[8px] md:text-[9px] font-black text-[var(--text-muted)] opacity-60 uppercase tracking-[0.2em]">Partner</p>
+                <p className="text-[10px] md:text-xs font-black text-[var(--text-main)] uppercase tracking-tight">{report.cashierName}</p>
             </div>
         </div>
       </div>
@@ -46,19 +46,19 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
           <div className="space-y-6 md:space-y-8">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary text-xs md:text-sm">analytics</span>
-                <h5 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Aliran Penjualan</h5>
+                <h5 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Aliran Penjualan</h5>
               </div>
 
               <div className="grid grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-1">
-                      <p className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">Mulai (Modal)</p>
-                      <p className="text-xl md:text-2xl font-black text-white tracking-tight">
-                        <span className="text-[10px] md:text-xs opacity-40 mr-1">Rp</span>
+                      <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Mulai (Modal)</p>
+                      <p className="text-xl md:text-2xl font-black text-[var(--text-main)] tracking-tight">
+                        <span className="text-[10px] md:text-xs text-[var(--text-muted)] opacity-60 mr-1">Rp</span>
                         {report.initialCash.toLocaleString()}
                       </p>
                   </div>
                   <div className="space-y-1 text-right">
-                      <p className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">Penjualan</p>
+                      <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Penjualan</p>
                       <p className="text-xl md:text-2xl font-black text-emerald-500 tracking-tight">
                         <span className="text-sm md:text-base font-black mr-1">+</span>
                         {report.totalSales.toLocaleString()}
@@ -87,19 +87,19 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
           <div className="space-y-6 md:space-y-8">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-red-500 text-xs md:text-sm">account_balance_wallet</span>
-                <h5 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Arus Kas & Biaya</h5>
+                <h5 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Arus Kas & Biaya</h5>
               </div>
 
               <div className="grid grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-1">
-                      <p className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">Masuk (Lainnya)</p>
-                      <p className="text-xl md:text-2xl font-black text-white tracking-tight">
-                        <span className="text-[10px] md:text-xs opacity-40 mr-1">Rp</span>
+                      <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Masuk (Lainnya)</p>
+                      <p className="text-xl md:text-2xl font-black text-[var(--text-main)] tracking-tight">
+                        <span className="text-[10px] md:text-xs text-[var(--text-muted)] opacity-60 mr-1">Rp</span>
                         {report.cashIn.toLocaleString()}
                       </p>
                   </div>
                   <div className="space-y-1 text-right">
-                      <p className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">Keluar (Biaya)</p>
+                      <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Keluar (Biaya)</p>
                       <p className="text-xl md:text-2xl font-black text-red-500 tracking-tight">
                         <span className="text-sm md:text-base font-black mr-1">-</span>
                         {report.totalExpenses.toLocaleString()}
@@ -118,8 +118,8 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
                           <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
                               Laci Kasir (Estimasi)
                           </p>
-                          <p className="text-2xl md:text-3xl font-black text-white tracking-tighter">
-                            <span className="text-[10px] md:text-sm opacity-40 mr-1.5 uppercase font-bold">Rp</span>
+                          <p className="text-2xl md:text-3xl font-black text-[var(--text-main)] tracking-tighter">
+                            <span className="text-[10px] md:text-sm text-[var(--text-muted)] opacity-60 mr-1.5 uppercase font-bold">Rp</span>
                             {report.cashDrawer.toLocaleString()}
                           </p>
                       </div>
@@ -140,7 +140,7 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
                       <div className="flex items-center gap-2 bg-black/40 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-white/5">
                           <span className={`size-1.5 md:size-2 rounded-full ${isProfit ? 'bg-emerald-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}></span>
                           <p className={`text-[9px] md:text-[11px] font-black uppercase tracking-tight ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {isProfit ? 'Profit' : 'Defisit'}: <span className="text-white ml-1">Rp {Math.abs(report.profit).toLocaleString()}</span>
+                            {isProfit ? 'Profit' : 'Defisit'}: <span className="text-[var(--text-main)] ml-1">Rp {Math.abs(report.profit).toLocaleString()}</span>
                           </p>
                       </div>
                   </div>
