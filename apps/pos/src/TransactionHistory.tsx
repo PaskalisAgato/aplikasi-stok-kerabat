@@ -74,8 +74,21 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const handleDelete = async (id: number) => {
+        const tx = transactions.find(t => t.id === id);
+        const pin = prompt('Masukkan PIN Supervisor untuk menghapus:');
+        if (pin !== '1234') {
+            showNotification('PIN Salah! Akses ditolak.', 'error');
+            return;
+        }
+
         try {
-            await syncEngine.enqueue('DELETE_TRANSACTION', { id });
+            // Pass point context for reversal recovery on server or secondary actions
+            await syncEngine.enqueue('DELETE_TRANSACTION', { 
+                id,
+                memberId: tx?.memberId,
+                pointsUsed: tx?.pointsUsed,
+                pointsEarned: tx?.pointsEarned
+            });
 
             showNotification('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.', "info");
             setDeleteConfirmId(null);
@@ -92,13 +105,20 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             showNotification('Alasan pembatalan harus diisi.', "warning");
             return;
         }
+        
+        const tx = transactions.find(t => t.id === id);
         try {
-            await syncEngine.enqueue('VOID', { id, reason: voidReason });
+            await syncEngine.enqueue('VOID', { 
+                id, 
+                reason: voidReason,
+                memberId: tx?.memberId,
+                pointsUsed: tx?.pointsUsed,
+                pointsEarned: tx?.pointsEarned
+            });
 
             showNotification('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.', "success");
             setVoidConfirmId(null);
             setVoidReason("");
-            // Optimistically or eventually the network will update it.
             loadData();
         } catch (error: any) {
             showNotification(`Gagal membatalkan: ${error.message}`, "error");
@@ -106,6 +126,12 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const handleClearHistory = async () => {
+        const pin = prompt('KONFIRMASI KRUSIAL: Masukkan PIN Supervisor untuk MENGHAPUS SEMUA riwayat:');
+        if (pin !== '1234') {
+            showNotification('PIN Salah! Akses ditolak.', 'error');
+            return;
+        }
+
         try {
             await apiClient.clearTransactions();
             showNotification('Seluruh riwayat transaksi berhasil dihapus.', "success");

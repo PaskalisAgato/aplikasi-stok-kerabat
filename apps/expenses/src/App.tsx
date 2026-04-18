@@ -130,7 +130,12 @@ function App() {
   };
 
   const handleDeleteExpense = async (id: number) => {
-    if (!window.confirm('Hapus kartu pengeluaran ini?')) return;
+    const pin = prompt('Masukkan PIN Supervisor untuk menghapus pengeluaran:');
+    if (pin !== '1234') {
+        alert('PIN Salah! Akses ditolak.');
+        return;
+    }
+    
     try {
       await apiClient.deleteExpense(id);
       fetchExpenses(false);
