@@ -10,8 +10,7 @@ const API_BASE = (() => {
 })();
 
 async function apiFetch(path: string, init?: RequestInit) {
-  const sessionKey = Object.keys(localStorage).find(k => k.startsWith('kerabat-session'));
-  const token = sessionKey ? localStorage.getItem(sessionKey) : null;
+  const token = localStorage.getItem('kerabat_auth_token');
   const res = await fetch(`${API_BASE}/api${path}`, {
     credentials: 'include',
     ...init,
