@@ -350,7 +350,7 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
         });
 
         // ONLY add to Cash Ledger if it uses Cashier's money (drawer)
-        if (fundSource === 'CASHIER') {
+        if (fundSource === 'CASHIER' && activeShift) {
             await CashLedgerService.addEntry({
                 shiftId: activeShift.id,
                 type: 'expense',
