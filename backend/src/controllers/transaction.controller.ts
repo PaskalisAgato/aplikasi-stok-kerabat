@@ -129,14 +129,15 @@ export class TransactionController {
     static async delete(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id as string);
+            const { adminPin } = req.body;
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
             
             const adminId = (req as any).user?.id || 'admin';
-            await TransactionService.deleteTransaction(id, adminId);
+            await TransactionService.deleteTransaction(id, adminId, adminPin);
             res.json({ success: true, message: 'Transaksi berhasil dihapus (Soft Delete)' });
         } catch (error: any) {
             console.error('--- TransactionController.delete ERROR ---', error);
-            res.status(500).json({ success: false, message: 'Gagal menghapus transaksi' });
+            res.status(500).json({ success: false, message: 'Gagal menghapus transaksi: ' + error.message });
         }
     }
 

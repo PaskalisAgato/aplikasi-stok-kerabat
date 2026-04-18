@@ -82,12 +82,13 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         }
 
         try {
-            // Pass point context for reversal recovery on server or secondary actions
+            // Pass point context + adminPin for reversal recovery and server auth
             await syncEngine.enqueue('DELETE_TRANSACTION', { 
                 id,
                 memberId: tx?.memberId,
                 pointsUsed: tx?.pointsUsed,
-                pointsEarned: tx?.pointsEarned
+                pointsEarned: tx?.pointsEarned,
+                adminPin: pin // NEW: Send PIN to server
             });
 
             showNotification('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.', "info");
@@ -105,6 +106,12 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             showNotification('Alasan pembatalan harus diisi.', "warning");
             return;
         }
+
+        const pin = prompt('Masukkan PIN Supervisor untuk pembatalan (Void):');
+        if (pin !== '1234') {
+            showNotification('PIN Salah! Akses ditolak.', 'error');
+            return;
+        }
         
         const tx = transactions.find(t => t.id === id);
         try {
@@ -113,7 +120,8 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 reason: voidReason,
                 memberId: tx?.memberId,
                 pointsUsed: tx?.pointsUsed,
-                pointsEarned: tx?.pointsEarned
+                pointsEarned: tx?.pointsEarned,
+                adminPin: pin // NEW: Send PIN to server
             });
 
             showNotification('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.', "success");

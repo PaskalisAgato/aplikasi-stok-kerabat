@@ -262,7 +262,7 @@ class SyncEngine {
       else if (action.type === 'SPLIT_BILL') path = '/transactions/split';
 
       if (useDelete) {
-          await apiClient.deleteWithIdempotency(path, action.idempotency_key);
+          await apiClient.deleteWithIdempotency(path, action.idempotency_key, action.payload);
       } else {
           await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
       }

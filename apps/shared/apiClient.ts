@@ -435,8 +435,8 @@ export const apiClient = {
     post: (path: string, body: any) => apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body) }),
     postWithIdempotency: (path: string, body: any, idempotencyKey: string) => 
         apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body), idempotencyKey } as any),
-    deleteWithIdempotency: (path: string, idempotencyKey: string) => 
-        apiFetch<any>(path, { method: 'DELETE', idempotencyKey } as any),
+    deleteWithIdempotency: (path: string, idempotencyKey: string, body?: any) => 
+        apiFetch<any>(path, { method: 'DELETE', idempotencyKey, body: body ? JSON.stringify(body) : undefined } as any),
     put: (path: string, body: any) => apiFetch<any>(path, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (path: string) => apiFetch<any>(path, { method: 'DELETE' }),
 };

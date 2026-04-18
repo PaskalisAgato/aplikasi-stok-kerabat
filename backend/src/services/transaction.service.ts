@@ -647,7 +647,24 @@ export class TransactionService {
     }
 
     // 5. DELETE TRANSACTION
-    static async deleteTransaction(saleId: number, adminId: string) {
+    static async deleteTransaction(saleId: number, adminId: string, adminPin?: string) {
+        // 1. HARDENING: Anti-Fraud Delete Rules (Similar to VOID)
+        const [sale] = await db.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
+        if (!sale) throw new Error('Transaction not found');
+
+        const transactionAgeMinutes = (Date.now() - new Date(sale.createdAt).getTime()) / (1000 * 60);
+        const requiresAdminApproval = transactionAgeMinutes > 2 || sale.paymentMethod === 'CASH';
+
+        if (requiresAdminApproval) {
+            if (!adminPin) {
+                throw new Error('OTORISASI DIPERLUKAN: Penghapusan transaksi lama atau transaksi tunai wajib menggunakan PIN Admin.');
+            }
+            const isValidAdmin = await this.verifyAdminPin(adminPin);
+            if (!isValidAdmin) {
+                throw new Error('PIN Admin tidak valid. Gagal menghapus transaksi.');
+            }
+        }
+
         return await db.transaction(async (tx: any) => {
             const oldSaleArr = await tx.select().from(schema.sales).where(eq(schema.sales.id, saleId)).limit(1);
             if (oldSaleArr.length === 0) throw new Error('Transaction not found');
@@ -663,7 +680,7 @@ export class TransactionService {
             // Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
-                action: 'SOFT_DELETE_TRANSACTION',
+                action: 'SOFT_DELETE_TRANSACTION_HARDENED',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
                 newData: { isDeleted: true },
@@ -700,6 +717,23 @@ export class TransactionService {
 
         return await db.transaction(async (tx) => {
             const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
+
+            // 3. REVERT POINTS (Loyalty Integrity)
+            if (sale.memberId) {
+                const pointsToSubtract = sale.pointsEarned || 0;
+                const pointsToAddBack = sale.pointsUsed || 0;
+                const pointAdjustment = pointsToAddBack - pointsToSubtract;
+
+                if (pointAdjustment !== 0) {
+                    await tx.update(schema.members)
+                        .set({ 
+                            points: sql`${schema.members.points} + ${pointAdjustment}` 
+                        })
+                        .where(eq(schema.members.id, sale.memberId));
+
+                    console.log(`[Loyalty Reversal] memberId: ${sale.memberId} | adj: ${pointAdjustment} (Earned: -${pointsToSubtract}, Used: +${pointsToAddBack})`);
+                }
+            }
 
             // Mark as voided
             await tx.update(schema.sales)
