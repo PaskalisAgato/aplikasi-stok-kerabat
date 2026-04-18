@@ -316,12 +316,12 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             return res.status(400).json({ success: false, message: 'Data pengeluaran tidak lengkap atau nominal tidak valid' });
         }
 
-        // 2. HARDENING: Active Shift Guard (MANDATORY)
+        // 2. HARDENING: Active Shift Guard
         const userId = (req as any).user?.id;
         const activeShift = userId ? await CashierShiftService.getActiveShift(userId) : null;
         
-        if (!activeShift) {
-            return res.status(403).json({ success: false, message: 'KEAMANAN: Tidak bisa mencatat pengeluaran tanpa shift aktif. Silakan buka shift terlebih dahulu.' });
+        if (!activeShift && fundSource === 'CASHIER') {
+            return res.status(403).json({ success: false, message: 'KEAMANAN: Tidak bisa mencatat pengeluaran KASIR tanpa shift aktif. Silakan buka shift terlebih dahulu.' });
         }
 
         let expenseDate = new Date();
@@ -340,7 +340,7 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             receiptUrl: receiptUrl || null,
             expenseDate: expenseDate,
             userId: userId || null,
-            shiftId: activeShift.id,
+            shiftId: activeShift ? activeShift.id : null,
             fundSource: fundSource
         }).returning({
             id: schema.expenses.id,
@@ -365,7 +365,7 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
         // 3. Save for idempotency
         await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 201);
 
-        console.log(`[FinanceAPI-Hardened] Expense recorded: "${title}" | Shift: ${activeShift.id}`);
+        console.log(`[FinanceAPI-Hardened] Expense recorded: "${title}" | Shift: ${activeShift ? activeShift.id : 'NONE'}`);
         res.status(201).json(responseBody);
     } catch (error) {
         console.error('[FinanceAPI] Error adding expense:', error);
