@@ -268,6 +268,7 @@ function MemberTab() {
 // ─── Discount Tab ─────────────────────────────────────────────────────────────
 function DiscountTab() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
   const [selected, setSelected] = useState<Discount | null>(null);
@@ -280,13 +281,20 @@ function DiscountTab() {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [prodSearch, setProdSearch] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const res = await apiFetch('/discounts');
-      setDiscounts(res.data || []);
-    } catch { } finally { setLoading(false); }
+    try { 
+      const [dRes, pRes] = await Promise.all([
+        apiFetch('/discounts'),
+        apiFetch('/products')
+      ]);
+      setDiscounts(dRes || []);
+      setProducts(pRes.data || []);
+    }
+    catch (e: any) { console.error(e); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -465,9 +473,30 @@ function DiscountTab() {
             </>
           )}
           {form.type === 'bundling' && (
-            <Field label="ID Produk Bundling (pisahkan dengan koma)">
-              <input value={form.productIds} onChange={e => setForm((f: any) => ({ ...f, productIds: e.target.value }))} placeholder="contoh: 1,5,12" style={inputStyle} />
-            </Field>
+            <>
+              <Field label="ID Produk Bundling (pisahkan dengan koma)">
+                <input value={form.productIds} onChange={e => setForm((f: any) => ({ ...f, productIds: e.target.value }))} placeholder="contoh: 1,5,12" style={inputStyle} />
+              </Field>
+              <div style={{ marginTop: 8, padding: 12, borderRadius: 12, background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Katalog Produk (ID)</span>
+                  <input 
+                    placeholder="Cari menu..." 
+                    style={{ ...inputStyle, width: '120px', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                    value={prodSearch}
+                    onChange={e => setProdSearch(e.target.value)}
+                  />
+                </div>
+                <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                  {products.filter(p => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p => (
+                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: '0.7rem' }}>
+                      <span style={{ fontWeight: 900, color: 'var(--primary)', minWidth: 20 }}>#{p.id}</span>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
           {form.type === 'member' && (
             <Field label="Level Minimum Member">
