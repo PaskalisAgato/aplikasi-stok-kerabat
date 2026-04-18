@@ -509,6 +509,9 @@ function App() {
             await syncEngine.enqueue('CHECKOUT', { ...checkoutData, status: 'PAID', customerInfo });
 
             // 3. UI Optimistic Success
+            if (currentBillId) {
+                setOpenBills(prev => prev.filter(b => b.id !== currentBillId));
+            }
             setSales({});
             setItemNotes({});
             setPaymentMethod('CASH');
