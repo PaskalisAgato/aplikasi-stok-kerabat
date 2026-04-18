@@ -1048,11 +1048,19 @@ function App() {
                             setIsActionMenuOpen(false); 
                             if (!showMemberPanel) searchMembers('');
                         }}
-                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
+                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 relative ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
                         title="Pilih Member"
                     >
                         <span className="material-symbols-outlined text-lg">person_search</span>
-                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedMember ? selectedMember.name.substring(0,10) : 'Member'}</span>
+                        <div className="flex flex-col items-start leading-none gap-0.5">
+                            <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedMember ? selectedMember.name.substring(0,12) : 'Member'}</span>
+                            {selectedMember && (
+                                <span className="text-[7px] hidden sm:inline uppercase font-black tracking-tighter text-emerald-700 opacity-80">Aktif</span>
+                            )}
+                        </div>
+                        {selectedMember && (
+                            <span className="absolute -top-1 -right-1 size-3 bg-emerald-500 border-2 border-[#0b1220] rounded-full shadow-lg animate-pulse" />
+                        )}
                     </button>
                     {showMemberPanel && (
                         <>
