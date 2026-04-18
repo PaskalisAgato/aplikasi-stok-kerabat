@@ -1021,7 +1021,7 @@ function App() {
                     {showMemberPanel && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowMemberPanel(false)} />
-                            <div className={`absolute left-0 sm:left-auto sm:right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                         <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
@@ -1106,7 +1106,7 @@ function App() {
                     {showDiscountPanel && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowDiscountPanel(false)} />
-                            <div className={`absolute left-0 sm:left-auto sm:right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                         <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
