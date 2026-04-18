@@ -5,6 +5,7 @@ import { eq, sql, and, gte, desc, ilike } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export const inventoryRouter = Router();
 
@@ -588,6 +589,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 discountPrice: schema.inventory.discountPrice,
                 containerWeight: schema.inventory.containerWeight,
                 currentStock: schema.inventory.currentStock,
+                imageUrl: schema.inventory.imageUrl,
                 version: schema.inventory.version,
                 isDeleted: schema.inventory.isDeleted
             }).from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
@@ -676,7 +678,6 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                     ...(discountPrice !== undefined && { discountPrice: newDiscount }),
                     ...(containerWeight !== undefined && { containerWeight: containerWeight.toString() }),
                     ...(containerId !== undefined && { containerId: containerId ? parseInt(containerId.toString()) : null }),
-                    ...(imageUrl !== undefined && { imageUrl }),
                     ...(newStock !== oldStock && { currentStock: newStock.toString() }),
                     version: new Date() // Update version on every change
                 })
@@ -706,18 +707,23 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
                 createdAt: new Date()
             });
 
-            return updatedItem;
+            return { updatedItem, oldImageUrl: oldItem.imageUrl, newImageUrl: imageUrl };
         });
 
         if (results?.error) {
             return res.status(results.status).json({ success: false, message: results.error });
         }
 
-        if (!results) {
+        if (!results || !results.updatedItem) {
             return res.status(404).json({ success: false, message: 'Item tidak ditemukan' }); // Changed message as per instruction
         }
 
-        res.json({ success: true, data: results });
+        // Delete old image if a new one was provided
+        if (results.newImageUrl !== undefined && results.oldImageUrl !== results.newImageUrl && results.oldImageUrl?.includes('cloudinary.com')) {
+            deleteFromCloudinary(results.oldImageUrl).catch(console.error);
+        }
+
+        res.json({ success: true, data: results.updatedItem });
     } catch (error) {
         console.error('Error updating inventory item:', error);
         res.status(500).json({ success: false, message: 'Gagal memperbarui item inventaris' });
@@ -872,7 +878,8 @@ inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) 
 
         const item = await db.select({
             id: schema.inventory.id,
-            name: schema.inventory.name
+            name: schema.inventory.name,
+            imageUrl: schema.inventory.imageUrl
         }).from(schema.inventory).where(eq(schema.inventory.id, inventoryId)).limit(1);
         if (item.length === 0) {
             return res.status(404).json({ error: 'Item not found' });
@@ -896,6 +903,11 @@ inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) 
                 createdAt: new Date()
             });
         });
+
+        // Delete from Cloudinary
+        if (item[0].imageUrl && item[0].imageUrl.includes('cloudinary.com')) {
+            deleteFromCloudinary(item[0].imageUrl).catch(console.error);
+        }
 
         res.json({ success: true, message: 'Item deleted successfully' });
     } catch (error) {

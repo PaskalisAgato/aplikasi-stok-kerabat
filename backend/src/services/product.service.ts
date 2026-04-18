@@ -1,6 +1,7 @@
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export class ProductService {
     static async getAllProducts() {
@@ -121,15 +122,29 @@ export class ProductService {
             return isNaN(num) ? '0' : num.toString();
         };
 
-        return await db.transaction(async (tx: any) => {
+        const result: any = await db.transaction(async (tx: any) => {
             try {
                 const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
 
-                // 1. Update main recipe data
+                // 1. Fetch old recipe to check for image updates
+                const [oldRecipe] = await tx.select({ imageUrl: schema.recipes.imageUrl })
+                    .from(schema.recipes)
+                    .where(eq(schema.recipes.id, id))
+                    .limit(1);
+
+                // 2. Update main recipe data
                 const updatePayload: any = {};
                 if (name) updatePayload.name = name;
                 if (category) updatePayload.category = category;
-                if (imageUrl !== undefined) updatePayload.imageUrl = imageUrl;
+                
+                let oldImageToDelete: string | null = null;
+                if (imageUrl !== undefined) {
+                    updatePayload.imageUrl = imageUrl;
+                    if (oldRecipe?.imageUrl && oldRecipe.imageUrl !== imageUrl && oldRecipe.imageUrl.includes('cloudinary.com')) {
+                        // Mark for deletion after successful transaction
+                        oldImageToDelete = oldRecipe.imageUrl;
+                    }
+                }
 
                 const priceStr = toNumericString(price);
                 if (priceStr !== null) updatePayload.price = priceStr;
@@ -166,17 +181,39 @@ export class ProductService {
                     }
                 }
                 
-                return { success: true };
+                return { success: true, oldImageToDelete };
             } catch (error) {
                 console.error(`[ProductService.updateProduct] Transaction failed for ID ${id}:`, error);
                 throw error;
             }
         });
+
+        if (result?.oldImageToDelete) {
+            // Delete old image asynchronously after successful commit
+            deleteFromCloudinary(result.oldImageToDelete).catch(err => 
+                console.error('[Cloudinary Cleanup] Failed:', err)
+            );
+        }
+
+        return result;
     }
 
     static async deleteProduct(id: number) {
-        return await db.update(schema.recipes)
+        const [recipe] = await db.select({ imageUrl: schema.recipes.imageUrl })
+            .from(schema.recipes)
+            .where(eq(schema.recipes.id, id))
+            .limit(1);
+
+        const result = await db.update(schema.recipes)
             .set({ isActive: false })
             .where(eq(schema.recipes.id, id));
+            
+        if (recipe?.imageUrl && recipe.imageUrl.includes('cloudinary.com')) {
+            // Cleanup Cloudinary asynchronously
+            deleteFromCloudinary(recipe.imageUrl).catch(console.error);
+        }
+
+        return result;
     }
 }
+

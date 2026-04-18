@@ -7,6 +7,7 @@ import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
 import { CashierShiftService } from '../services/cashierShift.service.js';
 import { IdempotencyService } from '../services/idempotency.service.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export const financeRouter = Router();
 
@@ -414,6 +415,11 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Res
             newData: JSON.stringify({ isDeleted: true, status: 'REVERSED' }),
             createdAt: new Date()
         });
+        
+        // 4. Cloudinary Cleanup
+        if (expenseToReverse.receiptUrl && expenseToReverse.receiptUrl.includes('cloudinary.com')) {
+            deleteFromCloudinary(expenseToReverse.receiptUrl).catch(console.error);
+        }
 
         res.json({ success: true, message: 'Pengeluaran berhasil di-reverse sesuai kebijakan keamanan.' });
     } catch (error) {

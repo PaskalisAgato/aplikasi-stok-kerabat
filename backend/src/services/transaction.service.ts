@@ -189,6 +189,24 @@ export class TransactionService {
             let finalizedSaleId: number;
             let finalizedTotalAmount: string;
 
+            const saleValues = {
+                offlineId: offlineId || null,
+                shiftId: activeShift.id,
+                kasirId: userId,
+                memberId: data.memberId || null,
+                tableNumber: data.tableNumber || null,
+                customerName: data.customerName || null,
+                subTotal: serverCalculatedSubTotal.toString(),
+                totalAmount: serverCalculatedSubTotal.toString(), // Using server calculated for security
+                tax: data.tax?.toString() || '0',
+                discount: data.discount?.toString() || '0',
+                paymentMethod: data.paymentMethod || 'CASH',
+                paymentReferenceId: data.paymentReferenceId || null,
+                status: data.status || 'PAID',
+                pointsUsed: data.pointsUsed || 0,
+                createdAt: new Date()
+            };
+
             if (sourceId) {
                 // --- TRANSITION MODE: Transition OPEN Bill to PAID ---
                 const [existingSale] = await tx.select().from(schema.sales).where(eq(schema.sales.id, sourceId)).limit(1);
