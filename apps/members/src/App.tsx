@@ -33,7 +33,6 @@ interface Member {
   id: number;
   name: string;
   phone: string;
-  email?: string;
   points: number;
   level: 'bronze' | 'silver' | 'gold';
   isActive: boolean;
@@ -204,8 +203,7 @@ function MemberTab() {
                         </div>
                       </td>
                       <td className="p-5">
-                        <p className="text-xs font-medium text-[var(--text-main)]">{m.phone}</p>
-                        <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[150px]">{m.email || '-'}</p>
+                        <p className="text-xs font-black text-primary uppercase tracking-wider">{m.phone}</p>
                       </td>
                       <td className="p-5">
                         <div className="flex flex-col">
