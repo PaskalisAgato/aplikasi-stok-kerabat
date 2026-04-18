@@ -75,11 +75,8 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     const handleDelete = async (id: number) => {
         const tx = transactions.find(t => t.id === id);
-        const pin = prompt('Masukkan PIN Supervisor untuk menghapus:');
-        if (pin !== '1234') {
-            showNotification('PIN Salah! Akses ditolak.', 'error');
-            return;
-        }
+        const pin = prompt('Masukkan PIN Admin/Supervisor untuk menghapus:');
+        if (!pin) return;
 
         try {
             // Pass point context + adminPin for reversal recovery and server auth
@@ -88,13 +85,11 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 memberId: tx?.memberId,
                 pointsUsed: tx?.pointsUsed,
                 pointsEarned: tx?.pointsEarned,
-                adminPin: pin // NEW: Send PIN to server
+                adminPin: pin 
             });
 
-            showNotification('Permintaan penghapusan telah dimasukkan ke dalam antrean sinkronisasi.', "info");
+            showNotification('Permintaan penghapusan dimasukkan ke antrean. Gunakan PIN Admin yang valid (Aga/Yola).', "info");
             setDeleteConfirmId(null);
-            
-            // Optimistic Update
             setTransactions(prev => prev.filter(tx => tx.id !== id));
         } catch (error: any) {
             showNotification(`Gagal menghapus: ${error.message}`, "error");
@@ -107,11 +102,8 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             return;
         }
 
-        const pin = prompt('Masukkan PIN Supervisor untuk pembatalan (Void):');
-        if (pin !== '1234') {
-            showNotification('PIN Salah! Akses ditolak.', 'error');
-            return;
-        }
+        const pin = prompt('Masukkan PIN Admin/Supervisor untuk VOID:');
+        if (!pin) return;
         
         const tx = transactions.find(t => t.id === id);
         try {
@@ -121,10 +113,10 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 memberId: tx?.memberId,
                 pointsUsed: tx?.pointsUsed,
                 pointsEarned: tx?.pointsEarned,
-                adminPin: pin // NEW: Send PIN to server
+                adminPin: pin 
             });
 
-            showNotification('Pembatalan (VOID) telah dimasukkan ke dalam antrean sinkronisasi.', "success");
+            showNotification('VOID dimasukkan ke antrean. Gunakan PIN Admin yang valid (Aga/Yola).', "success");
             setVoidConfirmId(null);
             setVoidReason("");
             loadData();
