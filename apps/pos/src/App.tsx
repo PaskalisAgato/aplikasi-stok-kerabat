@@ -1196,7 +1196,55 @@ function App() {
                         
                         <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                             <div className="space-y-3">
-                                {/* Section: Status & Sync */}
+                                {activeShift && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2">Kasir Aktif</p>
+                                            <div className="bg-primary/5 rounded-xl p-3 border border-primary/20 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-sm text-primary">person</span>
+                                                    </div>
+                                                    <span className="text-[11px] font-black text-white truncate max-w-[120px]">{activeShift.userName || 'Kasir'}</span>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => { setIsActionMenuOpen(false); setIsHandoverShiftOpen(true); }}
+                                                        className="size-8 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center transition-all"
+                                                        title="Oper Shift"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">sync_alt</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={async () => {
+                                                            setIsActionMenuOpen(false);
+                                                            if (pendingSyncs > 0) {
+                                                                showNotification(`Gagal Menutup Shift! Masih ada ${pendingSyncs} antrean cloud.`, "error");
+                                                                return;
+                                                            }
+                                                            try {
+                                                                const summary = await getSummary(activeShift.id);
+                                                                setShiftSummaryData(summary.data);
+                                                                setIsCloseShiftOpen(true);
+                                                            } catch (error: any) {
+                                                                console.error('Failed to load shift summary:', error);
+                                                                showNotification('Gagal memuat ringkasan shift.', 'error');
+                                                            }
+                                                        }}
+                                                        className={`size-8 rounded-lg flex items-center justify-center transition-all ${
+                                                            pendingSyncs > 0 ? 'bg-gray-500/10 text-gray-500' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500'
+                                                        }`}
+                                                        title="Tutup Shift"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">{pendingSyncs > 0 ? 'cloud_sync' : 'logout'}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="h-px bg-white/5 mx-2"></div>
+                                    </>
+                                )}
+
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2">Sinkronisasi</p>
                                     <div className="bg-black/20 rounded-xl p-2">
