@@ -185,6 +185,10 @@ function App() {
     const [memberSearch, setMemberSearch] = useState('');
     const [memberSearchResults, setMemberSearchResults] = useState<any[]>([]);
     const [showMemberPanel, setShowMemberPanel] = useState(false);
+    const [isAddingMember, setIsAddingMember] = useState(false);
+    const [newMemberName, setNewMemberName] = useState('');
+    const [newMemberPhone, setNewMemberPhone] = useState('');
+    const [isCreatingMember, setIsCreatingMember] = useState(false);
     const [pointsToRedeem, setPointsToRedeem] = useState(0);
     const [selectedDiscount, setSelectedDiscount] = useState<{ id: number; name: string; value: number; type: string } | null>(null);
     const [availableDiscounts, setAvailableDiscounts] = useState<any[]>([]);
@@ -415,6 +419,30 @@ function App() {
                 : selectedDiscount.value)
             : 0);
     const finalTotal = Math.max(0, totalSalesValue - discountAmount - pointsDiscountAmount);
+
+    const handleCreateMember = async () => {
+        if (!newMemberName || !newMemberPhone) {
+            setNotification({ type: 'error', message: 'Nama dan No HP wajib diisi' });
+            return;
+        }
+        setIsCreatingMember(true);
+        try {
+            const res = await apiClient.post('/members', { name: newMemberName, phone: newMemberPhone }) as any;
+            if (res.success && res.data) {
+                const m = res.data;
+                setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
+                setIsAddingMember(false);
+                setShowMemberPanel(false);
+                setNewMemberName('');
+                setNewMemberPhone('');
+                setNotification({ type: 'success', message: 'Member berhasil didaftarkan' });
+            }
+        } catch (error) {
+            setNotification({ type: 'error', message: 'Gagal mendaftarkan member' });
+        } finally {
+            setIsCreatingMember(false);
+        }
+    };
 
     const searchMembers = useCallback(async (query: string) => {
         if (!query) { setMemberSearchResults([]); return; }
@@ -1038,32 +1066,90 @@ function App() {
                                         )}
                                     </div>
                                     {!selectedMember ? (
-                                        <div className="space-y-2">
-                                            <input
-                                                autoFocus
-                                                placeholder="Cari nama / No HP..."
-                                                value={memberSearch}
-                                                onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
-                                                onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
-                                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-primary/40"
-                                            />
-                                            {memberSearchResults.length > 0 && (
-                                                <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
-                                                    {memberSearchResults.map((m) => (
-                                                        <button key={m.id} onClick={() => {
-                                                            setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
-                                                            setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
-                                                        }} className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
-                                                            <div className="text-left">
-                                                                <p className="font-bold text-[11px] text-[var(--text-main)]">{m.name}</p>
-                                                                <p className="text-[9px] text-[var(--text-muted)]">{m.phone}</p>
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <span className="text-[10px] text-primary font-black">{m.points} pts</span>
-                                                            </div>
+                                        <div className="space-y-3">
+                                            {isAddingMember ? (
+                                                <div className="space-y-3 p-1 animate-in slide-in-from-right-2 duration-300">
+                                                    <div className="space-y-2">
+                                                        <input 
+                                                            placeholder="Nama Member Baru"
+                                                            value={newMemberName}
+                                                            onChange={e => setNewMemberName(e.target.value)}
+                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
+                                                        />
+                                                        <input 
+                                                            placeholder="Nomor Handphone (WhatsApp)"
+                                                            value={newMemberPhone}
+                                                            onChange={e => setNewMemberPhone(e.target.value)}
+                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button 
+                                                            onClick={() => setIsAddingMember(false)} 
+                                                            className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                                                        >
+                                                            Batal
                                                         </button>
-                                                    ))}
+                                                        <button 
+                                                            onClick={handleCreateMember} 
+                                                            disabled={isCreatingMember}
+                                                            className="flex-[2] py-3 bg-primary text-[#0b1220] font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50"
+                                                        >
+                                                            {isCreatingMember ? 'Menyimpan...' : 'Daftar & Pilih'}
+                                                        </button>
+                                                    </div>
                                                 </div>
+                                            ) : (
+                                                <>
+                                                    <div className="relative group">
+                                                        <input
+                                                            autoFocus
+                                                            placeholder="Cari nama / No HP..."
+                                                            value={memberSearch}
+                                                            onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
+                                                            onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
+                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-4 pr-10 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary/40 shadow-inner"
+                                                        />
+                                                        <button 
+                                                            onClick={() => setIsAddingMember(true)}
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center bg-primary text-[#0b1220] rounded-lg shadow-lg active:scale-90 transition-all hover:rotate-12"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm font-black">person_add</span>
+                                                        </button>
+                                                    </div>
+                                                    {memberSearchResults.length > 0 && (
+                                                        <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                                            {memberSearchResults.map((m) => (
+                                                                <button key={m.id} onClick={() => {
+                                                                    setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
+                                                                    setShowMemberPanel(false); setMemberSearch(''); setMemberSearchResults([]);
+                                                                }} className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20 group">
+                                                                    <div className="text-left">
+                                                                        <p className="font-black text-[12px] text-[var(--text-main)] uppercase tracking-tight">{m.name}</p>
+                                                                        <p className="text-[10px] text-primary font-bold">{m.phone}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <span className="text-[11px] text-primary font-black font-display">{m.points.toLocaleString('id-ID')} <span className="text-[8px] opacity-60">PTS</span></span>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {memberSearch && memberSearchResults.length === 0 && (
+                                                        <div className="py-6 text-center">
+                                                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Member Tidak Ditemukan</p>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setNewMemberPhone(memberSearch.replace(/[^0-9]/g, ''));
+                                                                    setIsAddingMember(true);
+                                                                }}
+                                                                className="px-6 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-[#0b1220] transition-all"
+                                                            >
+                                                                Daftarkan Baru
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     ) : (
