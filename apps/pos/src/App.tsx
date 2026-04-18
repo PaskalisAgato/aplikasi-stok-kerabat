@@ -1028,8 +1028,8 @@ function App() {
                     </button>
                     {showMemberPanel && (
                         <>
-                            <div className="fixed inset-0 z-40" onClick={() => setShowMemberPanel(false)} />
-                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none" onClick={() => setShowMemberPanel(false)} />
+                            <div className={`fixed inset-x-4 top-24 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:mt-3 w-auto sm:w-80 max-w-[calc(100vw-32px)] ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-in slide-in-from-top-4 fade-in duration-300`}>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                         <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
