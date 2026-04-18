@@ -45,24 +45,24 @@ export default function SyncWidget() {
     }, [pendingCount]);
 
     let icon = 'cloud_done';
-    let color = 'text-green-500 bg-green-500/10';
+    let color = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
     let label = 'Online (0)';
 
     if (!isOnline) {
         icon = 'cloud_off';
-        color = 'text-red-500 bg-red-500/10';
+        color = 'text-red-400 bg-red-500/10 border-red-500/20';
         label = `Offline (${pendingCount})`;
     } else if (lastError && pendingCount > 0) {
         icon = 'sync_problem';
-        color = 'text-red-500 bg-red-500/10';
+        color = 'text-red-400 bg-red-500/10 border-red-500/20';
         label = `Error (${pendingCount})`;
     } else if (pendingCount > 0) {
         icon = isPushing ? 'cloud_sync' : 'cloud_upload';
-        color = isPushing ? 'text-amber-500 bg-amber-500/10 animate-pulse' : 'text-orange-500 bg-orange-500/10';
+        color = isPushing ? 'text-primary bg-primary/10 border-primary/20 animate-pulse' : 'text-amber-500 bg-amber-500/10 border-amber-500/20';
         label = isPushing ? `Syncing (${pendingCount})...` : `Queued (${pendingCount})`;
     } else if (isPulling) {
         icon = 'sync';
-        color = 'text-blue-500 bg-blue-500/10 animate-spin-slow';
+        color = 'text-sky-400 bg-sky-500/10 border-sky-500/20 animate-spin-slow';
         label = 'Downloading...';
     }
 
@@ -72,7 +72,7 @@ export default function SyncWidget() {
 
     return (
         <div 
-            className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border border-white/5 transition-all cursor-pointer ${color}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${color}`}
             title={
                 !isOnline ? "Koneksi terputus. Data disimpan aman secara offline." : 
                 lastError ? `Gagal Sinkron: ${lastError}. Klik untuk detail.` :
@@ -82,7 +82,7 @@ export default function SyncWidget() {
             onClick={handleClick}
         >
             <span className="material-symbols-outlined text-sm">{icon}</span>
-            <span className="text-xs font-bold whitespace-nowrap hidden sm:inline">{label}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{label}</span>
         </div>
     );
 }

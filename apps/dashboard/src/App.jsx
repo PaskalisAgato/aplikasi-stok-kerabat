@@ -141,7 +141,7 @@ function App() {
   }));
 
   return (
-    <Layout currentPort={5173} title="Enterprise Dashboard" subtitle="Data-Driven Business Control">
+    <Layout currentPort={5173} title="Enterprise Dashboard" subtitle="DATA-DRIVEN BUSINESS CONTROL">
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
@@ -210,10 +210,10 @@ function App() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* 2. MAIN CHART: HOURLY SALES */}
-              <div className="lg:col-span-8 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+              <div className="lg:col-span-8 glass rounded-[2.5rem] p-8 border-white/5">
                 <div className="flex justify-between items-center mb-10">
                   <div>
-                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40">Tren Penjualan Per Jam</h3>
+                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60">Tren Penjualan Per Jam</h3>
                     <p className="text-[10px] font-bold text-primary mt-1">Berdasarkan Total Transaksi (WIB)</p>
                   </div>
                 </div>
@@ -261,8 +261,8 @@ function App() {
               </div>
 
               {/* 3. PAYMENT BREAKDOWN (PIE CHART) */}
-              <div className="lg:col-span-4 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
-                <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 w-full mb-8">Metode Pembayaran</h3>
+              <div className="lg:col-span-4 glass border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center">
+                <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 w-full mb-8">Metode Pembayaran</h3>
                 <div className="h-[250px] w-full relative min-w-0">
                    {pieData.length > 0 ? (
                      <ResponsiveContainer width="100%" height="100%" minHeight={250}>
@@ -311,8 +311,8 @@ function App() {
               </div>
 
               {/* 4. TOP PRODUCTS & CASHIER PERFORMANCE */}
-              <div className="lg:col-span-8 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
-                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 mb-8">5 Produk Terlaris</h3>
+              <div className="lg:col-span-8 glass border-white/5 rounded-[2.5rem] p-8">
+                 <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 mb-8">5 Produk Terlaris</h3>
                  <div className="space-y-6">
                     {topProducts.map((p, i) => (
                       <div key={i} className="space-y-2">
@@ -335,8 +335,8 @@ function App() {
 
               <div className="lg:col-span-4 space-y-6">
                   {/* CASHIER RANKING */}
-                  <div className="bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
-                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40 mb-6">Performa Kasir</h3>
+                  <div className="glass border-white/5 rounded-[2.5rem] p-8">
+                    <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60 mb-6">Performa Kasir</h3>
                     <div className="space-y-4">
                       {cashierPerformance.map((c, i) => (
                         <div key={i} className="flex items-center justify-between">
@@ -378,9 +378,9 @@ function App() {
               </div>
 
               {/* 5. RECENT EXPENSES */}
-              <div className="lg:col-span-12 bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8">
+              <div className="lg:col-span-12 glass border-white/5 rounded-[2.5rem] p-8">
                  <div className="flex justify-between items-center mb-8">
-                   <h3 className="font-black uppercase tracking-[0.2em] text-xs text-white/40">5 Pengeluaran Terbaru</h3>
+                   <h3 className="font-black uppercase tracking-[0.2em] text-xs text-primary opacity-60">5 Pengeluaran Terbaru</h3>
                    <span className="text-[11px] font-black text-red-500">Total: Rp {expenses.total.toLocaleString()}</span>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -451,7 +451,7 @@ function App() {
 
 function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffix }) {
   return (
-    <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-[#0f172a] border-white/5 text-white hover:border-white/20'}`}>
+    <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:border-white/20'}`}>
       <div className="flex justify-between items-start mb-6">
         <div className={`size-12 rounded-2xl flex items-center justify-center ${isHighlight ? 'bg-slate-950/10' : 'bg-white/5'}`}>
           <span className={`material-symbols-outlined ${isHighlight ? 'text-slate-900' : color} text-2xl`}>{icon}</span>
