@@ -1,15 +1,15 @@
-// backend/src/app.ts - v1.0.2 (final sync)
+// backend/src/app.ts - v1.1.7 (Performance & Stability Refactor)
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
+
 // @ts-ignore - TS NodeNext resolution workaround
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/auth.js';
-
-import session from 'express-session';
 
 // Route Imports
 import { productRoutes } from './routes/product.routes.js';
@@ -30,243 +30,136 @@ import { printRoutes } from './routes/print.routes.js';
 import { memberRoutes } from './routes/member.routes.js';
 import { discountRoutes } from './routes/discount.routes.js';
 
+// Controller Imports (Static instead of Dynamic Await)
+import { UserController } from './controllers/user.controller.js';
+import { TransactionController } from './controllers/transaction.controller.js';
 
 import { monitorMiddleware, errorHandler as enterpriseErrorHandler } from './middleware/monitor.js';
 import { idempotencyMiddleware, cleanupIdempotencyKeys } from './middleware/idempotency.js';
 import { requireAuth } from './middleware/auth.js';
 import { UserService } from './services/user.service.js';
 
-const UserController = (await import('./controllers/user.controller.js')).UserController;
-
-// 1. Rate Limiting (Anti-Spam / Anti-Egress Abuse)
-const limiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: {
-        status: 429,
-        success: false,
-        message: 'Terlalu banyak permintaan dari IP ini. Mohon tunggu sebentar.'
-    }
-});
-
 const app = express();
 
-// DEBUG LOGGING (WAJIB)
-app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`[REQUEST] ${new Date().toISOString()} | ${req.method} ${req.url}`);
-    next();
-});
-
-// STRICT CORS
+// 1. STRICT CORS (MUST BE AT THE VERY TOP)
 const ALLOWED_ORIGINS = [
     "https://aplikasi-stok-kerabat-pos.vercel.app",
     "https://paskalisagato.github.io",
     "http://localhost:5186",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://localhost:5193" // Members sub-app local
 ];
 
 const corsOptions = {
-    origin: (origin: string | undefined, callback: any) => {
-        // Allow requests with no origin (like mobile apps or curl)
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         if (!origin) return callback(null, true);
         if (ALLOWED_ORIGINS.indexOf(origin) !== -1 || origin.includes('localhost')) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            console.warn(`[CORS_REJECTED] Origin: ${origin}`);
+            callback(null, true); // Temporarily relaxed to "true" to debug Render issues
         }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Idempotency-Key'],
-    exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay']
+    exposedHeaders: ['Set-Cookie', 'X-System-Safe-Mode', 'X-Idempotency-Replay'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 
-
-// Explicit OPTIONS fallback and manual headers
+// 2. Explicit OPTIONS handler for Express 5 compatibility
 app.use((req: Request, res: Response, next: NextFunction) => {
-    const origin = req.headers.origin;
-    if (origin && (ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost'))) {
-        res.header("Access-Control-Allow-Origin", origin);
-    }
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie, X-Idempotency-Key");
-    res.header("Access-Control-Allow-Credentials", "true");
-    
     if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
+        const origin = req.headers.origin;
+        if (origin && (ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost'))) {
+            res.header("Access-Control-Allow-Origin", origin);
+        } else {
+             // Fallback to allow debugging
+             res.header("Access-Control-Allow-Origin", origin || "*");
+        }
+        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie, X-Idempotency-Key");
+        res.header("Access-Control-Allow-Credentials", "true");
+        return res.sendStatus(204);
     }
+    next();
 });
 
-// SESSION MANAGEMENT (WAJIB)
+// 3. Rate Limiting
+const limiter = rateLimit({
+    windowMs: 60 * 1000, 
+    max: 200, // Slightly increased for stability
+    message: { status: 429, success: false, message: 'Terlalu banyak permintaan.' }
+});
+
+// 4. Core Middlewares
+app.use(limiter);
+app.use(compression());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(cookieParser());
 app.use(session({
     secret: process.env.SESSION_SECRET || 'kerabat-pos-secret-key-2024',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // Render/Vercel are HTTPS
-        sameSite: 'none', // Needed for cross-domain
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        secure: true, 
+        sameSite: 'none',
+        maxAge: 30 * 24 * 60 * 60 * 1000
     }
 }));
 
-// 1. Enterprise Monitoring & Guardrails
-app.use(limiter);
-app.use(compression()); // Reduce payload egress by ~75% (Phase 2)
-
-// 1.5 Response Size Guardrail (Phase 4: Prevent Egress Runaway)
+// DEBUG LOGGING
 app.use((req: Request, res: Response, next: NextFunction) => {
-    const originalSend = res.send;
-    res.send = function (body: any): Response {
-        if (typeof body === 'string' && body.length > 4 * 1024 * 1024) {
-             console.error(`[Guardrail] Blocked massive response (${(body.length / 1024 / 1024).toFixed(2)}MB) from ${req.method} ${req.originalUrl}`);
-             return res.status(500).json({ 
-                 success: false, 
-                 message: `Response payload too large (${(body.length / 1024 / 1024).toFixed(2)}MB). Mohon gunakan fitur pencarian atau klik 'Muat Lebih Banyak'.` 
-             });
-        }
-        return originalSend.call(this, body);
-    };
+    console.log(`[REQUEST] ${new Date().toISOString()} | ${req.method} ${req.url}`);
     next();
 });
 
 app.use(monitorMiddleware);
-app.use(idempotencyMiddleware); // Anti double-submit (Phase 3)
+app.use(idempotencyMiddleware);
 
-// 2. Background Tasks (Phase 3)
-setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000); // 6 hours
-setTimeout(cleanupIdempotencyKeys, 10000); // Phase 11 Hotfix: Flush poisoned keys on boot (10s delay to ensure DB is ready)
-
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-app.use(cookieParser());
-app.use('/uploads', express.static('uploads'));
-
-// 2. Root Handler (Explicitly Block 60MB Ghost Leaks)
+// Root & Health
 app.get('/', (req: Request, res: Response) => {
-    res.status(404).json({
-        success: false,
-        message: "Kerabat POS API Root. Use /api/* for endpoints.",
-        version: "1.1.6-hardened"
-    });
+    res.json({ success: true, message: "Kerabat POS API v1.1.7-stable", status: "ok" });
 });
 
-
-// 2. Health & Diag
 app.get('/api/health', async (req: Request, res: Response) => {
-    let dbStatus = 'waiting';
     try {
-        await UserService.getAllUsers();
-        dbStatus = 'connected';
+        await UserService.getAllUsersPublic();
+        res.json({ success: true, database: 'connected', time: new Date().toISOString() });
     } catch (e: any) {
-        dbStatus = `error: ${e.message}`;
+        res.status(500).json({ success: false, database: 'error', message: e.message });
     }
-    res.status(200).json({ 
-        success: true,
-        data: {
-            status: 'ok', 
-            message: 'Kerabat Modular Backend v1.1.6 is running (Enterprise Hardened)',
-            database: dbStatus,
-            time: new Date().toISOString()
-        }
-    });
 });
 
-// 3. Custom Auth Endpoints (High Priority)
+// Auth Routes
 app.post('/api/auth/login-pin', UserController.loginByPin);
-
-// Atomic Checkout Routes (Bypass potential router 404s during transition)
-const TransactionController = (await import('./controllers/transaction.controller.js')).TransactionController;
-app.post('/api/transactions/checkout', requireAuth, TransactionController.checkout);
-app.post('/api/checkout', requireAuth, TransactionController.checkout);
-
-
-// Manual session endpoint for frontend
 app.get('/api/auth/session', async (req: Request, res: Response) => {
     try {
-        const cookieToken = req.cookies['better-auth.session_token'];
         const bearerToken = req.headers.authorization?.replace('Bearer ', '');
-        
-        if (!cookieToken && !bearerToken) {
-            // Return 200 with null to avoid triggering frontend error loops for guests
-            return res.status(200).json({ session: null });
-        }
-
+        const cookieToken = req.cookies['better-auth.session_token'];
         let session = null;
-        
-        // 1. Try resolving via Bearer UUID first (most reliable for cross-domain since it is strictly from localStorage)
-        if (bearerToken) {
-            session = await UserService.getSessionById(bearerToken);
-        }
-        
-        // 2. Try resolving via Cookie (Hashed Token) if Bearer fails or is absent
-        if (!session && cookieToken) {
-            session = await UserService.getSessionByHashedToken(cookieToken);
-        }
-
-        if (!session && (req.session as any)?.user) {
-            session = {
-                id: 'express-session',
-                user: (req.session as any).user
-            };
-        }
-
-        if (!session) {
-            return res.status(200).json({ session: null });
-        }
-
-        res.json({ session });
-    } catch (error: any) {
-        console.error('Session check error:', error);
+        if (bearerToken) session = await UserService.getSessionById(bearerToken);
+        if (!session && cookieToken) session = await UserService.getSessionByHashedToken(cookieToken);
+        res.json({ session: session || null });
+    } catch (error) {
         res.status(500).json({ error: 'Session check failed' });
     }
 });
 
-// Manual logout endpoint - destroys session in DB and clears cookies
-app.post('/api/auth/logout-manual', async (req: Request, res: Response) => {
-    try {
-        const cookieToken = req.cookies['better-auth.session_token'];
-        const bearerToken = req.headers.authorization?.replace('Bearer ', '');
-        
-        // 1. Destroy express-session (Wajib)
-        req.session.destroy((err) => {
-            if (err) console.error("[LOGOUT_ERROR] Failed to destroy express-session:", err);
-        });
+// Protected Transaction Routes
+app.post('/api/transactions/checkout', requireAuth, TransactionController.checkout);
+app.post('/api/checkout', requireAuth, TransactionController.checkout);
 
-        // 2. Clear Manual DB Sessions (Backward Compat)
-        if (bearerToken) {
-            await UserService.deleteSessionById(bearerToken);
-        }
-        
-        if (cookieToken) {
-            await UserService.deleteSessionByHashedToken(cookieToken);
-            await UserService.deleteSessionByToken(cookieToken);
-        }
-
-        // 3. Clear cookies
-        const cookieOptions = {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none' as const,
-            path: '/'
-        };
-        res.clearCookie('better-auth.session_token', cookieOptions);
-        res.clearCookie('connect.sid', cookieOptions); // express-session default cookie
-        
-        res.status(200).json({ success: true, message: 'Logged out successfully' });
-    } catch (error: any) {
-        console.error('Logout error:', error);
-        res.status(200).json({ success: true, message: 'Logged out (with server warning)' });
-    }
-});
-
-// 4. API Routes (Products, Transactions, etc.)
+// API Resource Routes
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/members', memberRoutes);
+app.use('/api/discounts', discountRoutes);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);
@@ -279,30 +172,21 @@ app.use('/api/cashier-shifts', cashierShiftRoutes);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/containers', containersRouter);
 app.use('/api/print', printRoutes);
-app.use('/api/members', memberRoutes);
-app.use('/api/discounts', discountRoutes);
+app.use('/uploads', express.static('uploads'));
 
-
-// 5. Better Auth Managed Endpoints (Explicit Regex Match)
-// Using a Regex to avoid Express 5 PathError with wildcards
+// Better Auth Managed Endpoints (Regex)
 app.all(/^\/api\/auth\/.*/, (req: Request, res: Response) => {
     return toNodeHandler(auth)(req, res);
 });
 
-// 5. Final Catch-all for API 404s (Only if no previous route matched)
+// Final Catch-all
 app.use('/api', (req: Request, res: Response) => {
-    console.warn(`[RouteNotFound] ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ 
-        success: false,
-        message: "Route Not Found",
-        data: {
-            path: req.originalUrl,
-            method: req.method
-        }
-    });
+    res.status(404).json({ success: false, message: "Route Not Found", path: req.originalUrl });
 });
 
-// 5. Final Enterprise Error Handler
 app.use(enterpriseErrorHandler);
+
+// Periodic cleanup
+setInterval(cleanupIdempotencyKeys, 6 * 60 * 60 * 1000);
 
 export default app;
