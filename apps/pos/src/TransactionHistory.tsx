@@ -401,17 +401,29 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                 </thead>
                                                 <tbody className="divide-y divide-[var(--border-dim)]">
                                                     {txs.map((tx: any) => (
-                                                        <tr key={tx.id} className="hover:bg-[var(--bg-app)]/50 transition-colors">
-                                                            <td className="p-5 font-black text-[var(--text-main)]">#{tx.id}</td>
+                                                        <tr key={tx.id} className={`transition-colors ${tx.isVoided ? 'bg-red-500/5 opacity-60' : 'hover:bg-[var(--bg-app)]/50'}`}>
+                                                            <td className="p-5 font-black text-[var(--text-main)]">
+                                                                #{tx.id}
+                                                                {tx.isVoided && <span className="ml-2 text-[8px] bg-red-500 text-white px-1.5 py-0.5 rounded font-black uppercase">Batal</span>}
+                                                            </td>
                                                             <td className="p-5 text-sm text-[var(--text-muted)] font-medium">
                                                                 {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                                             </td>
                                                             <td className="p-5 text-sm font-bold text-primary">{tx.cashierName || tx.userId}</td>
-                                                            <td className="p-5 font-black text-[var(--text-main)] text-right">Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}</td>
+                                                            <td className={`p-5 font-black text-right ${tx.isVoided ? 'line-through text-red-500/70' : 'text-[var(--text-main)]'}`}>
+                                                                Rp {parseFloat(tx.totalAmount).toLocaleString('id-ID')}
+                                                            </td>
                                                             <td className="p-5">
-                                                                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-primary/10 text-primary">
-                                                                    {tx.paymentMethod}
-                                                                </span>
+                                                                <div className="flex flex-col gap-1">
+                                                                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-primary/10 text-primary w-fit">
+                                                                        {tx.paymentMethod}
+                                                                    </span>
+                                                                    {tx.isVoided && (
+                                                                        <span className="text-[9px] text-red-500 font-black uppercase tracking-tighter">
+                                                                            Voided: {tx.voidReason || 'Tanpa Alasan'}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                             <td className="p-5 flex justify-end gap-2">
                                                                 <TableActions tx={tx} />
@@ -425,22 +437,29 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                         {/* Mobile Card-Based View */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
                                             {txs.map((tx: any) => (
-                                                <div key={tx.id} className="card p-0 overflow-hidden border-white/5 shadow-xl hover:border-white/10 transition-all">
-                                                    <div className="p-4 flex items-center justify-between border-b border-white/5 bg-white/5">
+                                                <div key={tx.id} className={`card p-0 overflow-hidden border-white/5 shadow-xl hover:border-white/10 transition-all ${tx.isVoided ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                                    <div className={`p-4 flex items-center justify-between border-b border-white/5 ${tx.isVoided ? 'bg-red-500/10' : 'bg-white/5'}`}>
                                                         <div className="flex items-center gap-3">
-                                                            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                                <span className="material-symbols-outlined text-primary text-base font-black">receipt</span>
+                                                            <div className={`size-9 rounded-xl flex items-center justify-center ${tx.isVoided ? 'bg-red-500/20' : 'bg-primary/10'}`}>
+                                                                <span className={`material-symbols-outlined text-base font-black ${tx.isVoided ? 'text-red-500' : 'text-primary'}`}>
+                                                                    {tx.isVoided ? 'block' : 'receipt'}
+                                                                </span>
                                                             </div>
                                                             <div>
-                                                                <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">#{tx.id}</p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">#{tx.id}</p>
+                                                                    {tx.isVoided && <span className="text-[8px] bg-red-500 text-white px-1 py-0.5 rounded font-black uppercase">Batal</span>}
+                                                                </div>
                                                                 <p className="text-[10px] text-[var(--text-muted)] font-bold">
                                                                     {new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary">
-                                                            {tx.paymentMethod}
-                                                        </span>
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary">
+                                                                {tx.paymentMethod}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     <div className="p-4 flex items-center justify-between">
                                                         <div>
