@@ -153,7 +153,7 @@ function App() {
                 <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4">
                     <button
                         onClick={() => { setSelectedTask(null); setIsCreateModalOpen(true); }}
-                        className="flex-1 flex items-center justify-center gap-4 accent-gradient text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
+                        className="flex-1 flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
                     >
                         <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tambah Tugas Baru</span>

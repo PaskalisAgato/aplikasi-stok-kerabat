@@ -346,7 +346,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                     <>
                                         <img src={getOptimizedImageUrl(imageUrl)} className="w-full h-full object-cover" alt="Recipe" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                            <span className="material-symbols-outlined text-white">edit</span>
+                                            <span className="material-symbols-outlined text-[var(--text-main)]">edit</span>
                                         </div>
                                     </>
                                 ) : (
@@ -654,7 +654,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                         <button
                             onClick={handleSaveAPI}
                             disabled={isUploadingImage}
-                            className={`flex-[2.5] py-5 ${isUploadingImage ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-600'} text-slate-950 font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group`}>
+                            className={`flex-[2.5] py-5 ${isUploadingImage ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-600'} text-[var(--text-main)] font-black text-[10px] uppercase tracking-[0.2em] rounded-[2rem] shadow-xl shadow-primary/30 transition-all flex items-center justify-center gap-3 active:scale-95 group`}>
                             <span className={`material-symbols-outlined text-[20px] font-black ${isUploadingImage ? 'animate-spin' : 'group-hover:rotate-12'} transition-transform`}>
                                 {isUploadingImage ? 'progress_activity' : 'save'}
                             </span>

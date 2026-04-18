@@ -11,7 +11,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  text-slate-900  overflow-y-auto pb-24 antialiased">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  text-[var(--text-main)]  overflow-y-auto pb-24 antialiased">
             {/* Header */}
             <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10">
                 <div className="flex items-center gap-3">
@@ -30,7 +30,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                 <section className="flex flex-col items-center gap-4">
                     <div className="relative group">
                         <div className="size-32 rounded-full border-4 border-primary/10 bg-slate-100  flex items-center justify-center overflow-hidden shadow-inner">
-                            <span className="material-symbols-outlined text-4xl text-slate-300 ">image</span>
+                            <span className="material-symbols-outlined text-4xl text-[var(--text-main)] ">image</span>
                         </div>
                         <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-background-dark active:scale-90 transition-transform flex items-center justify-center">
                             <span className="material-symbols-outlined text-sm font-bold">edit</span>
@@ -46,11 +46,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                 <section className="space-y-5">
                     {/* Nama Lengkap */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-900  ml-1 tracking-wide">Nama Lengkap</label>
+                        <label className="text-xs font-semibold text-[var(--text-main)]  ml-1 tracking-wide">Nama Lengkap</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
                             <input
-                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-slate-400  text-sm font-medium transition-all"
+                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-[var(--text-main)]  placeholder:text-[var(--text-muted)]  text-sm font-medium transition-all"
                                 type="text"
                                 placeholder="Masukkan nama lengkap karyawan"
                             />
@@ -59,27 +59,27 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
 
                     {/* Pilih Peran */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-900  ml-1 tracking-wide">Pilih Peran</label>
+                        <label className="text-xs font-semibold text-[var(--text-main)]  ml-1 tracking-wide">Pilih Peran</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>work</span>
-                            <select className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-slate-900  text-sm font-medium appearance-none transition-all">
+                            <select className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-[var(--text-main)]  text-sm font-medium appearance-none transition-all">
                                 <option value="" disabled selected hidden>Pilih Jabatan</option>
                                 <option className="bg-background-app " value="barista_senior">Barista Senior</option>
                                 <option className="bg-background-app " value="barista">Barista</option>
                                 <option className="bg-background-app " value="kasir">Kasir</option>
                                 <option className="bg-background-app " value="admin_gudang">Admin Gudang</option>
                             </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]  material-symbols-outlined pointer-events-none text-lg">expand_more</span>
                         </div>
                     </div>
 
                     {/* Nomor WhatsApp */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-900  ml-1 tracking-wide">Nomor WhatsApp</label>
+                        <label className="text-xs font-semibold text-[var(--text-main)]  ml-1 tracking-wide">Nomor WhatsApp</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>call</span>
                             <input
-                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-slate-400  text-sm font-medium transition-all"
+                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-[var(--text-main)]  placeholder:text-[var(--text-muted)]  text-sm font-medium transition-all"
                                 type="tel"
                                 placeholder="Contoh: 08123456789"
                             />
@@ -88,11 +88,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
 
                     {/* Alamat Email */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-900  ml-1 tracking-wide">Alamat Email</label>
+                        <label className="text-xs font-semibold text-[var(--text-main)]  ml-1 tracking-wide">Alamat Email</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
                             <input
-                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-slate-900  placeholder:text-slate-400  text-sm font-medium transition-all"
+                                className="w-full bg-slate-100  border-none rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-primary/50 text-[var(--text-main)]  placeholder:text-[var(--text-muted)]  text-sm font-medium transition-all"
                                 type="email"
                                 placeholder="karyawan@email.com"
                             />
@@ -101,7 +101,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
 
                     {/* Status Akun */}
                     <div className="flex flex-col gap-2 pt-2">
-                        <label className="text-xs font-semibold text-slate-900  ml-1 tracking-wide">Status Akun</label>
+                        <label className="text-xs font-semibold text-[var(--text-main)]  ml-1 tracking-wide">Status Akun</label>
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={() => setIsActive(true)}
@@ -112,7 +112,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                             </button>
                             <button
                                 onClick={() => setIsActive(false)}
-                                className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-bold transition-all ${!isActive ? 'bg-slate-700 border-slate-700 text-white shadow-lg shadow-slate-900/20' : 'bg-transparent border-slate-200  text-slate-500  hover:bg-slate-50 '}`}
+                                className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl border text-sm font-bold transition-all ${!isActive ? 'bg-slate-700 border-slate-700 text-[var(--text-main)] shadow-lg shadow-slate-900/20' : 'bg-transparent border-slate-200  text-[var(--text-muted)]  hover:bg-slate-50 '}`}
                             >
                                 <span className={`material-symbols-outlined text-lg ${!isActive ? 'fill-icon' : ''}`}>cancel</span>
                                 Nonaktif

@@ -183,7 +183,7 @@ function App() {
                                         style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
                                     >
                                         {!item.imageUrl && (
-                                            <div className="flex items-center justify-center h-full text-white/10 bg-white/5">
+                                            <div className="flex items-center justify-center h-full text-[var(--text-main)]/10 bg-white/5">
                                                 <span className="material-symbols-outlined text-3xl font-black">image</span>
                                             </div>
                                         )}

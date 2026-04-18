@@ -354,7 +354,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                                         alt={`Bukti ${idx + 1}`} 
                                      />
                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-end p-2">
-                                         <span className="text-[8px] text-white font-black uppercase tracking-widest flex items-center gap-1">
+                                         <span className="text-[8px] text-[var(--text-main)] font-black uppercase tracking-widest flex items-center gap-1">
                                              <span className="material-symbols-outlined text-[10px]">visibility</span>
                                              Lihat
                                          </span>
@@ -390,7 +390,7 @@ export default function TaskCard({ task, role, photoUploadMode = 'both', onCompl
                     <div className="absolute top-0 inset-x-0 p-6 flex justify-end items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
                         <button 
                             onClick={(e) => { e.stopPropagation(); setImageFullscreenIndex(null); }}
-                            className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-75 transition-all shadow-2xl"
+                            className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-[var(--text-main)] active:scale-75 transition-all shadow-2xl"
                         >
                             <span className="material-symbols-outlined text-2xl font-black">close</span>
                         </button>

@@ -233,7 +233,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 <div className="flex-1 overflow-y-auto px-6 pb-8">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-slate-900 ">{initialData ? 'Edit Expense' : 'Add New Expense'}</h2>
+                        <h2 className="text-2xl font-bold text-[var(--text-main)] ">{initialData ? 'Edit Expense' : 'Add New Expense'}</h2>
                         <button
                             onClick={onClose}
                             className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary"
@@ -325,7 +325,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     <span>Uang Owner</span>
                                 </button>
                             </div>
-                            <p className="text-[10px] text-slate-500 italic mt-1">
+                            <p className="text-[10px] text-[var(--text-muted)] italic mt-1">
                                 {fundSource === 'CASHIER' 
                                     ? '* Mengurangi saldo laci kasir saat closing.' 
                                     : '* Tidak mengurangi saldo laci kasir (pribadi owner).'}
@@ -435,7 +435,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     className="aspect-square rounded-lg border-2 border-dashed border-primary/30 flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-primary mb-2" style={{ fontSize: '32px' }}>add_a_photo</span>
-                                    <span className="text-xs font-medium text-slate-500 ">Take Photo</span>
+                                    <span className="text-xs font-medium text-[var(--text-muted)] ">Take Photo</span>
                                 </button>
 
                                 {/* Thumbnail Preview */}
@@ -451,7 +451,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                             }}
                                         />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="material-symbols-outlined text-white">visibility</span>
+                                            <span className="material-symbols-outlined text-[var(--text-main)]">visibility</span>
                                         </div>
                                         <button
                                             type="button"

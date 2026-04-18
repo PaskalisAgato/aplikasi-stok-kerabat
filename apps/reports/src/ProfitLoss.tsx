@@ -177,24 +177,24 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                                     Rp {(expenses / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
-                            <div className="size-14 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500 shadow-inner">
+                            <div className="size-14 rounded-2xl bg-slate-500/10 flex items-center justify-center text-[var(--text-muted)] shadow-inner">
                                 <span className="material-symbols-outlined text-3xl font-black">receipt_long</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className={`card ${accentGradientClass} text-white border-none shadow-2xl relative overflow-hidden group`}>
+                <div className={`card ${accentGradientClass} text-[var(--text-main)] border-none shadow-2xl relative overflow-hidden group`}>
                     <div className="absolute top-0 right-0 size-64 bg-white/10 rounded-full blur-[60px] -mr-24 -mt-24"></div>
                     <div className="relative z-10 space-y-6">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black text-white/80 uppercase tracking-[0.3em]">{textStatus}</p>
+                                <p className="text-[10px] font-black text-[var(--text-main)]/80 uppercase tracking-[0.3em]">{textStatus}</p>
                                 <h2 className="text-4xl font-black font-display tracking-tighter uppercase">
                                     Rp {(netProfit / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
-                            <div className={`size-14 rounded-2xl bg-white/20 flex items-center justify-center text-white shadow-inner`}>
+                            <div className={`size-14 rounded-2xl bg-white/20 flex items-center justify-center text-[var(--text-main)] shadow-inner`}>
                                 <span className="material-symbols-outlined text-3xl font-black">account_balance_wallet</span>
                             </div>
                         </div>

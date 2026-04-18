@@ -37,7 +37,7 @@ export default function KPICards({ reports }) {
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                        <span className="material-symbols-outlined text-8xl transition-all group-hover:scale-110">{card.icon}</span>
                     </div>
-                    <div className={`size-20 rounded-[1.5rem] bg-slate-900 flex items-center justify-center mb-6 shadow-xl ${card.gradient === 'accent-gradient' ? 'accent-gradient' : `bg-gradient-to-br ${card.gradient}`} text-slate-950`}>
+                    <div className={`size-20 rounded-[1.5rem] bg-slate-900 flex items-center justify-center mb-6 shadow-xl ${card.gradient === 'accent-gradient' ? 'accent-gradient' : `bg-gradient-to-br ${card.gradient}`} text-[var(--text-main)]`}>
                         <span className="material-symbols-outlined text-4xl font-black">{card.icon}</span>
                     </div>
                     <div className="space-y-1">

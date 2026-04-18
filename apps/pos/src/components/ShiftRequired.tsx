@@ -11,8 +11,8 @@ const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
                 <span className="material-symbols-outlined text-5xl text-red-500">lock</span>
             </div>
             <div className="max-w-md">
-                <h2 className="text-2xl font-black uppercase tracking-tight text-white">Shift Belum Dibuka</h2>
-                <p className="text-sm text-white/50 font-bold uppercase tracking-widest mt-3 leading-relaxed">
+                <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--text-main)]">Shift Belum Dibuka</h2>
+                <p className="text-sm text-[var(--text-main)]/50 font-bold uppercase tracking-widest mt-3 leading-relaxed">
                     Anda harus membuka shift kasir dengan memasukkan modal awal (Petty Cash) untuk mulai melakukan transaksi penjualan.
                 </p>
             </div>

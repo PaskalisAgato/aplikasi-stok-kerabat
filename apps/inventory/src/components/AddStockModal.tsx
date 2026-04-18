@@ -268,7 +268,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({ isOpen, onClose, initialI
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-4 text-center text-slate-500 text-sm">
+                                    <div className="p-4 text-center text-[var(--text-muted)] text-sm">
                                         Tidak ada bahan ditemukan
                                     </div>
                                 )}

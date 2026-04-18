@@ -24,7 +24,7 @@ export default function CriticalStock({ inventory }) {
                     <div key={item.id} className="card group hover:translate-x-1 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="size-14 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0 shadow-lg group-hover:bg-red-500 group-hover:text-slate-950 transition-all">
-                                <span className="material-symbols-outlined text-2xl font-black text-red-500 group-hover:text-slate-950">inventory_2</span>
+                                <span className="material-symbols-outlined text-2xl font-black text-red-500 group-hover:text-[var(--text-main)]">inventory_2</span>
                             </div>
                             <div className="flex-1 min-w-0 space-y-2">
                                 <div className="flex items-center justify-between gap-2">

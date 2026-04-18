@@ -164,7 +164,7 @@ function App() {
                 <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Dari</p>
                 <input
                   type="date"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-[var(--text-main)] outline-none focus:border-primary cursor-pointer"
                   value={customRange.start}
                   onChange={(e) => setCustomRange(p => ({ ...p, start: e.target.value }))}
                 />
@@ -173,7 +173,7 @@ function App() {
                 <p className="text-[8px] font-black uppercase opacity-30 mb-1 ml-1">Sampai</p>
                 <input
                   type="date"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-white outline-none focus:border-primary cursor-pointer"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-black text-[var(--text-main)] outline-none focus:border-primary cursor-pointer"
                   value={customRange.end}
                   onChange={(e) => setCustomRange(p => ({ ...p, end: e.target.value }))}
                 />
@@ -186,7 +186,7 @@ function App() {
               disabled={isLoading}
               className={`size-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all shrink-0 ${isLoading ? 'opacity-50' : ''}`}
             >
-              <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-white/60'}`}>sync</span>
+              <span className={`material-symbols-outlined text-xl ${isLoading ? 'animate-spin text-primary' : 'text-[var(--text-main)]/60'}`}>sync</span>
             </button>
           </div>
         </div>
@@ -293,7 +293,7 @@ function App() {
                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                      <div className="text-center">
                         <p className="text-[10px] uppercase font-black opacity-40">Mix</p>
-                        <p className="text-sm font-black text-white">{paymentMethods.length || 0} Cara</p>
+                        <p className="text-sm font-black text-[var(--text-main)]">{paymentMethods.length || 0} Cara</p>
                      </div>
                    </div>
                 </div>
@@ -413,7 +413,7 @@ function App() {
                        <div className="flex items-center gap-2">
                            <button 
                              onClick={() => exportToCSV(reports)}
-                             className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)] hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
                            >
                                <span className="material-symbols-outlined text-lg text-primary">description</span>
                                CSV
@@ -461,13 +461,13 @@ function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffi
     <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:border-white/20'}`}>
       <div className="flex justify-between items-start mb-6">
         <div className={`size-12 rounded-2xl flex items-center justify-center ${isHighlight ? 'bg-slate-950/10' : 'bg-white/5'}`}>
-          <span className={`material-symbols-outlined ${isHighlight ? 'text-slate-900' : color} text-2xl`}>{icon}</span>
+          <span className={`material-symbols-outlined ${isHighlight ? 'text-[var(--text-main)]' : color} text-2xl`}>{icon}</span>
         </div>
         {isHighlight && <div className="text-[8px] font-black uppercase bg-slate-950/20 px-2 py-1 rounded-full">Primary Metric</div>}
       </div>
       <div>
-        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-slate-950/60' : 'text-[var(--text-muted)] opacity-60'}`}>{title}</p>
-        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-slate-950' : 'text-[var(--text-main)]'}`}>
+        <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isHighlight ? 'text-[var(--text-main)]/60' : 'text-[var(--text-muted)] opacity-60'}`}>{title}</p>
+        <p className={`text-2xl font-black tracking-tight mt-1 ${isHighlight ? 'text-[var(--text-main)]' : 'text-[var(--text-main)]'}`}>
            {!noCurrency && <span className="text-[10px] mr-1 uppercase opacity-60">Rp</span>}
            {parseFloat(value || 0).toLocaleString()}
            {suffix && <span className="text-[10px] ml-1 uppercase opacity-60">{suffix}</span>}

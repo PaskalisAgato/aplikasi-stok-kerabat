@@ -124,7 +124,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-center py-10 text-slate-400 text-sm">
+                                <div className="text-center py-10 text-[var(--text-muted)] text-sm">
                                     Belum ada pergerakan stok tercatat.
                                 </div>
                             )}

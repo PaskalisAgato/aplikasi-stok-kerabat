@@ -106,7 +106,7 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange
             {showNoteInput && (
                 <div className="absolute top-full left-0 right-0 z-20 mt-1 p-2 glass rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2">
                     <input 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:outline-none focus:border-primary transition-all"
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-[var(--text-main)] focus:outline-none focus:border-primary transition-all"
                         placeholder="Catatan pesanan (contoh: Pedas, No MSG)..."
                         value={note || ''}
                         onChange={(e) => onNoteChange(item.id, e.target.value)}
@@ -1149,7 +1149,7 @@ function App() {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-[8px] font-black uppercase text-primary tracking-[0.2em] leading-none mb-1">Shift Aktif</span>
-                        <span className="text-[10px] font-bold text-white leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
+                        <span className="text-[10px] font-bold text-[var(--text-main)] leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
                     </div>
                     <button
                         onClick={() => setIsHandoverShiftOpen(true)}

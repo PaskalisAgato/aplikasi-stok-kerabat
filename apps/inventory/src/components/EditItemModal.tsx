@@ -201,7 +201,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                         <>
                                             <img src={imageBase64} alt="Preview" className="size-full object-cover" />
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="material-symbols-outlined text-white text-4xl">edit</span>
+                                                <span className="material-symbols-outlined text-[var(--text-main)] text-4xl">edit</span>
                                             </div>
                                         </>
                                     ) : (
@@ -384,7 +384,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
                                     onChange={(e) => setIsConfirmDelete(e.target.checked)}
                                     className="peer appearance-none size-5 rounded-md border-2 border-red-200 checked:bg-red-500 checked:border-red-500 transition-all cursor-pointer"
                                 />
-                                <span className="material-symbols-outlined absolute text-white text-sm opacity-0 peer-checked:opacity-100 pointer-events-none left-1/2 -translate-x-1/2 font-bold">check</span>
+                                <span className="material-symbols-outlined absolute text-[var(--text-main)] text-sm opacity-0 peer-checked:opacity-100 pointer-events-none left-1/2 -translate-x-1/2 font-bold">check</span>
                             </div>
                             <span className="text-[11px] font-bold text-red-700 select-none group-hover:text-red-500 transition-colors">Saya yakin ingin menghapus bahan ini</span>
                         </label>

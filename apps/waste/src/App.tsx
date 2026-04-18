@@ -58,7 +58,7 @@ function App() {
                 <footer className="glass border-t border-white/5 px-8 py-10 shrink-0">
                     <button
                         onClick={() => setIsLogModalOpen(true)}
-                        className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-red-500 to-orange-600 text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-red-500/20 active:scale-95 transition-all border-none group"
+                        className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-red-500 to-orange-600 text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-red-500/20 active:scale-95 transition-all border-none group"
                     >
                         <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">delete_sweep</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Input Data Waste</span>

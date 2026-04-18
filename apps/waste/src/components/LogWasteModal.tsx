@@ -109,8 +109,8 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                     {/* Header */}
                     <div className="flex justify-between items-center mb-5">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 ">Catat Waste</h2>
-                            <p className="text-xs text-slate-500 mt-0.5">Log barang rusak atau terbuang</p>
+                            <h2 className="text-xl font-bold text-[var(--text-main)] ">Catat Waste</h2>
+                            <p className="text-xs text-[var(--text-muted)] mt-0.5">Log barang rusak atau terbuang</p>
                         </div>
                         <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center bg-primary/10 text-primary">
                             <span className="material-symbols-outlined">close</span>
@@ -120,9 +120,9 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                     <div className="space-y-5">
                         {/* Step 1: Select Item */}
                         <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">1. Pilih Bahan Baku</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">1. Pilih Bahan Baku</label>
                             <div className="relative mb-2">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[18px]">search</span>
                                 <input
                                     type="text"
                                     value={searchTerm}
@@ -142,7 +142,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
                                             }`}
                                     >
                                         <span className="font-bold">{item.name}</span>
-                                        <span className={`text-xs font-medium ${selectedItem?.id === item.id ? 'text-white/70' : 'text-slate-400'}`}>
+                                        <span className={`text-xs font-medium ${selectedItem?.id === item.id ? 'text-[var(--text-main)]/70' : 'text-[var(--text-muted)]'}`}>
                                             Stok: {item.currentStock} {item.unit}
                                         </span>
                                     </button>
@@ -155,7 +155,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
 
                         {/* Step 2: Quantity */}
                         <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">
                                 2. Jumlah yang Dibuang {selectedItem && `(${selectedItem.unit})`}
                             </label>
                             <input
@@ -171,7 +171,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
 
                         {/* Step 3: Reason */}
                         <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">3. Alasan</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">3. Alasan</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {WASTE_REASONS.map(r => (
                                     <button

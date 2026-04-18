@@ -23,19 +23,19 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                     </div>
 
                     <div className="space-y-2">
-                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">TUGAS TERLAMBAT!</h2>
+                        <h2 className="text-4xl font-black text-[var(--text-main)] uppercase tracking-tighter">TUGAS TERLAMBAT!</h2>
                         <p className="text-red-400 font-black uppercase tracking-[0.3em] text-[10px]">Peringatan Keamanan Operasional</p>
                     </div>
 
                     <div className="w-full p-6 bg-red-500/10 rounded-3xl border border-red-500/20">
-                        <h3 className="text-2xl font-black text-white uppercase leading-tight">{currentTask.title}</h3>
+                        <h3 className="text-2xl font-black text-[var(--text-main)] uppercase leading-tight">{currentTask.title}</h3>
                         <p className="text-red-400/60 text-xs font-bold mt-2 uppercase tracking-widest">
                             Deadline: {new Date(currentTask.deadline).toLocaleString('id-ID')}
                         </p>
                     </div>
 
                     {tasks.length > 1 && (
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest italic">
+                        <p className="text-[var(--text-main)]/40 text-[10px] font-black uppercase tracking-widest italic">
                             + {tasks.length - 1} tugas lainnya juga terlambat
                         </p>
                     )}
@@ -119,7 +119,7 @@ export default function OverdueAlarmModal({ tasks, onSnooze, onStop, onComplete 
                         <div className="grid grid-cols-2 gap-4">
                             <button 
                                 onClick={() => onSnooze(currentTask.id)}
-                                className="h-16 bg-white/10 hover:bg-white/20 text-white rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 border border-white/10"
+                                className="h-16 bg-white/10 hover:bg-white/20 text-[var(--text-main)] rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 border border-white/10"
                             >
                                 <span className="material-symbols-outlined text-xl">snooze</span>
                                 Snooze

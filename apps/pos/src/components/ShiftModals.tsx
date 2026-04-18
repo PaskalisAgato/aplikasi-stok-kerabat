@@ -32,7 +32,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                     <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <span className="material-symbols-outlined text-4xl text-primary">login</span>
                     </div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">Buka Shift Kasir</h2>
+                    <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Buka Shift Kasir</h2>
                     <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan modal awal laci kas (Petty Cash)</p>
                 </div>
 
@@ -47,7 +47,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                                 required
                                 value={initialCash || ''}
                                 onChange={(e) => setInitialCash(parseInt(e.target.value) || 0)}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-white outline-none focus:border-primary/50 transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
                                 placeholder="0"
                             />
                         </div>
@@ -143,40 +143,40 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                             <div className="size-16 bg-red-500/20 rounded-2xl flex items-center justify-center mb-4 border border-red-500/20">
                                 <span className="material-symbols-outlined text-4xl text-red-500">logout</span>
                             </div>
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Tutup Shift Kasir</h2>
+                            <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Tutup Shift Kasir</h2>
                             <p className="text-[var(--text-muted)] text-sm mt-1">Tinjau ringkasan penjualan hari ini</p>
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 mb-1">Total Omzet</p>
-                                <p className="text-sm font-black text-white">Rp {summary.totalOmzet.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalOmzet.toLocaleString()}</p>
                             </div>
                             <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-emerald-500 opacity-60 mb-1">Total Tunai</p>
-                                <p className="text-sm font-black text-white">Rp {summary.totalCashSales.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalCashSales.toLocaleString()}</p>
                             </div>
                             <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-blue-500 opacity-60 mb-1">Total Non-Tunai</p>
-                                <p className="text-sm font-black text-white">Rp {summary.totalNonCashSales.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalNonCashSales.toLocaleString()}</p>
                             </div>
                             <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-red-500 opacity-60 mb-1">Pengeluaran</p>
-                                <p className="text-sm font-black text-white">Rp {summary.totalExpenses.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalExpenses.toLocaleString()}</p>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <h3 className="text-xs font-black uppercase tracking-widest text-white/40 border-b border-white/5 pb-2">Detail Per Kategori</h3>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]/40 border-b border-white/5 pb-2">Detail Per Kategori</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {summary?.categories?.map((cat: any) => (
                                     <div key={cat.name} className="flex justify-between items-center py-1 sm:px-2">
                                         <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">{cat.name}</span>
-                                        <span className="text-xs font-black text-white">Rp {cat.total.toLocaleString()}</span>
+                                        <span className="text-xs font-black text-[var(--text-main)]">Rp {cat.total.toLocaleString()}</span>
                                     </div>
                                 ))}
                                 {(!summary?.categories || summary.categories.length === 0) && (
-                                    <p className="text-[10px] text-white/40 italic">Tidak ada rincian kategori.</p>
+                                    <p className="text-[10px] text-[var(--text-main)]/40 italic">Tidak ada rincian kategori.</p>
                                 )}
                             </div>
                         </div>
@@ -189,7 +189,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                 ) : (
                     <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                         <div className="flex flex-col items-center text-center">
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Hitung Uang Kasir</h2>
+                            <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Hitung Uang Kasir</h2>
                             <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan jumlah uang aktual di laci</p>
                         </div>
 
@@ -198,7 +198,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Ekspektasi Kas (Sistem)</span>
                                 <p className="text-[8px] text-blue-400/60 uppercase font-black tracking-tighter">Kas Awal + Tunai - Pengeluaran</p>
                             </div>
-                            <span className="text-xl font-black text-white">Rp {expectedCash.toLocaleString()}</span>
+                            <span className="text-xl font-black text-[var(--text-main)]">Rp {expectedCash.toLocaleString()}</span>
                         </div>
 
                         <div className="space-y-4">
@@ -235,7 +235,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
 
                             <div className="flex justify-between items-center py-3 px-4 bg-black/20 rounded-2xl border border-white/5 mt-2">
                                 <span className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">Total Aktual Kasir:</span>
-                                <span className="text-2xl font-black text-white">Rp {actualCash.toLocaleString()}</span>
+                                <span className="text-2xl font-black text-[var(--text-main)]">Rp {actualCash.toLocaleString()}</span>
                             </div>
 
                             <div className={`p-4 rounded-2xl border ${discrepancy === 0 ? 'bg-emerald-500/10 border-emerald-500/20' : Math.abs(discrepancy) > 50000 ? 'bg-red-500/20 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse' : discrepancy < 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
@@ -258,7 +258,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                         {summary.nonCashTransactions.map((tx: any) => (
                                             <div key={tx.id} className="flex justify-between items-center px-3 py-2 bg-black/20 rounded-lg border border-white/5">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] font-black text-white">{tx.method} - {tx.ref || 'Tanpa Ref'}</span>
+                                                    <span className="text-[10px] font-black text-[var(--text-main)]">{tx.method} - {tx.ref || 'Tanpa Ref'}</span>
                                                     <span className="text-[8px] text-[var(--text-muted)]">{new Date(tx.time).toLocaleTimeString()}</span>
                                                 </div>
                                                 <span className="text-xs font-black text-primary">Rp {parseFloat(tx.total).toLocaleString()}</span>
@@ -276,7 +276,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                     onChange={(e) => setNonCashVerified(e.target.checked)}
                                     className="mt-1 size-5 accent-primary rounded cursor-pointer"
                                 />
-                                <label htmlFor="nonCashVerif" className="text-sm font-bold text-white cursor-pointer select-none">
+                                <label htmlFor="nonCashVerif" className="text-sm font-bold text-[var(--text-main)] cursor-pointer select-none">
                                     Saya memverifikasi bahwa <span className="text-primary font-black">{summary.nonCashTransactions?.length || 0}</span> transaksi Non-Tunai sebesar <span className="text-primary font-black">Rp {summary.totalNonCashSales.toLocaleString()}</span> telah masuk ke sistem pembayaran (QRIS/EDC).
                                 </label>
                             </div>
@@ -286,7 +286,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 <textarea 
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all min-h-[80px]"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all min-h-[80px]"
                                     placeholder="Alasan selisih uang kas..."
                                 />
                             </div>
@@ -352,7 +352,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                     <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/20">
                         <span className="material-symbols-outlined text-4xl text-amber-500">sync_alt</span>
                     </div>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">Oper Shift (Handover)</h2>
+                    <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Oper Shift (Handover)</h2>
                     <p className="text-[var(--text-muted)] text-sm mt-1">Serah terima mesin kasir ke shift berikutnya.</p>
                 </div>
 
@@ -366,7 +366,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                                 required
                                 value={cashAmount || ''}
                                 onChange={(e) => setCashAmount(parseInt(e.target.value) || 0)}
-                                className="w-full bg-white/5 border border-amber-500/30 focus:border-amber-500 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-white outline-none transition-all"
+                                className="w-full bg-white/5 border border-amber-500/30 focus:border-amber-500 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none transition-all"
                                 placeholder="0"
                             />
                         </div>
@@ -380,7 +380,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                             required
                             value={nextCashierName}
                             onChange={(e) => setNextCashierName(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all uppercase"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all uppercase"
                             placeholder="Cth: KASIR-MALAM"
                         />
                     </div>
@@ -392,7 +392,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                             required
                             value={adminPin}
                             onChange={(e) => setAdminPin(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white outline-none focus:border-primary/50 transition-all tracking-[0.5em]"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all tracking-[0.5em]"
                             placeholder="****"
                             maxLength={6}
                         />

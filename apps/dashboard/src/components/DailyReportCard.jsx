@@ -75,8 +75,8 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
               </div>
 
               <div className="flex justify-between items-center bg-white/5 p-4 md:p-5 rounded-2xl md:rounded-[1.5rem] border border-white/5 shadow-lg">
-                  <p className="text-[10px] md:text-[11px] font-black text-white/60 uppercase tracking-[0.2em]">Target Penutupan</p>
-                  <p className="text-lg md:text-xl font-black text-white tracking-tight">
+                  <p className="text-[10px] md:text-[11px] font-black text-[var(--text-main)]/60 uppercase tracking-[0.2em]">Target Penutupan</p>
+                  <p className="text-lg md:text-xl font-black text-[var(--text-main)] tracking-tight">
                     <span className="text-[10px] md:text-xs opacity-40 mr-1">Rp</span>
                     {report.initialCash.toLocaleString()}
                   </p>
@@ -132,7 +132,7 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
 
                   <div className="mt-4 md:mt-6 pt-4 md:pt-5 border-t border-white/5 flex justify-between items-center relative z-10">
                       <div className="flex flex-col">
-                        <p className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-tighter">
+                        <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-main)]/40 uppercase tracking-tighter">
                           {report.totalTransactions} Transaksi
                         </p>
                         <p className="text-[8px] md:text-[9px] font-black text-primary uppercase mt-0.5">Verified System</p>
@@ -152,14 +152,14 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
       <div className="px-6 md:px-10 py-5 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-2 md:gap-3 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
           <button 
             onClick={() => alert(`Laporan Shift ${report.cashierName} pada ${report.date}\nStatus: ${report.status}\nTotal Transaksi: ${report.totalTransactions}\nProfit: Rp ${report.profit.toLocaleString()}`)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/10 min-w-[80px]"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)]/60 hover:bg-white/10 hover:text-[var(--text-main)] transition-all border border-white/10 min-w-[80px]"
           >
               <span className="material-symbols-outlined text-lg">visibility</span>
               Detail
           </button>
           <button 
             onClick={onExport}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/10 min-w-[80px]"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)]/60 hover:bg-white/10 hover:text-[var(--text-main)] transition-all border border-white/10 min-w-[80px]"
           >
               <span className="material-symbols-outlined text-lg text-primary">description</span>
               CSV

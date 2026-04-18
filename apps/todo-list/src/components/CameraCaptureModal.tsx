@@ -153,7 +153,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
             {/* OVERLAY UI: TOP ACTIONS */}
             <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-start z-50 bg-gradient-to-b from-black/60 to-transparent">
                 <div className="animate-in slide-in-from-top-4 duration-500">
-                    <h3 className="text-white font-black uppercase tracking-[0.2em] text-xs">
+                    <h3 className="text-[var(--text-main)] font-black uppercase tracking-[0.2em] text-xs">
                         {previewImage ? 'Konfirmasi Foto' : 'Hanya Kamera'}
                     </h3>
                     {!previewImage && (
@@ -166,7 +166,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
 
                 <button 
                     onClick={onClose}
-                    className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white active:scale-75 transition-all shadow-2xl"
+                    className="size-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-[var(--text-main)] active:scale-75 transition-all shadow-2xl"
                 >
                     <span className="material-symbols-outlined text-2xl font-black">close</span>
                 </button>
@@ -178,7 +178,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                     <div className="w-full max-w-sm aspect-[3/4] border-2 border-dashed border-white/20 rounded-[3rem] relative">
                          <div className="absolute inset-0 border-[40px] border-black/20 rounded-[3rem]" />
                     </div>
-                    <p className="mt-8 text-white/40 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse text-center">
+                    <p className="mt-8 text-[var(--text-main)]/40 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse text-center">
                         Posisikan Bukti di Tengah
                     </p>
                 </div>
@@ -194,7 +194,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                             <button 
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isProcessing}
-                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
+                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-[var(--text-main)] active:scale-75 transition-all shadow-xl gap-0.5 group"
                             >
                                 <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">photo_library</span>
                                 <span className="text-[8px] font-black uppercase tracking-tighter opacity-80">Galeri</span>
@@ -220,8 +220,8 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                             </button>
                         ) : (
                             <div className="flex flex-col items-center gap-2">
-                                <span className="material-symbols-outlined text-white/40 text-4xl">no_photography</span>
-                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest text-center">Kamera Dinonaktifkan</span>
+                                <span className="material-symbols-outlined text-[var(--text-main)]/40 text-4xl">no_photography</span>
+                                <span className="text-[8px] font-black text-[var(--text-main)]/40 uppercase tracking-widest text-center">Kamera Dinonaktifkan</span>
                             </div>
                         )}
 
@@ -238,7 +238,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                             <button 
                                 onClick={toggleCamera}
                                 disabled={isSwitching}
-                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-white active:scale-75 transition-all shadow-xl gap-0.5 group"
+                                className="size-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center text-[var(--text-main)] active:scale-75 transition-all shadow-xl gap-0.5 group"
                             >
                                 <span className="material-symbols-outlined text-2xl group-hover:rotate-180 transition-transform duration-500">flip_camera_ios</span>
                             </button>
@@ -250,7 +250,7 @@ export default function CameraCaptureModal({ isOpen, onClose, onCapture, userNam
                     <div className="flex w-full gap-4 max-w-sm animate-in slide-in-from-bottom-8 duration-500 mb-6">
                         <button 
                             onClick={handleRetake}
-                            className="flex-1 h-14 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border border-white/20 text-white flex items-center justify-center gap-3 active:scale-95 transition-all"
+                            className="flex-1 h-14 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border border-white/20 text-[var(--text-main)] flex items-center justify-center gap-3 active:scale-95 transition-all"
                         >
                             <span className="material-symbols-outlined text-xl">refresh</span>
                             <span className="text-[10px] font-black uppercase tracking-widest">Ulang</span>

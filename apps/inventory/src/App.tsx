@@ -286,7 +286,7 @@ function App() {
         </button>
         <button
             onClick={() => setIsCreateItemModalOpen(true)}
-            className="flex-[2] flex items-center justify-center gap-4 accent-gradient text-slate-950 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
+            className="flex-[2] flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
         >
             <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Bahan Baru</span>
@@ -323,7 +323,7 @@ function App() {
             <button 
                 key={`mob-cat-filt-${cat}`}
                 onClick={() => setFilterCategory(cat)}
-                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterCategory === cat ? 'accent-gradient text-slate-950 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterCategory === cat ? 'accent-gradient text-[var(--text-main)] border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>
@@ -336,7 +336,7 @@ function App() {
             <button 
                 key={`mob-cat-${cat}`}
                 onClick={() => setFilterType(cat)}
-                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterType === cat ? 'accent-gradient text-slate-950 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterType === cat ? 'accent-gradient text-[var(--text-main)] border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>

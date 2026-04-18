@@ -136,7 +136,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
                     <button
                         onClick={handleSave}
                         disabled={createMutation.isPending}
-                        className="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full bg-gradient-to-r from-primary to-primary-dark text-[var(--text-main)] py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {createMutation.isPending ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">save</span>}
                         {createMutation.isPending ? 'Menyimpan...' : 'Simpan Karyawan'}

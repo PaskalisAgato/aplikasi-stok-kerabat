@@ -17,13 +17,13 @@ const NotificationCard = ({
                         }`}>
                         {status}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-medium">{time}</span>
+                    <span className="text-[10px] text-[var(--text-muted)] font-medium">{time}</span>
                 </div>
                 <h3 className="text-base font-bold text-[var(--text-main)]">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
                     {title}
                 </h3>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-[var(--text-muted)]">
                     Stok: <span className={`${status === 'CRITICAL' ? 'text-red-500' : 'text-orange-400'} font-semibold`}>
                         {stockInfo}
                     </span> tersisa
@@ -37,12 +37,12 @@ const NotificationCard = ({
                         <span className="material-symbols-outlined text-sm">shopping_cart</span>
                         Restock Now
                     </button>
-                    <button className="px-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-all">
+                    <button className="px-3 bg-white/5 hover:bg-white/10 text-[var(--text-main)] rounded-lg border border-white/10 transition-all">
                         <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
                 </div>
             ) : showUpdate ? (
-                <button className="w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-lg font-semibold text-sm transition-all">
+                <button className="w-full bg-white/10 hover:bg-white/20 text-[var(--text-main)] py-2.5 rounded-lg font-semibold text-sm transition-all">
                     Update Stok
                 </button>
             ) : null}
@@ -61,9 +61,9 @@ const NotificationModal = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className="p-2 hover:bg-white/5 rounded-full transition-colors"
                 >
-                    <span className="material-symbols-outlined text-slate-100">arrow_back</span>
+                    <span className="material-symbols-outlined text-[var(--text-main)]">arrow_back</span>
                 </button>
-                <h1 className="text-xl font-bold tracking-tight text-slate-100">Notifikasi Stok</h1>
+                <h1 className="text-xl font-bold tracking-tight text-[var(--text-main)]">Notifikasi Stok</h1>
             </header>
 
             {/* Filter Tabs */}
@@ -72,7 +72,7 @@ const NotificationModal = ({ isOpen, onClose }) => {
                     <button className="px-6 py-2 rounded-full bg-primary text-white text-xs font-bold transition-all shadow-lg shadow-primary/20">
                         Semua
                     </button>
-                    <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-bold hover:bg-white/10 transition-all">
+                    <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[var(--text-muted)] text-xs font-bold hover:bg-white/10 transition-all">
                         Belum Dibaca
                     </button>
                 </div>
@@ -84,7 +84,7 @@ const NotificationModal = ({ isOpen, onClose }) => {
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-semibold uppercase tracking-wider text-primary font-bold">Hari Ini</h2>
-                        <span className="text-xs text-slate-400">3 Alerts</span>
+                        <span className="text-xs text-[var(--text-muted)]">3 Alerts</span>
                     </div>
 
                     <NotificationCard

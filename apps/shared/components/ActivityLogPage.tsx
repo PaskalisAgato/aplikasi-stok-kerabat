@@ -33,7 +33,7 @@ const ActivityLogPage: React.FC = () => {
         if (action.includes('DELETE')) return 'bg-red-50 text-red-600 border-red-100';
         if (action.includes('UPDATE')) return 'bg-blue-50 text-blue-600 border-blue-100';
         if (action.includes('LOGIN')) return 'bg-orange-500 text-white border-orange-600';
-        return 'bg-slate-50 text-slate-600 border-slate-100';
+        return 'bg-slate-50 text-[var(--text-muted)] border-slate-100';
     };
 
     const getActionIcon = (action: string) => {
@@ -62,8 +62,8 @@ const ActivityLogPage: React.FC = () => {
                     <div className="size-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-red-500">
                         <span className="material-symbols-outlined text-4xl font-black">gpp_maybe</span>
                     </div>
-                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Gagal Memuat Log</h2>
-                    <p className="text-sm text-slate-500 mb-6">{error.message || 'Terdapat kendala koneksi ke server pusat.'}</p>
+                    <h2 className="text-xl font-black text-[var(--text-main)] uppercase tracking-tight mb-2">Gagal Memuat Log</h2>
+                    <p className="text-sm text-[var(--text-muted)] mb-6">{error.message || 'Terdapat kendala koneksi ke server pusat.'}</p>
                     <button className="w-full py-4 bg-red-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-colors">Coba Lagi</button>
                 </div>
             ) : logs.length === 0 ? (
@@ -71,7 +71,7 @@ const ActivityLogPage: React.FC = () => {
                     <div className="size-32 bg-orange-50 rounded-full flex items-center justify-center mb-8 border-2 border-dashed border-orange-200">
                         <span className="material-symbols-outlined text-6xl text-orange-500 font-light">history_toggle_off</span>
                     </div>
-                    <p className="font-black text-xs uppercase tracking-[0.4em] text-slate-800">Belum Ada Aktivitas</p>
+                    <p className="font-black text-xs uppercase tracking-[0.4em] text-[var(--text-main)]">Belum Ada Aktivitas</p>
                     <p className="text-[10px] uppercase tracking-widest mt-3 opacity-60">Seluruh operasi sistem berjalan normal.</p>
                 </div>
             ) : (
@@ -89,7 +89,7 @@ const ActivityLogPage: React.FC = () => {
                                         <span className="text-sm">{getInitials(log.userName)}</span>
                                     </div>
                                     <div className="min-w-0">
-                                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight leading-tight truncate">
+                                        <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-tight leading-tight truncate">
                                             {log.userName || 'System'}
                                         </h3>
                                         <div className="flex items-center gap-1.5 mt-0.5">
@@ -108,23 +108,23 @@ const ActivityLogPage: React.FC = () => {
                             {/* Action Content */}
                             <div className="space-y-4">
                                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-orange-50 group-hover:border-orange-100 transition-colors duration-300 min-h-[80px] flex flex-col justify-center">
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1 opacity-60">Aktivitas</p>
-                                    <p className="text-[12px] font-black text-slate-800 leading-relaxed uppercase tracking-tight">
+                                    <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1 opacity-60">Aktivitas</p>
+                                    <p className="text-[12px] font-black text-[var(--text-main)] leading-relaxed uppercase tracking-tight">
                                         {log.action.includes(':') ? log.action.split(':').slice(1).join(':').trim() : log.action.replace(/_/g, ' ')}
                                     </p>
                                 </div>
 
                                 <div className="flex items-center justify-between px-2">
                                     <div className="flex flex-col gap-0.5">
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Waktu Login</p>
+                                        <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Waktu Login</p>
                                         <div className="flex items-center gap-1.5">
                                             <span className="material-symbols-outlined text-[12px] text-orange-400">schedule</span>
-                                            <p className="text-[10px] font-black text-slate-700 uppercase">{formatTime(log.createdAt)}</p>
+                                            <p className="text-[10px] font-black text-[var(--text-main)] uppercase">{formatTime(log.createdAt)}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-0.5">
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Tanggal</p>
-                                        <p className="text-[10px] font-black text-slate-700 uppercase">{formatDate(log.createdAt)}</p>
+                                        <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Tanggal</p>
+                                        <p className="text-[10px] font-black text-[var(--text-main)] uppercase">{formatDate(log.createdAt)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -132,7 +132,7 @@ const ActivityLogPage: React.FC = () => {
                             {/* Subtle Table Tag */}
                             <div className="absolute bottom-0 right-6 translate-y-1/2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                                 <div className="px-3 py-1 bg-slate-900 rounded-t-lg">
-                                    <p className="text-[8px] font-black text-white uppercase tracking-[0.3em] truncate max-w-[80px]">OBJ: {log.tableName}</p>
+                                    <p className="text-[8px] font-black text-[var(--text-main)] uppercase tracking-[0.3em] truncate max-w-[80px]">OBJ: {log.tableName}</p>
                                 </div>
                             </div>
                         </div>

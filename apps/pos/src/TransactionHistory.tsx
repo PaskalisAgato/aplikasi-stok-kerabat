@@ -477,10 +477,10 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     <div className="card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.15)] border border-primary/20">
                         <header className="accent-gradient p-6 flex justify-between items-center shrink-0">
                             <div>
-                                <h3 className="font-black text-2xl text-slate-950 uppercase tracking-widest">Edit Transaksi #{editData.id}</h3>
-                                <p className="text-xs text-slate-900/70 font-bold mt-1 uppercase tracking-widest">Perubahan diaudit dalam log</p>
+                                <h3 className="font-black text-2xl text-[var(--text-main)] uppercase tracking-widest">Edit Transaksi #{editData.id}</h3>
+                                <p className="text-xs text-[var(--text-main)]/70 font-bold mt-1 uppercase tracking-widest">Perubahan diaudit dalam log</p>
                             </div>
-                            <button onClick={() => setEditData(null)} className="size-10 rounded-xl bg-slate-950/20 text-slate-950 hover:bg-slate-950/30 flex items-center justify-center transition-all">
+                            <button onClick={() => setEditData(null)} className="size-10 rounded-xl bg-slate-950/20 text-[var(--text-main)] hover:bg-slate-950/30 flex items-center justify-center transition-all">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </header>

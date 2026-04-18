@@ -79,7 +79,7 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
             {/* Header */}
             <div className={`p-8 border-b border-white/5 flex items-center justify-between shrink-0 ${isFullPage ? 'px-0' : ''}`}>
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-white mb-1">Pengaturan Printer</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-[var(--text-main)] mb-1">Pengaturan Printer</h2>
                     <p className="text-xs text-[var(--text-muted)] opacity-60">Konfigurasi jembatan cetak & rute kategori</p>
                 </div>
                 {!isFullPage && (
@@ -323,11 +323,11 @@ const PrinterSettings: React.FC<PrinterSettingsProps> = ({ isOpen, onClose, isFu
                                         <div className="flex gap-4">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input type="checkbox" checked={printer.showDate !== false} onChange={(e) => updatePrinter(printer.id, { showDate: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
-                                                <span className="text-[10px] text-white/60">Tgl/Jam</span>
+                                                <span className="text-[10px] text-[var(--text-main)]/60">Tgl/Jam</span>
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input type="checkbox" checked={!!printer.showCashier} onChange={(e) => updatePrinter(printer.id, { showCashier: e.target.checked })} className="rounded border-white/10 bg-white/5 text-primary" />
-                                                <span className="text-[10px] text-white/60">Nama Kasir</span>
+                                                <span className="text-[10px] text-[var(--text-main)]/60">Nama Kasir</span>
                                             </label>
                                         </div>
                                     </div>

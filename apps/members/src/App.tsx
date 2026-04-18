@@ -291,7 +291,7 @@ function MemberTab() {
             </Field>
             {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-4">
-              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-white transition-colors">Batal</button>
+              <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">Batal</button>
               <button onClick={handleSave} disabled={saving} className="btn-primary flex-2 py-3">
                 {saving ? 'Menyimpan...' : (modal === 'create' ? 'Daftarkan Member' : 'Simpan Perubahan')}
               </button>
@@ -771,7 +771,7 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
       <div className={`glass !rounded-[2.5rem] w-full max-h-[95vh] overflow-y-auto flex flex-col shadow-2xl animate-in zoom-in duration-300 ${wide ? 'max-w-4xl' : 'max-w-md'}`}>
         <div className="p-8 pb-4 flex items-center justify-between">
           <h3 className="font-display text-xl font-black text-[var(--text-main)] uppercase tracking-tight">{title}</h3>
-          <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white transition-all">
+          <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-main)] transition-all">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>

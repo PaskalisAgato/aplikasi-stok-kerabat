@@ -58,7 +58,7 @@ function App() {
                         >
                             Reset
                         </button>
-                        <button className="flex-[3] py-5 bg-gradient-to-r from-primary to-amber-600 text-white font-black text-[10px] uppercase tracking-widest rounded-3xl shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
+                        <button className="flex-[3] py-5 bg-gradient-to-r from-primary to-amber-600 text-[var(--text-main)] font-black text-[10px] uppercase tracking-widest rounded-3xl shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
                             <span className="material-symbols-outlined font-black text-lg">verified</span>
                             Simpan Resep Strategis
                         </button>

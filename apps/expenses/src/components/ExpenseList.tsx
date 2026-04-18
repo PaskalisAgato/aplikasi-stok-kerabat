@@ -191,7 +191,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             />
                             <button
                                 onClick={() => setPreviewImage(null)}
-                                className="absolute -top-12 right-0 size-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                                className="absolute -top-12 right-0 size-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-[var(--text-main)] transition-colors"
                             >
                                 <span className="material-symbols-outlined">close</span>
                             </button>

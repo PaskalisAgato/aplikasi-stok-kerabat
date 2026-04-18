@@ -139,7 +139,7 @@ const Layout: React.FC<LayoutProps> = ({
             <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)]">
                 <div className="w-full max-w-md space-y-10 animate-in slide-in-from-bottom duration-500">
                     <div className="text-center space-y-6">
-                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-slate-950 mx-auto shadow-2xl shadow-primary/30 rotate-3">
+                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-[var(--text-main)] mx-auto shadow-2xl shadow-primary/30 rotate-3">
                             <span className="material-symbols-outlined text-5xl">wifi_off</span>
                         </div>
                         <div className="space-y-2">
@@ -214,7 +214,7 @@ const Layout: React.FC<LayoutProps> = ({
                     {sidebar && (
                         <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
                             <div className="flex items-center gap-4">
-                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg shadow-primary/20">
+                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-[var(--text-main)] shadow-lg shadow-primary/20">
                                     <span className="material-symbols-outlined font-black">coffee</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -250,7 +250,7 @@ const Layout: React.FC<LayoutProps> = ({
                                         </button>
                                         
                                         {!sidebar && (
-                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-slate-950 shadow-md">
+                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-[var(--text-main)] shadow-md">
                                                 <span className="material-symbols-outlined text-[18px] sm:text-[20px]">coffee</span>
                                             </div>
                                         )}

@@ -113,7 +113,7 @@ function AttendancePage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-slate-950 shadow-2xl transition-all duration-700 bg-slate-500">
+                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-[var(--text-main)] shadow-2xl transition-all duration-700 bg-slate-500">
                                 <span className="material-symbols-outlined text-5xl font-black">check_circle</span>
                             </div>
                         )}
@@ -202,7 +202,7 @@ function AttendancePage() {
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute bottom-4 left-4 right-4 p-3 bg-black/60 backdrop-blur-md rounded-xl border border-white/10">
-                                <p className="text-[10px] font-bold text-white leading-tight">
+                                <p className="text-[10px] font-bold text-[var(--text-main)] leading-tight">
                                     <span className="text-primary">LOKASI:</span> {locationData?.address}
                                 </p>
                             </div>
@@ -211,7 +211,7 @@ function AttendancePage() {
                         <div className="flex gap-4">
                             <button 
                                 onClick={handleCancelPreview}
-                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-[var(--text-main)] rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                             >
                                 Ambil Ulang
                             </button>

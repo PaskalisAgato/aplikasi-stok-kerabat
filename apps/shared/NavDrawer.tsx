@@ -77,7 +77,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             `}>
                 <div className="flex items-center justify-between p-6">
                     <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl accent-gradient flex items-center justify-center text-slate-950 shadow-lg">
+                        <div className="size-9 rounded-xl accent-gradient flex items-center justify-center text-[var(--text-main)] shadow-lg">
                             <span className="material-symbols-outlined font-black text-xl">coffee</span>
                         </div>
                         <h2 className="text-lg font-black font-display tracking-tight">Main Menu</h2>
@@ -120,7 +120,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 <span className={`material-symbols-outlined text-xl ${isActive ? 'font-black' : 'group-hover:text-primary transition-colors'}`}>
                                     {link.icon}
                                 </span>
-                                <span className={`font-semibold tracking-wide text-xs ${isActive ? 'text-slate-950 font-black' : ''}`}>
+                                <span className={`font-semibold tracking-wide text-xs ${isActive ? 'text-[var(--text-main)] font-black' : ''}`}>
                                     {link.label}
                                 </span>
                             </a>

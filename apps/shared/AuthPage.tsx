@@ -78,7 +78,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
             <div className="w-full max-w-md space-y-12 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="text-center space-y-4">
                     <div className="size-24 rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-6 transform hover:scale-110 hover:rotate-3 transition-all cursor-default">
-                        <span className="material-symbols-outlined text-slate-950 text-5xl font-black">coffee</span>
+                        <span className="material-symbols-outlined text-[var(--text-main)] text-5xl font-black">coffee</span>
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-5xl font-black tracking-tighter font-display">KERABAT<span className="text-primary italic">.</span></h1>
