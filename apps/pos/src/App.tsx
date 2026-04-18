@@ -74,7 +74,7 @@ const MemoizedProductCard = memo(({ item, saleCount, isHighlighted, onUpdateQty 
 const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange }: { item: Recipe & { qty?: number }, salesCount: number, updateQty: (id: number, delta: number) => void, note?: string, onNoteChange: (id: number, note: string) => void }) => {
     const [showNoteInput, setShowNoteInput] = useState(false);
     return (
-        <div className="flex items-center justify-between group py-1.5 border-b border-[var(--border-dim)] last:border-0 hover:bg-[var(--glass-bg)] -mx-1 px-1 rounded-lg transition-colors">
+        <div className="flex items-center justify-between group py-1.5 border-b border-[var(--border-dim)] last:border-0 hover:bg-[var(--glass-bg)] -mx-1 px-1 rounded-lg transition-colors relative">
             <div className="flex-1 min-w-0 pr-2">
                 <p className="font-black text-[10px] sm:text-[11px] uppercase tracking-tight truncate text-[var(--text-main)] leading-none mb-0.5">{item.name}</p>
                 <p className="text-[9px] font-bold text-primary leading-none">Rp {(item.price * salesCount).toLocaleString('id-ID')}</p>
@@ -110,8 +110,24 @@ const MemoizedCartItem = memo(({ item, salesCount, updateQty, note, onNoteChange
                         placeholder="Catatan pesanan (contoh: Pedas, No MSG)..."
                         value={note || ''}
                         onChange={(e) => onNoteChange(item.id, e.target.value)}
+                        onBlur={() => setShowNoteInput(false)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') setShowNoteInput(false);
+                            if (e.key === 'Escape') setShowNoteInput(false);
+                        }}
                         autoFocus
                     />
+                </div>
+            )}
+
+            {!showNoteInput && note && (
+                <div 
+                    onClick={() => setShowNoteInput(true)}
+                    className="absolute top-full left-0 right-0 z-10 p-1 bg-amber-500/5 rounded-lg cursor-pointer hover:bg-amber-500/10 transition-colors"
+                >
+                    <p className="text-[8px] font-black text-amber-500 uppercase truncate px-1">
+                        <span className="opacity-50 mr-1">Catatan:</span> {note}
+                    </p>
                 </div>
             )}
         </div>
