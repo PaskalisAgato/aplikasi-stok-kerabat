@@ -741,9 +741,9 @@ export default function App() {
          <button
            key={key}
            onClick={() => setTab(key as any)}
-           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === key ? 'bg-primary text-slate-900 shadow-lg' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+           className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${tab === key ? 'bg-primary text-slate-900 shadow-lg' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
          >
-           <span className="material-symbols-outlined text-sm">{icon}</span>
+           <span className="material-symbols-outlined text-[14px]">{icon}</span>
            {label}
          </button>
        ))}
@@ -755,9 +755,11 @@ export default function App() {
       currentPort={5193}
       title="Members & Rewards"
       subtitle="Kerabat POS Ecosystem"
-      headerExtras={headerTabs}
       maxWidth="1400px"
     >
+      <div className="sticky top-0 lg:top-0 z-40 mb-8 -mx-4 md:-mx-10 px-4 md:px-10 py-4 bg-[var(--bg-app)]/80 backdrop-blur-md border-b border-[var(--border-dim)]">
+        {headerTabs}
+      </div>
       {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
     </Layout>
   );
