@@ -27,7 +27,7 @@ const MaintenanceTools = () => {
                 </div>
                 <div>
                     <h3 className="text-sm font-black uppercase tracking-widest opacity-60">Maintenance</h3>
-                    <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Data Safety & Optimization</p>
+                    <p className="text-[10px] font-bold text-[var(--text-muted)]">Data Safety & Optimization</p>
                 </div>
             </div>
 
@@ -43,23 +43,23 @@ const MaintenanceTools = () => {
                         </span>
                         <div>
                             <p className="text-xs font-black uppercase tracking-widest">Backup Database</p>
-                            <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Ekspor JSON ke Server</p>
+                            <p className="text-[10px] font-bold text-[var(--text-muted)]">Ekspor JSON ke Server</p>
                         </div>
                     </div>
-                    <span className="material-symbols-outlined dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-40 group-hover:translate-x-1 transition-transform">
+                    <span className="material-symbols-outlined text-[var(--text-muted)] opacity-40 group-hover:translate-x-1 transition-transform">
                         chevron_right
                     </span>
                 </button>
 
-                <div className="p-4 rounded-2xl border border-dashed dark:border-white/10 border-slate-200 opacity-60 flex items-center justify-between">
+                <div className="p-4 rounded-2xl border border-dashed border-white/10 opacity-60 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-blue-400">storage</span>
                         <div>
                             <p className="text-xs font-black uppercase tracking-widest">Storage Optimize</p>
-                            <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Otomatis via Server Task</p>
+                            <p className="text-[10px] font-bold text-[var(--text-muted)]">Otomatis via Server Task</p>
                         </div>
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest dark:bg-white/5 bg-white shadow-sm border border-slate-200 px-2 py-1 rounded-full">AUTO</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded-full">AUTO</span>
                 </div>
             </div>
 

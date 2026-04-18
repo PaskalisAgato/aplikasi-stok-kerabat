@@ -115,7 +115,7 @@ function App() {
             title="Stock Opname"
             subtitle="Inventory Audit Portal"
             footer={
-                <footer className="p-8 glass border-t dark:border-white/10 border-slate-200 z-50 shrink-0 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+                <footer className="p-8 glass border-t border-white/10 z-50 shrink-0 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
                     <button 
                         onClick={handleSaveOpname}
                         disabled={isSaving || isLoading}
@@ -139,7 +139,7 @@ function App() {
                             <span className="material-symbols-outlined text-primary/40 group-focus-within:text-primary transition-colors font-black">search</span>
                         </div>
                         <input
-                            className="block w-full pl-14 pr-6 py-5 glass dark:border-white/10 border-slate-200 rounded-3xl focus:ring-4 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm font-black uppercase tracking-widest outline-none placeholder:dark:text-slate-400 dark:text-slate-400 text-slate-500 placeholder:opacity-40"
+                            className="block w-full pl-14 pr-6 py-5 glass border-white/10 rounded-3xl focus:ring-4 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm font-black uppercase tracking-widest outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-40"
                             placeholder="Cari Bahan Baku..."
                             type="text"
                             value={searchTerm}
@@ -151,8 +151,8 @@ function App() {
                 {/* Section Header */}
                 <div className="flex items-center justify-between px-2">
                     <div className="space-y-1">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60">Inventory List</h3>
-                        <p className="text-xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Katalog Bahan</p>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Inventory List</h3>
+                        <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Katalog Bahan</p>
                     </div>
                     <span className="px-5 py-2 glass rounded-full text-[10px] font-black text-primary uppercase tracking-widest border border-primary/20 shadow-inner">
                         {inventoryList.length} Items Sync
@@ -174,26 +174,26 @@ function App() {
                         return (
                             <div 
                                 key={item.id} 
-                                className="card group p-6 dark:border-white/5 border-slate-200 hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
+                                className="card group p-6 border-white/5 hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
                                 style={{ animationDelay: `${idx * 50}ms` }}
                             >
                                 <div className="flex gap-6 items-start mb-8 relative z-10">
                                     <div
-                                        className="size-20 rounded-2xl shrink-0 border-2 dark:border-white/10 border-slate-200 shadow-2xl bg-cover bg-center bg-[var(--bg-app)] group-hover:rotate-3 transition-transform duration-500"
+                                        className="size-20 rounded-2xl shrink-0 border-2 border-white/10 shadow-2xl bg-cover bg-center bg-[var(--bg-app)] group-hover:rotate-3 transition-transform duration-500"
                                         style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
                                     >
                                         {!item.imageUrl && (
-                                            <div className="flex items-center justify-center h-full dark:text-white dark:text-white text-slate-900/10 dark:bg-white/5 bg-white shadow-sm border border-slate-200">
+                                            <div className="flex items-center justify-center h-full text-[var(--text-main)]/10 bg-white/5">
                                                 <span className="material-symbols-outlined text-3xl font-black">image</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0 space-y-2">
-                                        <h4 className="text-xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase leading-none truncate group-hover:text-primary transition-colors">{item.name}</h4>
-                                        <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black uppercase tracking-widest opacity-60">Satuan: {item.unit}</p>
+                                        <h4 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none truncate group-hover:text-primary transition-colors">{item.name}</h4>
+                                        <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Satuan: {item.unit}</p>
                                         
                                         <div className="flex items-center gap-3 mt-4">
-                                            <div className="px-3 py-1.5 glass rounded-lg dark:border-white/5 border-slate-200 text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500 flex items-center gap-2">
+                                            <div className="px-3 py-1.5 glass rounded-lg border-white/5 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-[14px]">terminal</span>
                                                 System: {item.currentStock}
                                             </div>
@@ -203,7 +203,7 @@ function App() {
 
                                 <div className="grid grid-cols-2 gap-6 mb-6 relative z-10">
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Stok Fisik</label>
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Stok Fisik</label>
                                         <input
                                             className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
                                             type="number"
@@ -214,22 +214,22 @@ function App() {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Varian (Diff)</label>
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Varian (Diff)</label>
                                         <div className={`w-full rounded-2xl text-center font-black text-2xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
                                             diff < 0 ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-red-500/10' :
                                             diff > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10' :
-                                            'glass dark:border-white/10 border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-40'
+                                            'glass border-white/10 text-[var(--text-muted)] opacity-40'
                                         }`}>
                                             {diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 border-t dark:border-white/5 border-slate-200 pt-6 relative z-10">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Memo Penyesuaian</label>
+                                <div className="space-y-3 border-t border-white/5 pt-6 relative z-10">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Memo Penyesuaian</label>
                                     <div className="relative">
                                         <select 
-                                            className="w-full glass dark:border-white/10 border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest py-4 pl-6 pr-12 focus:ring-4 focus:ring-primary/20 appearance-none outline-none transition-all cursor-pointer"
+                                            className="w-full glass border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest py-4 pl-6 pr-12 focus:ring-4 focus:ring-primary/20 appearance-none outline-none transition-all cursor-pointer"
                                             value={reasons[item.id] || ''}
                                             onChange={(e) => handleReasonChange(item.id, e.target.value)}
                                         >

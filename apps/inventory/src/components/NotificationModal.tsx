@@ -78,7 +78,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
         });
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-app)] dark:text-white dark:text-white text-slate-900 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden">
             {/* Header */}
             <header className="sticky top-0 z-10 bg-[var(--bg-app)] border-b border-[var(--border-dim)] px-4 py-4 flex items-center gap-4">
                 <button

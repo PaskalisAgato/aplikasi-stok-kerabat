@@ -12,7 +12,7 @@ export default function SalesChart({ reports }) {
             <div className="flex items-center justify-between mb-12 relative z-10">
                 <div className="space-y-1">
                     <h2 className="text-2xl font-black font-display tracking-tight leading-tight uppercase">5 Menu Terlaris</h2>
-                    <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-[0.3em] opacity-80">Berdasarkan volume penjualan saat ini</p>
+                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] opacity-80">Berdasarkan volume penjualan saat ini</p>
                 </div>
                 <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                     <span className="material-symbols-outlined text-3xl font-black">analytics</span>
@@ -48,7 +48,7 @@ export default function SalesChart({ reports }) {
 
                             {/* Menu Name */}
                             <div className="w-full space-y-1">
-                                <span className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 truncate block w-full text-center uppercase tracking-wider group-hover/bar:text-primary transition-colors" title={item.name}>
+                                <span className="text-[9px] font-black text-[var(--text-muted)] truncate block w-full text-center uppercase tracking-wider group-hover/bar:text-primary transition-colors" title={item.name}>
                                     {item.name}
                                 </span>
                             </div>
@@ -57,7 +57,7 @@ export default function SalesChart({ reports }) {
                 })}
 
                 {topMenus.length === 0 && (
-                    <div className="w-full flex flex-col items-center justify-center h-full dark:text-slate-400 dark:text-slate-400 text-slate-500 italic opacity-40 py-10">
+                    <div className="w-full flex flex-col items-center justify-center h-full text-[var(--text-muted)] italic opacity-40 py-10">
                         <span className="material-symbols-outlined text-6xl mb-4 font-black">bar_chart</span>
                         <p className="text-xs font-black uppercase tracking-widest">Belum ada data penjualan tersedia</p>
                     </div>

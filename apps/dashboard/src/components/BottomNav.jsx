@@ -20,25 +20,25 @@ export default function BottomNav() {
             {/* Inventory */}
             <a className="flex flex-col items-center gap-1 group" href={inventoryUrl}>
                 <div className="p-1.5">
-                    <span className="material-symbols-outlined dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary transition-colors">inventory</span>
+                    <span className="material-symbols-outlined text-[var(--text-muted)] group-hover:text-primary transition-colors">inventory</span>
                 </div>
-                <span className="text-[10px] font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary">Inventory</span>
+                <span className="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-primary">Inventory</span>
             </a>
 
             {/* Kasir/POS */}
             <a className="flex flex-col items-center gap-1 group" href={posUrl}>
                 <div className="p-1.5">
-                    <span className="material-symbols-outlined dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary transition-colors">point_of_sale</span>
+                    <span className="material-symbols-outlined text-[var(--text-muted)] group-hover:text-primary transition-colors">point_of_sale</span>
                 </div>
-                <span className="text-[10px] font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary">Kasir</span>
+                <span className="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-primary">Kasir</span>
             </a>
 
             {/* Laporan */}
             <a className="flex flex-col items-center gap-1 group" href={reportsUrl}>
                 <div className="p-1.5">
-                    <span className="material-symbols-outlined dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary transition-colors">monitoring</span>
+                    <span className="material-symbols-outlined text-[var(--text-muted)] group-hover:text-primary transition-colors">monitoring</span>
                 </div>
-                <span className="text-[10px] font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary">Laporan</span>
+                <span className="text-[10px] font-medium text-[var(--text-muted)] group-hover:text-primary">Laporan</span>
             </a>
         </nav>
     );

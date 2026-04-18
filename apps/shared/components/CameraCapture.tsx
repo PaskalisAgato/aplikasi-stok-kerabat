@@ -148,11 +148,11 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({
     }));
 
     return (
-        <div className={`relative overflow-hidden dark:bg-slate-950 bg-slate-50 w-full h-full ${className}`}>
+        <div className={`relative overflow-hidden bg-slate-950 w-full h-full ${className}`}>
             {error ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center space-y-4">
                     <span className="material-symbols-outlined text-red-500 text-5xl">videocam_off</span>
-                    <p className="dark:text-white dark:text-white text-slate-900 text-sm font-bold">{error}</p>
+                    <p className="text-[var(--text-main)] text-sm font-bold">{error}</p>
                     <button 
                         onClick={startCamera}
                         className="px-6 py-2 bg-primary text-slate-950 rounded-full text-xs font-black uppercase tracking-widest"
@@ -169,9 +169,9 @@ const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>(({
                         muted 
                         className={`w-full h-full object-cover ${facingMode === 'user' ? 'mirror' : ''}`}
                     />
-                    <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 dark:bg-black bg-white/40 backdrop-blur-md rounded-full border dark:border-white/10 border-slate-200">
+                    <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
                         <div className="size-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">Live</span>
+                        <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest">Live</span>
                     </div>
                 </>
             )}

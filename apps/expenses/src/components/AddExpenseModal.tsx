@@ -220,7 +220,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end dark:bg-black bg-white/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
             {/* Bottom Sheet */}
             <div className="w-full bg-background-app  rounded-t-xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
 
@@ -233,7 +233,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 <div className="flex-1 overflow-y-auto px-6 pb-8">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold dark:text-white dark:text-white text-slate-900 ">{initialData ? 'Edit Expense' : 'Add New Expense'}</h2>
+                        <h2 className="text-2xl font-bold text-[var(--text-main)] ">{initialData ? 'Edit Expense' : 'Add New Expense'}</h2>
                         <button
                             onClick={onClose}
                             className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary"
@@ -325,7 +325,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     <span>Uang Owner</span>
                                 </button>
                             </div>
-                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 italic mt-1">
+                            <p className="text-[10px] text-[var(--text-muted)] italic mt-1">
                                 {fundSource === 'CASHIER' 
                                     ? '* Mengurangi saldo laci kasir saat closing.' 
                                     : '* Tidak mengurangi saldo laci kasir (pribadi owner).'}
@@ -397,7 +397,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                         <button
                                             type="button"
                                             onClick={() => setIsAddingCategory(false)}
-                                            className="size-7 rounded-full dark:bg-white/10 bg-white shadow-md border border-slate-200 text-primary flex items-center justify-center"
+                                            className="size-7 rounded-full bg-white/10 text-primary flex items-center justify-center"
                                         >
                                             <span className="material-symbols-outlined text-sm">close</span>
                                         </button>
@@ -435,7 +435,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     className="aspect-square rounded-lg border-2 border-dashed border-primary/30 flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-primary mb-2" style={{ fontSize: '32px' }}>add_a_photo</span>
-                                    <span className="text-xs font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 ">Take Photo</span>
+                                    <span className="text-xs font-medium text-[var(--text-muted)] ">Take Photo</span>
                                 </button>
 
                                 {/* Thumbnail Preview */}
@@ -450,8 +450,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                                 (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Gagal+Memuat+Bukti';
                                             }}
                                         />
-                                        <div className="absolute inset-0 dark:bg-black bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="material-symbols-outlined dark:text-white dark:text-white text-slate-900">visibility</span>
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="material-symbols-outlined text-[var(--text-main)]">visibility</span>
                                         </div>
                                         <button
                                             type="button"

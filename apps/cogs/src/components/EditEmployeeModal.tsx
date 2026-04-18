@@ -12,7 +12,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  dark:text-white dark:text-white text-slate-900  overflow-x-hidden antialiased">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background-app  text-[var(--text-main)]  overflow-x-hidden antialiased">
             {/* Header */}
             <header className="sticky top-0 z-50 flex items-center bg-background-app/80  backdrop-blur-md p-4 border-b border-primary/10 ">
                 <div className="flex items-center gap-3">
@@ -47,9 +47,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
                 <div className="px-4 space-y-6">
                     {/* Nama Lengkap */}
                     <div>
-                        <label className="block mb-2 text-sm font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 ">Nama Lengkap</label>
+                        <label className="block mb-2 text-sm font-medium text-[var(--text-muted)] ">Nama Lengkap</label>
                         <input
-                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  dark:text-white dark:text-white text-slate-900  focus:ring-primary focus:border-primary transition-all px-4"
+                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  text-[var(--text-main)]  focus:ring-primary focus:border-primary transition-all px-4"
                             type="text"
                             defaultValue="Ahmad Subarjo"
                         />
@@ -57,9 +57,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
 
                     {/* Peran */}
                     <div>
-                        <label className="block mb-2 text-sm font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 ">Peran</label>
+                        <label className="block mb-2 text-sm font-medium text-[var(--text-muted)] ">Peran</label>
                         <select
-                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  dark:text-white dark:text-white text-slate-900  focus:ring-primary focus:border-primary transition-all px-4 pr-10 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1.2em_1.2em]"
+                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  text-[var(--text-main)]  focus:ring-primary focus:border-primary transition-all px-4 pr-10 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1.2em_1.2em]"
                             style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%23d4823a\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")' }}
                             defaultValue="barista"
                         >
@@ -72,11 +72,11 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
 
                     {/* Nomor WhatsApp */}
                     <div>
-                        <label className="block mb-2 text-sm font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 ">Nomor WhatsApp</label>
+                        <label className="block mb-2 text-sm font-medium text-[var(--text-muted)] ">Nomor WhatsApp</label>
                         <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 dark:text-slate-400 dark:text-slate-400 text-slate-500">+62</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">+62</span>
                             <input
-                                className="w-full h-14 rounded-xl border border-slate-200  bg-white  dark:text-white dark:text-white text-slate-900  focus:ring-primary focus:border-primary transition-all pl-14 pr-4"
+                                className="w-full h-14 rounded-xl border border-slate-200  bg-white  text-[var(--text-main)]  focus:ring-primary focus:border-primary transition-all pl-14 pr-4"
                                 type="tel"
                                 defaultValue="81234567890"
                             />
@@ -85,9 +85,9 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
 
                     {/* Email */}
                     <div>
-                        <label className="block mb-2 text-sm font-medium dark:text-slate-400 dark:text-slate-400 text-slate-500 ">Email</label>
+                        <label className="block mb-2 text-sm font-medium text-[var(--text-muted)] ">Email</label>
                         <input
-                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  dark:text-white dark:text-white text-slate-900  focus:ring-primary focus:border-primary transition-all px-4"
+                            className="w-full h-14 rounded-xl border border-slate-200  bg-white  text-[var(--text-main)]  focus:ring-primary focus:border-primary transition-all px-4"
                             type="email"
                             defaultValue="ahmad.subarjo@kerabatkopi.com"
                         />
@@ -96,8 +96,8 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose }
                     {/* Status Akun */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-slate-100  border border-slate-200 ">
                         <div className="flex flex-col">
-                            <span className="font-semibold dark:text-white dark:text-white text-slate-900 ">Status Akun</span>
-                            <span className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500  mt-0.5">Tentukan status akses aplikasi</span>
+                            <span className="font-semibold text-[var(--text-main)] ">Status Akun</span>
+                            <span className="text-xs text-[var(--text-muted)]  mt-0.5">Tentukan status akses aplikasi</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input

@@ -55,8 +55,8 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                         <span className="material-symbols-outlined text-amber-500 text-2xl animate-pulse">cloud_sync</span>
                     </div>
                     <div>
-                        <h2 className="font-black text-xl uppercase tracking-widest dark:text-white dark:text-white text-slate-900">Antrean Cloud</h2>
-                        <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mt-0.5">
+                        <h2 className="font-black text-xl uppercase tracking-widest text-[var(--text-main)]">Antrean Cloud</h2>
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
                             {pendingCount} transaksi menunggu
                         </p>
                     </div>
@@ -93,7 +93,7 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
             {/* List */}
             <div className="space-y-4">
                 {isLoading && actions.length === 0 ? (
-                    <div className="card p-20 text-center dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse shadow-xl uppercase font-black tracking-widest text-xs">
+                    <div className="card p-20 text-center text-[var(--text-muted)] animate-pulse shadow-xl uppercase font-black tracking-widest text-xs">
                         Memuat antrean...
                     </div>
                 ) : actions.length === 0 ? (
@@ -101,8 +101,8 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                         <div className="size-20 rounded-[2rem] bg-emerald-500/5 flex items-center justify-center mx-auto mb-6">
                             <span className="material-symbols-outlined text-4xl text-emerald-500/30">cloud_done</span>
                         </div>
-                        <p className="font-black text-lg dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Semua Terkirim</p>
-                        <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 mt-2 opacity-60">Tidak ada transaksi yang menunggu sinkronisasi.</p>
+                        <p className="font-black text-lg text-[var(--text-muted)] uppercase tracking-widest">Semua Terkirim</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-2 opacity-60">Tidak ada transaksi yang menunggu sinkronisasi.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -113,7 +113,7 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                                 : 'emerald';
 
                             return (
-                                <div key={action.id} className="card p-5 group hover:dark:border-white/10 border-slate-200 transition-all shadow-xl">
+                                <div key={action.id} className="card p-5 group hover:border-white/10 transition-all shadow-xl">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className={`size-10 rounded-xl bg-${statusColor}-500/10 flex items-center justify-center`}>
@@ -122,10 +122,10 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                                                 </span>
                                             </div>
                                             <div>
-                                                <p className="font-black text-xs dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">
+                                                <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">
                                                     {action.type}
                                                 </p>
-                                                <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 mt-0.5">#{action.id.slice(0, 8)}</p>
+                                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">#{action.id.slice(0, 8)}</p>
                                             </div>
                                         </div>
                                         <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest bg-${statusColor}-500/10 text-${statusColor}-500`}>
@@ -133,21 +133,21 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
                                         </span>
                                     </div>
 
-                                    <div className="space-y-3 mb-6 dark:bg-black dark:bg-white/10 bg-white shadow-md border border-slate-200 p-4 rounded-2xl border dark:border-white/5 border-slate-200">
-                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">
+                                    <div className="space-y-3 mb-6 bg-black/10 p-4 rounded-2xl border border-white/5">
+                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                                             <span>Waktu</span>
-                                            <span className="dark:text-white dark:text-white text-slate-900">{new Date(action.created_at).toLocaleString('id-ID')}</span>
+                                            <span className="text-[var(--text-main)]">{new Date(action.created_at).toLocaleString('id-ID')}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">
+                                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                                             <span>Percobaan</span>
                                             <span className={`px-2 py-0.5 rounded-full ${action.retry_count > 0 ? 'bg-amber-500/20 text-amber-500' : 'bg-green-500/20 text-green-500'}`}>
                                                 {action.retry_count} / 3
                                             </span>
                                         </div>
                                         {action.last_attempt_at && (
-                                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">
+                                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                                                 <span>Terakhir</span>
-                                                <span className="dark:text-white dark:text-white text-slate-900/60">{new Date(action.last_attempt_at).toLocaleTimeString('id-ID')}</span>
+                                                <span className="text-[var(--text-main)]/60">{new Date(action.last_attempt_at).toLocaleTimeString('id-ID')}</span>
                                             </div>
                                         )}
                                         {action.failure_reason && (

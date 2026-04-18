@@ -60,7 +60,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-700">
                 <div className="space-y-1">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Riwayat Transaksi</h3>
-                    <p className="text-2xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Daftar Pengeluaran</p>
+                    <p className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Daftar Pengeluaran</p>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
                     <div className="relative group min-w-[140px]">
@@ -70,7 +70,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             className="w-full text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary pl-4 pr-10 py-3 rounded-xl outline-none border border-primary/20 appearance-none cursor-pointer glass hover:bg-primary/10 transition-all"
                         >
                             {MONTHS.map((m, i) => (
-                                <option key={i} value={i} className="dark:bg-slate-900 bg-slate-50 border-none">{m}</option>
+                                <option key={i} value={i} className="bg-slate-900 border-none">{m}</option>
                             ))}
                         </select>
                         <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none font-black text-sm">expand_more</span>
@@ -82,7 +82,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             className="w-full text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary pl-4 pr-10 py-3 rounded-xl outline-none border border-primary/20 appearance-none cursor-pointer glass hover:bg-primary/10 transition-all font-display"
                         >
                             {generateYears().map((y) => (
-                                <option key={y} value={y} className="dark:bg-slate-900 bg-slate-50 border-none">{y}</option>
+                                <option key={y} value={y} className="bg-slate-900 border-none">{y}</option>
                             ))}
                         </select>
                         <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none font-black text-sm">expand_more</span>
@@ -99,7 +99,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             className="flex flex-col items-center justify-center py-20 glass rounded-[2.5rem] border-dashed border-2 opacity-40"
                         >
                              <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">search_off</span>
-                             <p className="font-black text-xs uppercase tracking-[0.2em] dark:text-white dark:text-white text-slate-900">Tidak ada pengeluaran</p>
+                             <p className="font-black text-xs uppercase tracking-[0.2em] text-[var(--text-main)]">Tidak ada pengeluaran</p>
                              <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60">Coba pilih periode atau tahun lain</p>
                         </motion.div>
                     ) : (
@@ -130,9 +130,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                                             {expense.fundSource === 'CASHIER' && (
                                                 <span className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Uang Kasir</span>
                                             )}
-                                            <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
                                         </div>
-                                        <h4 className="font-black dark:text-white dark:text-white text-slate-900 text-lg font-display tracking-tight leading-tight uppercase text-auto-fit">{expense.title}</h4>
+                                        <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase text-auto-fit">{expense.title}</h4>
                                     </div>
                                 </div>
 
@@ -173,7 +173,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setPreviewImage(null)}
-                        className="fixed inset-0 z-[100] dark:bg-black bg-white/90 backdrop-blur-xl flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -184,14 +184,14 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
                             <img
                                 src={previewImage}
                                 alt="Receipt Preview"
-                                className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain border-4 dark:border-white/10 border-slate-200"
+                                className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain border-4 border-white/10"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = 'https://placehold.co/800x800?text=Gambar+Tidak+Tersedia';
                                 }}
                             />
                             <button
                                 onClick={() => setPreviewImage(null)}
-                                className="absolute -top-12 right-0 size-10 dark:bg-white/10 bg-white shadow-md border border-slate-200 hover:bg-white/20 rounded-full flex items-center justify-center dark:text-white dark:text-white text-slate-900 transition-colors"
+                                className="absolute -top-12 right-0 size-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-[var(--text-main)] transition-colors"
                             >
                                 <span className="material-symbols-outlined">close</span>
                             </button>

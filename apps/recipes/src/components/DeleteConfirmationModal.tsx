@@ -26,15 +26,15 @@ export default function DeleteConfirmationModal({
             />
             
             {/* Modal Content */}
-            <div className="relative w-full max-w-sm glass rounded-[2.5rem] border dark:border-white/10 border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+            <div className="relative w-full max-w-sm glass rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
                 <div className="p-8 text-center space-y-6">
                     <div className="size-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20 shadow-inner">
                         <span className="material-symbols-outlined text-red-500 text-4xl font-black animate-pulse">delete_forever</span>
                     </div>
                     
                     <div className="space-y-2">
-                        <h3 className="text-xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">Hapus Menu?</h3>
-                        <p className="text-xs font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest leading-relaxed opacity-60 px-2">
+                        <h3 className="text-xl font-black text-[var(--text-main)] uppercase tracking-tight">Hapus Menu?</h3>
+                        <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed opacity-60 px-2">
                             Apakah Anda yakin ingin menghapus <span className="text-red-500">"{itemName}"</span>? Tindakan ini tidak dapat dibatalkan.
                         </p>
                     </div>
@@ -43,7 +43,7 @@ export default function DeleteConfirmationModal({
                         <button
                             onClick={onClose}
                             disabled={isDeleting}
-                            className="h-14 rounded-2xl glass text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 disabled:opacity-50 transition-all active:scale-95"
+                            className="h-14 rounded-2xl glass text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:bg-white/5 disabled:opacity-50 transition-all active:scale-95"
                         >
                             Batal
                         </button>

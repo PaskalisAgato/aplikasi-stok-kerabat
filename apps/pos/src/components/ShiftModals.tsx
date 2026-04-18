@@ -26,19 +26,19 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
     };
 
     return (
-        <div className="absolute inset-0 z-[50] flex items-center justify-center dark:bg-black bg-white/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-            <div className="bg-[#0f172a] border dark:border-white/10 border-slate-200 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 relative">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 relative">
                 <div className="flex flex-col items-center text-center mb-8">
                     <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <span className="material-symbols-outlined text-4xl text-primary">login</span>
                     </div>
-                    <h2 className="text-2xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">Buka Shift Kasir</h2>
-                    <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm mt-1">Masukkan modal awal laci kas (Petty Cash)</p>
+                    <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Buka Shift Kasir</h2>
+                    <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan modal awal laci kas (Petty Cash)</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Kas Awal (Tunai)</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Kas Awal (Tunai)</label>
                         <div className="relative">
                             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">Rp</span>
                             <input 
@@ -47,7 +47,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                                 required
                                 value={initialCash || ''}
                                 onChange={(e) => setInitialCash(parseInt(e.target.value) || 0)}
-                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl pl-12 pr-6 py-4 text-xl font-black dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
                                 placeholder="0"
                             />
                         </div>
@@ -134,8 +134,8 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
     };
 
     return (
-        <div className="absolute inset-0 z-[50] flex items-center justify-center dark:bg-black bg-white/80 backdrop-blur-sm p-4">
-            <div className="bg-[#0f172a] border dark:border-white/10 border-slate-200 rounded-3xl p-8 w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
                 
                 {step === 1 ? (
                     <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
@@ -143,54 +143,54 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                             <div className="size-16 bg-red-500/20 rounded-2xl flex items-center justify-center mb-4 border border-red-500/20">
                                 <span className="material-symbols-outlined text-4xl text-red-500">logout</span>
                             </div>
-                            <h2 className="text-2xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">Tutup Shift Kasir</h2>
-                            <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm mt-1">Tinjau ringkasan penjualan hari ini</p>
+                            <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Tutup Shift Kasir</h2>
+                            <p className="text-[var(--text-muted)] text-sm mt-1">Tinjau ringkasan penjualan hari ini</p>
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 p-4 rounded-2xl text-center">
+                            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 mb-1">Total Omzet</p>
-                                <p className="text-sm font-black dark:text-white dark:text-white text-slate-900">Rp {summary.totalOmzet.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalOmzet.toLocaleString()}</p>
                             </div>
-                            <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 p-4 rounded-2xl text-center">
+                            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-emerald-500 opacity-60 mb-1">Total Tunai</p>
-                                <p className="text-sm font-black dark:text-white dark:text-white text-slate-900">Rp {summary.totalCashSales.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalCashSales.toLocaleString()}</p>
                             </div>
-                            <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 p-4 rounded-2xl text-center">
+                            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-blue-500 opacity-60 mb-1">Total Non-Tunai</p>
-                                <p className="text-sm font-black dark:text-white dark:text-white text-slate-900">Rp {summary.totalNonCashSales.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalNonCashSales.toLocaleString()}</p>
                             </div>
-                            <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 p-4 rounded-2xl text-center">
+                            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-red-500 opacity-60 mb-1">Pengeluaran</p>
-                                <p className="text-sm font-black dark:text-white dark:text-white text-slate-900">Rp {summary.totalExpenses.toLocaleString()}</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalExpenses.toLocaleString()}</p>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <h3 className="text-xs font-black uppercase tracking-widest dark:text-white dark:text-white text-slate-900/40 border-b dark:border-white/5 border-slate-200 pb-2">Detail Per Kategori</h3>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]/40 border-b border-white/5 pb-2">Detail Per Kategori</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {summary?.categories?.map((cat: any) => (
                                     <div key={cat.name} className="flex justify-between items-center py-1 sm:px-2">
-                                        <span className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase">{cat.name}</span>
-                                        <span className="text-xs font-black dark:text-white dark:text-white text-slate-900">Rp {cat.total.toLocaleString()}</span>
+                                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">{cat.name}</span>
+                                        <span className="text-xs font-black text-[var(--text-main)]">Rp {cat.total.toLocaleString()}</span>
                                     </div>
                                 ))}
                                 {(!summary?.categories || summary.categories.length === 0) && (
-                                    <p className="text-[10px] dark:text-white dark:text-white text-slate-900/40 italic">Tidak ada rincian kategori.</p>
+                                    <p className="text-[10px] text-[var(--text-main)]/40 italic">Tidak ada rincian kategori.</p>
                                 )}
                             </div>
                         </div>
 
                         <div className="flex gap-4">
-                            <button onClick={onCancel} className="flex-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 transition-all">Batal</button>
+                            <button onClick={onCancel} className="flex-1 bg-white/5 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Batal</button>
                             <button onClick={() => setStep(2)} className="flex-[2] bg-primary text-[#0f172a] h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20">Lanjutkan Penghitungan Kas</button>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                         <div className="flex flex-col items-center text-center">
-                            <h2 className="text-2xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">Hitung Uang Kasir</h2>
-                            <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm mt-1">Masukkan jumlah uang aktual di laci</p>
+                            <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Hitung Uang Kasir</h2>
+                            <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan jumlah uang aktual di laci</p>
                         </div>
 
                         <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl flex justify-between items-center">
@@ -198,15 +198,15 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Ekspektasi Kas (Sistem)</span>
                                 <p className="text-[8px] text-blue-400/60 uppercase font-black tracking-tighter">Kas Awal + Tunai - Pengeluaran</p>
                             </div>
-                            <span className="text-xl font-black dark:text-white dark:text-white text-slate-900">Rp {expectedCash.toLocaleString()}</span>
+                            <span className="text-xl font-black text-[var(--text-main)]">Rp {expectedCash.toLocaleString()}</span>
                         </div>
 
                         <div className="space-y-4">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Kalkulator Denominasi Kas Fisik</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Kalkulator Denominasi Kas Fisik</label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 {[100000, 50000, 20000, 10000, 5000, 2000, 1000].map(nominal => (
-                                    <div key={nominal} className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 rounded-xl p-2 relative flex items-center justify-between group focus-within:border-primary/50 transition-colors">
-                                        <span className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 w-12">{nominal / 1000}k</span>
+                                    <div key={nominal} className="bg-white/5 border border-white/5 rounded-xl p-2 relative flex items-center justify-between group focus-within:border-primary/50 transition-colors">
+                                        <span className="text-[10px] font-black text-[var(--text-muted)] w-12">{nominal / 1000}k</span>
                                         <input 
                                             type="number" 
                                             min="0"
@@ -219,8 +219,8 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                     </div>
                                 ))}
                                 {/* Koin (Input Total Value) */}
-                                <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 rounded-xl p-2 relative flex items-center justify-between group focus-within:border-primary/50 transition-colors">
-                                    <span className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 w-12">Koin</span>
+                                <div className="bg-white/5 border border-white/5 rounded-xl p-2 relative flex items-center justify-between group focus-within:border-primary/50 transition-colors">
+                                    <span className="text-[10px] font-black text-[var(--text-muted)] w-12">Koin</span>
                                     <input 
                                         type="number" 
                                         min="0"
@@ -233,9 +233,9 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center py-3 px-4 dark:bg-black bg-white/20 rounded-2xl border dark:border-white/5 border-slate-200 mt-2">
-                                <span className="text-xs font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">Total Aktual Kasir:</span>
-                                <span className="text-2xl font-black dark:text-white dark:text-white text-slate-900">Rp {actualCash.toLocaleString()}</span>
+                            <div className="flex justify-between items-center py-3 px-4 bg-black/20 rounded-2xl border border-white/5 mt-2">
+                                <span className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">Total Aktual Kasir:</span>
+                                <span className="text-2xl font-black text-[var(--text-main)]">Rp {actualCash.toLocaleString()}</span>
                             </div>
 
                             <div className={`p-4 rounded-2xl border ${discrepancy === 0 ? 'bg-emerald-500/10 border-emerald-500/20' : Math.abs(discrepancy) > 50000 ? 'bg-red-500/20 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse' : discrepancy < 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
@@ -253,13 +253,13 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
 
                             {summary?.nonCashTransactions && summary.nonCashTransactions.length > 0 && (
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Daftar Transaksi Non-Tunai</label>
-                                    <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl max-h-[150px] overflow-y-auto custom-scrollbar p-2 space-y-1">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Daftar Transaksi Non-Tunai</label>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl max-h-[150px] overflow-y-auto custom-scrollbar p-2 space-y-1">
                                         {summary.nonCashTransactions.map((tx: any) => (
-                                            <div key={tx.id} className="flex justify-between items-center px-3 py-2 dark:bg-black bg-white/20 rounded-lg border dark:border-white/5 border-slate-200">
+                                            <div key={tx.id} className="flex justify-between items-center px-3 py-2 bg-black/20 rounded-lg border border-white/5">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] font-black dark:text-white dark:text-white text-slate-900">{tx.method} - {tx.ref || 'Tanpa Ref'}</span>
-                                                    <span className="text-[8px] dark:text-slate-400 dark:text-slate-400 text-slate-500">{new Date(tx.time).toLocaleTimeString()}</span>
+                                                    <span className="text-[10px] font-black text-[var(--text-main)]">{tx.method} - {tx.ref || 'Tanpa Ref'}</span>
+                                                    <span className="text-[8px] text-[var(--text-muted)]">{new Date(tx.time).toLocaleTimeString()}</span>
                                                 </div>
                                                 <span className="text-xs font-black text-primary">Rp {parseFloat(tx.total).toLocaleString()}</span>
                                             </div>
@@ -268,7 +268,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                 </div>
                             )}
 
-                            <div className="dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 p-4 rounded-2xl flex gap-3 items-start">
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex gap-3 items-start">
                                 <input 
                                     type="checkbox" 
                                     id="nonCashVerif"
@@ -276,24 +276,24 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                                     onChange={(e) => setNonCashVerified(e.target.checked)}
                                     className="mt-1 size-5 accent-primary rounded cursor-pointer"
                                 />
-                                <label htmlFor="nonCashVerif" className="text-sm font-bold dark:text-white dark:text-white text-slate-900 cursor-pointer select-none">
+                                <label htmlFor="nonCashVerif" className="text-sm font-bold text-[var(--text-main)] cursor-pointer select-none">
                                     Saya memverifikasi bahwa <span className="text-primary font-black">{summary.nonCashTransactions?.length || 0}</span> transaksi Non-Tunai sebesar <span className="text-primary font-black">Rp {summary.totalNonCashSales.toLocaleString()}</span> telah masuk ke sistem pembayaran (QRIS/EDC).
                                 </label>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Catatan Kasir (Opsional)</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Catatan Kasir (Opsional)</label>
                                 <textarea 
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all min-h-[80px]"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all min-h-[80px]"
                                     placeholder="Alasan selisih uang kas..."
                                 />
                             </div>
                         </div>
 
                         <div className="flex gap-4">
-                            <button onClick={() => setStep(1)} className="flex-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 transition-all">Kembali</button>
+                            <button onClick={() => setStep(1)} className="flex-1 bg-white/5 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Kembali</button>
                             <button 
                                 onClick={handleSubmit}
                                 disabled={isSubmitting || !nonCashVerified}
@@ -346,14 +346,14 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="absolute inset-0 z-[50] flex items-center justify-center dark:bg-black bg-white/80 backdrop-blur-sm p-4">
-            <div className="bg-[#0f172a] border dark:border-white/10 border-slate-200 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="flex flex-col items-center text-center mb-6">
                     <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/20">
                         <span className="material-symbols-outlined text-4xl text-amber-500">sync_alt</span>
                     </div>
-                    <h2 className="text-2xl font-black dark:text-white dark:text-white text-slate-900 uppercase tracking-tight">Oper Shift (Handover)</h2>
-                    <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm mt-1">Serah terima mesin kasir ke shift berikutnya.</p>
+                    <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Oper Shift (Handover)</h2>
+                    <p className="text-[var(--text-muted)] text-sm mt-1">Serah terima mesin kasir ke shift berikutnya.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -366,7 +366,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                                 required
                                 value={cashAmount || ''}
                                 onChange={(e) => setCashAmount(parseInt(e.target.value) || 0)}
-                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border border-amber-500/30 focus:border-amber-500 rounded-2xl pl-12 pr-6 py-4 text-xl font-black dark:text-white dark:text-white text-slate-900 outline-none transition-all"
+                                className="w-full bg-white/5 border border-amber-500/30 focus:border-amber-500 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none transition-all"
                                 placeholder="0"
                             />
                         </div>
@@ -374,32 +374,32 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">Username Kasir Penerima</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Username Kasir Penerima</label>
                         <input 
                             type="text"
                             required
                             value={nextCashierName}
                             onChange={(e) => setNextCashierName(e.target.value)}
-                            className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all uppercase"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all uppercase"
                             placeholder="Cth: KASIR-MALAM"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-slate-400 dark:text-slate-400 text-slate-500 opacity-60 ml-2">PIN Otorisasi (Penyelia/Admin)</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">PIN Otorisasi (Penyelia/Admin)</label>
                         <input 
                             type="password"
                             required
                             value={adminPin}
                             onChange={(e) => setAdminPin(e.target.value)}
-                            className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold dark:text-white dark:text-white text-slate-900 outline-none focus:border-primary/50 transition-all tracking-[0.5em]"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all tracking-[0.5em]"
                             placeholder="****"
                             maxLength={6}
                         />
                     </div>
 
                     <div className="flex gap-4 pt-2">
-                        <button type="button" onClick={onCancel} className="flex-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 transition-all">Batal</button>
+                        <button type="button" onClick={onCancel} className="flex-1 bg-white/5 h-14 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Batal</button>
                         <button 
                             type="submit"
                             disabled={isSubmitting}

@@ -19,9 +19,9 @@ export default function DeleteConfirmationModal({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            <div className="absolute inset-0 dark:bg-slate-950 bg-slate-50/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
             
-            <div className="relative w-full max-w-sm bg-surface rounded-[2.5rem] border dark:border-white/10 border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+            <div className="relative w-full max-w-sm bg-surface rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
                 <div className="p-8 text-center space-y-6">
                     <div className="size-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20 shadow-inner">
                         <span className="material-symbols-outlined text-red-500 text-4xl font-black animate-pulse">delete_forever</span>
@@ -37,7 +37,7 @@ export default function DeleteConfirmationModal({
                     <div className="grid grid-cols-2 gap-3 pt-2">
                         <button
                             onClick={onClose}
-                            className="h-14 rounded-2xl glass text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 transition-all active:scale-95"
+                            className="h-14 rounded-2xl glass text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:bg-white/5 transition-all active:scale-95"
                         >
                             Batal
                         </button>

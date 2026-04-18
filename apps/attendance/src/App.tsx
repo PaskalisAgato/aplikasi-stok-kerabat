@@ -108,12 +108,12 @@ function AttendancePage() {
                                     userName={session?.user?.name}
                                     facingMode="user"
                                 />
-                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 dark:bg-slate-900 bg-slate-50/80 backdrop-blur-xl border dark:border-white/10 border-slate-200 rounded-2xl shadow-2xl">
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
                                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Siap Mengambil Foto</p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center dark:text-white dark:text-white text-slate-900 shadow-2xl transition-all duration-700 bg-slate-500">
+                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-[var(--text-main)] shadow-2xl transition-all duration-700 bg-slate-500">
                                 <span className="material-symbols-outlined text-5xl font-black">check_circle</span>
                             </div>
                         )}
@@ -128,14 +128,14 @@ function AttendancePage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="glass rounded-[2rem] p-6 space-y-1">
-                            <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Jam Masuk</p>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Jam Masuk</p>
                             <p className="text-xl font-black">{todayAttendance?.checkIn ? new Date(todayAttendance.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
                             {todayAttendance?.status === 'Terlambat' && (
                                 <span className="inline-block px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-tighter">Terlambat</span>
                             )}
                         </div>
                         <div className="glass rounded-[2rem] p-6 space-y-1">
-                            <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Jam Pulang</p>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Jam Pulang</p>
                             <p className="text-xl font-black">{todayAttendance?.checkOut ? new Date(todayAttendance.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
                         </div>
                     </div>
@@ -144,7 +144,7 @@ function AttendancePage() {
                         <button 
                             onClick={() => handleStartCapture('in')}
                             disabled={isCheckedIn || isActionLoading || isLoading || isLocating}
-                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${isCheckedIn ? 'dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 cursor-not-allowed' : 'btn-primary'}`}
+                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${isCheckedIn ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed' : 'btn-primary'}`}
                         >
                             <span className="material-symbols-outlined font-black">{isLocating ? 'location_on' : 'login'}</span>
                             {isLocating ? 'MENCARI LOKASI...' : isActionLoading ? 'PROSES...' : 'ABSEN MASUK'}
@@ -159,7 +159,7 @@ function AttendancePage() {
                         </button>
                     </div>
 
-                    <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                         {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                 </div>
@@ -180,8 +180,8 @@ function AttendancePage() {
 
             {/* Preview Modal */}
             {previewPhoto && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 dark:bg-slate-950 bg-slate-50/90 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="relative glass p-6 rounded-[3rem] max-w-lg w-full space-y-6 shadow-2xl border dark:border-white/10 border-slate-200 zoom-in-95 duration-300">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="relative glass p-6 rounded-[3rem] max-w-lg w-full space-y-6 shadow-2xl border border-white/10 zoom-in-95 duration-300">
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Pratinjau Absensi</p>
@@ -189,20 +189,20 @@ function AttendancePage() {
                             </div>
                             <button 
                                 onClick={handleCancelPreview}
-                                className="size-10 rounded-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center transition-all"
+                                className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all"
                             >
                                 <span className="material-symbols-outlined text-sm">close</span>
                             </button>
                         </div>
 
-                        <div className="aspect-[4/3] w-full rounded-[2rem] overflow-hidden dark:bg-black bg-white/40 border dark:border-white/5 border-slate-200 relative">
+                        <div className="aspect-[4/3] w-full rounded-[2rem] overflow-hidden bg-black/40 border border-white/5 relative">
                             <img 
                                 src={previewPhoto.url} 
                                 alt="Capture Preview" 
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute bottom-4 left-4 right-4 p-3 dark:bg-black bg-white/60 backdrop-blur-md rounded-xl border dark:border-white/10 border-slate-200">
-                                <p className="text-[10px] font-bold dark:text-white dark:text-white text-slate-900 leading-tight">
+                            <div className="absolute bottom-4 left-4 right-4 p-3 bg-black/60 backdrop-blur-md rounded-xl border border-white/10">
+                                <p className="text-[10px] font-bold text-[var(--text-main)] leading-tight">
                                     <span className="text-primary">LOKASI:</span> {locationData?.address}
                                 </p>
                             </div>
@@ -211,7 +211,7 @@ function AttendancePage() {
                         <div className="flex gap-4">
                             <button 
                                 onClick={handleCancelPreview}
-                                className="flex-1 py-4 dark:bg-white/5 bg-white shadow-sm border border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 dark:text-white dark:text-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-[var(--text-main)] rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                             >
                                 Ambil Ulang
                             </button>

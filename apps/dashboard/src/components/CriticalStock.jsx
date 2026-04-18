@@ -24,11 +24,11 @@ export default function CriticalStock({ inventory }) {
                     <div key={item.id} className="card group hover:translate-x-1 transition-all">
                         <div className="flex items-center gap-5">
                             <div className="size-14 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0 shadow-lg group-hover:bg-red-500 group-hover:text-slate-950 transition-all">
-                                <span className="material-symbols-outlined text-2xl font-black text-red-500 group-hover:dark:text-white dark:text-white text-slate-900">inventory_2</span>
+                                <span className="material-symbols-outlined text-2xl font-black text-red-500 group-hover:text-[var(--text-main)]">inventory_2</span>
                             </div>
                             <div className="flex-1 min-w-0 space-y-2">
                                 <div className="flex items-center justify-between gap-2">
-                                    <h3 className="text-sm font-black dark:text-white dark:text-white text-slate-900 truncate font-display uppercase tracking-wide">{item.name}</h3>
+                                    <h3 className="text-sm font-black text-[var(--text-main)] truncate font-display uppercase tracking-wide">{item.name}</h3>
                                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">{item.currentStock} {item.unit}</p>
                                 </div>
                                 <div className="w-full bg-[var(--bg-app)] h-2 rounded-full overflow-hidden border border-[var(--border-dim)]">
@@ -37,7 +37,7 @@ export default function CriticalStock({ inventory }) {
                                         style={{ width: `${Math.max(5, (parseFloat(item.currentStock)/parseFloat(item.minStock || 1)) * 100)}%` }}
                                     ></div>
                                 </div>
-                                <p className="text-[9px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">Ambang Batas: {item.minStock} {item.unit}</p>
+                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">Ambang Batas: {item.minStock} {item.unit}</p>
                             </div>
                         </div>
                     </div>
@@ -48,7 +48,7 @@ export default function CriticalStock({ inventory }) {
                         </div>
                         <div className="space-y-1">
                             <p className="text-emerald-500 font-black text-sm uppercase tracking-[0.3em]">OPERASI AMAN</p>
-                            <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Semua stok bahan mencukupi</p>
+                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Semua stok bahan mencukupi</p>
                         </div>
                     </div>
                 )}

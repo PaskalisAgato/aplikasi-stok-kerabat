@@ -19,10 +19,10 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ total, title, compact }) => {
                 </div>
                 
                 <div className="space-y-1">
-                    <h2 className="text-[11px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">
+                    <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">
                         {title || 'Total Pengeluaran Periode Ini'}
                     </h2>
-                    <p className={`${compact ? 'text-3xl' : 'text-5xl'} font-black dark:text-white dark:text-white text-slate-900 font-display tracking-tighter uppercase`}>
+                    <p className={`${compact ? 'text-3xl' : 'text-5xl'} font-black text-[var(--text-main)] font-display tracking-tighter uppercase`}>
                         Rp {(total || 0).toLocaleString('id-ID')}
                     </p>
                 </div>

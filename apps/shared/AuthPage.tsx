@@ -71,18 +71,18 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 dark:text-white dark:text-white text-slate-900 overflow-y-auto relative">
+        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-y-auto relative">
             <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/10 blur-[120px] animate-pulse"></div>
             <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/10 blur-[120px] animate-pulse duration-700"></div>
 
             <div className="w-full max-w-md space-y-12 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="text-center space-y-4">
                     <div className="size-24 rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-6 transform hover:scale-110 hover:rotate-3 transition-all cursor-default">
-                        <span className="material-symbols-outlined dark:text-white dark:text-white text-slate-900 text-5xl font-black">coffee</span>
+                        <span className="material-symbols-outlined text-[var(--text-main)] text-5xl font-black">coffee</span>
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-5xl font-black tracking-tighter font-display">KERABAT<span className="text-primary italic">.</span></h1>
-                        <p className="dark:text-slate-400 dark:text-slate-400 text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px] opacity-80">Sistem Kasir Premium v1.0</p>
+                        <p className="text-[var(--text-muted)] font-bold uppercase tracking-[0.3em] text-[10px] opacity-80">Sistem Kasir Premium v1.0</p>
                     </div>
                 </div>
 
@@ -174,7 +174,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                 )}
 
                 <div className="space-y-4 pt-4">
-                     <p className="text-center text-[9px] dark:text-slate-400 dark:text-slate-400 text-slate-500 font-black tracking-[0.4em] uppercase opacity-40">
+                     <p className="text-center text-[9px] text-[var(--text-muted)] font-black tracking-[0.4em] uppercase opacity-40">
                         &copy; 2026 Kerabat Coffee . Experience Excellence
                     </p>
                 </div>

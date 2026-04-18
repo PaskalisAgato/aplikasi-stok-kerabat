@@ -49,7 +49,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
                             ${n.type === 'success' ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-400' : ''}
                             ${n.type === 'error' ? 'bg-red-950/90 border-red-500/30 text-red-400' : ''}
                             ${n.type === 'warning' ? 'bg-amber-950/90 border-amber-500/30 text-amber-400' : ''}
-                            ${n.type === 'info' ? 'dark:bg-slate-900 bg-slate-50/90 dark:border-white/10 border-slate-200 dark:text-white dark:text-white text-slate-900' : ''}
+                            ${n.type === 'info' ? 'bg-slate-900/90 border-white/10 text-[var(--text-main)]' : ''}
                             glass backdrop-blur-xl
                         `}
                     >

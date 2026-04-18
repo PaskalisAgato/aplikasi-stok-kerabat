@@ -165,7 +165,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center dark:bg-black bg-white/60 backdrop-blur-sm p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
             <div className="w-full max-w-md bg-background-app rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] border border-border-dim overflow-hidden">
                 <header className="flex items-center justify-between p-4 border-b border-border-dim bg-background-app sticky top-0 z-10">
                     <button onClick={onClose} className="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
@@ -202,8 +202,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
                                     {draft.imageBase64 ? (
                                         <>
                                             <img src={draft.imageBase64} alt="Preview" className="size-full object-cover" />
-                                            <div className="absolute inset-0 dark:bg-black bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="material-symbols-outlined dark:text-white dark:text-white text-slate-900">edit</span>
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="material-symbols-outlined text-[var(--text-main)]">edit</span>
                                             </div>
                                         </>
                                     ) : (
@@ -392,7 +392,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose }) =>
 
             {/* Image Menu Overlay */}
             {imageMenuOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center dark:bg-black bg-white/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-surface rounded-2xl border border-border-dim p-4 shadow-sm space-y-4">
                         <h3 className="text-center font-bold text-main text-lg mb-4">Pilih Sumber Foto</h3>
                         <button 

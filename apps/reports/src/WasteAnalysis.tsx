@@ -81,21 +81,21 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                 </div>
                 <div className="space-y-4">
                     <div className="glass p-5 rounded-2xl border-[var(--border-dim)] shadow-inner">
-                        <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2 opacity-60">Dari Tanggal</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2 opacity-60">Dari Tanggal</p>
                         <input 
                             type="date"
                             value={dateRange.startDate}
                             onChange={e => setDateRange({...dateRange, startDate: e.target.value})}
-                            className="bg-transparent border-none outline-none text-sm font-black dark:text-white dark:text-white text-slate-900 w-full font-display uppercase"
+                            className="bg-transparent border-none outline-none text-sm font-black text-[var(--text-main)] w-full font-display uppercase"
                         />
                     </div>
                     <div className="glass p-5 rounded-2xl border-[var(--border-dim)] shadow-inner">
-                        <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2 opacity-60">Hingga Tanggal</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2 opacity-60">Hingga Tanggal</p>
                         <input 
                             type="date"
                             value={dateRange.endDate}
                             onChange={e => setDateRange({...dateRange, endDate: e.target.value})}
-                            className="bg-transparent border-none outline-none text-sm font-black dark:text-white dark:text-white text-slate-900 w-full font-display uppercase"
+                            className="bg-transparent border-none outline-none text-sm font-black text-[var(--text-main)] w-full font-display uppercase"
                         />
                     </div>
                     <button onClick={fetchReports} className="btn-primary w-full py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest shadow-primary/20 active:scale-95 transition-all">
@@ -108,7 +108,7 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                 </div>
             </div>
 
-            <div className="pt-10 border-t dark:border-white/5 border-slate-200">
+            <div className="pt-10 border-t border-white/5">
                 <button 
                     onClick={() => setTab('pnl')}
                     className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-primary/40 text-[var(--text-main)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/10 transition-all"
@@ -133,7 +133,7 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Pemborosan</p>
-                                <h2 className="text-4xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase">
+                                <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
                                     {totalWasteQty} Unit
                                 </h2>
                             </div>
@@ -149,7 +149,7 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Estimasi Kerugian</p>
-                                <h2 className="text-4xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase">
+                                <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
                                     Rp {(totalWasteCost / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
@@ -185,22 +185,22 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                         </div>
                         <div>
                             <h3 className="text-xl font-black font-display uppercase tracking-tight">Alasan Pembuangan</h3>
-                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Kategori penyebab waste</p>
+                            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">Kategori penyebab waste</p>
                         </div>
                     </div>
                     <div className="space-y-4">
-                        {wasteByReason.length === 0 ? <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500">Data tidak ada</p> : null}
+                        {wasteByReason.length === 0 ? <p className="text-xs text-[var(--text-muted)]">Data tidak ada</p> : null}
                         {wasteByReason.map((item: any, i: number) => (
-                            <div key={i} className="flex justify-between items-center glass p-4 rounded-xl border dark:border-white/5 border-slate-200">
+                            <div key={i} className="flex justify-between items-center glass p-4 rounded-xl border border-white/5">
                                 <div className="flex items-center gap-3">
                                     <div className="size-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
                                         <span className="material-symbols-outlined text-sm">report</span>
                                     </div>
-                                    <span className="text-xs font-black uppercase dark:text-white dark:text-white text-slate-900">{item.reason}</span>
+                                    <span className="text-xs font-black uppercase text-[var(--text-main)]">{item.reason}</span>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-sm font-bold">Rp {safeNumber(item.wasteCost).toLocaleString('id-ID')}</p>
-                                    <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500">{safeNumber(item.wasteQty)} Unit</p>
+                                    <p className="text-[10px] text-[var(--text-muted)]">{safeNumber(item.wasteQty)} Unit</p>
                                 </div>
                             </div>
                         ))}
@@ -214,17 +214,17 @@ export default function WasteAnalysis({ setTab }: { setTab: (tab: 'pnl' | 'waste
                         </div>
                         <div>
                             <h3 className="text-xl font-black font-display uppercase tracking-tight">Top Bahan Terbuang</h3>
-                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Item dengan kerugian tertinggi</p>
+                            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">Item dengan kerugian tertinggi</p>
                         </div>
                     </div>
                     <div className="space-y-4">
-                        {breakdownByInventory.length === 0 ? <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500">Data tidak ada</p> : null}
+                        {breakdownByInventory.length === 0 ? <p className="text-xs text-[var(--text-muted)]">Data tidak ada</p> : null}
                         {breakdownByInventory.map((item: any, i: number) => (
-                            <div key={i} className="flex justify-between items-center glass p-4 rounded-xl border dark:border-white/5 border-slate-200">
-                                <span className="text-xs font-black uppercase dark:text-white dark:text-white text-slate-900">{item.name}</span>
+                            <div key={i} className="flex justify-between items-center glass p-4 rounded-xl border border-white/5">
+                                <span className="text-xs font-black uppercase text-[var(--text-main)]">{item.name}</span>
                                 <div className="text-right">
                                     <p className="text-sm font-bold text-red-400">Rp {safeNumber(item.wasteCost).toLocaleString('id-ID')}</p>
-                                    <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500">- {safeNumber(item.wasteQty)} dibuang</p>
+                                    <p className="text-[10px] text-[var(--text-muted)]">- {safeNumber(item.wasteQty)} dibuang</p>
                                 </div>
                             </div>
                         ))}

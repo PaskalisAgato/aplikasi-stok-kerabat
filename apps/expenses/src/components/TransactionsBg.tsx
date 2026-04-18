@@ -23,7 +23,7 @@ const TransactionsBg: React.FC<TransactionsBgProps> = ({ onOpenStockDetail }) =>
             <div className="p-4 pointer-events-auto">
                 <button
                     onClick={onOpenStockDetail}
-                    className="w-full dark:bg-slate-800 bg-white dark:text-white dark:text-white text-slate-900 p-3 rounded-lg text-sm border dark:border-slate-700 border-slate-200"
+                    className="w-full bg-slate-800 text-[var(--text-main)] p-3 rounded-lg text-sm border border-slate-700"
                 >
                     [DEV] Open Stock Detail Modal
                 </button>
@@ -38,7 +38,7 @@ const TransactionsBg: React.FC<TransactionsBgProps> = ({ onOpenStockDetail }) =>
                             </div>
                             <div>
                                 <p className="font-medium">{item.label}</p>
-                                <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500">{item.sub}</p>
+                                <p className="text-xs text-[var(--text-muted)]">{item.sub}</p>
                             </div>
                         </div>
                         <p className={`font-bold ${item.color}`}>{item.amount}</p>

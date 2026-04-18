@@ -245,7 +245,7 @@ function App() {
                 placeholder="Cari bahan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-12 pr-6 rounded-xl glass focus:ring-4 focus:ring-primary/20 text-xs font-bold dark:text-white dark:text-white text-slate-900 shadow-inner border-none"
+                className="w-full h-11 pl-12 pr-6 rounded-xl glass focus:ring-4 focus:ring-primary/20 text-xs font-bold text-[var(--text-main)] shadow-inner border-none"
             />
         </div>
         <button onClick={handleExportExcel} className="size-11 glass flex items-center justify-center text-primary group shrink-0 rounded-2xl hover:bg-primary/5 active:scale-90 transition-all">
@@ -268,7 +268,7 @@ function App() {
 
         <a 
                 href="/settings/"
-                className="size-11 glass flex items-center justify-center rounded-2xl dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/5 bg-white shadow-sm border border-slate-200 active:scale-90 transition-all dark:border-white/10 border-slate-200"
+                className="size-11 glass flex items-center justify-center rounded-2xl text-[var(--text-muted)] hover:bg-white/5 active:scale-90 transition-all border-white/10"
           >
               <span className="material-symbols-outlined font-black">settings</span>
         </a>
@@ -276,17 +276,17 @@ function App() {
   );
 
   const MobileFooter = (
-    <footer className="glass border-t dark:border-white/5 border-slate-200 p-8 shrink-0 flex gap-4 lg:hidden z-50">
+    <footer className="glass border-t border-white/5 p-8 shrink-0 flex gap-4 lg:hidden z-50">
         <button
             onClick={() => setIsAddStockModalOpen(true)}
-            className="flex-1 flex items-center justify-center gap-4 glass text-primary px-6 py-5 rounded-[2rem] shadow-2xl transition-all active:scale-95 dark:border-white/10 border-slate-200 group"
+            className="flex-1 flex items-center justify-center gap-4 glass text-primary px-6 py-5 rounded-[2rem] shadow-2xl transition-all active:scale-95 border-white/10 group"
         >
             <span className="material-symbols-outlined text-2xl font-black group-hover:rotate-12 transition-transform">input</span>
             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Input Stok</span>
         </button>
         <button
             onClick={() => setIsCreateItemModalOpen(true)}
-            className="flex-[2] flex items-center justify-center gap-4 accent-gradient dark:text-white dark:text-white text-slate-900 px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
+            className="flex-[2] flex items-center justify-center gap-4 accent-gradient text-[var(--text-main)] px-10 py-5 rounded-[2rem] shadow-2xl shadow-primary/20 active:scale-95 transition-all border-none group"
         >
             <span className="material-symbols-outlined text-3xl font-black group-hover:rotate-12 transition-transform">add_circle</span>
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Bahan Baru</span>
@@ -312,7 +312,7 @@ function App() {
                     placeholder="Cari bahan baku..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-14 pl-14 pr-6 rounded-2xl glass focus:ring-4 focus:ring-primary/20 text-sm font-bold dark:text-white dark:text-white text-slate-900 shadow-inner border-none"
+                    className="w-full h-14 pl-14 pr-6 rounded-2xl glass focus:ring-4 focus:ring-primary/20 text-sm font-bold text-[var(--text-main)] shadow-inner border-none"
                 />
             </div>
         </div>
@@ -323,7 +323,7 @@ function App() {
             <button 
                 key={`mob-cat-filt-${cat}`}
                 onClick={() => setFilterCategory(cat)}
-                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterCategory === cat ? 'accent-gradient dark:text-white dark:text-white text-slate-900 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted dark:border-white/5 border-slate-200 opacity-80 hover:opacity-100 shadow-lg'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterCategory === cat ? 'accent-gradient text-[var(--text-main)] border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>
@@ -336,7 +336,7 @@ function App() {
             <button 
                 key={`mob-cat-${cat}`}
                 onClick={() => setFilterType(cat)}
-                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterType === cat ? 'accent-gradient dark:text-white dark:text-white text-slate-900 border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted dark:border-white/5 border-slate-200 opacity-80 hover:opacity-100 shadow-lg'}`}
+                className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-90 border-2 ${filterType === cat ? 'accent-gradient text-[var(--text-main)] border-primary shadow-xl shadow-primary/30 scale-105' : 'glass text-muted border-white/5 opacity-80 hover:opacity-100 shadow-lg'}`}
             >
                 {cat}
             </button>
@@ -344,8 +344,8 @@ function App() {
         </div>
 
         <div className="flex items-center justify-end mb-10 px-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <div className="glass px-5 py-2 rounded-2xl dark:border-white/5 border-slate-200 shadow-inner">
-                <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-80">{filteredInventory.length} ITEM AKTIF</p>
+            <div className="glass px-5 py-2 rounded-2xl border-white/5 shadow-inner">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-80">{filteredInventory.length} ITEM AKTIF</p>
             </div>
         </div>
 
@@ -371,10 +371,10 @@ function App() {
                             />
                         </div>
                         <div className="min-w-0 space-y-1">
-                            <h3 className="font-black dark:text-white dark:text-white text-slate-900 text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors text-auto-fit">{item.name}</h3>
+                            <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors text-auto-fit">{item.name}</h3>
                             <div className="flex items-center gap-2 opacity-60">
                                 <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
-                                <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest text-auto-fit-sm">{item.supplier || 'Pemasok Umum'}</p>
+                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-auto-fit-sm">{item.supplier || 'Pemasok Umum'}</p>
                             </div>
                         </div>
                     </div>
@@ -413,23 +413,23 @@ function App() {
                 <div className="flex items-end justify-between mt-auto mb-6 relative z-10 gap-4">
                     <div className="space-y-1">
                         <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
-                        <p className={`text-3xl font-black font-display tracking-tighter transition-colors duration-500 ${Number(item.currentStock) === 0 ? 'text-red-500' : 'dark:text-white dark:text-white text-slate-900'}`}>
+                        <p className={`text-3xl font-black font-display tracking-tighter transition-colors duration-500 ${Number(item.currentStock) === 0 ? 'text-red-500' : 'text-[var(--text-main)]'}`}>
                             {Number(item.currentStock)}
-                            <span className={`text-xs font-black ml-2 uppercase opacity-60 font-sans tracking-widest ${Number(item.currentStock) === 0 ? 'text-red-400' : 'dark:text-slate-400 dark:text-slate-400 text-slate-500'}`}>{item.unit}</span>
+                            <span className={`text-xs font-black ml-2 uppercase opacity-60 font-sans tracking-widest ${Number(item.currentStock) === 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>{item.unit}</span>
                         </p>
                     </div>
-                    <div className="text-right space-y-1 glass p-2 rounded-xl dark:border-white/5 border-slate-200 flex flex-col justify-center">
+                    <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5 flex flex-col justify-center">
                         <div className="flex flex-col items-end gap-0.5">
                             <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-tight">KOTOR: {Number((parseFloat(item.currentStock) + parseFloat(item.containerWeight || '0')).toFixed(2))}{item.unit}</p>
                             <p className="text-[8px] font-bold text-rose-500 uppercase tracking-tight">WADAH: {Number(parseFloat(item.containerWeight || '0').toFixed(2))}{item.unit}</p>
-                            <div className="h-[1px] w-8 dark:bg-white/10 bg-white shadow-md border border-slate-200 my-0.5" />
-                            <p className="text-[8px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">IDEAL: {Number(item.idealStock || 0)}</p>
+                            <div className="h-[1px] w-8 bg-white/10 my-0.5" />
+                            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">IDEAL: {Number(item.idealStock || 0)}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner relative z-10 border dark:border-white/5 border-slate-200">
+                <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner relative z-10 border border-white/5">
                 <div className={`${item.status === 'KRITIS' ? 'bg-red-500 accent-glow shadow-red-500/40' :
                     item.status === 'HABIS' ? 'bg-red-500 shadow-lg shadow-red-500/40' :
                     'bg-emerald-500 accent-glow shadow-emerald-500/40'
@@ -467,7 +467,7 @@ function App() {
                 <span className="material-symbols-outlined text-7xl text-red-500 font-black">wifi_off</span>
                 </div>
                 <p className="font-black text-lg uppercase tracking-widest text-red-400">Koneksi Gagal</p>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 dark:text-slate-400 dark:text-slate-400 text-slate-500">Tidak dapat memuat data dari server</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2 text-[var(--text-muted)]">Tidak dapat memuat data dari server</p>
                 <button
                     onClick={() => fetchInventory()}
                     className="mt-6 px-8 py-3 rounded-2xl btn-primary text-[10px] uppercase tracking-widest font-black"
@@ -482,7 +482,7 @@ function App() {
                 <div className="size-24 rounded-full bg-[var(--bg-app)] flex items-center justify-center mb-8">
                 <span className="material-symbols-outlined text-7xl text-primary font-black">inventory_2</span>
                 </div>
-                <p className="font-black text-lg uppercase tracking-widest dark:text-white dark:text-white text-slate-900">Gudang Kosong</p>
+                <p className="font-black text-lg uppercase tracking-widest text-[var(--text-main)]">Gudang Kosong</p>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Belum ada bahan baku yang terdaftar</p>
             </div>
         )}

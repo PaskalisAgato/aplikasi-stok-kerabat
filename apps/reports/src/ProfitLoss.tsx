@@ -86,21 +86,21 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                 </div>
                 <div className="space-y-4">
                     <div className="glass p-5 rounded-2xl border-[var(--border-dim)] shadow-inner">
-                        <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2 opacity-60">Dari Tanggal</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2 opacity-60">Dari Tanggal</p>
                         <input 
                             type="date"
                             value={dateRange.startDate}
                             onChange={e => setDateRange({...dateRange, startDate: e.target.value})}
-                            className="bg-transparent border-none outline-none text-sm font-black dark:text-white dark:text-white text-slate-900 w-full font-display uppercase"
+                            className="bg-transparent border-none outline-none text-sm font-black text-[var(--text-main)] w-full font-display uppercase"
                         />
                     </div>
                     <div className="glass p-5 rounded-2xl border-[var(--border-dim)] shadow-inner">
-                        <p className="text-[9px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mb-2 opacity-60">Hingga Tanggal</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2 opacity-60">Hingga Tanggal</p>
                         <input 
                             type="date"
                             value={dateRange.endDate}
                             onChange={e => setDateRange({...dateRange, endDate: e.target.value})}
-                            className="bg-transparent border-none outline-none text-sm font-black dark:text-white dark:text-white text-slate-900 w-full font-display uppercase"
+                            className="bg-transparent border-none outline-none text-sm font-black text-[var(--text-main)] w-full font-display uppercase"
                         />
                     </div>
                     <button onClick={fetchReports} className="btn-primary w-full py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest shadow-primary/20 active:scale-95 transition-all">
@@ -113,7 +113,7 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                 </div>
             </div>
 
-            <div className="pt-10 border-t dark:border-white/5 border-slate-200">
+            <div className="pt-10 border-t border-white/5">
                 <button 
                     onClick={() => setTab('waste')}
                     className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl glass border-primary/40 text-[var(--text-main)] font-black text-[10px] uppercase tracking-widest hover:bg-primary/10 transition-all"
@@ -139,7 +139,7 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Pendapatan (Kotor)</p>
-                                <h2 className="text-4xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase">
+                                <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
                                     Rp {(revenue / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
@@ -156,7 +156,7 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">HPP Keseluruhan</p>
-                                <h2 className="text-4xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase">
+                                <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
                                     Rp {(totalHPP / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
@@ -172,33 +172,33 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                     <div className="relative z-10 space-y-6">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-[0.3em]">Pengeluaran Operasional</p>
-                                <h2 className="text-4xl font-black font-display tracking-tighter dark:text-white dark:text-white text-slate-900 uppercase">
+                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Pengeluaran Operasional</p>
+                                <h2 className="text-4xl font-black font-display tracking-tighter text-[var(--text-main)] uppercase">
                                     Rp {(expenses / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
-                            <div className="size-14 rounded-2xl bg-slate-500/10 flex items-center justify-center dark:text-slate-400 dark:text-slate-400 text-slate-500 shadow-inner">
+                            <div className="size-14 rounded-2xl bg-slate-500/10 flex items-center justify-center text-[var(--text-muted)] shadow-inner">
                                 <span className="material-symbols-outlined text-3xl font-black">receipt_long</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className={`card ${accentGradientClass} dark:text-white dark:text-white text-slate-900 border-none shadow-2xl relative overflow-hidden group`}>
-                    <div className="absolute top-0 right-0 size-64 dark:bg-white/10 bg-white shadow-md border border-slate-200 rounded-full blur-[60px] -mr-24 -mt-24"></div>
+                <div className={`card ${accentGradientClass} text-[var(--text-main)] border-none shadow-2xl relative overflow-hidden group`}>
+                    <div className="absolute top-0 right-0 size-64 bg-white/10 rounded-full blur-[60px] -mr-24 -mt-24"></div>
                     <div className="relative z-10 space-y-6">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black dark:text-white dark:text-white text-slate-900/80 uppercase tracking-[0.3em]">{textStatus}</p>
+                                <p className="text-[10px] font-black text-[var(--text-main)]/80 uppercase tracking-[0.3em]">{textStatus}</p>
                                 <h2 className="text-4xl font-black font-display tracking-tighter uppercase">
                                     Rp {(netProfit / 1000).toLocaleString('id-ID')}k
                                 </h2>
                             </div>
-                            <div className={`size-14 rounded-2xl bg-white/20 flex items-center justify-center dark:text-white dark:text-white text-slate-900 shadow-inner`}>
+                            <div className={`size-14 rounded-2xl bg-white/20 flex items-center justify-center text-[var(--text-main)] shadow-inner`}>
                                 <span className="material-symbols-outlined text-3xl font-black">account_balance_wallet</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest dark:bg-black bg-white/20 w-fit px-3 py-1.5 rounded-lg border border-black/10">
+                        <div className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-black/10">
                             Profit Kotor: Rp {grossProfit.toLocaleString('id-ID')}
                         </div>
                     </div>
@@ -206,24 +206,24 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
             </div>
 
             {/* Breakdown Table */}
-            <div className="card p-0 overflow-hidden dark:border-white/5 border-slate-200 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                <div className="p-6 border-b dark:border-white/5 border-slate-200 flex items-center gap-4 bg-white/[0.02]">
+            <div className="card p-0 overflow-hidden border-white/5 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                <div className="p-6 border-b border-white/5 flex items-center gap-4 bg-white/[0.02]">
                     <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                         <span className="material-symbols-outlined font-black">list_alt</span>
                     </div>
                     <div>
-                        <h3 className="text-xl font-black font-display tracking-tight dark:text-white dark:text-white text-slate-900 uppercase">Rincian Performa Produk</h3>
-                        <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mt-1 opacity-60">Analisis margin HPP dan volume per item terjual</p>
+                        <h3 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Rincian Performa Produk</h3>
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-60">Analisis margin HPP dan volume per item terjual</p>
                     </div>
                 </div>
                 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-white/[0.02] border-b dark:border-white/5 border-slate-200">
-                                <th className="p-5 text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Produk</th>
-                                <th className="p-5 text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest text-center">Terjual</th>
-                                <th className="p-5 text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest text-right">Revenue</th>
+                            <tr className="bg-white/[0.02] border-b border-white/5">
+                                <th className="p-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Produk</th>
+                                <th className="p-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest text-center">Terjual</th>
+                                <th className="p-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Revenue</th>
                                 <th className="p-5 text-[10px] font-black text-amber-500 uppercase tracking-widest text-right">Total HPP</th>
                                 <th className="p-5 text-[10px] font-black text-primary uppercase tracking-widest text-right">Profit Produk</th>
                             </tr>
@@ -231,7 +231,7 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                         <tbody className="divide-y divide-white/5">
                             {breakdown.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="p-10 text-center text-xs font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest opacity-60">Tidak ada transaksi di rentang tanggal ini</td>
+                                    <td colSpan={5} className="p-10 text-center text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">Tidak ada transaksi di rentang tanggal ini</td>
                                 </tr>
                             ) : (
                                 breakdown.map((item: any, i: number) => {
@@ -240,12 +240,12 @@ export default function ProfitLoss({ setTab }: { setTab: (tab: 'pnl' | 'waste') 
                                     return (
                                         <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
                                             <td className="p-5">
-                                                <p className="text-xs font-black dark:text-white dark:text-white text-slate-900 uppercase">{item.name}</p>
+                                                <p className="text-xs font-black text-[var(--text-main)] uppercase">{item.name}</p>
                                             </td>
                                             <td className="p-5 text-center">
                                                 <span className="text-xs font-black font-display">{safeNumber(item.totalSold)}</span>
                                             </td>
-                                            <td className="p-5 text-right font-display text-sm font-bold dark:text-white dark:text-white text-slate-900">
+                                            <td className="p-5 text-right font-display text-sm font-bold text-[var(--text-main)]">
                                                 Rp {safeNumber(item.revenue).toLocaleString('id-ID')}
                                             </td>
                                             <td className="p-5 text-right font-display text-sm font-bold text-amber-500/80">

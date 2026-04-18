@@ -171,7 +171,7 @@ function AttendanceHistoryPage() {
                     </button>
                     <button 
                         onClick={handleExportCSV}
-                        className="flex items-center gap-2 px-5 py-3 dark:bg-white/5 bg-white shadow-sm border border-slate-200 dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border dark:border-white/10 border-slate-200"
+                        className="flex items-center gap-2 px-5 py-3 bg-white/5 text-[var(--text-muted)] hover:bg-white/10 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/10"
                     >
                         <span className="material-symbols-outlined text-base">csv</span>
                         CSV
@@ -184,15 +184,15 @@ function AttendanceHistoryPage() {
                         Hapus Riwayat
                     </button>
                 </div>
-                <div className="glass rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-center dark:border-white/5 border-slate-200 shadow-lg">
+                <div className="glass rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-center border-white/5 shadow-lg">
                     <div className="w-full md:flex-1 space-y-2">
                         <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Cari Karyawan</label>
                         <div className="relative">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 dark:text-slate-400 dark:text-slate-400 text-slate-500 text-sm">search</span>
+                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">search</span>
                             <input 
                                 type="text" 
                                 placeholder="Nama karyawan..."
-                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                                 value={filters.name}
                                 onChange={e => setFilters({ ...filters, name: e.target.value })}
                             />
@@ -204,7 +204,7 @@ function AttendanceHistoryPage() {
                             <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Mulai</label>
                             <input 
                                 type="date" 
-                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                                 value={filters.startDate}
                                 onChange={e => setFilters({ ...filters, startDate: e.target.value })}
                             />
@@ -216,7 +216,7 @@ function AttendanceHistoryPage() {
                             <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Selesai</label>
                             <input 
                                 type="date" 
-                                className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-primary transition-all outline-none"
                                 value={filters.endDate}
                                 onChange={e => setFilters({ ...filters, endDate: e.target.value })}
                             />
@@ -233,8 +233,8 @@ function AttendanceHistoryPage() {
             </div>
             {/* Photo Viewing Modal */}
             {viewingPhoto && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 dark:bg-slate-950 bg-slate-50/90 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="relative glass p-6 rounded-[3rem] max-w-lg w-full space-y-6 shadow-2xl border dark:border-white/10 border-slate-200 zoom-in-95 duration-300">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="relative glass p-6 rounded-[3rem] max-w-lg w-full space-y-6 shadow-2xl border border-white/10 zoom-in-95 duration-300">
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Bukti Absensi</p>
@@ -242,13 +242,13 @@ function AttendanceHistoryPage() {
                             </div>
                             <button 
                                 onClick={() => setViewingPhoto(null)}
-                                className="size-10 rounded-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center transition-all group"
+                                className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
                             >
                                 <span className="material-symbols-outlined text-sm group-hover:scale-110">close</span>
                             </button>
                         </div>
 
-                        <div className="aspect-[4/3] w-full rounded-[2rem] overflow-hidden dark:bg-black bg-white/40 border dark:border-white/5 border-slate-200">
+                        <div className="aspect-[4/3] w-full rounded-[2rem] overflow-hidden bg-black/40 border border-white/5">
                             <img 
                                 src={viewingPhoto.url} 
                                 alt="Attendance Proof" 
@@ -278,7 +278,7 @@ function AttendanceHistoryPage() {
 
             {/* Bulk Delete Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 dark:bg-slate-950 bg-slate-50/90 backdrop-blur-xl animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
                     <div className="relative glass p-8 rounded-[3rem] max-w-md w-full space-y-8 shadow-2xl border border-red-500/20 zoom-in-95 duration-300">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
@@ -287,7 +287,7 @@ function AttendanceHistoryPage() {
                             </div>
                             <button 
                                 onClick={() => setShowDeleteModal(false)}
-                                className="size-10 rounded-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center transition-all group"
+                                className="size-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
                             >
                                 <span className="material-symbols-outlined text-sm group-hover:scale-110">close</span>
                             </button>
@@ -298,7 +298,7 @@ function AttendanceHistoryPage() {
                                 <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Dari Tanggal</label>
                                 <input 
                                     type="date" 
-                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
                                     value={deleteRange.startDate}
                                     onChange={e => setDeleteRange({ ...deleteRange, startDate: e.target.value })}
                                 />
@@ -307,7 +307,7 @@ function AttendanceHistoryPage() {
                                 <label className="text-[9px] font-black text-primary uppercase tracking-widest pl-1">Sampai Tanggal</label>
                                 <input 
                                     type="date" 
-                                    className="w-full dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/10 border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold focus:border-red-500 transition-all outline-none"
                                     value={deleteRange.endDate}
                                     onChange={e => setDeleteRange({ ...deleteRange, endDate: e.target.value })}
                                 />
@@ -329,7 +329,7 @@ function AttendanceHistoryPage() {
                         <div className="flex gap-4 pt-2">
                             <button 
                                 onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 py-4 dark:bg-white/5 bg-white shadow-sm border border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
                             >
                                 Batal
                             </button>

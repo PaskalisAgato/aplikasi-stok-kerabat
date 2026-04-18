@@ -30,7 +30,7 @@ const SystemHealth = ({ health }) => {
                     </div>
                     <div>
                         <h3 className="text-sm font-black uppercase tracking-widest opacity-60">System Health</h3>
-                        <p className="text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500">Real-time Performance Metrics</p>
+                        <p className="text-[10px] font-bold text-[var(--text-muted)]">Real-time Performance Metrics</p>
                     </div>
                 </div>
                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase ${getStatusColor()}`}>
@@ -38,7 +38,7 @@ const SystemHealth = ({ health }) => {
                 </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[var(--bg-surface-alt)] border dark:border-white/5 border-slate-200">
+            <div className="p-4 rounded-2xl bg-[var(--bg-surface-alt)] border border-white/5">
                 <p className="text-xs font-bold leading-relaxed">{message}</p>
             </div>
 
@@ -46,7 +46,7 @@ const SystemHealth = ({ health }) => {
                 <div className="p-4 rounded-2xl glass space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Latency</span>
                     <p className="text-lg font-black text-primary">{metrics.avgResponseTime}ms</p>
-                    <div className="w-full h-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-primary transition-all duration-1000" 
                             style={{ width: `${Math.min(100, (metrics.avgResponseTime / 2000) * 100)}%` }}
@@ -56,7 +56,7 @@ const SystemHealth = ({ health }) => {
                 <div className="p-4 rounded-2xl glass space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Beban Egress</span>
                     <p className="text-lg font-black text-primary">{metrics.estimatedEgressMB}MB</p>
-                    <div className="w-full h-1 dark:bg-white/5 bg-white shadow-sm border border-slate-200 rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-blue-500 transition-all duration-1000" 
                             style={{ width: `${Math.min(100, (metrics.estimatedEgressMB / 20) * 100)}%` }}
@@ -65,7 +65,7 @@ const SystemHealth = ({ health }) => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest px-1">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest px-1">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Monitoring Active • 24h Rolling Window
             </div>

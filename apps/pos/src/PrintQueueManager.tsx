@@ -63,8 +63,8 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                         <span className="material-symbols-outlined text-primary text-xl md:text-2xl">receipt_long</span>
                     </div>
                     <div className="min-w-0">
-                        <h2 className="font-black text-lg md:text-xl uppercase tracking-widest dark:text-white dark:text-white text-slate-900 truncate">Antrean Cetak</h2>
-                        <p className="text-[9px] md:text-[10px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest mt-0.5 truncate">
+                        <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Antrean Cetak</h2>
+                        <p className="text-[9px] md:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 truncate">
                             {pendingCount} struk menunggu
                         </p>
                     </div>
@@ -85,7 +85,7 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                                 <div className="flex-1 md:flex-none flex items-center gap-1 animate-in zoom-in duration-300 w-full md:w-auto">
                                     <button 
                                         onClick={() => setShowClearConfirm(false)}
-                                        className="flex-1 md:flex-none px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] dark:text-slate-400 dark:text-slate-400 text-slate-500 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
+                                        className="flex-1 md:flex-none px-2 md:px-4 py-2.5 md:py-3 rounded-xl hover:bg-[var(--border-dim)] text-[var(--text-muted)] transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center justify-center"
                                     >
                                         Batal
                                     </button>
@@ -113,7 +113,7 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
             {/* Content */}
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {isLoading ? (
-                    <div className="card p-20 text-center dark:text-slate-400 dark:text-slate-400 text-slate-500 animate-pulse shadow-xl">
+                    <div className="card p-20 text-center text-[var(--text-muted)] animate-pulse shadow-xl">
                         Memuat antrean cetak...
                     </div>
                 ) : jobs.length === 0 ? (
@@ -121,8 +121,8 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                         <div className="size-20 rounded-3xl bg-primary/5 flex items-center justify-center mx-auto mb-6">
                             <span className="material-symbols-outlined text-4xl text-primary/30">print_disabled</span>
                         </div>
-                        <p className="font-black text-lg dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">Antrean Kosong</p>
-                        <p className="text-xs dark:text-slate-400 dark:text-slate-400 text-slate-500 mt-2 opacity-60">Semua struk sudah dicetak atau dihapus.</p>
+                        <p className="font-black text-lg text-[var(--text-muted)] uppercase tracking-widest">Antrean Kosong</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-2 opacity-60">Semua struk sudah dicetak atau dihapus.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -137,11 +137,11 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                                 <div 
                                     key={job.id} 
                                     className={`card p-0 overflow-hidden shadow-xl border transition-all ${
-                                        isPrinting ? 'border-primary/40 accent-glow' : 'dark:border-white/5 border-slate-200 hover:dark:border-white/10 border-slate-200'
+                                        isPrinting ? 'border-primary/40 accent-glow' : 'border-white/5 hover:border-white/10'
                                     }`}
                                 >
                                     {/* Card Header */}
-                                    <div className="p-5 flex items-center justify-between border-b dark:border-white/5 border-slate-200">
+                                    <div className="p-5 flex items-center justify-between border-b border-white/5">
                                         <div className="flex items-center gap-3">
                                             <div className={`size-10 rounded-xl bg-${statusColor}-500/10 flex items-center justify-center`}>
                                                 <span className={`material-symbols-outlined text-${statusColor}-500`}>
@@ -149,10 +149,10 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                                                 </span>
                                             </div>
                                             <div>
-                                                <p className="font-black text-xs dark:text-white dark:text-white text-slate-900 uppercase tracking-widest">
+                                                <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">
                                                     Struk #{String(data?.id || job.id).slice(-8)}
                                                 </p>
-                                                <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 font-medium mt-0.5">
+                                                <p className="text-[10px] text-[var(--text-muted)] font-medium mt-0.5">
                                                     {new Date(job.created_at).toLocaleString('id-ID', { 
                                                         day: '2-digit', month: 'short', year: 'numeric',
                                                         hour: '2-digit', minute: '2-digit' 
@@ -169,22 +169,22 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                                     <div className="p-5 space-y-3">
                                         {data?.items?.slice(0, 3).map((item: any, idx: number) => (
                                             <div key={idx} className="flex justify-between items-center text-xs">
-                                                <span className="dark:text-slate-400 dark:text-slate-400 text-slate-500 font-medium truncate max-w-[60%]">
+                                                <span className="text-[var(--text-muted)] font-medium truncate max-w-[60%]">
                                                     {item.quantity}x {item.name}
                                                 </span>
-                                                <span className="dark:text-white dark:text-white text-slate-900 font-bold">
+                                                <span className="text-[var(--text-main)] font-bold">
                                                     Rp {(item.subtotal || 0).toLocaleString('id-ID')}
                                                 </span>
                                             </div>
                                         ))}
                                         {data?.items?.length > 3 && (
-                                            <p className="text-[10px] dark:text-slate-400 dark:text-slate-400 text-slate-500 italic">
+                                            <p className="text-[10px] text-[var(--text-muted)] italic">
                                                 +{data.items.length - 3} item lainnya...
                                             </p>
                                         )}
-                                        <div className="h-px dark:bg-white/5 bg-white shadow-sm border border-slate-200 my-2" />
+                                        <div className="h-px bg-white/5 my-2" />
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-black dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-widest">
+                                            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                                                 {data?.paymentMethod || '—'}
                                             </span>
                                             <span className="font-black text-lg text-primary">
@@ -195,7 +195,7 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
 
                                     {/* Card Footer - Actions */}
                                     {job.status !== 'DONE' && (
-                                        <div className="p-3 bg-white/[0.02] border-t dark:border-white/5 border-slate-200 flex flex-wrap gap-2">
+                                        <div className="p-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => handlePrint(job.id)}
                                                 disabled={isPrinting}
@@ -208,7 +208,7 @@ export default function PrintQueueManager({ onBack }: { onBack: () => void }) {
                                             </button>
                                             <button
                                                 onClick={() => handleBrowserPrint(job)}
-                                                className="flex-1 h-11 rounded-xl glass dark:border-white/5 border-slate-200 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest dark:text-white dark:text-white text-slate-900 transition-all active:scale-95 min-w-[80px]"
+                                                className="flex-1 h-11 rounded-xl glass border-white/5 hover:bg-white/10 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] transition-all active:scale-95 min-w-[80px]"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
                                                 <span className="xs:inline hidden">Browser</span>

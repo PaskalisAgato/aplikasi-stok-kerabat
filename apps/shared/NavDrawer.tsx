@@ -68,7 +68,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
     return (
         <div className="fixed inset-0 z-[200] flex">
             <div
-                className="absolute inset-0 dark:bg-slate-950 bg-slate-50/60 backdrop-blur-md transition-opacity duration-500"
+                className="absolute inset-0 bg-slate-950/60 backdrop-blur-md transition-opacity duration-500"
                 onClick={onClose}
             />
             <div className={`
@@ -77,7 +77,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             `}>
                 <div className="flex items-center justify-between p-6">
                     <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl accent-gradient flex items-center justify-center dark:text-white dark:text-white text-slate-900 shadow-lg">
+                        <div className="size-9 rounded-xl accent-gradient flex items-center justify-center text-[var(--text-main)] shadow-lg">
                             <span className="material-symbols-outlined font-black text-xl">coffee</span>
                         </div>
                         <h2 className="text-lg font-black font-display tracking-tight">Main Menu</h2>
@@ -114,13 +114,13 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                     flex items-center gap-4 px-4 py-3 rounded-[1.25rem] transition-all duration-300 group
                                     ${isActive
                                         ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/30 accent-glow translate-x-1'
-                                        : 'dark:text-slate-400 dark:text-slate-400 text-slate-500 hover:dark:bg-white/10 bg-white shadow-md border border-slate-200 hover:dark:text-white dark:text-white text-slate-900 hover:translate-x-1'}
+                                        : 'text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-main)] hover:translate-x-1'}
                                 `}
                             >
                                 <span className={`material-symbols-outlined text-xl ${isActive ? 'font-black' : 'group-hover:text-primary transition-colors'}`}>
                                     {link.icon}
                                 </span>
-                                <span className={`font-semibold tracking-wide text-xs ${isActive ? 'dark:text-white dark:text-white text-slate-900 font-black' : ''}`}>
+                                <span className={`font-semibold tracking-wide text-xs ${isActive ? 'text-[var(--text-main)] font-black' : ''}`}>
                                     {link.label}
                                 </span>
                             </a>
@@ -132,18 +132,18 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                     <div className="p-6 mt-auto space-y-4">
                         <div className="space-y-3">
                             <p className="px-4 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80">Pengaturan</p>
-                            <div className="glass rounded-[1.5rem] p-1.5 flex items-center justify-between dark:border-white/5 border-slate-200">
+                            <div className="glass rounded-[1.5rem] p-1.5 flex items-center justify-between border-white/5">
                                 <div className="flex items-center gap-3 px-3 py-1">
                                     <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                                         <span className="material-symbols-outlined text-xs font-bold">contrast</span>
                                     </div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">Tampilan</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Tampilan</span>
                                 </div>
                                 <ThemeToggle />
                             </div>
                         </div>
 
-                        <div className="glass rounded-[1.5rem] p-3 flex flex-col gap-2 shadow-2xl dark:border-white/10 border-slate-200">
+                        <div className="glass rounded-[1.5rem] p-3 flex flex-col gap-2 shadow-2xl border-white/10">
                             <p className="px-3 text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-80 mb-1">Aplikasi & Sistem</p>
                             
                             <div className="flex flex-col gap-2">
@@ -161,12 +161,12 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 )}
 
 
-                                <div className="px-4 py-2.5 rounded-xl dark:bg-white/5 bg-white shadow-sm border border-slate-200 border dark:border-white/5 border-slate-200 flex items-center justify-between group flex-wrap gap-2">
+                                <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between group flex-wrap gap-2">
                                     <div className="flex items-center gap-3">
-                                        <span className="material-symbols-outlined text-sm dark:text-slate-400 dark:text-slate-400 text-slate-500 group-hover:text-primary transition-colors">
+                                        <span className="material-symbols-outlined text-sm text-[var(--text-muted)] group-hover:text-primary transition-colors">
                                             {isStandalone ? 'pwa_notes' : 'public'}
                                         </span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 dark:text-slate-400 text-slate-500">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
                                             {isStandalone ? 'PWA Aktif' : 'Running via Browser'}
                                         </span>
                                     </div>
@@ -174,7 +174,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 </div>
                             </div>
                             
-                            <div className="h-px dark:bg-white/5 bg-white shadow-sm border border-slate-200 my-1" />
+                            <div className="h-px bg-white/5 my-1" />
 
                             <div className="flex items-center gap-3 px-3 py-1">
                                 <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
@@ -182,7 +182,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[10px] font-black truncate">{session?.user?.name || 'User'}</p>
-                                    <p className="text-[8px] font-bold dark:text-slate-400 dark:text-slate-400 text-slate-500 uppercase tracking-wider">{userRole}</p>
+                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{userRole}</p>
                                 </div>
                             </div>
                             
