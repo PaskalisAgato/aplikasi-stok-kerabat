@@ -260,7 +260,7 @@ function MemberTab() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[var(--border-dim)]">
-                  <div className="bg-black/20 rounded-2xl p-3 flex flex-col items-center">
+                   <div className="bg-black/20 rounded-2xl p-3 flex flex-col items-center">
                     <span className="text-[8px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Total Points</span>
                     <span className="text-lg font-black text-[var(--primary)]">{m.points.toLocaleString('id-ID')}</span>
                   </div>
@@ -465,32 +465,32 @@ function DiscountTab() {
             try { cond = d.conditions ? JSON.parse(d.conditions) : {}; } catch {}
             const isBundling = d.type === 'bundling';
             return (
-              <div key={d.id} className="card p-0 !rounded-[2rem] flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
-                <div className="p-6 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                     <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+              <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
+                <div className="p-5 pb-3">
+                  <div className="flex items-center justify-between mb-3">
+                     <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                         {d.isActive ? '● Aktif' : '○ Nonaktif'}
                      </span>
-                     <span className="material-symbols-outlined text-xl text-[var(--text-muted)] opacity-50">{isBundling ? 'inventory_2' : 'local_offer'}</span>
+                     <span className="material-symbols-outlined text-lg text-[var(--text-muted)] opacity-50">{isBundling ? 'inventory_2' : 'local_offer'}</span>
                   </div>
-                  <h4 className="font-display text-lg font-black text-[var(--text-main)] leading-tight mb-1">{d.name}</h4>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">{TYPE_LABELS[d.type] || d.type}</p>
+                  <h4 className="font-display text-base font-black text-[var(--text-main)] leading-tight mb-1">{d.name}</h4>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">{TYPE_LABELS[d.type] || d.type}</p>
                 </div>
 
-                <div className="relative h-28 bg-gradient-to-br from-black/20 to-black/40 flex items-center justify-center overflow-hidden border-y border-[var(--border-dim)]">
+                <div className="relative h-20 bg-gradient-to-br from-black/20 to-black/40 flex items-center justify-center overflow-hidden border-y border-[var(--border-dim)]">
                    <div className="absolute inset-0 opacity-10 flex items-center justify-center">
-                     <span className="material-symbols-outlined text-[8rem] font-black">{isBundling ? 'package_2' : 'percent'}</span>
+                     <span className="material-symbols-outlined text-[5rem] font-black">{isBundling ? 'package_2' : 'percent'}</span>
                    </div>
                    <div className="relative z-10 flex flex-col items-center">
-                      <span className="text-4xl font-black text-[var(--text-main)] shadow-sm">
+                      <span className="text-3xl font-black text-[var(--text-main)] shadow-sm">
                         {d.type === 'percent' ? `${parseFloat(d.value)}%` : formatRp(parseFloat(d.value))}
                       </span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-1">Potongan Harga</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-0.5">Potongan Harga</span>
                    </div>
                 </div>
 
-                <div className="p-6 space-y-4 flex-1">
-                   <div className="space-y-2">
+                <div className="p-5 space-y-3 flex-1">
+                   <div className="space-y-1.5">
                      {cond.days && (
                        <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
                          <span className="material-symbols-outlined text-sm">calendar_today</span>
@@ -517,8 +517,8 @@ function DiscountTab() {
                      )}
                    </div>
 
-                   <div className="pt-4 border-t border-[var(--border-dim)] flex items-center justify-between">
-                      <div className="text-[9px] text-[var(--text-muted)] font-bold italic">
+                   <div className="pt-3 border-t border-[var(--border-dim)] flex items-center justify-between">
+                      <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
                         {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Mulai Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Eternity'}
                       </div>
                       <div className="flex gap-2">
@@ -592,7 +592,7 @@ function DiscountTab() {
                            <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-transparent border-b border-white/10 text-[10px] outline-none w-20 px-1" />
                          </div>
                          <div className="max-h-32 overflow-y-auto space-y-1 custom-scrollbar pr-1">
-                           {products.filter(p => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p => (
+                           {products.filter((p: any) => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map((p: any) => (
                              <div key={p.id} className="flex items-center justify-between text-[10px] hover:bg-white/5 p-1 rounded transition-colors group">
                                 <span className="truncate flex-1 pr-2 opacity-70 italic">#{p.id} {p.name}</span>
                                 <button type="button" onClick={() => addProductId(p.id)} className="size-5 bg-emerald-500/20 text-emerald-500 rounded hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center font-black">+</button>
@@ -797,4 +797,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-
