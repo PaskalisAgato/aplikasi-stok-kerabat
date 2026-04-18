@@ -655,14 +655,17 @@ export class TransactionService {
         const transactionAgeMinutes = (Date.now() - new Date(sale.createdAt).getTime()) / (1000 * 60);
         const requiresAdminApproval = transactionAgeMinutes > 2 || sale.paymentMethod === 'CASH';
 
+        let approvedByAdminId = adminId;
+
         if (requiresAdminApproval) {
             if (!adminPin) {
                 throw new Error('OTORISASI DIPERLUKAN: Penghapusan transaksi lama atau transaksi tunai wajib menggunakan PIN Admin.');
             }
-            const isValidAdmin = await this.verifyAdminPin(adminPin);
-            if (!isValidAdmin) {
+            const admin = await this.verifyAdminPin(adminPin);
+            if (!admin) {
                 throw new Error('PIN Admin tidak valid. Gagal menghapus transaksi.');
             }
+            approvedByAdminId = admin.id;
         }
 
         return await db.transaction(async (tx: any) => {
@@ -679,7 +682,7 @@ export class TransactionService {
 
             // Log Audit
             await tx.insert(schema.auditLogs).values({
-                userId: adminId,
+                userId: approvedByAdminId, // Use the actual admin who gave the PIN
                 action: 'SOFT_DELETE_TRANSACTION_HARDENED',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
@@ -703,87 +706,111 @@ export class TransactionService {
             if (!adminPin) {
                 throw new Error('OTORISASI DIPERLUKAN: Pembatalan transaksi lama atau transaksi tunai wajib menggunakan PIN Admin.');
             }
-            const isValidAdmin = await this.verifyAdminPin(adminPin);
-            if (!isValidAdmin) {
+            const admin = await TransactionService.verifyAdminPin(adminPin);
+            if (!admin) {
                 throw new Error('PIN Admin tidak valid. Gagal melakukan pembatalan.');
             }
+            // Logic can now use admin.id
+            const adminId = admin.id;
+
+            // 2. HARDENING: Active Shift Guard
+            const activeShift = await CashierShiftService.getActiveShift(userId);
+            if (!activeShift) {
+                throw new Error('Tidak bisa melakukan Void tanpa shift aktif.');
+            }
+
+            return await db.transaction(async (tx) => {
+                const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
+
+                // 3. REVERT POINTS (Loyalty Integrity)
+                if (sale.memberId) {
+                    const pointsToSubtract = sale.pointsEarned || 0;
+                    const pointsToAddBack = sale.pointsUsed || 0;
+                    const pointAdjustment = pointsToAddBack - pointsToSubtract;
+
+                    if (pointAdjustment !== 0) {
+                        await tx.update(schema.members)
+                            .set({ 
+                                points: sql`${schema.members.points} + ${pointAdjustment}` 
+                            })
+                            .where(eq(schema.members.id, sale.memberId));
+
+                        console.log(`[Loyalty Reversal] memberId: ${sale.memberId} | adj: ${pointAdjustment} (Earned: -${pointsToSubtract}, Used: +${pointsToAddBack})`);
+                    }
+                }
+
+                // Mark as voided
+                await tx.update(schema.sales)
+                    .set({ 
+                        isVoided: true, 
+                        voidReason: reason, 
+                        voidedBy: userId, 
+                        voidedAt: new Date() 
+                    })
+                    .where(eq(schema.sales.id, id));
+
+                // Revert Stock
+                await TransactionService.revertStockForSaleItems(tx, oldItems, id);
+
+                // Negative Cash Ledger Record (Refund)
+                if (sale.paymentMethod === 'CASH') {
+                    await tx.insert(schema.cashLedger).values({
+                        shiftId: activeShift.id, // Use current active shift for the refund ledger entry
+                        type: 'refund',
+                        amount: (-parseFloat(sale.totalAmount)).toString(),
+                        referenceId: sale.id,
+                        description: `Pembatalan Transaksi (Void) - Alasan: ${reason} (Approved by ${admin.name})`
+                    });
+                }
+
+                // Log to Void Logs
+                await tx.insert(schema.voidLogs).values({
+                    transactionId: sale.id,
+                    userId: userId,
+                    reason: reason,
+                    approvedBy: adminId, // Use REAL admin ID
+                });
+
+                // Audit Log
+                await tx.insert(schema.auditLogs).values({
+                    userId,
+                    action: 'VOID_TRANSACTION_HARDENED',
+                    tableName: 'sales',
+                    oldData: JSON.stringify({ sale, items: oldItems }),
+                    newData: JSON.stringify({ isVoided: true, voidReason: reason, adminApproval: adminId }),
+                    createdAt: new Date()
+                });
+            });
         }
 
-        // 2. HARDENING: Active Shift Guard
+        // --- NON-PIN CASE (If within 2 mins and not cash) ---
         const activeShift = await CashierShiftService.getActiveShift(userId);
-        if (!activeShift) {
-            throw new Error('Tidak bisa melakukan Void tanpa shift aktif.');
-        }
+        if (!activeShift) throw new Error('Tidak bisa melakukan Void tanpa shift aktif.');
 
         return await db.transaction(async (tx) => {
             const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, id));
-
-            // 3. REVERT POINTS (Loyalty Integrity)
+            
+            // Revert Points
             if (sale.memberId) {
-                const pointsToSubtract = sale.pointsEarned || 0;
-                const pointsToAddBack = sale.pointsUsed || 0;
-                const pointAdjustment = pointsToAddBack - pointsToSubtract;
-
-                if (pointAdjustment !== 0) {
-                    await tx.update(schema.members)
-                        .set({ 
-                            points: sql`${schema.members.points} + ${pointAdjustment}` 
-                        })
-                        .where(eq(schema.members.id, sale.memberId));
-
-                    console.log(`[Loyalty Reversal] memberId: ${sale.memberId} | adj: ${pointAdjustment} (Earned: -${pointsToSubtract}, Used: +${pointsToAddBack})`);
+                const adj = (sale.pointsUsed || 0) - (sale.pointsEarned || 0);
+                if (adj !== 0) {
+                    await tx.update(schema.members).set({ points: sql`${schema.members.points} + ${adj}` }).where(eq(schema.members.id, sale.memberId));
                 }
             }
 
-            // Mark as voided
-            await tx.update(schema.sales)
-                .set({ 
-                    isVoided: true, 
-                    voidReason: reason, 
-                    voidedBy: userId, 
-                    voidedAt: new Date() 
-                })
-                .where(eq(schema.sales.id, id));
-
-            // Revert Stock
+            await tx.update(schema.sales).set({ isVoided: true, voidReason: reason, voidedBy: userId, voidedAt: new Date() }).where(eq(schema.sales.id, id));
             await TransactionService.revertStockForSaleItems(tx, oldItems, id);
-
-            // Negative Cash Ledger Record (Refund)
-            if (sale.paymentMethod === 'CASH') {
-                await tx.insert(schema.cashLedger).values({
-                    shiftId: activeShift.id, // Use current active shift for the refund ledger entry
-                    type: 'refund',
-                    amount: (-parseFloat(sale.totalAmount)).toString(),
-                    referenceId: sale.id,
-                    description: `Pembatalan Transaksi (Void) - Alasan: ${reason}${adminPin ? ' (Approved by Admin)' : ''}`
-                });
-            }
-
-            // Log to Void Logs
-            await tx.insert(schema.voidLogs).values({
-                transactionId: sale.id,
-                userId: userId,
-                reason: reason,
-                approvedBy: adminPin ? 'ADMIN' : null, // Logical marker
-            });
-
-            // Audit Log
-            await tx.insert(schema.auditLogs).values({
-                userId,
-                action: 'VOID_TRANSACTION_HARDENED',
-                tableName: 'sales',
-                oldData: JSON.stringify({ sale, items: oldItems }),
-                newData: JSON.stringify({ isVoided: true, voidReason: reason, adminApproval: !!adminPin }),
-                createdAt: new Date()
-            });
+            
+            await tx.insert(schema.voidLogs).values({ transactionId: sale.id, userId, reason });
+            await tx.insert(schema.auditLogs).values({ userId, action: 'VOID_TRANSACTION_FAST', tableName: 'sales', createdAt: new Date() });
         });
     }
 
     private static async verifyAdminPin(pin: string) {
-        const admin = await db.select().from(schema.users)
+        const [admin] = await db.select().from(schema.users)
             .where(and(eq(schema.users.pin, pin), eq(schema.users.role, 'Admin')))
             .limit(1);
-        return admin.length > 0;
+        return admin || null;
     }
 
     // 6. CLEAR ALL TRANSACTIONS
