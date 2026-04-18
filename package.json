@@ -8,6 +8,7 @@
     "backend"
   ],
   "scripts": {
+    "dev": "turbo dev",
     "build": "turbo build && bash consolidate-dist.sh",
     "build:vercel": "turbo build --concurrency=2 && bash consolidate-dist.sh",
     "build:android": "turbo build && bash consolidate-dist.sh && rm -rf apps/pos/dist-combined && cp -r dist-global apps/pos/dist-combined",
