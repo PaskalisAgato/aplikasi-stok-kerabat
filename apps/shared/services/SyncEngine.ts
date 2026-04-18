@@ -150,7 +150,7 @@ class SyncEngine {
   /**
    * Enqueue a new action for background synchronization (STRICT FIFO)
    */
-  public async enqueue(type: OfflineAction['type'], payload: any) {
+  public async enqueue(type: OfflineAction['type'], payload: any, customIdempotencyKey?: string) {
     const action: Omit<OfflineAction, 'sequence_number'> = {
       id: crypto.randomUUID(),
       type,
@@ -158,7 +158,7 @@ class SyncEngine {
       sync_status: 'PENDING',
       retry_count: 0,
       created_at: new Date().toISOString(),
-      idempotency_key: crypto.randomUUID()
+      idempotency_key: customIdempotencyKey || crypto.randomUUID()
     };
     
     await db.offlineActions.add(action as OfflineAction);
@@ -261,19 +261,31 @@ class SyncEngine {
       else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; 
       else if (action.type === 'SPLIT_BILL') path = '/transactions/split';
 
-      if (useDelete) {
-          await apiClient.deleteWithIdempotency(path, action.idempotency_key, action.payload);
+      const response: any = useDelete 
+          ? await apiClient.deleteWithIdempotency(path, action.idempotency_key, action.payload)
+          : await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+
+      // Handle custom business success (already voided)
+      if (response?.alreadyVoided) {
+          console.log(`[SyncEngine] VOID SKIPPED (ALREADY VOIDED) [ID: ${action.id}]`);
       } else {
-          await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+          console.log(`[SyncEngine] Successfully synced action ${action.type} [ID: ${action.id}]`);
       }
 
       // 8. On success, remove from queue using unique ID
       await db.offlineActions.where('id').equals(action.id).delete();
-      console.log(`[SyncEngine] Successfully synced action ${action.type} [ID: ${action.id}] - DELETED FROM QUEUE`);
       
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
+
+      // TREATMENT FOR "SUDAH DIBATALKAN" AS SUCCESS TO STOP INFINITE LOOP
+      if (error.message?.includes('sudah dibatalkan sebelumnya')) {
+          console.log(`[SyncEngine] VOID SUCCESS / SKIPPED (Detected via Error Message) [ID: ${action.id}]`);
+          await db.offlineActions.where('id').equals(action.id).delete();
+          return true;
+      }
+
       this.lastError = error.message || 'Network Fail';
       
       if (error.status === 401 || error.status === 403) {

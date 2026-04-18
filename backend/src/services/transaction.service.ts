@@ -696,7 +696,9 @@ export class TransactionService {
     static async voidTransaction(id: number, reason: string, userId: string, adminPin?: string) {
         const [sale] = await db.select().from(schema.sales).where(eq(schema.sales.id, id)).limit(1);
         if (!sale) throw new Error('Transaksi tidak ditemukan');
-        if (sale.isVoided) throw new Error('Transaksi sudah dibatalkan sebelumnya');
+        if (sale.isVoided) {
+            return { success: true, alreadyVoided: true, message: 'Transaksi sudah dibatalkan sebelumnya' };
+        }
 
         // 1. HARDENING: Anti-Fraud Void Rules
         const transactionAgeMinutes = (Date.now() - new Date(sale.createdAt).getTime()) / (1000 * 60);

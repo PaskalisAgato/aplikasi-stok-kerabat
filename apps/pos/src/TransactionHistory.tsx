@@ -107,6 +107,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         
         const tx = transactions.find(t => t.id === id);
         try {
+            // FIXED IDEMPOTENCY KEY: void-{id} ensures backend never double-processes even if clicked 2x
             await syncEngine.enqueue('VOID', { 
                 id, 
                 reason: voidReason,
@@ -114,7 +115,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 pointsUsed: tx?.pointsUsed,
                 pointsEarned: tx?.pointsEarned,
                 adminPin: pin 
-            });
+            }, `void-${id}`);
 
             showNotification('VOID dimasukkan ke antrean. Gunakan PIN Admin yang valid (Aga/Yola).', "success");
             setVoidConfirmId(null);

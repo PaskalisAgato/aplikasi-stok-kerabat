@@ -154,9 +154,13 @@ export class TransactionController {
             if (!reason) return res.status(400).json({ error: 'Reason is required for void' });
             
             const userId = (req as any).user?.id || 'admin';
-            await TransactionService.voidTransaction(id, reason, userId, adminPin);
+            const result = await TransactionService.voidTransaction(id, reason, userId, adminPin);
 
-            const responseBody = { success: true, message: 'Transaksi berhasil dibatalkan (VOID)' };
+            const responseBody = { 
+                success: true, 
+                message: result?.message || 'Transaksi berhasil dibatalkan (VOID)',
+                alreadyVoided: result?.alreadyVoided || false
+            };
             
             // 2. Save for idempotency
             await IdempotencyService.setCachedResponse(idempotencyKey, responseBody, 200);
