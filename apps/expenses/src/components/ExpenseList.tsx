@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOptimizedImageUrl } from '@shared/supabase';
 import { apiClient } from '@shared/apiClient';
+import ExpenseItem from './ExpenseItem';
 
 interface Expense {
     id: number;
@@ -91,78 +92,24 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-                <AnimatePresence mode="popLayout">
-                    {filteredExpenses.length === 0 ? (
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="flex flex-col items-center justify-center py-20 glass rounded-[2.5rem] border-dashed border-2 opacity-40"
-                        >
-                             <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">search_off</span>
-                             <p className="font-black text-xs uppercase tracking-[0.2em] text-[var(--text-main)]">Tidak ada pengeluaran</p>
-                             <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60">Coba pilih periode atau tahun lain</p>
-                        </motion.div>
-                    ) : (
-                        filteredExpenses.map((expense) => (
-                            <motion.div
-                                key={expense.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 10 }}
-                                layout
-                                className="card group p-4 flex items-center justify-between gap-4 transition-all duration-500 hover:scale-[1.01] active:scale-[0.99]"
-                            >
-                                <div className="flex items-center gap-5 flex-1 min-w-0">
-                                    <div
-                                        className="size-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/5 bg-primary/5 text-primary shadow-inner transition-transform group-hover:rotate-3 cursor-zoom-in overflow-hidden relative"
-                                    >
-                                        <RecipeImage 
-                                            expense={expense} 
-                                            setPreviewImage={setPreviewImage}
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0 space-y-1.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{expense.category}</span>
-                                            {expense.fundSource === 'OWNER' && (
-                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Uang Owner</span>
-                                            )}
-                                            {expense.fundSource === 'CASHIER' && (
-                                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Uang Kasir</span>
-                                            )}
-                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">• {formatDisplayDate(expense.date)}</p>
-                                        </div>
-                                        <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase text-auto-fit">{expense.title}</h4>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-end gap-3 shrink-0">
-                                    <p className="text-xl font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
-                                        Rp {Number(expense.amount).toLocaleString('id-ID')}
-                                    </p>
-                                    <div className="flex gap-2">
-                                        {onEdit && (
-                                            <button 
-                                                onClick={() => onEdit(expense)}
-                                                className="size-9 glass flex items-center justify-center rounded-xl text-primary hover:bg-primary/10 active:scale-90 transition-all border-white/5 shadow-inner"
-                                            >
-                                                <span className="material-symbols-outlined text-lg font-black">edit_square</span>
-                                            </button>
-                                        )}
-                                        {onDelete && (
-                                            <button 
-                                                onClick={() => onDelete(expense.id)}
-                                                className="size-9 glass flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 active:scale-90 transition-all border-red-500/20 shadow-inner"
-                                            >
-                                                <span className="material-symbols-outlined text-lg font-black">delete_forever</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))
-                    )}
-                </AnimatePresence>
+                {filteredExpenses.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 glass rounded-[2.5rem] border-dashed border-2 opacity-40">
+                         <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">search_off</span>
+                         <p className="font-black text-xs uppercase tracking-[0.2em] text-[var(--text-main)]">Tidak ada pengeluaran</p>
+                         <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60">Coba pilih periode atau tahun lain</p>
+                    </div>
+                ) : (
+                    filteredExpenses.map((expense) => (
+                        <ExpenseItem 
+                            key={expense.id}
+                            expense={expense}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onPreview={(url) => setPreviewImage(url)}
+                            formatDisplayDate={formatDisplayDate}
+                        />
+                    ))
+                )}
             </div>
 
             {/* Image Preview Modal */}

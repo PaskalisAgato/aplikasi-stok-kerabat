@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import Layout from '@shared/Layout';
-import { getOptimizedImageUrl } from '@shared/supabase';
 import { db } from '@shared/services/db';
 import { syncEngine } from '@shared/services/SyncEngine';
 
+import InventoryCard from './components/InventoryCard';
 import StockDetailModal from './components/StockDetailModal';
 import AddStockModal from './components/AddStockModal';
 import CreateItemModal from './components/CreateItemModal';
@@ -349,97 +349,15 @@ function App() {
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-8 animate-in fade-in zoom-in duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
             {filteredInventory.map(item => (
-            <div 
-                key={item.id} 
-                onClick={() => { setSelectedStock(item); setIsStockModalOpen(true); }}
-                className={`card group cursor-pointer relative overflow-hidden transition-all duration-500 ${Number(item.currentStock) === 0 ? 'bg-red-500/[0.02] animate-pulse-slow' : ''} hover:scale-[1.02] active:scale-[0.98]`}
-            >
-                {/* Image and Info */}
-                <div className="flex justify-between items-start mb-6 relative z-10 gap-4">
-                    <div className="flex gap-4 items-start min-w-0 flex-1">
-                        <div className="size-16 rounded-2xl overflow-hidden glass border border-white/10 shrink-0 bg-primary/5">
-                            <img 
-                                src={getOptimizedImageUrl(item.imageUrl || item.externalImageUrl || '', { width: 200, height: 200 })} 
-                                alt={item.name}
-                                loading="lazy"
-                                className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200?text=No+Image';
-                                }}
-                            />
-                        </div>
-                        <div className="min-w-0 space-y-1">
-                            <h3 className="font-black text-[var(--text-main)] text-xl font-display tracking-tight leading-tight uppercase group-hover:text-primary transition-colors text-auto-fit">{item.name}</h3>
-                            <div className="flex items-center gap-2 opacity-60">
-                                <span className="material-symbols-outlined text-[14px] font-black text-primary">local_shipping</span>
-                                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-auto-fit-sm">{item.supplier || 'Pemasok Umum'}</p>
-                            </div>
-                        </div>
-                    </div>
-                <div className="flex flex-col items-end gap-2">
-                    <div className={`text-[9px] font-black px-4 py-2 rounded-xl shadow-lg border backdrop-blur-md uppercase tracking-widest ${
-                        item.status === 'KRITIS' ? 'text-red-500 bg-red-500/10 border-red-500/20 shadow-red-500/10' :
-                        item.status === 'HABIS' ? 'text-red-500 bg-red-500/10 border-red-500/20' :
-                        'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10'
-                    }`}>
-                        {item.status}
-                    </div>
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedStock(item);
-                                setIsEditItemModalOpen(true);
-                            }}
-                            className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-lg shadow-primary/5 active:scale-90"
-                            title="Edit Data Bahan"
-                        >
-                            <span className="material-symbols-outlined text-sm font-black">edit</span>
-                        </button>
-                        <button 
-                            onClick={(e) => handleDeleteClick(e, item)}
-                            className="size-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-90"
-                            title="Hapus Bahan Baku"
-                        >
-                            <span className="material-symbols-outlined text-sm font-black">delete</span>
-                        </button>
-                    </div>
-                </div>
-                </div>
-
-                {/* Stock Values */}
-                <div className="flex items-end justify-between mt-auto mb-6 relative z-10 gap-4">
-                    <div className="space-y-1">
-                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Sisa Stok</p>
-                        <p className={`text-3xl font-black font-display tracking-tighter transition-colors duration-500 ${Number(item.currentStock) === 0 ? 'text-red-500' : 'text-[var(--text-main)]'}`}>
-                            {Number(item.currentStock)}
-                            <span className={`text-xs font-black ml-2 uppercase opacity-60 font-sans tracking-widest ${Number(item.currentStock) === 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>{item.unit}</span>
-                        </p>
-                    </div>
-                    <div className="text-right space-y-1 glass p-2 rounded-xl border-white/5 flex flex-col justify-center">
-                        <div className="flex flex-col items-end gap-0.5">
-                            <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-tight">KOTOR: {Number((parseFloat(item.currentStock) + parseFloat(item.containerWeight || '0')).toFixed(2))}{item.unit}</p>
-                            <p className="text-[8px] font-bold text-rose-500 uppercase tracking-tight">WADAH: {Number(parseFloat(item.containerWeight || '0').toFixed(2))}{item.unit}</p>
-                            <div className="h-[1px] w-8 bg-white/10 my-0.5" />
-                            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">IDEAL: {Number(item.idealStock || 0)}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-[var(--bg-app)] h-2.5 rounded-full overflow-hidden shadow-inner relative z-10 border border-white/5">
-                <div className={`${item.status === 'KRITIS' ? 'bg-red-500 accent-glow shadow-red-500/40' :
-                    item.status === 'HABIS' ? 'bg-red-500 shadow-lg shadow-red-500/40' :
-                    'bg-emerald-500 accent-glow shadow-emerald-500/40'
-                    } h-full rounded-full transition-all duration-1000 ease-out`}
-                    style={{ width: `${Math.max(5, Math.min(100, (parseFloat(item.currentStock) / (parseFloat(item.minStock) * 2 || 100)) * 100))}%` }}>
-                </div>
-                </div>
-                
-                {/* Bottom Info */}
-            </div>
+                <InventoryCard 
+                    key={item.id}
+                    item={item}
+                    onSelect={(i) => { setSelectedStock(i); setIsStockModalOpen(true); }}
+                    onEdit={(i) => { setSelectedStock(i); setIsEditItemModalOpen(true); }}
+                    onDelete={(i) => handleDeleteClick(null as any, i)}
+                />
             ))}
         </div>
 

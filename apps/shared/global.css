@@ -71,9 +71,16 @@ html, body {
 }
 
 @layer components {
-  /* Premium Components */
+  /* Optimized Blur: Reduced from xl to md to save GPU cycles on mobile scroll */
   .glass {
-    @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-2xl;
+    @apply bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] shadow-xl;
+  }
+
+  /* GPU Acceleration Utility */
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
   }
 
   /* Phase 8.5: Performance Optimization for Mobile */
@@ -81,7 +88,7 @@ html, body {
     @apply bg-[var(--bg-surface)] border border-[var(--border-dim)] shadow-xl;
   }
 
-  /* Disable expensive blurs on low-power devices */
+  /* Disable expensive blurs on low-power devices or when scrolling fast */
   @media (prefers-reduced-motion: reduce) {
     .glass {
       backdrop-filter: none !important;
@@ -89,7 +96,7 @@ html, body {
   }
 
   .btn-primary {
-    @apply bg-primary text-slate-950 font-black py-3.5 px-8 rounded-2xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-3 hover:shadow-[0_20px_40px_rgba(255,191,0,0.4)] hover:-translate-y-0.5;
+    @apply bg-primary text-slate-950 font-black py-3.5 px-8 rounded-2xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-3 hover:shadow-[0_15px_30px_rgba(245,158,11,0.3)] hover:-translate-y-0.5;
   }
   
   .btn-secondary {
@@ -97,7 +104,7 @@ html, body {
   }
 
   .card {
-    @apply bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-dim)] rounded-[2.5rem] shadow-xl overflow-hidden transition-all hover:scale-[1.01] p-5 sm:p-8;
+    @apply bg-[var(--bg-surface)] backdrop-blur-sm border border-[var(--border-dim)] rounded-[2.5rem] shadow-lg overflow-hidden transition-all p-5 sm:p-8;
   }
 
   /* Vibrant Accents */
