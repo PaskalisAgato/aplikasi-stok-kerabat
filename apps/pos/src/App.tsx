@@ -427,7 +427,6 @@ function App() {
     const loadDiscounts = useCallback(async () => {
         try {
             const cartItems = activeCartItems.map(item => ({ recipeId: item.id, quantity: sales[item.id], price: item.price }));
-            if (cartItems.length === 0) { setAvailableDiscounts([]); return; }
             const res = await apiClient.post('/discounts/evaluate', { items: cartItems, memberLevel: selectedMember?.level }) as any;
             const fetched = res?.data || [];
             setAvailableDiscounts(fetched);
@@ -1012,7 +1011,12 @@ function App() {
                 {/* Member Dropdown */}
                 <div className="relative">
                     <button 
-                        onClick={() => { setShowMemberPanel(!showMemberPanel); setShowDiscountPanel(false); setIsActionMenuOpen(false); }}
+                        onClick={() => { 
+                            setShowMemberPanel(!showMemberPanel); 
+                            setShowDiscountPanel(false); 
+                            setIsActionMenuOpen(false); 
+                            if (!showMemberPanel) searchMembers('');
+                        }}
                         className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
                         title="Pilih Member"
                     >

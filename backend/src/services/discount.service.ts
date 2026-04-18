@@ -117,7 +117,7 @@ export class DiscountService {
                 }
             }
 
-            if (applies && discountAmount > 0) {
+            if (applies && discountAmount >= 0) {
                 applicable.push({
                     ...discount,
                     discountAmount: Math.round(discountAmount),
