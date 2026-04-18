@@ -720,6 +720,17 @@ export class PrintService {
                     <span>Rp ${data.total.toLocaleString('id-ID')}</span>
                 </div>
                 <div style="margin-top: 10px;">Metode: ${data.paymentMethod}</div>
+                
+                ${(data.memberPoints !== undefined || data.pointsUsed || data.pointsEarned) ? `
+                    <div class="divider" style="border-top-style: dashed;"></div>
+                    <div style="font-size: 11px;">
+                        ${data.customerName ? `<div>Member: ${data.customerName}</div>` : ''}
+                        ${data.pointsEarned ? `<div style="display: flex; justify-content: space-between;"><span>Poin Baru:</span><span>+${data.pointsEarned}</span></div>` : ''}
+                        ${data.pointsUsed ? `<div style="display: flex; justify-content: space-between;"><span>Tukar Poin:</span><span>-${data.pointsUsed}</span></div>` : ''}
+                        ${data.memberPoints !== undefined ? `<div style="display: flex; justify-content: space-between;" class="bold"><span>Sisa Poin:</span><span>${data.memberPoints}</span></div>` : ''}
+                    </div>
+                ` : ''}
+
                 <div class="divider"></div>
                 <div class="center">Terima Kasih!</div>
                 <div class="center">Selamat Menikmati</div>
@@ -971,7 +982,7 @@ Terima Kasih!
         
         encoder.newline();
         
-        // --- Footer ---
+        // --- Footer/Payment ---
         encoder.align('left');
         encoder.line(`Metode: ${data.paymentMethod}`);
         
@@ -988,6 +999,31 @@ Terima Kasih!
             if (changeLabel.length + changeValue.length < width) {
                 const cSpaces = ' '.repeat(width - changeLabel.length - changeValue.length);
                 encoder.line(`${changeLabel}${cSpaces}${changeValue}`);
+            }
+        }
+        
+        // --- Loyalty Section ---
+        if (data.memberPoints !== undefined || data.pointsUsed || data.pointsEarned) {
+            encoder.newline();
+            encoder.align('left');
+            encoder.line('--------- LOYALTY ---------');
+            if (data.customerName || data.tableNumber) {
+                encoder.line(`Member  : ${data.customerName || data.tableNumber}`);
+            }
+            if (data.pointsEarned) {
+                const label = 'Poin Baru:';
+                const val = `+${data.pointsEarned}`;
+                encoder.line(`${label}${' '.repeat(Math.max(1, width - label.length - val.length))}${val}`);
+            }
+            if (data.pointsUsed) {
+                const label = 'Tukar Poin:';
+                const val = `-${data.pointsUsed}`;
+                encoder.line(`${label}${' '.repeat(Math.max(1, width - label.length - val.length))}${val}`);
+            }
+            if (data.memberPoints !== undefined) {
+                const label = 'Sisa Poin:';
+                const val = `${data.memberPoints}`;
+                encoder.bold(true).line(`${label}${' '.repeat(Math.max(1, width - label.length - val.length))}${val}`).bold(false);
             }
         }
 

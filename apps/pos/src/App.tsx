@@ -502,8 +502,12 @@ function App() {
                 discountId: selectedDiscount?.id || null,
                 discountTotal: discountAmount + pointsDiscountAmount,
                 pointsUsed: pointsToRedeem,
+                pointsEarned,
                 sourceId: currentBillId, // Correctly link to the open bill being PAID
             };
+
+            const pointsEarned = selectedMember ? Math.floor(finalTotal / 10000) : 0;
+            const newPointBalance = selectedMember ? (selectedMember.points - pointsToRedeem + pointsEarned) : undefined;
 
             const printData: PrintData = {
                 id: transactionId as any,
@@ -520,7 +524,11 @@ function App() {
                     category: item.category,
                     notes: itemNotes[item.id]
                 })),
-                tableNumber: customerInfo
+                tableNumber: customerInfo,
+                customerName: selectedMember?.name,
+                memberPoints: newPointBalance,
+                pointsUsed: pointsToRedeem,
+                pointsEarned: pointsEarned
             };
 
             // 1. Trigger Auto-Print

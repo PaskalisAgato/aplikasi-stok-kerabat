@@ -122,6 +122,9 @@ export interface PrintData {
     cashier_id?: string;
     tableNumber?: string | number;
     customerName?: string;
+    memberPoints?: number;
+    pointsUsed?: number;
+    pointsEarned?: number;
 }
 
 export class PosDatabase extends Dexie {
