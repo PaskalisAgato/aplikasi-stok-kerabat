@@ -86,7 +86,7 @@ function MemberTab() {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<'create' | 'edit' | 'adjust' | null>(null);
   const [selected, setSelected] = useState<Member | null>(null);
-  const [form, setForm] = useState({ name: '', phone: '', email: '' });
+  const [form, setForm] = useState({ name: '', phone: '' });
   const [adjDelta, setAdjDelta] = useState('');
   const [adjReason, setAdjReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -103,8 +103,8 @@ function MemberTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setForm({ name: '', phone: '', email: '' }); setError(''); setModal('create'); };
-  const openEdit = (m: Member) => { setSelected(m); setForm({ name: m.name, phone: m.phone, email: m.email || '' }); setError(''); setModal('edit'); };
+  const openCreate = () => { setForm({ name: '', phone: '' }); setError(''); setModal('create'); };
+  const openEdit = (m: Member) => { setSelected(m); setForm({ name: m.name, phone: m.phone }); setError(''); setModal('edit'); };
   const openAdjust = (m: Member) => { setSelected(m); setAdjDelta(''); setAdjReason(''); setError(''); setModal('adjust'); };
 
   const handleSave = async () => {
@@ -286,9 +286,7 @@ function MemberTab() {
             <Field label="Nomor Handphone (WhatsApp)">
               <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="08XXXXXXXXXX" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" />
             </Field>
-            <Field label="Alamat Email (Opsional)">
-              <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@kerabat.com" type="email" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" />
-            </Field>
+
             {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-4">
               <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">Batal</button>
