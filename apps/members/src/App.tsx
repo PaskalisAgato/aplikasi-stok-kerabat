@@ -307,7 +307,7 @@ function DiscountTab() {
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
-    setForm({ name: '', type: 'percent', value: '', isActive: true, startDate: '', endDate: '', days: [], startHour: '', endHour: '', productIds: '', minLevel: 'bronze', discountType: 'percent' });
+    setForm({ name: '', type: 'bundling', value: '', isActive: true, startDate: '', endDate: '', days: [], startHour: '', endHour: '', productIds: '', minLevel: 'bronze', discountType: 'percent' });
     setError(''); setModal('create');
   };
 
@@ -445,10 +445,10 @@ function DiscountTab() {
           </Field>
           <Field label="Jenis Diskon *">
             <select value={form.type} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))} style={inputStyle}>
+              <option value="bundling">📦 PAKET BUNDLING (Baru)</option>
               <option value="percent">Persen (%)</option>
               <option value="nominal">Nominal (Rp)</option>
               <option value="time-based">Berdasarkan Waktu</option>
-              <option value="bundling">Bundling Produk</option>
               <option value="member">Diskon Member</option>
             </select>
           </Field>
@@ -680,8 +680,8 @@ export default function App() {
       <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: 12 }}>
         <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.5rem' }}>loyalty</span>
         <div>
-          <h1 style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1 }}>Member & Diskon</h1>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Kelola loyalty program dan sistem diskon</p>
+          <h1 style={{ fontSize: '1rem', fontWeight: 800, lineHeight: 1 }}>Member & Diskon <span style={{ fontSize: '0.6rem', color: 'var(--primary)', opacity: 0.7 }}>v1.1.9-stable</span></h1>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Kelola loyalty program dan sistem diskon paket bundling</p>
         </div>
       </div>
 
