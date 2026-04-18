@@ -18,10 +18,14 @@ export interface ApiMeta {
     total: number;
     limit: number;
     page: number;
+    hasMore?: boolean;
 }
 export interface ApiResponse<T> {
     data: T[];
     meta: ApiMeta;
+    summary?: any;
+    success?: boolean;
+    message?: string;
 }
 /**
  * `apiFetch` wraps native fetch with:
@@ -66,9 +70,13 @@ export declare const apiClient: {
         imageUrl?: string;
         version?: string;
     }) => Promise<ApiResponse<any>>;
-    submitOpname: (adjustments: unknown[]) => Promise<any>;
+    submitOpname: (adjustments: Array<{
+        inventoryId: number;
+        physicalStock: string | number;
+        reason: string;
+    }>) => Promise<any>;
     recordStockMovement: (inventoryId: number, data: unknown) => Promise<any>;
-    getWasteSummary: () => Promise<any>;
+    getWasteSummary: (params?: any) => Promise<any>;
     getStockInHistory: () => Promise<ApiResponse<any>>;
     getItemWaste: (id: number) => Promise<ApiResponse<any>>;
     deleteInventoryItem: (id: number) => Promise<any>;
@@ -94,11 +102,23 @@ export declare const apiClient: {
     getTransactions: (limit?: number, offset?: number) => Promise<ApiResponse<any>>;
     getTransactionById: (id: number) => Promise<any>;
     checkoutCart: (checkoutData: unknown) => Promise<any>;
+    getOpenBills: () => Promise<ApiResponse<any>>;
+    addItemsToBill: (id: number | string, items: any[]) => Promise<any>;
+    mergeBills: (sourceIds: number | string | (number | string)[], targetId: number | string) => Promise<any>;
+    splitBill: (data: {
+        sourceId: number | string;
+        targetInfo?: string;
+        items: {
+            saleItemId: number;
+            quantity: number;
+        }[];
+    }) => Promise<any>;
     updateTransaction: (id: number, data: unknown) => Promise<any>;
     clearTransactions: () => Promise<any>;
     deleteTransaction: (id: number) => Promise<any>;
+    voidTransaction: (id: number, reason: string) => Promise<any>;
     getFinanceReports: () => Promise<any>;
-    getExpenses: (limit?: number, offset?: number) => Promise<ApiResponse<any>>;
+    getExpenses: (limit?: number, offset?: number, startDate?: string, endDate?: string) => Promise<ApiResponse<any>>;
     getExpenseById: (id: number) => Promise<any>;
     exportExpensesExcel: () => Promise<Blob>;
     addExpense: (data: unknown) => Promise<any>;
@@ -108,6 +128,7 @@ export declare const apiClient: {
     addExpenseCategory: (data: unknown) => Promise<any>;
     deleteExpenseCategory: (id: number) => Promise<any>;
     getHPPAnalysis: () => Promise<ApiResponse<any>>;
+    getCOGSAnalysis: () => Promise<ApiResponse<any>>;
     getExpensePhoto: (id: number) => Promise<any>;
     getRecipePhoto: (id: number) => Promise<any>;
     getAllShifts: () => Promise<ApiResponse<any>>;
@@ -117,6 +138,25 @@ export declare const apiClient: {
     deleteShift: (id: number) => Promise<any>;
     exportShiftTemplate: () => Promise<Blob>;
     exportSchedule: (data: any) => Promise<Blob>;
+    getActiveCashierShift: () => Promise<any>;
+    openCashierShift: (initialCash: number) => Promise<any>;
+    getCashierShiftSummary: (id: number) => Promise<any>;
+    closeCashierShift: (id: number, data: {
+        denominations: Array<{
+            nominal: number;
+            qty: number;
+        }>;
+        actualNonCash: number;
+        notes: string;
+        nonCashVerified: boolean;
+    }) => Promise<any>;
+    handoverCashierShift: (data: {
+        currentShiftId: number;
+        cashAmount: number;
+        nextCashierName: string;
+        adminPin: string;
+    }) => Promise<any>;
+    deleteCashierShift: (id: number) => Promise<any>;
     getTodayAttendance: () => Promise<any>;
     checkIn: (data?: any) => Promise<any>;
     checkOut: (data?: any) => Promise<any>;
@@ -136,4 +176,17 @@ export declare const apiClient: {
     getSystemStats: () => Promise<any>;
     getBackups: () => Promise<ApiResponse<any>>;
     triggerBackup: () => Promise<any>;
+    getAnalyticsDashboard: (params?: any) => Promise<any>;
+    getProfitLossReport: (params?: any) => Promise<ApiResponse<any>>;
+    getWasteAnalysis: (params?: any) => Promise<ApiResponse<any> | {
+        success: boolean;
+        data: null;
+    }>;
+    getShiftReports: (params?: any) => Promise<any>;
+    get: (path: string) => Promise<any>;
+    post: (path: string, body: any) => Promise<any>;
+    postWithIdempotency: (path: string, body: any, idempotencyKey: string) => Promise<any>;
+    deleteWithIdempotency: (path: string, idempotencyKey: string) => Promise<any>;
+    put: (path: string, body: any) => Promise<any>;
+    delete: (path: string) => Promise<any>;
 };

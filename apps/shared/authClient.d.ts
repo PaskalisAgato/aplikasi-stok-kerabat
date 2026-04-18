@@ -24,8 +24,8 @@ export declare function useSession(): {
     error: Error | null;
 };
 export declare const signIn: {
-    social: <FetchOptions extends import("better-auth").ClientFetchOption<Partial<{
-        provider: (string & {}) | "linear" | "huggingface" | "github" | "apple" | "atlassian" | "cognito" | "discord" | "facebook" | "figma" | "microsoft" | "google" | "slack" | "spotify" | "twitch" | "twitter" | "dropbox" | "kick" | "linkedin" | "gitlab" | "tiktok" | "reddit" | "roblox" | "salesforce" | "vk" | "zoom" | "notion" | "kakao" | "naver" | "line" | "paybin" | "paypal" | "polar" | "railway" | "vercel";
+    social: <FetchOptions extends import("@better-auth/core").ClientFetchOption<Partial<{
+        provider: (string & {}) | "linear" | "huggingface" | "github" | "apple" | "atlassian" | "cognito" | "discord" | "facebook" | "figma" | "microsoft" | "google" | "slack" | "spotify" | "twitch" | "twitter" | "dropbox" | "kick" | "linkedin" | "gitlab" | "tiktok" | "reddit" | "roblox" | "salesforce" | "vk" | "zoom" | "notion" | "kakao" | "naver" | "line" | "paybin" | "paypal" | "polar" | "railway" | "vercel" | "wechat";
         callbackURL?: string | undefined;
         newUserCallbackURL?: string | undefined;
         errorCallbackURL?: string | undefined;
@@ -48,8 +48,8 @@ export declare const signIn: {
         requestSignUp?: boolean | undefined;
         loginHint?: string | undefined;
         additionalData?: Record<string, any> | undefined;
-    }> & Record<string, any>, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0: import("better-auth").Prettify<{
-        provider: (string & {}) | "linear" | "huggingface" | "github" | "apple" | "atlassian" | "cognito" | "discord" | "facebook" | "figma" | "microsoft" | "google" | "slack" | "spotify" | "twitch" | "twitter" | "dropbox" | "kick" | "linkedin" | "gitlab" | "tiktok" | "reddit" | "roblox" | "salesforce" | "vk" | "zoom" | "notion" | "kakao" | "naver" | "line" | "paybin" | "paypal" | "polar" | "railway" | "vercel";
+    }> & Record<string, any>, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0: import("better-auth/react").Prettify<{
+        provider: (string & {}) | "linear" | "huggingface" | "github" | "apple" | "atlassian" | "cognito" | "discord" | "facebook" | "figma" | "microsoft" | "google" | "slack" | "spotify" | "twitch" | "twitter" | "dropbox" | "kick" | "linkedin" | "gitlab" | "tiktok" | "reddit" | "roblox" | "salesforce" | "vk" | "zoom" | "notion" | "kakao" | "naver" | "line" | "paybin" | "paypal" | "polar" | "railway" | "vercel" | "wechat";
         callbackURL?: string | undefined;
         newUserCallbackURL?: string | undefined;
         errorCallbackURL?: string | undefined;
@@ -91,7 +91,7 @@ export declare const signIn: {
             image?: string | null | undefined | undefined;
         };
     }, "user"> & {
-        user: import("better-auth").StripEmptyObjects<{
+        user: import("better-auth/react").StripEmptyObjects<{
             id: string;
             createdAt: Date;
             updatedAt: Date;
@@ -105,12 +105,12 @@ export declare const signIn: {
         message?: string | undefined;
     }, FetchOptions["throw"] extends true ? true : false>>;
 } & {
-    email: <FetchOptions extends import("better-auth").ClientFetchOption<Partial<{
+    email: <FetchOptions extends import("@better-auth/core").ClientFetchOption<Partial<{
         email: string;
         password: string;
         callbackURL?: string | undefined;
         rememberMe?: boolean | undefined;
-    }> & Record<string, any>, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0: import("better-auth").Prettify<{
+    }> & Record<string, any>, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0: import("better-auth/react").Prettify<{
         email: string;
         password: string;
         callbackURL?: string | undefined;
@@ -131,7 +131,7 @@ export declare const signIn: {
             image?: string | null | undefined | undefined;
         };
     }, "user"> & {
-        user: import("better-auth").StripEmptyObjects<{
+        user: import("better-auth/react").StripEmptyObjects<{
             id: string;
             createdAt: Date;
             updatedAt: Date;
@@ -144,7 +144,7 @@ export declare const signIn: {
         code?: string | undefined;
         message?: string | undefined;
     }, FetchOptions["throw"] extends true ? true : false>>;
-}, signOut: <FetchOptions extends import("better-auth").ClientFetchOption<never, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0?: import("better-auth").Prettify<{
+}, signOut: <FetchOptions extends import("@better-auth/core").ClientFetchOption<never, Partial<Record<string, any>> & Record<string, any>, Record<string, any> | undefined>>(data_0?: import("better-auth/react").Prettify<{
     query?: Record<string, any> | undefined;
     fetchOptions?: FetchOptions | undefined;
 }> | undefined, data_1?: FetchOptions | undefined) => Promise<import("@better-fetch/fetch").BetterFetchResponse<{

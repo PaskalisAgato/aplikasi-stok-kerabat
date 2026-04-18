@@ -1,14 +1,13 @@
-import { eq, or, ilike, sql } from 'drizzle-orm';
+import { eq, or, ilike, desc } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 
-// Points configuration (defaults, can be overridden via env or DB settings)
-const POINTS_RATIO = parseFloat(process.env.POINTS_RATIO || '10000'); // Rp X = 1 point
-const POINTS_VALUE = parseFloat(process.env.POINTS_VALUE || '100'); // X points = Rp 1000
+// Points calculation defaults
+const DEFAULT_RATIO = 10000; // Rp X = 1 point
+const DEFAULT_VALUE = 100;   // 1 point = Rp X
 
 export class MemberService {
     static async getAllMembers(search = '') {
-        let query = db.select().from(schema.members);
         if (search) {
             return await db.select().from(schema.members)
                 .where(or(
@@ -16,7 +15,7 @@ export class MemberService {
                     ilike(schema.members.phone, `%${search}%`)
                 ));
         }
-        return await query;
+        return await db.select().from(schema.members);
     }
 
     static async getMemberById(id: number) {
@@ -65,13 +64,28 @@ export class MemberService {
         await db.delete(schema.members).where(eq(schema.members.id, id));
     }
 
-    static calcPointsEarned(totalAmount: number): number {
-        return Math.floor(totalAmount / POINTS_RATIO);
+    static async getSettings() {
+        try {
+            const [settings] = await db.select().from(schema.loyaltySettings).orderBy(desc(schema.loyaltySettings.updatedAt)).limit(1);
+            return {
+                ratio: settings ? parseFloat(settings.pointRatio) : DEFAULT_RATIO,
+                value: settings ? parseFloat(settings.pointValue) : DEFAULT_VALUE
+            };
+        } catch (e) {
+            console.error("Error fetching loyalty settings:", e);
+            return { ratio: DEFAULT_RATIO, value: DEFAULT_VALUE };
+        }
     }
 
-    static calcPointsValue(points: number): number {
+    static async calcPointsEarned(totalAmount: number): Promise<number> {
+        const settings = await this.getSettings();
+        return Math.floor(totalAmount / settings.ratio);
+    }
+
+    static async calcPointsValue(points: number): Promise<number> {
+        const settings = await this.getSettings();
         // points → Rupiah
-        return Math.floor(points / 1) * (POINTS_VALUE * 10); // 100 pts = Rp 10.000 default
+        return Math.floor(points * settings.value);
     }
 
     static calcLevel(points: number): string {

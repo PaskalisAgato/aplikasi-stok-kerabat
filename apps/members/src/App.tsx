@@ -283,6 +283,13 @@ function DiscountTab() {
   const [error, setError] = useState('');
   const [prodSearch, setProdSearch] = useState('');
 
+  const addProductId = (id: number) => {
+    const ids = form.productIds ? form.productIds.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+    if (!ids.includes(id.toString())) {
+      setForm((f: any) => ({ ...f, productIds: [...ids, id.toString()].join(',') }));
+    }
+  };
+
   const load = useCallback(async () => {
     setLoading(true);
     try { 
@@ -489,9 +496,10 @@ function DiscountTab() {
                 </div>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {products.filter(p => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p => (
-                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: '0.7rem' }}>
+                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: '0.7rem' }}>
                       <span style={{ fontWeight: 900, color: 'var(--primary)', minWidth: 20 }}>#{p.id}</span>
                       <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                      <button type="button" onClick={() => addProductId(p.id)} style={{ padding: '2px 6px', borderRadius: 6, border: 'none', background: 'var(--primary)', color: '#000', fontWeight: 900, cursor: 'pointer', fontSize: '0.65rem' }}>+</button>
                     </div>
                   ))}
                 </div>
@@ -587,9 +595,84 @@ function iconBtn(bg: string, color: string): React.CSSProperties {
 
 const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
+function LoyaltyTab() {
+  const [settings, setSettings] = useState({ pointRatio: '', pointValue: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch('/loyalty/settings');
+      setSettings({ pointRatio: res.pointRatio.split('.')[0], pointValue: res.pointValue.split('.')[0] });
+    } catch (e: any) { console.error(e); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async () => {
+    if (!settings.pointRatio || !settings.pointValue) return setError('Semua bidang wajib diisi');
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      await apiFetch('/loyalty/settings', { method: 'PUT', body: JSON.stringify(settings) });
+      setSuccess('Pengaturan berhasil disimpan!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (e: any) { setError(e.message); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Memuat data...</div>;
+
+  return (
+    <div style={{ padding: '2rem', maxWidth: 500, margin: '0 auto' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '2rem', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <div style={{ size: '3.5rem', background: '#eab30822', color: '#eab308', borderRadius: '1rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', marginBottom: '1rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>settings_suggest</span>
+          </div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Pengaturan Loyalty</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4 }}>Atur bagaimana member mendapatkan dan menggunakan poin</p>
+        </div>
+
+        <Field label="Rasio Poin (Belanja Rp X = 1 Poin)">
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>Rp</span>
+            <input type="number" value={settings.pointRatio} onChange={e => setSettings(s => ({ ...s, pointRatio: e.target.value }))} style={{ ...inputStyle, paddingLeft: '2.5rem' }} placeholder="contoh: 50000" />
+          </div>
+        </Field>
+
+        <Field label="Nilai Poin (1 Poin = Potongan Rp X)">
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>Rp</span>
+            <input type="number" value={settings.pointValue} onChange={e => setSettings(s => ({ ...s, pointValue: e.target.value }))} style={{ ...inputStyle, paddingLeft: '2.5rem' }} placeholder="contoh: 100" />
+          </div>
+        </Field>
+
+        <div style={{ padding: '1rem', borderRadius: 12, background: 'var(--bg-app)', border: '1px dashed var(--border)', fontSize: '0.8rem' }}>
+          <p style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>Contoh Simulasi:</p>
+          <p style={{ color: 'var(--text-muted)' }}>
+            Belanja <b>Rp {parseInt(settings.pointRatio || '0').toLocaleString('id-ID')}</b> ➡️ Dapat <b>1 Poin</b>.<br/>
+            <b>100 Poin</b> dapat ditukar ➡️ Potongan <b>Rp {(parseInt(settings.pointValue || '0') * 100).toLocaleString('id-ID')}</b>.
+          </p>
+        </div>
+
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
+        {success && <p style={{ color: 'var(--success)', fontSize: '0.85rem', textAlign: 'center', fontWeight: 700 }}>{success}</p>}
+
+        <button onClick={handleSave} disabled={saving} style={{ ...btnStyle('primary'), justifyContent: 'center', height: 48 }}>
+          {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [tab, setTab] = useState<'members' | 'discounts'>('members');
+  const [tab, setTab] = useState<'members' | 'discounts' | 'loyalty'>('members');
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -604,7 +687,7 @@ export default function App() {
 
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: 4, padding: '0.75rem 1.5rem', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-        {([['members', 'group', 'Manajemen Member'], ['discounts', 'local_offer', 'Pengaturan Diskon']] as const).map(([key, icon, label]) => (
+        {([['members', 'group', 'Manajemen Member'], ['discounts', 'local_offer', 'Pengaturan Diskon'], ['loyalty', 'settings_heart', 'Pengaturan Loyalty']] as const).map(([key, icon, label]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{ padding: '0.5rem 1rem', borderRadius: 8, border: 'none', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
               background: tab === key ? 'var(--primary)' : 'transparent',
@@ -618,7 +701,7 @@ export default function App() {
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {tab === 'members' ? <MemberTab /> : <DiscountTab />}
+        {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
       </div>
     </div>
   );

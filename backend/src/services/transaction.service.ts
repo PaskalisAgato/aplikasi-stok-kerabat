@@ -295,8 +295,8 @@ export class TransactionService {
 
             // 7. Loyalty Points: Award & Redeem for Members
             if (saleValues.memberId && saleValues.status === 'PAID') {
-                const POINTS_RATIO = parseFloat(process.env.POINTS_RATIO || '10000');
-                const pointsEarned = Math.floor(serverCalculatedSubTotal / POINTS_RATIO);
+                const { MemberService } = await import('./member.service.js');
+                const pointsEarned = await MemberService.calcPointsEarned(serverCalculatedSubTotal);
                 const pointsUsed = saleValues.pointsUsed || 0;
 
                 // Update sale with earned points

@@ -538,4 +538,9 @@ export const printJobs = pgTable('print_jobs', {
 }, (t: any) => ({
     statusIdx: index('print_jobs_status_idx').on(t.status)
 }));
-
+export const loyaltySettings = pgTable('loyalty_settings', {
+    id: serial('id').primaryKey(),
+    pointRatio: decimal('point_ratio', { precision: 12, scale: 2 }).notNull().default('10000'), // Rp X = 1 Point
+    pointValue: decimal('point_value', { precision: 12, scale: 2 }).notNull().default('100'),  // 1 Point = Rp X
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
