@@ -13,8 +13,8 @@ ROOT_DIR=$(pwd)
 VITE_BIN="$ROOT_DIR/node_modules/.bin/vite"
 
 # 1. Clean & Prepare
-rm -rf dist-global
-mkdir -p dist-global
+rm -rf dist
+mkdir -p dist
 
 # 2. Build Function
 build_app_internal() {
@@ -34,9 +34,9 @@ build_app_internal() {
   fi
   
   cd "$ROOT_DIR"
-  mkdir -p "dist-global/$name"
+  mkdir -p "dist/$name"
   if [ -d "$path/dist" ]; then
-    cp -r "$path/dist/." "dist-global/$name/"
+    cp -r "$path/dist/." "dist/$name/"
     echo "[$name] COMPLETED"
   else
     echo "[$name] ERROR: dist/ not found at $path"
@@ -89,6 +89,6 @@ wait
 
 # 5. Finalizing (Deploying main app to root)
 echo "Consolidating builds..."
-cp -rn dist-global/pos/* dist-global/ 2>/dev/null || true
+cp -rn dist/pos/* dist/ 2>/dev/null || true
 
 echo "--- VERCEL CONSOLIDATED BUILD FINISHED ---"

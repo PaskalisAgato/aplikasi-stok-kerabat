@@ -19,6 +19,7 @@
         "@tanstack/react-query-devtools": "^5.91.3",
         "better-auth": "^1.5.5",
         "clsx": "^2.1.1",
+        "dexie": "^4.4.2",
         "cordova-plugin-bluetooth-serial": "0.4.7",
         "framer-motion": "^12.35.1",
         "lucide-react": "^0.577.0",
