@@ -1,7 +1,7 @@
 {
   "name": "aplikasi-stok-kerabat",
   "version": "1.0.0",
-  "description": "Monorepo for Kerabat POS System",
+  "description": "Monorepo for Kerabat POS System - v1.0.1",
   "private": true,
   "workspaces": [
     "apps/*",
