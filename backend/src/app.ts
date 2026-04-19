@@ -46,6 +46,7 @@ const app = express();
 // 1. STRICT CORS (MUST BE AT THE VERY TOP)
 const ALLOWED_ORIGINS = [
     "https://aplikasi-stok-kerabat-pos.vercel.app",
+    "https://project-k7dex.vercel.app",
     "https://paskalisagato.github.io",
     "http://localhost:5186",
     "http://localhost:5173",
