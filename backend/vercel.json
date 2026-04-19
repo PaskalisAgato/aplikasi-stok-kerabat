@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "comment": "Force trigger build v1.0.2",
   "builds": [
     {
       "src": "src/app.ts",
