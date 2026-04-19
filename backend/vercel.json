@@ -3,12 +3,13 @@
   "rewrites": [
     {
       "source": "/api/ping",
-      "destination": "/api/ping.ts"
+      "destination": "/api/ping"
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/server.ts"
+      "destination": "/api/server"
     }
   ]
 }
+
 
