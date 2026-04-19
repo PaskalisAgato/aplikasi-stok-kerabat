@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "dist-global",
   "rewrites": [
     {
       "source": "/api/ping",
@@ -11,3 +12,4 @@
     }
   ]
 }
+
