@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '@shared/apiClient';
 import type { ApiResponse } from '@shared/apiClient';
 import { useSession } from '@shared/authClient';
@@ -27,12 +27,14 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     const [expandedDates, setExpandedDates] = useState<string[]>([]);
 
-    const groupedTransactions = transactions.reduce((acc, tx) => {
-        const date = new Date(tx.createdAt).toLocaleDateString('id-ID', { dateStyle: 'long' });
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(tx);
-        return acc;
-    }, {} as Record<string, any[]>);
+    const groupedTransactions = useMemo(() => {
+        return transactions.reduce((acc, tx) => {
+            const date = new Date(tx.createdAt).toLocaleDateString('id-ID', { dateStyle: 'long' });
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(tx);
+            return acc;
+        }, {} as Record<string, any[]>);
+    }, [transactions]);
 
     useEffect(() => {
         if (transactions.length > 0) {
@@ -519,7 +521,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
             {/* EDIT MODAL */}
             {editData && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in zoom-in duration-300">
+                <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.15)] border border-primary/20">
                         <header className="accent-gradient p-6 flex justify-between items-center shrink-0">
                             <div>
@@ -615,7 +617,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
             {/* VOID MODAL */}
             {voidConfirmId && (
-                <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-[110] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="card max-w-md w-full p-0 overflow-hidden shadow-2xl border border-purple-500/20">
                         <header className="bg-purple-600 p-6 flex justify-between items-center text-[var(--text-main)]">
                             <div>

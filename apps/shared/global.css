@@ -56,7 +56,8 @@ html, body {
 
 @layer base {
   body {
-    @apply bg-[var(--bg-app)] text-[var(--text-main)] transition-all duration-300;
+    @apply bg-[var(--bg-app)] text-[var(--text-main)];
+    transition: background-color 0.3s ease, color 0.3s ease;
     font-family: 'Inter', sans-serif;
   }
   
@@ -66,14 +67,16 @@ html, body {
   }
 
   input, select, textarea, button {
-    @apply transition-all duration-300;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   }
 }
 
 @layer components {
   /* Optimized Blur: Reduced from xl to md to save GPU cycles on mobile scroll */
   .glass {
-    @apply bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] shadow-xl;
+    @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-xl;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* GPU Acceleration Utility */

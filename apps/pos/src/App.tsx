@@ -1601,7 +1601,7 @@ function App() {
                                             ))}
                                         </div>
 
-                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start will-change-scroll">
                                             {isLoading ? (
                                                 Array.from({ length: 12 }).map((_, i) => (
                                                     <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
@@ -1711,7 +1711,7 @@ function App() {
 
             {/* MERGE MODAL (Multi-Selection Ready) */}
             {isMergeModalOpen && targetBillForMerge && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="card max-w-lg w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
                         <header className="glass p-6 flex justify-between items-center border-b border-white/5">
                             <div>
@@ -1780,7 +1780,7 @@ function App() {
             )}
             {/* SPLIT MODAL (Pisah Meja / Pisah Bayar) */}
             {isSplitModalOpen && splitSourceBill && (
-                <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="card max-w-xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border border-white/10">
                         <header className="glass p-6 flex justify-between items-center border-b border-white/5">
                             <div>

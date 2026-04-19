@@ -72,10 +72,10 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
 
     return (
         <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-y-auto relative">
-            <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/10 blur-[120px] animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/10 blur-[120px] animate-pulse duration-700"></div>
+            <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/5 blur-[80px] pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/5 blur-[80px] pointer-events-none"></div>
 
-            <div className="w-full max-w-md space-y-12 animate-in fade-in zoom-in duration-700 relative z-10">
+            <div className="w-full max-w-md space-y-12 animate-in fade-in zoom-in duration-300 relative z-10">
                 <div className="text-center space-y-4">
                     <div className="size-24 rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-6 transform hover:scale-110 hover:rotate-3 transition-all cursor-default">
                         <span className="material-symbols-outlined text-[var(--text-main)] text-5xl font-black">coffee</span>
@@ -95,10 +95,10 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                             <button 
                                 key={r.id}
                                 onClick={() => handleRoleSelect(r.id as Role)}
-                                className="aspect-square glass rounded-[2.5rem] flex flex-col items-center justify-center gap-4 hover:scale-105 transition-all group relative overflow-hidden active:scale-95"
+                                className="aspect-square glass rounded-[2.5rem] flex flex-col items-center justify-center gap-4 hover:scale-105 transition-transform group relative overflow-hidden active:scale-95"
                             >
-                                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors"></div>
-                                <div className="size-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-950 transition-all shadow-lg group-hover:shadow-primary/40">
+                                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-200"></div>
+                                <div className="size-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-950 transition-[background-color,color,box-shadow] duration-200 shadow-lg group-hover:shadow-primary/40">
                                     <span className="material-symbols-outlined text-4xl">{r.icon}</span>
                                 </div>
                                 <div className="text-center">
@@ -109,7 +109,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="glass rounded-[3rem] overflow-hidden animate-in slide-in-from-bottom-10 duration-700 ease-out shadow-2xl shadow-black/20">
+                    <div className="glass rounded-[3rem] overflow-hidden animate-in slide-in-from-bottom-5 duration-300 ease-out shadow-2xl shadow-black/20">
                         <div className="p-10 space-y-10">
                             <div className="flex items-center gap-4">
                                 <button 
@@ -142,7 +142,7 @@ export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                                     <button 
                                         key={n} 
                                         onClick={() => handleNumberClick(n.toString())}
-                                        className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-all active:scale-90 hover:shadow-lg hover:shadow-primary/20"
+                                        className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-[background-color,color,transform,box-shadow] duration-200 active:scale-90 hover:shadow-lg hover:shadow-primary/20"
                                     >
                                         {n}
                                     </button>
