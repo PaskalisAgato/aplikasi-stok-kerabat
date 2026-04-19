@@ -102,7 +102,7 @@ const Layout: React.FC<LayoutProps> = ({
     if (isPending || isRetrying) {
         return (
             <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-8 text-center overflow-hidden">
-                <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700">
+                <div className="flex flex-col items-center gap-8">
                     <div className="relative">
                         <div className="size-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -114,12 +114,12 @@ const Layout: React.FC<LayoutProps> = ({
                         {subtitle && <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">{subtitle}</p>}
                     </div>
                     <div className="space-y-4">
-                        <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary animate-pulse">
+                        <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">
                             {retryCount > 0 ? `Sinkronisasi (${retryCount}/${maxRetries})` : 'Membuka Kerabat'}
                         </h2>
                         <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
                         {retryCount > 1 && (
-                            <div className={`${PerformanceSettings.getGlassClass()} px-6 py-2 rounded-full animate-bounce`}>
+                            <div className={`${PerformanceSettings.getGlassClass()} px-6 py-2 rounded-full`}>
                                 <p className="text-[10px] text-primary font-black uppercase">Server sedang bersiap...</p>
                             </div>
                         )}
@@ -137,9 +137,9 @@ const Layout: React.FC<LayoutProps> = ({
     if (!session && retryCount >= maxRetries) {
         return (
             <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)]">
-                <div className="w-full max-w-md space-y-10 animate-in slide-in-from-bottom duration-500">
+                <div className="w-full max-w-md space-y-10">
                     <div className="text-center space-y-6">
-                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-[var(--text-main)] mx-auto shadow-2xl shadow-primary/30 rotate-3">
+                        <div className="size-28 rounded-[2.5rem] accent-gradient flex items-center justify-center text-[var(--text-main)] mx-auto shadow-2xl shadow-primary/30">
                             <span className="material-symbols-outlined text-5xl">wifi_off</span>
                         </div>
                         <div className="space-y-2">
@@ -202,8 +202,8 @@ const Layout: React.FC<LayoutProps> = ({
 
                 {/* Offline Mode Banner */}
                 {isOffline && (
-                    <div className="fixed top-0 inset-x-0 z-[1000] bg-red-600 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300 shadow-lg">
-                        <span className="material-symbols-outlined text-lg animate-pulse">signal_wifi_off</span>
+                    <div className="fixed top-0 inset-x-0 z-[1000] bg-red-600 text-white py-2 px-4 flex items-center justify-center gap-3 shadow-lg">
+                        <span className="material-symbols-outlined text-lg">signal_wifi_off</span>
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Mode: Koneksi Terputus. Data mungkin tidak akurat.</span>
                     </div>
                 )}
@@ -274,7 +274,7 @@ const Layout: React.FC<LayoutProps> = ({
 
                         {/* Content Area - Added spacer for fixed mobile header */}
                         <main className="flex-1 px-4 md:px-10 pb-10 pt-[88px] lg:pt-0 overflow-y-auto custom-scrollbar relative">
-                            <div className={PerformanceSettings.shouldUseLiteMode() ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-700"}>
+                            <div>
                                 {/* Page Header (New Location) */}
                                 {!hideTitle && (
                                     <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">

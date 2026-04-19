@@ -26,8 +26,8 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
     };
 
     return (
-        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 relative">
+        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
                 <div className="flex flex-col items-center text-center mb-8">
                     <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <span className="material-symbols-outlined text-4xl text-primary">login</span>
@@ -47,7 +47,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                                 required
                                 value={initialCash || ''}
                                 onChange={(e) => setInitialCash(parseInt(e.target.value) || 0)}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50"
                                 placeholder="0"
                             />
                         </div>
@@ -59,7 +59,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                                 key={val}
                                 type="button"
                                 onClick={() => setInitialCash(val)}
-                                className="py-2.5 bg-white/5 border border-white/5 rounded-xl text-xs font-black hover:bg-primary/20 hover:text-primary transition-all uppercase"
+                                className="py-2.5 bg-white/5 border border-white/5 rounded-xl text-xs font-black hover:bg-primary/20 hover:text-primary uppercase"
                             >
                                 {val === 0 ? 'Kosong' : `Rp ${val.toLocaleString('id-ID')}`}
                             </button>
@@ -70,7 +70,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                         <button 
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full bg-primary text-[#0f172a] h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-95 active:scale-95 transition-all disabled:opacity-50"
+                            className="w-full bg-primary text-[#0f172a] h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-95 transition-all disabled:opacity-50"
                         >
                             {isSubmitting ? 'Membuka...' : 'Mulai Shift Sekarang'}
                         </button>
@@ -135,10 +135,10 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
 
     return (
         <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
                 
                 {step === 1 ? (
-                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-8">
                         <div className="flex flex-col items-center text-center">
                             <div className="size-16 bg-red-500/20 rounded-2xl flex items-center justify-center mb-4 border border-red-500/20">
                                 <span className="material-symbols-outlined text-4xl text-red-500">logout</span>
@@ -187,7 +187,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-8">
                         <div className="flex flex-col items-center text-center">
                             <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Hitung Uang Kasir</h2>
                             <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan jumlah uang aktual di laci</p>
@@ -347,7 +347,7 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
 
     return (
         <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl">
                 <div className="flex flex-col items-center text-center mb-6">
                     <div className="size-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/20">
                         <span className="material-symbols-outlined text-4xl text-amber-500">sync_alt</span>

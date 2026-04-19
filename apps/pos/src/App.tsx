@@ -1297,7 +1297,7 @@ function App() {
                                 showNotification('Gagal memuat ringkasan shift. Cek koneksi internet.', 'error');
                             }
                         }}
-                        className={`ml-2 size-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`ml-2 size-8 rounded-lg flex items-center justify-center cursor-pointer ${
                             pendingSyncs > 0 ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500'
                         }`}
                         title={pendingSyncs > 0 ? "Tunggu Sync Selesai" : "Tutup Shift"}
@@ -1311,7 +1311,7 @@ function App() {
             <div className="relative">
                 <button 
                     onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'} active:scale-95 transition-all shadow-lg`}
+                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'} shadow-lg`}
                     title="Menu Aksi"
                 >
                     <span className="material-symbols-outlined text-2xl font-black">more_vert</span>
@@ -1326,7 +1326,7 @@ function App() {
                             onClick={() => setIsActionMenuOpen(false)}
                         />
                         
-                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50`}>
                             <div className="space-y-3">
                                 {activeShift && (
                                     <>
@@ -1342,7 +1342,7 @@ function App() {
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => { setIsActionMenuOpen(false); setIsHandoverShiftOpen(true); }}
-                                                        className="size-8 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center transition-all"
+                                                        className="size-8 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center"
                                                         title="Oper Shift"
                                                     >
                                                         <span className="material-symbols-outlined text-sm">sync_alt</span>
@@ -1363,7 +1363,7 @@ function App() {
                                                                 showNotification('Gagal memuat ringkasan shift.', 'error');
                                                             }
                                                         }}
-                                                        className={`size-8 rounded-lg flex items-center justify-center transition-all ${
+                                                        className={`size-8 rounded-lg flex items-center justify-center ${
                                                             pendingSyncs > 0 ? 'bg-gray-500/10 text-gray-500' : 'bg-red-500/10 hover:bg-red-500/20 text-red-500'
                                                         }`}
                                                         title="Tutup Shift"
@@ -1391,21 +1391,21 @@ function App() {
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60 ml-2 mb-2">Navigasi</p>
                                     <button 
                                         onClick={() => { navigateTo('pos'); setIsActionMenuOpen(false); }}
-                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'pos' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 ${view === 'pos' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                                     >
                                         <span className="material-symbols-outlined text-base">point_of_sale</span>
                                         <span className="text-xs uppercase tracking-widest">Input Penjualan</span>
                                     </button>
                                     <button 
                                         onClick={() => { navigateTo('history'); setIsActionMenuOpen(false); }}
-                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'history' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 ${view === 'history' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                                     >
                                         <span className="material-symbols-outlined text-base">history</span>
                                         <span className="text-xs uppercase tracking-widest">Riwayat Kasir</span>
                                     </button>
                                     <button 
                                         onClick={() => { navigateTo('print-queue'); setIsActionMenuOpen(false); }}
-                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 relative transition-all ${view === 'print-queue' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 relative ${view === 'print-queue' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                                     >
                                         <span className="material-symbols-outlined text-base">receipt_long</span>
                                         <span className="text-xs uppercase tracking-widest">Antrean Struk</span>
@@ -1422,7 +1422,7 @@ function App() {
                                 {/* Section: Settings */}
                                 <button 
                                     onClick={() => { navigateTo('printer-settings'); setIsActionMenuOpen(false); }}
-                                    className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all ${view === 'printer-settings' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                    className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 ${view === 'printer-settings' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
                                 >
                                     <span className="material-symbols-outlined text-base">print</span>
                                     <span className="text-xs uppercase tracking-widest">Pengaturan Printer</span>
@@ -1486,7 +1486,7 @@ function App() {
                                 <div className="!flex lg:!hidden gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 mb-4 shrink-0">
                                     <button
                                         onClick={() => setMobileTab('menu')}
-                                        className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 ${
                                             mobileTab === 'menu' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
                                         }`}
                                     >
@@ -1496,7 +1496,7 @@ function App() {
                                     
                                     <button
                                         onClick={() => setMobileTab('cart')}
-                                        className={`flex-[1.2] py-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        className={`flex-[1.2] py-3 rounded-xl flex items-center justify-center gap-2 ${
                                             mobileTab === 'cart' ? 'bg-primary text-slate-950 font-black shadow-lg shadow-primary/20' : 'text-[var(--text-main)] hover:bg-white/5 font-bold'
                                         }`}
                                     >
@@ -1527,14 +1527,14 @@ function App() {
                                                 <div 
                                                     key={bill.id}
                                                     onClick={() => loadBill(bill)}
-                                                    className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer transition-all shrink-0 w-[200px] snap-start flex flex-col justify-between"
+                                                    className="bg-[var(--bg-app)] border border-[var(--border-dim)] p-3 rounded-xl hover:border-primary/50 cursor-pointer shrink-0 w-[200px] snap-start flex flex-col justify-between"
                                                 >
                                                     <div className="min-w-0">
                                                         <p className="text-[12px] font-black text-[var(--text-main)] truncate uppercase leading-tight mb-2">{bill.customerInfo}</p>
                                                         <div className="flex gap-1.5">
-                                                            <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
-                                                            <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 transition-all text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
-                                                            <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
+                                                            <button onClick={(e) => handleSplitClick(e, bill, 'table')} className="size-6 rounded flex items-center justify-center bg-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white text-xs" title="Pisah Meja"><span className="material-symbols-outlined text-[14px]">call_split</span></button>
+                                                            <button onClick={(e) => handleMergeClick(e, bill)} className="size-6 rounded flex items-center justify-center bg-primary/20 text-primary hover:bg-primary hover:text-slate-950 text-xs" title="Gabung Meja"><span className="material-symbols-outlined text-[14px]">call_merge</span></button>
+                                                            <button onClick={(e) => handleDeleteBill(e, bill)} className="size-6 rounded flex items-center justify-center bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white text-xs ml-auto" title="Hapus Bill"><span className="material-symbols-outlined text-[14px]">delete</span></button>
                                                         </div>
                                                     </div>
                                                     <div className="pt-2 mt-2 border-t border-white/5">
@@ -1553,7 +1553,7 @@ function App() {
                                         <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 mb-2 px-1">Kategori</h4>
                                         <button 
                                             onClick={() => setSelectedCategory(null)}
-                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest ${!selectedCategory ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent'}`}
                                         >
                                             Semua Menu
                                         </button>
@@ -1561,7 +1561,7 @@ function App() {
                                             <button 
                                                 key={cat}
                                                 onClick={() => setSelectedCategory(cat)}
-                                                className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent overflow-hidden text-ellipsis'}`}
+                                                className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-md' : 'text-[var(--text-muted)] hover:bg-white/5 border border-transparent overflow-hidden text-ellipsis'}`}
                                             >
                                                 {cat}
                                             </button>
@@ -1576,7 +1576,7 @@ function App() {
                                                 ref={searchInputRef}
                                                 type="text" 
                                                 placeholder="Cari Menu... (Tekan '/')" 
-                                                className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50"
+                                                className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none focus:border-primary/50 placeholder:text-[var(--text-muted)] placeholder:opacity-50"
                                                 value={searchTerm}
                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                             />
@@ -1586,7 +1586,7 @@ function App() {
                                         <div className="!flex lg:!hidden gap-2 overflow-x-auto pb-2 px-1 custom-scrollbar shrink-0">
                                             <button 
                                                 onClick={() => setSelectedCategory(null)}
-                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedCategory ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap border ${!selectedCategory ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
                                             >
                                                 Semua
                                             </button>
@@ -1594,7 +1594,7 @@ function App() {
                                                 <button 
                                                     key={cat}
                                                     onClick={() => setSelectedCategory(cat)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${selectedCategory === cat ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap border ${selectedCategory === cat ? 'bg-primary text-slate-950 border-primary' : 'text-[var(--text-muted)] bg-white/5 border-white/5'}`}
                                                 >
                                                     {cat}
                                                 </button>
@@ -1623,7 +1623,7 @@ function App() {
                                         {/* Cart Header */}
                                         <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-all shrink-0">
+                                                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                                                     <span className="material-symbols-outlined text-xl">shopping_cart</span>
                                                 </div>
                                                 <div className="min-w-0">
@@ -1634,7 +1634,7 @@ function App() {
                                                 </div>
                                             </div>
                                             
-                                            <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2.5 flex items-center gap-1.5 rounded-xl shrink-0 transition-all active:scale-95 border border-red-500/20">
+                                            <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2.5 flex items-center gap-1.5 rounded-xl shrink-0 border border-red-500/20">
                                                 <span className="material-symbols-outlined text-base">delete_sweep</span> 
                                                 <span className="xs:inline hidden">Riset</span>
                                             </button>
@@ -1645,7 +1645,7 @@ function App() {
                                             <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 shrink-0">
                                                 <span className="material-symbols-outlined text-primary text-xs">room_service</span>
                                                 <span className="text-[10px] font-black text-primary uppercase flex-1 truncate">{customerInfo}</span>
-                                                <button onClick={(e) => { e.stopPropagation(); setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-primary/60 hover:text-primary transition-all">
+                                                <button onClick={(e) => { e.stopPropagation(); setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-primary/60 hover:text-primary">
                                                     <span className="material-symbols-outlined text-xs">close</span>
                                                 </button>
                                             </div>
@@ -1863,7 +1863,7 @@ function App() {
 
             {/* PRINT ALERT / FALLBACK UI */}
             {printAlert && (
-                <div className="fixed bottom-6 right-6 z-[200] w-full max-w-sm animate-in slide-in-from-bottom-4 duration-500">
+                <div className="fixed bottom-6 right-6 z-[200] w-full max-w-sm">
                     <div className="glass border-amber-500/30 overflow-hidden shadow-2xl rounded-2xl">
                         <div className="p-4 bg-amber-500/10 flex gap-3">
                             <div className="size-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0">
