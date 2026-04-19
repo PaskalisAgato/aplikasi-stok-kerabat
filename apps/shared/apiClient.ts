@@ -5,12 +5,29 @@
  */
 
 // Deployment URL (Dynamic via environment variables)
-const rawUrl = (typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.VITE_API_URL) 
+let rawUrl = (typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
     || 'https://project-k7dex.vercel.app/api';
 
+// HARD OVERRIDE: Force Vercel URL if environment variable is still pointing to dead Render server
+if (rawUrl.includes('onrender.com')) {
+    console.warn('[Config] Ignored old Render VITE_API_URL. Forcing Vercel backend.');
+    rawUrl = 'https://project-k7dex.vercel.app/api';
+}
+
 // Pastikan URL diakhiri dengan /api
 export const API_BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api`;
+
+// ── FORCE CLEAR STUCK SERVICE WORKERS ──────────────────────────────────────
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for(let registration of registrations) {
+            registration.unregister().then(bool => {
+                if (bool) console.log('Successfully unregistered old ServiceWorker');
+            });
+        }
+    });
+}
 
 // ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
 // Ping server setiap 10 menit agar tidak sleep (membantu meskipun tidak 100%)
