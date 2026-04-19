@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import session from 'express-session';
+import pgSession from 'connect-pg-simple';
 
 // @ts-ignore - TS NodeNext resolution workaround
 import { toNodeHandler } from 'better-auth/node';
@@ -48,8 +49,10 @@ const ALLOWED_ORIGINS = [
     "https://paskalisagato.github.io",
     "http://localhost:5186",
     "http://localhost:5173",
-    "http://localhost:5193" // Members sub-app local
-];
+    "http://localhost:5193", // Members sub-app local
+    process.env.BETTER_AUTH_URL?.replace('/api/auth', ''),
+    process.env.FRONTEND_URL
+].filter(Boolean) as string[];
 
 const corsOptions = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -102,7 +105,15 @@ app.use(compression());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(cookieParser());
+
+// Database-backed session for Vercel persistence
+const PostgresStore = pgSession(session);
 app.use(session({
+    store: new PostgresStore({
+        conString: process.env.DATABASE_URL,
+        tableName: 'express_sessions',
+        createTableIfMissing: false // We use Drizzle for this
+    }),
     secret: process.env.SESSION_SECRET || 'kerabat-pos-secret-key-2024',
     resave: false,
     saveUninitialized: false,

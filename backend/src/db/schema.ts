@@ -544,3 +544,10 @@ export const loyaltySettings = pgTable('loyalty_settings', {
     pointValue: decimal('point_value', { precision: 12, scale: 2 }).notNull().default('100'),  // 1 Point = Rp X
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+export const expressSessions = pgTable('express_sessions', {
+    sid: text('sid').primaryKey(),
+    sess: text('sess').notNull(), // JSON string
+    expire: timestamp('expire').notNull()
+}, (t: any) => ({
+    expireIdx: index('IDX_session_expire').on(t.expire)
+}));

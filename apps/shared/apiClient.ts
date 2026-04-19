@@ -7,7 +7,7 @@
 // Deployment URL (Dynamic via environment variables)
 const rawUrl = (typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
-    || 'https://aplikasi-stok-kerabat.onrender.com/api';
+    || 'https://project-k7dex.vercel.app/api';
 
 // Pastikan URL diakhiri dengan /api
 export const API_BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api`;
@@ -86,9 +86,9 @@ const getCache = new Map<string, { data: any; timestamp: number }>();
 // ── Circuit Breaker State (Phase 3) ──────────────────────────────────────────
 let failureWindow: boolean[] = []; // true = success, false = fail
 let circuitTrippedUntil = 0;
-const BREAKER_WINDOW = 20;    // Increased window for better sample size
-const BREAKER_THRESHOLD = 14; // 70% failures needed to trip
-const COOLDOWN_MS = 15_000;   // Reduced cooldown to 15s for faster recovery
+const BREAKER_WINDOW = 30;    // Increased window for better sample size
+const BREAKER_THRESHOLD = 27; // Relaxed: 90% failures needed to trip (during migration)
+const COOLDOWN_MS = 10_000;   // Reduced cooldown to 10s for faster recovery
 
 function updateBreaker(success: boolean) {
     failureWindow.push(success);

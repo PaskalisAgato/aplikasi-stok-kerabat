@@ -21,6 +21,7 @@
     "better-auth": "^1.5.5",
     "cloudinary": "^2.9.0",
     "compression": "^1.8.1",
+    "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
+    "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
