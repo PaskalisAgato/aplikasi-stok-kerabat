@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build:local": "tsc",
+    "build": "mkdir -p dist && tsc",
     "type-check": "tsc",
     "start": "node --max-old-space-size=384 dist/server.js",
     "db:generate": "drizzle-kit generate",
