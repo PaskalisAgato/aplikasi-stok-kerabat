@@ -1078,7 +1078,7 @@ function App() {
                             setIsActionMenuOpen(false); 
                             if (!showMemberPanel) searchMembers('');
                         }}
-                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 relative ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
+                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 relative ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)] font-bold'} active:scale-95 transition-all shadow-lg`}
                         title="Pilih Member"
                     >
                         <span className="material-symbols-outlined text-lg">person_search</span>
@@ -1095,7 +1095,7 @@ function App() {
                     {showMemberPanel && (
                         <>
                             <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none" onClick={() => setShowMemberPanel(false)} />
-                            <div className={`fixed inset-x-4 top-24 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:mt-3 w-auto sm:w-80 max-w-[calc(100vw-32px)] ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-in slide-in-from-top-4 fade-in duration-300`}>
+                            <div className={`fixed inset-x-4 top-24 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:mt-3 w-auto sm:w-80 max-w-[calc(100vw-32px)] ${PerformanceSettings.getGlassClass()} border border-[var(--border-dim)] rounded-3xl p-5 shadow-[var(--card-shadow)] z-50 animate-in slide-in-from-top-4 fade-in duration-300`}>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                         <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
@@ -1229,7 +1229,7 @@ function App() {
                 <div className="relative">
                     <button 
                         onClick={() => { setShowDiscountPanel(!showDiscountPanel); setShowMemberPanel(false); loadDiscounts(); setIsActionMenuOpen(false); }}
-                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showDiscountPanel || selectedDiscount ? 'bg-emerald-500 text-[#0b1220] font-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold'} active:scale-95 transition-all shadow-lg`}
+                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showDiscountPanel || selectedDiscount ? 'bg-emerald-500 text-[#0b1220] font-black' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)] font-bold'} active:scale-95 transition-all shadow-lg`}
                         title="Pilih Diskon"
                     >
                         <span className="material-symbols-outlined text-lg">local_offer</span>
@@ -1238,7 +1238,7 @@ function App() {
                     {showDiscountPanel && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowDiscountPanel(false)} />
-                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-[var(--border-dim)] rounded-2xl p-4 shadow-[var(--card-shadow)] z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                         <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
@@ -1267,7 +1267,7 @@ function App() {
 
             {/* Shift Status */}
             {activeShift && (
-                <div className="hidden min-[1100px]:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div className="hidden min-[1100px]:flex items-center gap-3 bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border-dim)]">
                     <div className="size-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
                         <span className="material-symbols-outlined text-sm text-primary">person</span>
                     </div>
@@ -1311,7 +1311,7 @@ function App() {
             <div className="relative">
                 <button 
                     onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'} shadow-lg`}
+                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)]'} shadow-lg`}
                     title="Menu Aksi"
                 >
                     <span className="material-symbols-outlined text-2xl font-black">more_vert</span>
@@ -1326,7 +1326,7 @@ function App() {
                             onClick={() => setIsActionMenuOpen(false)}
                         />
                         
-                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-white/10 rounded-2xl p-3 shadow-2xl z-50`}>
+                        <div className={`absolute right-0 mt-3 w-64 ${PerformanceSettings.getGlassClass()} border border-[var(--border-dim)] rounded-2xl p-3 shadow-[var(--card-shadow)] z-50`}>
                             <div className="space-y-3">
                                 {activeShift && (
                                     <>
