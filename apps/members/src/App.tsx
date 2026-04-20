@@ -7,7 +7,7 @@ const API_BASE = (() => {
   if (typeof window === 'undefined') return 'http://localhost:5000';
   const { hostname } = window.location;
   const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
-  return isLocal ? 'http://localhost:5000' : 'https://aplikasi-stok-kerabat.onrender.com';
+  return isLocal ? 'http://localhost:5000' : 'https://api.kerabatkopitiam.my.id';
 })();
 
 async function apiFetch(path: string, init?: RequestInit) {

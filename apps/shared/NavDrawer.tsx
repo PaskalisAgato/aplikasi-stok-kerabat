@@ -40,7 +40,7 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
             const token = localStorage.getItem('kerabat_auth_token');
             
             // 1. Call backend logout to destroy server-side session & cookies
-            await fetch('https://aplikasi-stok-kerabat.onrender.com/api/auth/logout-manual', {
+            await fetch('https://api.kerabatkopitiam.my.id/api/auth/logout-manual', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

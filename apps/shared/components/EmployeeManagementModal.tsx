@@ -79,7 +79,7 @@ const EmployeeManagementModal: React.FC<EmployeeManagementModalProps> = ({ isOpe
                                             {employee.image ? (
                                                 <img 
                                                     className="h-full w-full object-cover" 
-                                                    src={employee.image.startsWith('http') ? employee.image : `${((import.meta as any).env?.VITE_API_URL || 'https://aplikasi-stok-kerabat.onrender.com/api').replace(/\/api$/, '')}/${employee.image.startsWith('/') ? employee.image.slice(1) : (employee.image.startsWith('uploads/') ? employee.image : `uploads/${employee.image}`)}`} 
+                                                    src={employee.image.startsWith('http') ? employee.image : `${((import.meta as any).env?.VITE_API_URL || 'https://api.kerabatkopitiam.my.id/api').replace(/\/api$/, '')}/${employee.image.startsWith('/') ? employee.image.slice(1) : (employee.image.startsWith('uploads/') ? employee.image : `uploads/${employee.image}`)}`} 
                                                     alt={employee.name} 
                                                 />
                                             ) : (

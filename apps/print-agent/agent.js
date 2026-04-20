@@ -2,7 +2,7 @@ import axios from 'axios';
 import 'dotenv/config';
 
 // --- CONFIGURATION ---
-const BACKEND_URL = process.env.BACKEND_URL || 'https://aplikasi-stok-kerabat.onrender.com/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://api.kerabatkopitiam.my.id/api';
 const LOCAL_BRIDGE_URL = process.env.LOCAL_BRIDGE_URL || 'http://127.0.0.1:3001';
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL || '5000');
 const AUTH_TOKEN = process.env.AUTH_TOKEN; // Optional: if backend requires it
