@@ -7,12 +7,12 @@
 // Deployment URL (Dynamic via environment variables)
 let rawUrl = (typeof (globalThis as any).process !== 'undefined' && (globalThis as any).process.env?.VITE_API_URL) 
     || (import.meta as any).env?.VITE_API_URL 
-    || 'https://project-k7dex.vercel.app/api';
+    || 'https://api.kerabatkopitiam.my.id/api';
 
-// HARD OVERRIDE: Force Vercel URL if environment variable is still pointing to dead Render server
-if (rawUrl.includes('onrender.com')) {
-    console.warn('[Config] Ignored old Render VITE_API_URL. Forcing Vercel backend.');
-    rawUrl = 'https://project-k7dex.vercel.app/api';
+// HARD OVERRIDE: Paksa ke VPS baru jika masih menunjuk ke server lama
+if (rawUrl.includes('onrender.com') || rawUrl.includes('project-k7dex.vercel.app')) {
+    console.warn('[Config] Mendeteksi URL server lama. Dialihkan ke backend VPS baru.');
+    rawUrl = 'https://api.kerabatkopitiam.my.id/api';
 }
 
 // Pastikan URL diakhiri dengan /api
@@ -29,20 +29,8 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     });
 }
 
-// ── Keep-alive ping (mencegah Render Free Plan tidur) ──────────────────────────
-// Ping server setiap 10 menit agar tidak sleep (membantu meskipun tidak 100%)
-if (typeof window !== 'undefined') {
-    const pingServer = () => {
-        fetch(`${API_BASE_URL.replace('/api', '')}/api/health`, { credentials: 'include' }).catch(() => {
-            // Silent – hanya untuk menjaga server tetap aktif
-        });
-    };
-    // Ping pertama setelah 5 menit, lalu setiap 10 menit
-    setTimeout(() => {
-        pingServer();
-        setInterval(pingServer, 10 * 60 * 1000);
-    }, 5 * 60 * 1000);
-}
+// ── Keep-alive ping sudah tidak diperlukan ──────────────────────────────────────
+// Backend sekarang berjalan di VPS (server selalu aktif, tidak tidur seperti Render Free Plan)
 
 // ── Typed error class ──────────────────────────────────────────────────────────
 export class ApiError extends Error {
