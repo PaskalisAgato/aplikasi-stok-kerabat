@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getOptimizedImageUrl } from '@shared/supabase';
-import { apiClient } from '@shared/apiClient';
 import ExpenseItem from './ExpenseItem';
 
 interface Expense {
@@ -36,17 +34,19 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
         return [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
     };
 
-    const filteredExpenses = expenses.filter(expense => {
-        try {
-            const expDate = new Date(expense.date);
-            if (!isNaN(expDate.getTime())) {
-                return expDate.getMonth() === selectedMonth && expDate.getFullYear() === selectedYear;
-            }
-        } catch(e) {}
-        return false;
-    });
+    const filteredExpenses = React.useMemo(() => {
+        return expenses.filter(expense => {
+            try {
+                const expDate = new Date(expense.date);
+                if (!isNaN(expDate.getTime())) {
+                    return expDate.getMonth() === selectedMonth && expDate.getFullYear() === selectedYear;
+                }
+            } catch(e) {}
+            return false;
+        });
+    }, [expenses, selectedMonth, selectedYear]);
 
-    const formatDisplayDate = (dateStr: string) => {
+    const formatDisplayDate = React.useCallback((dateStr: string) => {
         try {
             const d = new Date(dateStr);
             if (!isNaN(d.getTime())) {
@@ -54,7 +54,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
             }
         } catch(e) {}
         return dateStr;
-    };
+    }, []);
 
     return (
         <div className="space-y-8 pb-10">
@@ -149,63 +149,4 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete, onEdit })
         </div>
     );
 };
-
-const RecipeImage: React.FC<{ 
-    expense: Expense;
-    setPreviewImage: (url: string | null) => void;
-}> = ({ expense, setPreviewImage }) => {
-    const [recipeUrl, setRecipeUrl] = useState<string | null>(expense.receiptUrl || null);
-    const [isLoading, setIsLoading] = useState(false);
-    
-    useEffect(() => {
-        if (expense.hasReceipt && !recipeUrl && !isLoading) {
-            const fetchReceipt = async () => {
-                setIsLoading(true);
-                try {
-                    const res = await apiClient.getExpensePhoto(expense.id);
-                    if (res.data) {
-                        setRecipeUrl(res.data);
-                    }
-                } catch (e) {
-                    console.error('Failed to fetch receipt', e);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            fetchReceipt();
-        }
-    }, [expense.id, expense.hasReceipt]);
-
-    if (isLoading) {
-        return (
-            <div className="flex flex-col items-center gap-1 opacity-40">
-                <div className="size-4 border-2 border-primary/20 border-t-primary animate-spin rounded-full"></div>
-            </div>
-        );
-    }
-
-    if (recipeUrl) {
-        return (
-            <img 
-                src={getOptimizedImageUrl(recipeUrl, { width: 200, height: 200 })} 
-                alt="Receipt" 
-                className="w-full h-full object-cover"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setPreviewImage(getOptimizedImageUrl(recipeUrl, { width: 800, height: 800 }));
-                }}
-                onError={(e) => {
-                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="material-symbols-outlined text-3xl font-black">receipt_long</span>';
-                }}
-            />
-        );
-    }
-
-    return (
-        <span className="material-symbols-outlined text-3xl font-black">
-            {expense.hasReceipt ? 'sync' : 'no_photography'}
-        </span>
-    );
-};
-
-export default ExpenseList;
+export default React.memo(ExpenseList);

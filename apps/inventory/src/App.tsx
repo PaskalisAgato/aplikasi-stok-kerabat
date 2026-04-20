@@ -44,6 +44,14 @@ function App() {
   const [filterType, setFilterType] = useState('Semua');
   const [filterCategory, setFilterCategory] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Custom Debounce Hook pattern
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const [selectedStock, setSelectedStock] = useState<BahanBaku | null>(null);
   const [inventoryList, setInventoryList] = useState<BahanBaku[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,7 +141,7 @@ function App() {
     return () => {
       syncEngine.stop();
     };
-  }, [filterType, searchQuery, filterCategory]);
+  }, [filterType, debouncedSearchQuery, filterCategory]);
 
   const filteredInventory = inventoryList;
   

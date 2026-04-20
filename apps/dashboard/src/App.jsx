@@ -126,19 +126,23 @@ function App() {
   const alerts = data?.alerts || [];
   const expenses = data?.expenses || { total: 0, recent: [] };
 
-  // Prepare chart data
-  const chartData = Array.from({ length: 24 }).map((_, i) => {
-    const found = hourlySales.find(h => parseInt(h.hour) === i);
-    return {
-      hour: `${i}:00`,
-      total: found ? parseFloat(found.total) : 0
-    };
-  });
+  // Prepare chart data with useMemo to avoid re-calculating on every render
+  const chartData = React.useMemo(() => {
+    return Array.from({ length: 24 }).map((_, i) => {
+      const found = hourlySales.find(h => parseInt(h.hour) === i);
+      return {
+        hour: `${i}:00`,
+        total: found ? parseFloat(found.total) : 0
+      };
+    });
+  }, [hourlySales]);
 
-  const pieData = paymentMethods.map(pm => ({
-    name: pm.method,
-    value: parseFloat(pm.total)
-  }));
+  const pieData = React.useMemo(() => {
+    return paymentMethods.map(pm => ({
+      name: pm.method,
+      value: parseFloat(pm.total)
+    }));
+  }, [paymentMethods]);
 
   return (
     <Layout currentPort={5173} title="Enterprise Dashboard" subtitle="DATA-DRIVEN BUSINESS CONTROL">
@@ -456,7 +460,7 @@ function App() {
   );
 }
 
-function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffix }) {
+const SummaryCard = React.memo(({ title, value, icon, color, isHighlight, noCurrency, suffix }) => {
   return (
     <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:border-white/20'}`}>
       <div className="flex justify-between items-start mb-6">
@@ -475,7 +479,7 @@ function SummaryCard({ title, value, icon, color, isHighlight, noCurrency, suffi
       </div>
     </div>
   );
-}
+});
 
 export default App;
 

@@ -14,7 +14,19 @@ interface ModernTableProps<T> {
     emptyMessage?: string;
 }
 
-export function ModernTable<T extends { id: any }>({ columns, data, isLoading, emptyMessage = 'Tidak ada data ditemukan' }: ModernTableProps<T>) {
+const ModernTableRow = React.memo(({ item, columns }: { item: any, columns: Column<any>[] }) => {
+    return (
+        <tr className="hover:bg-white/5 transition-all group">
+            {columns.map((col, colIdx) => (
+                <td key={colIdx} className={`px-4 sm:px-8 py-3 sm:py-5 text-sm font-bold text-[var(--text-main)] transition-all group-hover:translate-x-1 ${col.className || ''}`}>
+                    {col.render ? col.render(item) : (col.key ? String(item[col.key]) : '')}
+                </td>
+            ))}
+        </tr>
+    );
+});
+
+export const ModernTable = React.memo(<T extends { id: any }>({ columns, data, isLoading, emptyMessage = 'Tidak ada data ditemukan' }: ModernTableProps<T>) => {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4 animate-pulse">
@@ -48,17 +60,11 @@ export function ModernTable<T extends { id: any }>({ columns, data, isLoading, e
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {data.map((item, rowIdx) => (
-                            <tr key={item.id || rowIdx} className="hover:bg-white/5 transition-all group">
-                                {columns.map((col, colIdx) => (
-                                    <td key={colIdx} className={`px-4 sm:px-8 py-3 sm:py-5 text-sm font-bold text-[var(--text-main)] transition-all group-hover:translate-x-1 ${col.className || ''}`}>
-                                        {col.render ? col.render(item) : (col.key ? String(item[col.key]) : '')}
-                                    </td>
-                                ))}
-                            </tr>
+                            <ModernTableRow key={item.id || rowIdx} item={item} columns={columns} />
                         ))}
                     </tbody>
                 </table>
             </div>
         </div>
     );
-}
+}) as <T extends { id: any }>(props: ModernTableProps<T>) => React.ReactElement;

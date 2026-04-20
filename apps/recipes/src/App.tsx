@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { getOptimizedImageUrl } from '@shared/supabase';
 import type { Recipe } from '@shared/mockDatabase';
@@ -24,6 +24,14 @@ function App() {
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
     const [filterCategory, setFilterCategory] = useState<string>('Semua');
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Debounce searchQuery
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const [recipesList, setRecipesList] = useState<Recipe[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -68,11 +76,13 @@ function App() {
         fetchRecipes();
     }, []);
 
-    const filteredRecipes = recipesList.filter(recipe => {
-        const matchCategory = filterCategory === 'Semua' || recipe.category === filterCategory;
-        const matchSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchCategory && matchSearch;
-    });
+    const filteredRecipes = useMemo(() => {
+        return recipesList.filter(recipe => {
+            const matchCategory = filterCategory === 'Semua' || recipe.category === filterCategory;
+            const matchSearch = recipe.name.toLowerCase().includes(debouncedSearch.toLowerCase());
+            return matchCategory && matchSearch;
+        });
+    }, [recipesList, filterCategory, debouncedSearch]);
 
     return (
         <Layout
@@ -218,9 +228,7 @@ function App() {
     );
 }
 
-const RecipeImage: React.FC<{
-    recipe: Recipe;
-}> = ({ recipe }) => {
+const RecipeImage = React.memo(({ recipe }: { recipe: Recipe }) => {
     const [recipeUrl, setRecipeUrl] = useState<string | null>(recipe.imageUrl || null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -256,6 +264,6 @@ const RecipeImage: React.FC<{
             )}
         </div>
     );
-};
+});
 
 export default App;
