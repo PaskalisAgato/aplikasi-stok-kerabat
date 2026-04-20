@@ -4,7 +4,7 @@ import { API_BASE_URL } from './apiClient';
 type AuthMode = 'select' | 'pin';
 type Role = 'Admin' | 'Karyawan';
 
-export const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
+const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
     const [mode, setMode] = useState<AuthMode>('select');
     const [role, setRole] = useState<Role | null>(null);
     const [pin, setPin] = useState('');
