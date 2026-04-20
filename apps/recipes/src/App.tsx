@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { getOptimizedImageUrl } from '@shared/supabase';
 import type { Recipe } from '@shared/mockDatabase';
