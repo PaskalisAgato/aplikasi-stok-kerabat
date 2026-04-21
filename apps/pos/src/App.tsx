@@ -13,7 +13,7 @@ import { useLoyalty } from './hooks/useLoyalty';
 import { useCheckout } from './hooks/useCheckout';
 
 // Components
-import { ProductCard } from './components/ProductCard';
+import { ProductGrid } from './components/ProductGrid';
 import { CartItem } from './components/CartItem';
 import { POSFooter } from './components/POSFooter';
 import { POSHeaderExtras } from './components/POSHeaderExtras';
@@ -267,21 +267,19 @@ export default function App() {
                             </div>
 
                             {/* Product Grid */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 content-start will-change-scroll">
-                                {isLoading ? (
-                                    Array.from({ length: 12 }).map((_, i) => (
+                            {isLoading ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
+                                    {Array.from({ length: 12 }).map((_, i) => (
                                         <div key={i} className="bg-[var(--glass-bg)] border border-[var(--border-dim)] rounded-xl h-[72px] animate-pulse"></div>
-                                    ))
-                                ) : filteredRecipes.map((item) => (
-                                    <ProductCard 
-                                        key={item.id} 
-                                        item={item} 
-                                        saleCount={sales[item.id] || 0} 
-                                        isHighlighted={false}
-                                        onUpdateQty={updateQty} 
-                                    />
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <ProductGrid 
+                                    items={filteredRecipes}
+                                    sales={sales}
+                                    updateQty={updateQty}
+                                />
+                            )}
                         </div>
 
                         {/* Column 3: Cart */}
