@@ -430,6 +430,8 @@ export default function App() {
                 shift={activeShift}
                 summary={shiftSummaryData}
                 onClose={async (data) => {
+                    showNotification('Menyinkronkan data antrean cloud...', 'info');
+                    await syncEngine.waitForQueueEmpty();
                     await apiClient.post(`/cashier-shifts/close/${activeShift.id}`, data);
                     setIsCloseShiftOpen(false);
                     setActiveShift(null);
@@ -442,6 +444,8 @@ export default function App() {
                 isOpen={isHandoverShiftOpen}
                 shift={activeShift}
                 onHandover={async (data) => {
+                    showNotification('Menyinkronkan data antrean cloud...', 'info');
+                    await syncEngine.waitForQueueEmpty();
                     await apiClient.post('/cashier-shifts/handover', data);
                     setIsHandoverShiftOpen(false);
                     setActiveShift(null);

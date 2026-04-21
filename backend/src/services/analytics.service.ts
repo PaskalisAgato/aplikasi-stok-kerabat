@@ -9,7 +9,8 @@ export class AnalyticsService {
     static async getDailySummary() {
         // 0. Robust Timezone Handling (Asia/Jakarta)
         const now = new Date();
-        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now); 
+        const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate); 
         const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
 
         // 1. Revenue & Sales
@@ -84,7 +85,8 @@ export class AnalyticsService {
      */
     static async getTodayRecentSales(limit = 10) {
         const now = new Date();
-        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now); 
+        const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+        const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate); 
         const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
 
         return await db.select({

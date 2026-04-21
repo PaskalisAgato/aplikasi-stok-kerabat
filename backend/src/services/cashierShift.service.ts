@@ -53,7 +53,8 @@ export class CashierShiftService {
         if (shiftArr.length === 0) throw new Error('Shift tidak ditemukan.');
         const shift = shiftArr[0];
 
-        // 1. IF CLOSED & SNAPSHOT EXISTS -> RETURN IMMUTABLE TRUTH
+        // 1. IF CLOSED & SNAPSHOT EXISTS -> RETURN IMMUTABLE TRUTH (Disabled for Sync Integrity Phase)
+        /*
         if (shift.status === 'CLOSED' && shift.ledgerSnapshot) {
             try {
                 return JSON.parse(shift.ledgerSnapshot);
@@ -61,6 +62,7 @@ export class CashierShiftService {
                 console.error('[Snapshot Error] Failed to parse ledger snapshot:', e);
             }
         }
+        */
 
         // 2. LIVE CALCULATION (From Cash Ledger Source of Truth)
         // Join with sales AND expenses to verify if the referenced entity is deleted/voided

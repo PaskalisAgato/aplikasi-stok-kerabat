@@ -9,11 +9,15 @@ export class AnalyticsController {
             let end = new Date();
 
             if (date === 'today') {
-                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+                const now = new Date();
+                // 5-hour offset: If it's before 5 AM, it still counts as yesterday
+                const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate);
                 start = new Date(`${jakartaDate}T00:00:00+07:00`);
                 end = new Date(`${jakartaDate}T23:59:59+07:00`);
             } else if (date === 'yesterday') {
-                const yesterday = new Date();
+                const now = new Date();
+                const yesterday = new Date(now.getTime() - (5 * 60 * 60 * 1000));
                 yesterday.setDate(yesterday.getDate() - 1);
                 const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(yesterday);
                 start = new Date(`${jakartaDate}T00:00:00+07:00`);

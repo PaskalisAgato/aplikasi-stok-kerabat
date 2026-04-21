@@ -96,6 +96,29 @@ class SyncEngine {
     }
   }
 
+  public async waitForQueueEmpty(timeoutMs = 30000): Promise<void> {
+    const startTime = Date.now();
+    return new Promise((resolve, reject) => {
+      const check = async () => {
+        try {
+          const pending = await db.offlineActions.where('sync_status').equals('PENDING').count();
+          if (pending === 0) {
+            resolve();
+          } else if (Date.now() - startTime > timeoutMs) {
+            reject(new Error('Sinkronisasi cloud memakan waktu terlalu lama. Periksa koneksi internet Anda.'));
+          } else {
+            // Trigger a sync attempt and wait
+            this.processQueue().catch(console.error);
+            setTimeout(check, 1000);
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+      check();
+    });
+  }
+
   /**
    * Phase 8: Auto-Cleanup of synced actions older than 7 days
    */
