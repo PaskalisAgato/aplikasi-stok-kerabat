@@ -817,7 +817,7 @@ export class TransactionService {
 
     private static async verifyAdminPin(pin: string) {
         const [admin] = await db.select().from(schema.users)
-            .where(and(eq(schema.users.pin, pin), eq(schema.users.role, 'Admin')))
+            .where(and(eq(schema.users.pin, pin), inArray(schema.users.role, ['Admin', 'Owner', 'Supervisor'])))
             .limit(1);
         return admin || null;
     }
