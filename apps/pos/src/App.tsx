@@ -42,7 +42,7 @@ export default function App() {
     } = useCart(items);
 
     const {
-        openBills, currentBillId, setCurrentBillId, customerInfo, setCustomerInfo,
+        openBills, setOpenBills, currentBillId, setCurrentBillId, customerInfo, setCustomerInfo,
         handleSaveBill: saveBillLogic, handleUpdateBill, handleDeleteBill,
         performMerge, performSplit
     } = useBillManagement();
@@ -151,6 +151,11 @@ export default function App() {
             resetCart();
             resetLoyaltyState();
             setAmountPaid(0);
+
+            if (currentBillId) {
+                setOpenBills(prev => prev.filter(b => b.id !== currentBillId));
+            }
+
             setCurrentBillId(null);
             setCustomerInfo('');
         }
