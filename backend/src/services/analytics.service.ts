@@ -325,7 +325,9 @@ export class AnalyticsService {
                 avgOrderValue: avgOrder,
                 totalExpenses,
                 // Net Profit = Revenue (All Sales - Discounts) - COGS - All Expenses
-                grossProfit: grossProfit - totalExpenses 
+                grossProfit: grossProfit - totalExpenses,
+                cashRevenue: Number(salesSummary[0]?.cashRevenue || 0),
+                nonCashRevenue: Number(salesSummary[0]?.nonCashRevenue || 0)
             },
             hourlySales: hourlySales.rows,
             topProducts,

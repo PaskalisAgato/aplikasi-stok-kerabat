@@ -551,3 +551,21 @@ export const expressSessions = pgTable('express_sessions', {
 }, (t: any) => ({
     expireIdx: index('IDX_session_expire').on(t.expire)
 }));
+
+// -----------------------------------------------------------------------------
+// 11. OWNER INCOME (Uang Masuk Owner)
+// -----------------------------------------------------------------------------
+export const ownerIncome = pgTable('owner_income', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),           // Keterangan/judul uang masuk
+    amount: decimal('amount', { precision: 12, scale: 2 }).notNull(), // Nominal
+    source: text('source').default('OWNER').notNull(), // Sumber dana: 'OWNER', 'INVESTOR', 'LOAN', etc.
+    userId: text('user_id').references(() => users.id),
+    incomeDate: timestamp('income_date').defaultNow().notNull(),
+    notes: text('notes'),                     // Catatan tambahan
+    isDeleted: boolean('is_deleted').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    incomeDateIdx: index('owner_income_date_idx').on(t.incomeDate),
+    isDeletedIdx: index('owner_income_is_deleted_idx').on(t.isDeleted)
+}));

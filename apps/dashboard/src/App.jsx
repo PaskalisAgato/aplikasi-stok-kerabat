@@ -19,6 +19,11 @@ function App() {
   const [reports, setReports] = useState([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
 
+  // Uang Masuk Owner state
+  const [incomes, setIncomes] = useState([]);
+  const [incomeForm, setIncomeForm] = useState({ title: '', amount: '', source: 'OWNER', incomeDate: todayWib, notes: '' });
+  const [isSubmittingIncome, setIsSubmittingIncome] = useState(false);
+
   const fetchData = async () => {
     if (!customRange.start || !customRange.end) return;
     try {
@@ -28,6 +33,7 @@ function App() {
       const response = await apiClient.getAnalyticsDashboard(params);
       setData(response.data);
       fetchReports();
+      fetchOwnerIncome();
     } catch (error) {
       console.error('Failed to fetch analytics', error);
       setError('Gagal memuat data dashboard. Silakan periksa koneksi internet Anda dan coba lagi.');
@@ -47,6 +53,42 @@ function App() {
       setReports([]);
     } finally {
       setIsReportsLoading(false);
+    }
+  };
+
+  const fetchOwnerIncome = async () => {
+    if (!customRange.start || !customRange.end) return;
+    try {
+      const response = await apiClient.getOwnerIncome({ startDate: customRange.start, endDate: customRange.end });
+      setIncomes(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch incomes', error);
+      setIncomes([]);
+    }
+  };
+
+  const handleIncomeSubmit = async (e) => {
+    e.preventDefault();
+    if (!incomeForm.title || !incomeForm.amount) return alert('Pastikan judul dan nominal terisi.');
+    try {
+      setIsSubmittingIncome(true);
+      await apiClient.addOwnerIncome(incomeForm);
+      setIncomeForm(prev => ({ ...prev, title: '', amount: '', notes: '' }));
+      fetchOwnerIncome(); // Refresh data
+    } catch (error) {
+      alert('Gagal mencatat uang masuk: ' + error.message);
+    } finally {
+      setIsSubmittingIncome(false);
+    }
+  };
+
+  const handleDeleteIncome = async (id) => {
+    if (!window.confirm('Yakin ingin menghapus data uang masuk ini?')) return;
+    try {
+      await apiClient.deleteOwnerIncome(id);
+      fetchOwnerIncome();
+    } catch (error) {
+      alert('Gagal menghapus uang masuk: ' + error.message);
     }
   };
 
@@ -203,11 +245,13 @@ function App() {
         ) : (
           <>
             {/* 1. SUMMARY CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
               <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-amber-500" />
+              <SummaryCard title="Uang Tunai" value={summary.cashRevenue} icon="payments" color="text-emerald-400" />
+              <SummaryCard title="Non Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-blue-400" />
               <SummaryCard title="Total Transaksi" value={summary.totalTransactions} icon="shopping_cart" color="text-blue-500" suffix="Order" noCurrency />
               <SummaryCard title="Avg. Order" value={summary.avgOrderValue} icon="analytics" color="text-emerald-500" />
-              <SummaryCard title="Total Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-red-500" />
+              <SummaryCard title="Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-red-500" />
               <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight />
             </div>
 
@@ -405,6 +449,124 @@ function App() {
                     ))}
                     {expenses.recent.length === 0 && <p className="col-span-5 text-center py-10 opacity-20 text-[10px] uppercase font-bold">Tidak ada pengeluaran</p>}
                  </div>
+              </div>
+
+              {/* SECTION BARU: UANG MASUK OWNER */}
+              <div className="lg:col-span-12 glass border-white/5 rounded-[2.5rem] p-8 mt-4">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="font-black uppercase tracking-[0.2em] text-xs text-emerald-500 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                    Pencatatan Uang Masuk & Modal
+                  </h3>
+                  <span className="text-[11px] font-black text-emerald-500">
+                    Total: Rp {incomes.reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0).toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Form */}
+                  <div className="lg:col-span-1 glass-lite p-6 rounded-[2rem] border border-white/5 h-fit">
+                    <h4 className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest mb-6">Tambah Data</h4>
+                    <form onSubmit={handleIncomeSubmit} className="space-y-4">
+                      <div>
+                        <label className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1 block">Judul/Keterangan</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={incomeForm.title} onChange={e => setIncomeForm(p => ({...p, title: e.target.value}))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-emerald-500 transition-colors"
+                          placeholder="Contoh: Modal tambahan, Setoran" 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1 block">Nominal (Rp)</label>
+                        <input 
+                          type="number" 
+                          required
+                          min="1"
+                          value={incomeForm.amount} onChange={e => setIncomeForm(p => ({...p, amount: e.target.value}))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-emerald-500 transition-colors"
+                          placeholder="100000" 
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1 block">Sumber Dana</label>
+                          <select 
+                            value={incomeForm.source} onChange={e => setIncomeForm(p => ({...p, source: e.target.value}))}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-black text-white outline-none focus:border-emerald-500"
+                          >
+                            <option value="OWNER">OWNER</option>
+                            <option value="INVESTOR">INVESTOR</option>
+                            <option value="LAINNYA">LAINNYA</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1 block">Tanggal</label>
+                          <input 
+                            type="date" 
+                            required
+                            value={incomeForm.incomeDate} onChange={e => setIncomeForm(p => ({...p, incomeDate: e.target.value}))}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-black text-white outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black uppercase text-[var(--text-muted)] mb-1 block">Catatan Opsional</label>
+                        <input 
+                          type="text" 
+                          value={incomeForm.notes} onChange={e => setIncomeForm(p => ({...p, notes: e.target.value}))}
+                          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-emerald-500 transition-colors"
+                          placeholder="-" 
+                        />
+                      </div>
+                      <button 
+                        type="submit" 
+                        disabled={isSubmittingIncome}
+                        className="w-full bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                      >
+                        {isSubmittingIncome ? 'Menyimpan...' : 'Simpan Pemasukan'}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* List Riwayat */}
+                  <div className="lg:col-span-2">
+                    <h4 className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest mb-6">Riwayat Lengkap Uang Masuk</h4>
+                    {(!incomes || incomes.length === 0) ? (
+                      <div className="h-40 flex flex-col items-center justify-center border border-white/5 border-dashed rounded-3xl opacity-40">
+                         <span className="material-symbols-outlined text-4xl mb-2">inbox</span>
+                         <p className="text-[10px] font-black uppercase tracking-widest">Belum ada data uang masuk</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                        {incomes.map((inc) => (
+                           <div key={inc.id} className="flex justify-between items-center p-4 bg-white/5 border border-white/5 rounded-2xl">
+                              <div className="flex-1 min-w-0">
+                                 <div className="flex items-center gap-2 mb-1">
+                                   <p className="text-xs font-black text-white truncate">{inc.title}</p>
+                                   <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase shrink-0">
+                                     {inc.source}
+                                   </span>
+                                 </div>
+                                 <p className="text-[10px] font-bold text-[var(--text-muted)]">{new Date(inc.incomeDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                 {inc.notes && <p className="text-[10px] text-white/40 italic mt-1 truncate max-w-[80%]">{inc.notes}</p>}
+                              </div>
+                              <div className="text-right flex items-center gap-4 shrink-0">
+                                <span className="text-sm border-r border-white/10 pr-4 font-black text-emerald-400">Rp {parseFloat(inc.amount).toLocaleString()}</span>
+                                <button 
+                                  onClick={() => handleDeleteIncome(inc.id)}
+                                  className="size-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500/20 active:scale-95 transition-all outline-none"
+                                >
+                                  <span className="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                              </div>
+                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* 6. DAILY REPORTS SECTION (THE SHIFT HISTORY STYLE) */}

@@ -60,3 +60,29 @@ export async function deleteFromCloudinary(url: string): Promise<boolean> {
         return false;
     }
 }
+
+/**
+ * Uploads a raw file (e.g. database backup) to Cloudinary.
+ * @param filePath Local file path 
+ * @param folder Cloudinary folder name
+ * @returns The secure URL of the uploaded file
+ */
+export async function uploadRawToCloudinary(filePath: string, folder: string = 'kerabat_backups'): Promise<string | null> {
+    try {
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+             console.warn('[Cloudinary] Missing credentials! Cannot upload raw file.');
+             return null;
+        }
+
+        const result = await cloudinary.uploader.upload(filePath, {
+            folder,
+            resource_type: 'raw',
+        });
+
+        console.log(`[Cloudinary] Successfully uploaded raw file to ${folder}: ${result.secure_url}`);
+        return result.secure_url;
+    } catch (error) {
+        console.error('[Cloudinary] Raw Upload failed:', error);
+        return null;
+    }
+}

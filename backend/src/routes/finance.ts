@@ -902,3 +902,134 @@ financeRouter.get('/waste-analysis', requireAdmin, async (req: Request, res: Res
         res.status(500).json({ success: false, message: 'Gagal mengambil analisis pemborosan' });
     }
 });
+
+// =============================================================================
+// OWNER INCOME (Uang Masuk Owner)
+// =============================================================================
+
+// GET all owner income with optional date filter
+financeRouter.get('/owner-income', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        const filters = [eq(schema.ownerIncome.isDeleted, false)];
+
+        if (startDate) {
+            const d = new Date(`${startDate}T00:00:00+07:00`);
+            if (!isNaN(d.getTime())) filters.push(gte(schema.ownerIncome.incomeDate, d));
+        }
+        if (endDate) {
+            const d = new Date(`${endDate}T23:59:59.999+07:00`);
+            if (!isNaN(d.getTime())) filters.push(lte(schema.ownerIncome.incomeDate, d));
+        }
+
+        const whereClause = and(...filters);
+
+        const incomes = await db.select({
+            id: schema.ownerIncome.id,
+            title: schema.ownerIncome.title,
+            amount: schema.ownerIncome.amount,
+            source: schema.ownerIncome.source,
+            incomeDate: schema.ownerIncome.incomeDate,
+            notes: schema.ownerIncome.notes,
+            createdAt: schema.ownerIncome.createdAt
+        })
+        .from(schema.ownerIncome)
+        .where(whereClause)
+        .orderBy(desc(schema.ownerIncome.incomeDate));
+
+        const summaryResult = await db.select({
+            totalAmount: sql<number>`COALESCE(SUM(CAST(${schema.ownerIncome.amount} AS DECIMAL)), 0)`,
+            count: sql<number>`COUNT(*)`
+        })
+        .from(schema.ownerIncome)
+        .where(whereClause);
+
+        const totalIncome = Number(summaryResult[0]?.totalAmount || 0);
+        const totalCount = Number(summaryResult[0]?.count || 0);
+
+        res.json({
+            success: true,
+            data: incomes.map(i => ({
+                ...i,
+                amount: parseFloat(i.amount)
+            })),
+            summary: {
+                totalIncome,
+                totalCount
+            }
+        });
+    } catch (error) {
+        console.error('[OwnerIncome] GET error:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil data uang masuk' });
+    }
+});
+
+// POST new owner income entry
+financeRouter.post('/owner-income', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const { title, amount, source = 'OWNER', incomeDate, notes } = req.body;
+
+        if (!title || amount === undefined || isNaN(Number(amount)) || Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: 'Data tidak lengkap atau nominal tidak valid' });
+        }
+
+        let parsedDate = new Date();
+        if (incomeDate) {
+            const d = new Date(incomeDate.includes('T') ? incomeDate : `${incomeDate}T00:00:00+07:00`);
+            if (!isNaN(d.getTime())) parsedDate = d;
+        }
+
+        const userId = (req as any).user?.id;
+
+        const [newIncome] = await db.insert(schema.ownerIncome).values({
+            title: title.trim(),
+            amount: Number(amount).toString(),
+            source,
+            userId: userId || null,
+            incomeDate: parsedDate,
+            notes: notes || null
+        }).returning({
+            id: schema.ownerIncome.id,
+            title: schema.ownerIncome.title,
+            amount: schema.ownerIncome.amount,
+            source: schema.ownerIncome.source,
+            incomeDate: schema.ownerIncome.incomeDate,
+            notes: schema.ownerIncome.notes,
+            createdAt: schema.ownerIncome.createdAt
+        });
+
+        console.log(`[OwnerIncome] Recorded: "${newIncome.title}" | Rp ${newIncome.amount}`);
+        res.status(201).json({
+            success: true,
+            data: { ...newIncome, amount: parseFloat(newIncome.amount) }
+        });
+    } catch (error) {
+        console.error('[OwnerIncome] POST error:', error);
+        res.status(500).json({ success: false, message: 'Gagal mencatat uang masuk' });
+    }
+});
+
+// DELETE (soft-delete) owner income entry
+financeRouter.delete('/owner-income/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        if (isNaN(id)) return res.status(400).json({ success: false, message: 'ID tidak valid' });
+
+        const [existing] = await db.select()
+            .from(schema.ownerIncome)
+            .where(and(eq(schema.ownerIncome.id, id), eq(schema.ownerIncome.isDeleted, false)))
+            .limit(1);
+
+        if (!existing) return res.status(404).json({ success: false, message: 'Data uang masuk tidak ditemukan' });
+
+        await db.update(schema.ownerIncome)
+            .set({ isDeleted: true })
+            .where(eq(schema.ownerIncome.id, id));
+
+        res.json({ success: true, message: 'Data uang masuk berhasil dihapus' });
+    } catch (error) {
+        console.error('[OwnerIncome] DELETE error:', error);
+        res.status(500).json({ success: false, message: 'Gagal menghapus data uang masuk' });
+    }
+});

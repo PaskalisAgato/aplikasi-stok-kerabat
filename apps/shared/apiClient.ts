@@ -343,6 +343,21 @@ export const apiClient = {
     getExpensePhoto: (id: number) => apiFetch<any>(`/finance/expenses/${id}/photo`),
     getRecipePhoto: (id: number) => apiFetch<any>(`/products/${id}/photo`),
 
+    // Owner Income (Uang Masuk)
+    getOwnerIncome: (params?: { startDate?: string; endDate?: string }) => {
+        let url = '/finance/owner-income';
+        if (params) {
+            const query = new URLSearchParams(params as any).toString();
+            if (query) url += `?${query}`;
+        }
+        return apiFetch<any>(url);
+    },
+    addOwnerIncome: (data: { title: string; amount: number | string; source?: string; incomeDate?: string; notes?: string }) =>
+        apiFetch<any>('/finance/owner-income', { method: 'POST', body: JSON.stringify(data) }),
+    deleteOwnerIncome: (id: number) =>
+        apiFetch<any>(`/finance/owner-income/${id}`, { method: 'DELETE' }),
+
+
     // ---- SHIFTS ----
     getAllShifts: () => apiFetch<ApiResponse<any>>('/shifts'),
     getMyShifts: () => apiFetch<ApiResponse<any>>('/shifts/my'),
