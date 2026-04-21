@@ -380,8 +380,8 @@ export const HandoverShiftModal: React.FC<HandoverShiftModalProps> = ({ isOpen, 
                             required
                             value={nextCashierName}
                             onChange={(e) => setNextCashierName(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all uppercase"
-                            placeholder="Cth: KASIR-MALAM"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all"
+                            placeholder="Cth: Jesi"
                         />
                     </div>
 

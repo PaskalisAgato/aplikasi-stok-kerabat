@@ -75,7 +75,6 @@ export default function App() {
     // Sync & Print State
     const [pendingSyncs, setPendingSyncs] = useState(0);
     const [printQueueCount, setPrintQueueCount] = useState(0);
-    const [printAlertMsg, setPrintAlertMsg] = useState<{ message: string; data?: any } | null>(null);
 
     // Modal State
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
@@ -101,14 +100,17 @@ export default function App() {
         
         const handlePrintAlert = (e: any) => {
             const data = e.detail;
-            setPrintAlertMsg(data);
             showNotification(data.message || 'Printer Error', 'warning');
         };
         window.addEventListener('print-failed-alert', handlePrintAlert);
 
+        const handleOpenSync = () => navigateTo('sync-queue');
+        window.addEventListener('open-sync-queue', handleOpenSync);
+
         return () => {
             unsubSync(); unsubPrint();
             window.removeEventListener('print-failed-alert', handlePrintAlert);
+            window.removeEventListener('open-sync-queue', handleOpenSync);
         };
     }, []);
 

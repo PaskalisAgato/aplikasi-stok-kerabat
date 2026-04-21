@@ -86,7 +86,7 @@ export class CashierShiftController {
 
             // 2. Resolve Next Cashier User ID
             const allUsers = await UserService.getAllUsers();
-            const nextCashier = allUsers.find(u => u.name === nextCashierName);
+            const nextCashier = allUsers.find(u => u.name.toLowerCase() === nextCashierName.toLowerCase());
             if (!nextCashier) {
                 return res.status(400).json({ success: false, message: `Kasir penerima "${nextCashierName}" tidak ditemukan di database.` });
             }

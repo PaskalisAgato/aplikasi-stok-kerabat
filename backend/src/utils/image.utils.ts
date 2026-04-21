@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -16,6 +15,9 @@ export async function resizeImage(inputPath: string, maxWidth: number = 1200, qu
     const outputPath = path.join(dir, `${name}_resized${ext}`);
 
     try {
+        // Dynamic import to prevent crash if sharp is not compatible
+        const { default: sharp } = await import('sharp');
+        
         let pipeline = sharp(inputPath).resize({ width: maxWidth, withoutEnlargement: true });
 
         if (ext === '.jpg' || ext === '.jpeg') {
@@ -34,7 +36,7 @@ export async function resizeImage(inputPath: string, maxWidth: number = 1200, qu
 
         return inputPath;
     } catch (error) {
-        console.error('[ImageUtils] Resize failed:', error);
+        console.warn('[ImageUtils] Resize failed or sharp not compatible:', error);
         // If resize fails, we just keep the original as a backup
         return inputPath;
     }
@@ -49,6 +51,9 @@ export async function resizeBase64(base64: string, maxWidth: number = 1200, qual
     if (!base64.startsWith('data:image')) return base64;
 
     try {
+        // Dynamic import to prevent crash if sharp is not compatible
+        const { default: sharp } = await import('sharp');
+
         const parts = base64.split(',');
         if (parts.length < 2) return base64;
 
@@ -62,7 +67,7 @@ export async function resizeBase64(base64: string, maxWidth: number = 1200, qual
 
         return `data:image/jpeg;base64,${resizedBuffer.toString('base64')}`;
     } catch (error) {
-        console.error('[ImageUtils] Base64 resize failed:', error);
+        console.warn('[ImageUtils] Base64 resize failed or sharp not compatible:', error);
         return base64;
     }
 }
