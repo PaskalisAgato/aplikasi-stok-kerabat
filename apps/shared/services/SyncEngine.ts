@@ -249,7 +249,8 @@ class SyncEngine {
       if (action.type === 'CHECKOUT') path = '/transactions';
       else if (action.type === 'VOID') path = `/transactions/${action.payload.id}/void`; 
       else if (action.type === 'DELETE_TRANSACTION') {
-          path = `/transactions/${action.payload.id}`;
+          const pinQuery = action.payload.adminPin ? `?adminPin=${encodeURIComponent(action.payload.adminPin)}` : '';
+          path = `/transactions/${action.payload.id}${pinQuery}`;
           useDelete = true;
       }
       else if (action.type === 'ADD_ITEMS_TO_BILL') {

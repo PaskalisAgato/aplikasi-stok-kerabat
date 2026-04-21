@@ -129,7 +129,7 @@ export class TransactionController {
     static async delete(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id as string);
-            const { adminPin } = req.body;
+            const adminPin = (req.body.adminPin || req.query.adminPin) as string | undefined;
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
             
             const adminId = (req as any).user?.id || 'admin';
