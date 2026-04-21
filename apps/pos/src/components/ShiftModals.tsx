@@ -147,7 +147,11 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, shift,
                             <p className="text-[var(--text-muted)] text-sm mt-1">Tinjau ringkasan penjualan hari ini</p>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                            <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                                <p className="text-[8px] font-black uppercase tracking-widest text-amber-500 opacity-60 mb-1">Modal Awal</p>
+                                <p className="text-sm font-black text-[var(--text-main)]">Rp {parseFloat(shift.initialCash).toLocaleString()}</p>
+                            </div>
                             <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 mb-1">Total Omzet</p>
                                 <p className="text-sm font-black text-[var(--text-main)]">Rp {summary.totalOmzet.toLocaleString()}</p>
