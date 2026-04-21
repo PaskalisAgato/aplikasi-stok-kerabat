@@ -260,6 +260,7 @@ class SyncEngine {
       else if (action.type === 'SHIFT_CLOSE') path = `/cashier-shifts/close/${action.payload.shiftId}`;
       else if (action.type === 'ENQUEUE_PRINT') path = '/print/enqueue'; 
       else if (action.type === 'SPLIT_BILL') path = '/transactions/split';
+      else if (action.type === 'MERGE_BILLS') path = '/transactions/merge';
 
       const response: any = useDelete 
           ? await apiClient.deleteWithIdempotency(path, action.idempotency_key, action.payload)

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { CashierShiftService } from '../services/cashierShift.service.js';
+import { UserService } from '../services/user.service.js';
 
 export class CashierShiftController {
     static async getActiveShift(req: Request, res: Response) {
@@ -63,6 +64,45 @@ export class CashierShiftController {
 
             res.json({ success: true, data: result });
         } catch (error: any) {
+            res.status(400).json({ success: false, message: error.message });
+        }
+    }
+
+    static async handoverShift(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            const { currentShiftId, cashAmount, nextCashierName, adminPin } = req.body;
+
+            if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+            if (!currentShiftId || !cashAmount || !nextCashierName || !adminPin) {
+                return res.status(400).json({ error: 'Missing required fields for handover' });
+            }
+            
+            // 1. Verify Admin PIN (Acting as Supervisor)
+            const admin = await UserService.loginByPin('Admin', adminPin);
+            if (!admin) {
+                return res.status(403).json({ success: false, message: 'PIN Admin tidak valid. Handover membutuhkan otoritas Supervisor.' });
+            }
+
+            // 2. Resolve Next Cashier User ID
+            const allUsers = await UserService.getAllUsers();
+            const nextCashier = allUsers.find(u => u.name === nextCashierName);
+            if (!nextCashier) {
+                return res.status(400).json({ success: false, message: `Kasir penerima "${nextCashierName}" tidak ditemukan di database.` });
+            }
+
+            // 3. Perform Handover
+            const result = await CashierShiftService.handoverShift(
+                Number(currentShiftId),
+                nextCashier.id,
+                parseFloat(cashAmount),
+                userId,     // Approved by 1: Outgoing Cashier
+                admin.id    // Approved by 2: Admin/Supervisor
+            );
+
+            res.json({ success: true, data: result });
+        } catch (error: any) {
+            console.error('[Handover Error]:', error);
             res.status(400).json({ success: false, message: error.message });
         }
     }

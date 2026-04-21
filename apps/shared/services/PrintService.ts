@@ -1151,4 +1151,15 @@ Terima Kasih!
         await db.printQueue.clear();
         console.log('[PrintService] Entire print queue cleared.');
     }
+
+    /**
+     * Listen for changes in the print queue count.
+     */
+    public static onQueueChange(callback: (jobs: OfflinePrintJob[]) => void): () => void {
+        const interval = setInterval(async () => {
+            const jobs = await this.getPendingJobs();
+            callback(jobs);
+        }, 2000);
+        return () => clearInterval(interval);
+    }
 }
