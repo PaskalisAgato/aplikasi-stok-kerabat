@@ -234,7 +234,7 @@ const Layout: React.FC<LayoutProps> = ({
                         {/* Shell Header (Glass) - Changed to fixed for robustness on mobile */}
                         {!hideHeader && !drawerOpen && (
                             <header 
-                                className="fixed top-0 left-0 right-0 lg:relative p-3 md:px-6 md:py-4 shrink-0 w-full z-[150]"
+                                className="fixed top-0 left-0 right-0 lg:relative p-3 md:px-6 md:py-4 shrink-0 w-full z-40"
                                 style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
                             >
                                 <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-[var(--card-shadow)]`}>
