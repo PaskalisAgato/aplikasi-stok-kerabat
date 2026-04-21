@@ -63,9 +63,31 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                 apiClient.getRecipes()
             ]);
             
-            setTransactions(txRes.data);
+            // 2. Fetch local pending actions from IndexedDB
+            const { db } = await import('@shared/services/db');
+            const pendingActions = await db.offlineActions
+                .where('sync_status')
+                .equals('PENDING')
+                .and(a => a.type === 'CHECKOUT')
+                .toArray();
+
+            const pendingTransactions = pendingActions.map(action => ({
+                id: `pending-${action.id.substring(0, 8)}`,
+                totalAmount: action.payload.totalAmount,
+                paymentMethod: action.payload.paymentMethod,
+                isVoided: false,
+                createdAt: action.payload.createdAt || action.created_at,
+                cashierName: session?.user?.name || 'Kasir',
+                items: action.payload.items,
+                status: 'PENDING_SYNC', // Custom flag for UI
+                isOffline: true
+            }));
+
+            // Merge server and pending local results
+            setTransactions([...pendingTransactions, ...txRes.data]);
+            
             if (txRes.meta.page !== undefined) {
-                setMeta({ page: txRes.meta.page, limit: txRes.meta.limit, total: txRes.meta.total });
+                setMeta({ page: txRes.meta.page, limit: txRes.meta.limit, total: txRes.meta.total + pendingTransactions.length });
             }
             setRecipesList(recRes.data);
         } catch (error) {
@@ -229,7 +251,17 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     };
 
     const TableActions = ({ tx, compact = false }: { tx: any, compact?: boolean }) => {
+        if (tx.status === 'PENDING_SYNC') {
+            return (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                    <span className="material-symbols-outlined text-[14px] text-amber-500 animate-pulse">cloud_upload</span>
+                    <span className="text-[8px] font-black uppercase text-amber-500 tracking-tighter">Pending Cloud</span>
+                </div>
+            );
+        }
+
         if (deleteConfirmId === tx.id) {
+// ...
             return (
                 <div className="flex gap-1 animate-in slide-in-from-right-2 duration-300">
                     <button 
@@ -405,7 +437,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                     {txs.map((tx: any) => (
                                                         <tr key={tx.id} className={`transition-colors ${tx.isVoided ? 'bg-red-500/5 opacity-60' : 'hover:bg-[var(--bg-app)]/50'}`}>
                                                             <td className="p-5 font-black text-[var(--text-main)]">
-                                                                #{tx.id}
+                                                                {tx.status === 'PENDING_SYNC' ? 'LOCAL' : `#${tx.id}`}
                                                                 {tx.isVoided && <span className="ml-2 text-[8px] bg-red-500 text-white px-1.5 py-0.5 rounded font-black uppercase">Batal</span>}
                                                             </td>
                                                             <td className="p-5 text-sm text-[var(--text-muted)] font-medium">
@@ -449,7 +481,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                                             </div>
                                                             <div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">#{tx.id}</p>
+                                                                    <p className="font-black text-xs text-[var(--text-main)] uppercase tracking-widest">{tx.status === 'PENDING_SYNC' ? 'LOCAL' : `#${tx.id}`}</p>
                                                                     {tx.isVoided && <span className="text-[8px] bg-red-500 text-white px-1 py-0.5 rounded font-black uppercase">Batal</span>}
                                                                 </div>
                                                                 <p className="text-[10px] text-[var(--text-muted)] font-bold">

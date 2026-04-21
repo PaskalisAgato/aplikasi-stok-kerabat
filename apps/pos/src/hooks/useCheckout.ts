@@ -56,6 +56,7 @@ export function useCheckout() {
                 pointsUsed: pointsToRedeem,
                 pointsEarned,
                 sourceId: currentBillId,
+                createdAt: new Date().toISOString(),
             };
 
             const printData: PrintData = {

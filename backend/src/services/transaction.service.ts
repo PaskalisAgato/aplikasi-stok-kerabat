@@ -210,7 +210,7 @@ export class TransactionService {
                 paymentReferenceId: data.paymentReferenceId || null,
                 status: data.status || 'PAID',
                 pointsUsed: data.pointsUsed || 0,
-                createdAt: new Date()
+                createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
             };
 
             if (sourceId) {

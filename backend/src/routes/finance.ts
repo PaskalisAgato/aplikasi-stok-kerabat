@@ -326,9 +326,9 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
 
         let expenseDate = new Date();
         if (date) {
-            expenseDate = new Date(date);
-            if (isNaN(expenseDate.getTime())) {
-                return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
+            const d = new Date(date);
+            if (!isNaN(d.getTime())) {
+                expenseDate = d;
             }
         }
 
