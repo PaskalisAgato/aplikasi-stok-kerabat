@@ -93,6 +93,8 @@ export default function App() {
             if (res && res.data) setActiveShift(res.data);
         }).catch(console.error);
 
+        syncEngine.start();
+
         const unsubSync = syncEngine.onChange(setPendingSyncs);
         const unsubPrint = PrintService.onQueueChange((jobs: any[]) => {
             setPrintQueueCount(jobs.filter((j: any) => j.status === 'PENDING').length);
@@ -108,6 +110,7 @@ export default function App() {
         window.addEventListener('open-sync-queue', handleOpenSync);
 
         return () => {
+            syncEngine.stop();
             unsubSync(); unsubPrint();
             window.removeEventListener('print-failed-alert', handlePrintAlert);
             window.removeEventListener('open-sync-queue', handleOpenSync);
