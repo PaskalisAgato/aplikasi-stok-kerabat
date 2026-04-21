@@ -241,21 +241,30 @@ export class CashierShiftService {
         if (fromShiftArr.length === 0) throw new Error('Shift asal tidak ditemukan.');
         const fromShift = fromShiftArr[0];
 
+        // AUTO-CLOSE if shift is still open (UX simplification)
         if (fromShift.status !== 'CLOSED') {
-            throw new Error('Shift asal harus ditutup (Closing) terlebih dahulu sebelum Handover.');
+            const summary = await this.getShiftSummary(fromShiftId);
+            await this.closeShift(fromShiftId, {
+                denominations: [{ nominal: 1, qty: cashAmount }], // Treat total cash as 1 chunk
+                actualNonCash: summary.totalNonCashSales, // Assume non-cash matches for handover speed
+                notes: 'Auto-closed via Handover',
+                userId: fromShift.userId,
+                nonCashVerified: true // Auto verify non-cash during handover
+            });
+        } else {
+            // If already closed, enforce exact cash matching
+            const actualFromCash = parseFloat(fromShift.totalCashActual || '0');
+            if (cashAmount !== actualFromCash) {
+                throw new Error(`Uang kas tidak valid! Uang penutupan kasir sebelumnya adalah Rp ${actualFromCash}, tapi Anda menyerahkan Rp ${cashAmount}.`);
+            }
         }
 
         // Verify toUser doesn't have an active shift
         const existingToShift = await this.getActiveShift(toUserId);
         if (existingToShift) {
-            throw new Error('Kasir penerima masih memiliki shift aktif.');
+            throw new Error('Kasir penerima masih memiliki shift aktif. Silahkan tutup terlebih dahulu.');
         }
 
-        // Check if hand-off cache is EXACTLY the same as what fromShift was closed with
-        const actualFromCash = parseFloat(fromShift.totalCashActual || '0');
-        if (cashAmount !== actualFromCash) {
-            throw new Error(`Uang kas tidak valid! Uang penutupan kasir sebelumnya adalah Rp ${actualFromCash}, tapi Anda menyerahkan Rp ${cashAmount}.`);
-        }
 
         return await db.transaction(async (tx) => {
             // 1. Create new shift for toUserId
