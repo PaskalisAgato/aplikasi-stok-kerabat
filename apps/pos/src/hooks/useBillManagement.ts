@@ -67,12 +67,18 @@ export function useBillManagement() {
     const handleDeleteBill = async (bill: any) => {
         if (!confirm(`Hapus/Batalkan Bill untuk "${bill.customerInfo}"? Stok yang sudah dipotong tidak akan otomatis kembali.`)) return;
         
+        const adminPin = prompt('OTORISASI DIPERLUKAN: Masukkan PIN Admin/Supervisor untuk menghapus bill:');
+        if (!adminPin) {
+            showNotification('Penghapusan dibatalkan. PIN Admin wajib diisi.', 'warning');
+            return { resetCart: false };
+        }
+
         try {
             await db.offlineActions.add({
                 id: `del-${bill.id}-${Date.now()}`,
                 idempotency_key: `req_del_${bill.id}_${Date.now()}`,
                 type: 'DELETE_TRANSACTION',
-                payload: { id: bill.id },
+                payload: { id: bill.id, adminPin },
                 created_at: new Date().toISOString(),
                 sync_status: 'PENDING',
                 retry_count: 0
