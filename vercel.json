@@ -1,7 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build:vercel",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist-global",
   "rewrites": [
     {
       "source": "/api/ping",

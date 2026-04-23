@@ -4,8 +4,8 @@ set -e
 
 echo "--- CONSOLIDATING TURBO BUILDS ---"
 ROOT_DIR=$(pwd)
-rm -rf dist
-mkdir -p dist
+rm -rf dist-global
+mkdir -p dist-global
 
 # Apps to consolidate into dist
 APPS=(
@@ -34,17 +34,17 @@ for APP_DATA in "${APPS[@]}"; do
   NAME="${APP_DATA%%:*}"
   DIR="${APP_DATA#*:}"
   
-  mkdir -p "dist/$NAME"
+  mkdir -p "dist-global/$NAME"
   if [ -d "$DIR/dist" ]; then
-    cp -r "$DIR/dist/." "dist/$NAME/"
+    cp -r "$DIR/dist/." "dist-global/$NAME/"
     echo "[$NAME] Consolidated"
   else
     echo "[$NAME] SKIP (no dist folder found)"
   fi
 done
 
-# POS remains at the root of dist for the main application entry
+# POS remains at the root of dist-global for the main application entry
 echo "Setting POS as root entry..."
-cp -rn dist/pos/* dist/ 2>/dev/null || true
+cp -rn dist-global/pos/* dist-global/ 2>/dev/null || true
 
 echo "--- CONSOLIDATION FINISHED ---"
