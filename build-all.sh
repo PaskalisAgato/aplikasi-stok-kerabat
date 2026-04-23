@@ -44,9 +44,16 @@ for APP_DATA in "${APPS[@]}"; do
 
   echo "[$NAME] Building..."
   cd "$ROOT_DIR/$DIR"
-  $VITE_BIN build --emptyOutDir 2>&1 | tail -3
+  if [ "$RUN_TSC" = "true" ]; then
+    # Full build with type checking
+    npm run build > /dev/null 2>&1
+  else
+    # FAST BUILD: Direct vite call avoids npx lookup and script overhead
+    # --emptyOutDir is important for clean builds in each app directory
+    "$VITE_BIN" build --emptyOutDir > /dev/null 2>&1
+  fi
+  
   cd "$ROOT_DIR"
-
   mkdir -p "dist-global/$NAME"
   if [ -d "$DIR/dist" ]; then
     cp -r "$DIR/dist/." "dist-global/$NAME/"
