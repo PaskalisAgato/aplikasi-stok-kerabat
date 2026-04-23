@@ -26,12 +26,19 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     const [expandedDates, setExpandedDates] = useState<string[]>([]);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [isExporting, setIsExporting] = useState(false);
 
     const groupedTransactions = useMemo(() => {
         return transactions.reduce((acc, tx) => {
-            const date = new Date(tx.createdAt).toLocaleDateString('id-ID', { dateStyle: 'long' });
-            if (!acc[date]) acc[date] = [];
-            acc[date].push(tx);
+            // Apply 5-hour offset for business day grouping (Subuh remains in previous day)
+            const dateObj = new Date(tx.createdAt);
+            const offsetDate = new Date(dateObj.getTime() - (5 * 60 * 60 * 1000));
+            const dateStr = offsetDate.toLocaleDateString('id-ID', { dateStyle: 'long' });
+            
+            if (!acc[dateStr]) acc[dateStr] = [];
+            acc[dateStr].push(tx);
             return acc;
         }, {} as Record<string, any[]>);
     }, [transactions]);
@@ -53,13 +60,13 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [startDate, endDate]);
 
     const loadData = async () => {
         try {
             setIsLoading(true);
             const [txRes, recRes]: [ApiResponse<any>, ApiResponse<any>] = await Promise.all([
-                apiClient.getTransactions(),
+                apiClient.getTransactions(100, 0, startDate, endDate),
                 apiClient.getRecipes()
             ]);
             
@@ -164,6 +171,30 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             loadData();
         } catch (error: any) {
             showNotification(`Gagal menghapus riwayat: ${error.message}`, "error");
+        }
+    };
+
+    const handleExportExcel = async () => {
+        try {
+            setIsExporting(true);
+            showNotification('Menyiapkan file Excel...', 'info');
+            const blob = await apiClient.exportTransactionsExcel(startDate, endDate);
+            
+            const url = window.URL.createObjectURL(blob as any);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showNotification('Excel berhasil diunduh', 'success');
+        } catch (error) {
+            console.error('Export failed', error);
+            showNotification('Gagal ekspor Excel', 'error');
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -324,14 +355,25 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
         <div className="p-2 md:p-4">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 px-2 gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="size-10 md:size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-primary text-xl md:text-2xl font-black">history</span>
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                        <div className="size-10 md:size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-primary text-xl md:text-2xl font-black">history</span>
+                        </div>
+                        <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Riwayat Transaksi</h2>
                     </div>
-                    <h2 className="font-black text-lg md:text-xl uppercase tracking-widest text-[var(--text-main)] truncate">Riwayat Transaksi</h2>
                 </div>
                 
                 <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3 w-full md:w-auto">
+                    <button 
+                        onClick={handleExportExcel}
+                        disabled={isExporting}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-50"
+                    >
+                        <span className="material-symbols-outlined text-sm font-black">{isExporting ? 'sync' : 'download'}</span>
+                        {isExporting ? 'Exporting...' : 'Export Excel'}
+                    </button>
+
                     {isAdmin && transactions.length > 0 && (
                         <div className="flex-1 md:flex-none">
                             {!showClearConfirm ? (
@@ -340,7 +382,7 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                     className="w-full md:w-auto flex items-center justify-center gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95"
                                 >
                                     <span className="material-symbols-outlined text-sm font-black">delete_sweep</span>
-                                    Hapus <span className="hidden xs:inline">Semua</span>
+                                    Hapus
                                 </button>
                             ) : (
                                 <div className="flex items-center gap-1 animate-in zoom-in duration-300 w-full">
@@ -354,7 +396,6 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                                         onClick={handleClearHistory}
                                         className="flex-[2] flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 rounded-xl bg-red-600 text-[var(--text-main)] shadow-lg shadow-red-600/20 transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 animate-pulse"
                                     >
-                                        <span className="material-symbols-outlined text-sm font-black">check</span>
                                         Ya, Hapus
                                     </button>
                                 </div>
@@ -371,6 +412,46 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
                     </button>
                 </div>
             </div>
+
+            {/* FILTERS */}
+            <div className="glass p-3 rounded-2xl flex flex-wrap items-center gap-4 mb-6 border border-white/5">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Filter Tanggal:</span>
+                    <div className="flex items-center gap-1.5 bg-slate-950/30 p-1.5 rounded-xl border border-white/5">
+                        <input 
+                            type="date" 
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-transparent text-[10px] font-black text-primary uppercase focus:outline-none cursor-pointer"
+                        />
+                        <span className="text-[10px] text-white/20">—</span>
+                        <input 
+                            type="date" 
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-transparent text-[10px] font-black text-primary uppercase focus:outline-none cursor-pointer"
+                        />
+                        {(startDate || endDate) && (
+                            <button 
+                                onClick={() => { setStartDate(""); setEndDate(""); }}
+                                className="size-5 flex items-center justify-center rounded-md bg-white/5 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">close</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="flex-1"></div>
+
+                {isLoading && (
+                    <div className="flex items-center gap-2 text-primary">
+                        <span className="size-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Loading...</span>
+                    </div>
+                )}
+            </div>
+
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 {/* Header Stats */}

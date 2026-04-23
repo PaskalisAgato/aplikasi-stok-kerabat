@@ -6,6 +6,7 @@ const router = Router();
 
 router.get('/', requireAuth, TransactionController.getAll);
 router.get('/open-bills', requireAuth, TransactionController.getOpenBills);
+router.get('/export', requireAuth, TransactionController.exportExcel);
 router.get('/:id', requireAuth, TransactionController.getById);
 router.post('/', requireAuth, TransactionController.checkout); // Fallback for older frontend / transition
 router.post('/checkout', requireAuth, TransactionController.checkout); // explicit path for newer frontend

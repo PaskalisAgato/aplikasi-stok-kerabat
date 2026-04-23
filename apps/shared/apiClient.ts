@@ -307,7 +307,18 @@ export const apiClient = {
     deleteRecipe: (id: number) => apiFetch<any>(`/products/${id}`, { method: 'DELETE' }),
 
     // ---- TRANSACTIONS ----
-    getTransactions: (limit = 20, offset = 0) => apiFetch<ApiResponse<any>>(`/transactions?limit=${limit}&offset=${offset}`),
+    getTransactions: (limit = 100, offset = 0, startDate?: string, endDate?: string) => {
+        let url = `/transactions?limit=${limit}&offset=${offset}`;
+        if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
+        if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
+        return apiFetch<ApiResponse<any>>(url);
+    },
+    exportTransactionsExcel: (startDate?: string, endDate?: string) => {
+        let url = `/transactions/export?`;
+        if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
+        if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
+        return apiFetch<Blob>(url, { method: 'GET' }, true);
+    },
     getTransactionById: (id: number) => apiFetch<any>(`/transactions/${id}`),
     checkoutCart: (checkoutData: unknown) => apiFetch<any>('/transactions', { method: 'POST', body: JSON.stringify(checkoutData) }),
     getOpenBills: () => apiFetch<ApiResponse<any>>('/transactions/open-bills'),

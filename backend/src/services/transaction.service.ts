@@ -1,12 +1,25 @@
-import { eq, sql, desc, and, inArray } from 'drizzle-orm';
+import { eq, sql, desc, and, inArray, gte, lte } from 'drizzle-orm';
+import ExcelJS from 'exceljs';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { CashierShiftService } from './cashierShift.service.js';
 
 export class TransactionService {
 
-    // 1. GET ALL TRANSACTIONS WITH PAGINATION
-    static async getAllTransactions(limit = 20, offset = 0) {
+    // 1. GET ALL TRANSACTIONS WITH PAGINATION & FILTERING
+    static async getAllTransactions(limit = 100, offset = 0, startDate?: string, endDate?: string) {
+        const filters = [eq(schema.sales.isDeleted, false)];
+        
+        if (startDate) {
+            filters.push(gte(schema.sales.createdAt, new Date(startDate)));
+        }
+        if (endDate) {
+            // End date should include the whole day
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            filters.push(lte(schema.sales.createdAt, end));
+        }
+
         const _sales = await db.select({
             id: schema.sales.id,
             totalAmount: schema.sales.totalAmount,
@@ -18,7 +31,7 @@ export class TransactionService {
         })
         .from(schema.sales)
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-        .where(eq(schema.sales.isDeleted, false))
+        .where(and(...filters))
         .orderBy(desc(schema.sales.createdAt))
         .limit(limit)
         .offset(offset);
@@ -164,7 +177,8 @@ export class TransactionService {
         for (const item of items) {
             const freshPrice = priceMap.get(item.recipeId);
             if (freshPrice === undefined) throw new Error(`Menu dengan ID ${item.recipeId} tidak ditemukan`);
-            serverCalculatedSubTotal += freshPrice * item.quantity;
+            const qty = parseInt(item.quantity?.toString() || '1');
+            serverCalculatedSubTotal += freshPrice * (isNaN(qty) ? 1 : qty);
         }
 
         // 2. HARDENING: Compare with client total
@@ -289,11 +303,14 @@ export class TransactionService {
             const saleItemsInsertData = items.map((item: any) => {
                 const verifiedPrice = priceMap.get(item.recipeId) || 0;
                 const snapCostPrice = costMap.get(item.recipeId) || 0;
+                const qty = parseInt(item.quantity?.toString() || '1');
+                const sub = (verifiedPrice * qty);
+                
                 return {
                     saleId: finalizedSaleId,
                     recipeId: item.recipeId,
-                    quantity: item.quantity,
-                    subtotal: (verifiedPrice * item.quantity).toString(),
+                    quantity: isNaN(qty) ? 1 : qty,
+                    subtotal: (isNaN(sub) ? 0 : sub).toString(),
                     notes: item.notes || null,
                     costPrice: snapCostPrice.toString()
                 };
@@ -418,13 +435,15 @@ export class TransactionService {
             const saleItemsInsertData = items.map((item: any) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
-                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
+                const qty = parseInt(item.quantity?.toString() || '1');
+                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * qty);
                 const subtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
                 incrementalSubtotal += subtotal;
+                
                 return {
                     saleId: saleId,
                     recipeId: item.recipeId,
-                    quantity: item.quantity,
+                    quantity: isNaN(qty) ? 1 : qty,
                     subtotal: subtotal.toString(),
                     notes: item.notes || null
                 };
@@ -584,11 +603,13 @@ export class TransactionService {
             const saleItemsInsertData = items.map((item: any) => {
                 const itemPriceRaw = parseFloat(item.price?.toString() || '0');
                 const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
-                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * (item.quantity || 0));
+                const qty = parseInt(item.quantity?.toString() || '1');
+                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * qty);
+                
                 return {
                     saleId: saleId,
                     recipeId: item.recipeId,
-                    quantity: item.quantity,
+                    quantity: isNaN(qty) ? 1 : qty,
                     subtotal: (isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw).toString(),
                     notes: item.notes || null
                 };
@@ -989,8 +1010,8 @@ export class TransactionService {
                     await tx.insert(schema.saleItems).values({
                         saleId: targetId,
                         recipeId: originalItem.recipeId,
-                        quantity: moveQty,
-                        subtotal: (moveQty * pricePerUnit).toString(),
+                        quantity: isNaN(moveQty) ? 0 : moveQty,
+                        subtotal: (isNaN(moveQty * pricePerUnit) ? 0 : (moveQty * pricePerUnit)).toString(),
                         notes: originalItem.notes
                     });
                 }
@@ -1024,5 +1045,153 @@ export class TransactionService {
             console.log(`--- splitBill execution success ---`);
             return { success: true, sourceId, sourceTotal, targetId, targetTotal };
         });
+    }
+
+    // 6. EXPORT TRANSACTIONS TO EXCEL
+    static async exportTransactionsExcel(startDate?: string, endDate?: string) {
+        // A. Fetch Data
+        const filters = [eq(schema.sales.isDeleted, false)];
+        if (startDate) filters.push(gte(schema.sales.createdAt, new Date(startDate)));
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            filters.push(lte(schema.sales.createdAt, end));
+        }
+
+        const _sales = await db.select({
+            id: schema.sales.id,
+            totalAmount: schema.sales.totalAmount,
+            paymentMethod: schema.sales.paymentMethod,
+            createdAt: schema.sales.createdAt,
+            cashierName: schema.users.name,
+            isVoided: schema.sales.isVoided
+        })
+        .from(schema.sales)
+        .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
+        .where(and(...filters))
+        .orderBy(desc(schema.sales.createdAt));
+
+        const saleIds = _sales.map(s => s.id);
+        let _items: any[] = [];
+        if (saleIds.length > 0) {
+            _items = await db.select({
+                saleId: schema.saleItems.saleId,
+                recipeName: schema.recipes.name,
+                category: schema.recipes.category,
+                quantity: schema.saleItems.quantity,
+                subtotal: schema.saleItems.subtotal,
+                price: schema.saleItems.costPrice // Using costPrice at time of sale if available
+            })
+            .from(schema.saleItems)
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+            .where(inArray(schema.saleItems.saleId, saleIds));
+        }
+
+        const workbook = new ExcelJS.Workbook();
+
+        // SHEET 1: DATA PENJUALAN HARIAN
+        const wsDetail = workbook.addWorksheet('Detail Penjualan');
+        wsDetail.columns = [
+            { header: 'Tanggal', key: 'date', width: 15 },
+            { header: 'Jam', key: 'time', width: 10 },
+            { header: 'No Transaksi', key: 'id', width: 15 },
+            { header: 'Nama Produk', key: 'product', width: 25 },
+            { header: 'Kategori', key: 'category', width: 15 },
+            { header: 'Qty', key: 'qty', width: 8 },
+            { header: 'Harga Satuan', key: 'price', width: 15 },
+            { header: 'Total', key: 'total', width: 15 },
+            { header: 'Metode Bayar', key: 'method', width: 15 },
+            { header: 'Kasir', key: 'cashier', width: 15 },
+            { header: 'Status', key: 'status', width: 10 }
+        ];
+
+        _sales.forEach(sale => {
+            const items = _items.filter(i => i.saleId === sale.id);
+            const dateObj = new Date(sale.createdAt);
+            const dateStr = dateObj.toLocaleDateString('id-ID');
+            const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            items.forEach(item => {
+                wsDetail.addRow({
+                    date: dateStr,
+                    time: timeStr,
+                    id: `TRX${sale.id.toString().padStart(5, '0')}`,
+                    product: item.recipeName,
+                    category: item.category,
+                    qty: item.quantity,
+                    price: parseFloat(item.subtotal) / item.quantity,
+                    total: parseFloat(item.subtotal),
+                    method: sale.paymentMethod,
+                    cashier: sale.cashierName,
+                    status: sale.isVoided ? 'VOID' : 'PAID'
+                });
+            });
+        });
+
+        // SHEET 2: REKAP HARIAN (Business Day: 5 AM - 5 AM)
+        const wsRecap = workbook.addWorksheet('Rekap Harian');
+        wsRecap.columns = [
+            { header: 'Tanggal', key: 'date', width: 15 },
+            { header: 'Total Transaksi', key: 'txCount', width: 15 },
+            { header: 'Total Item', key: 'itemQty', width: 12 },
+            { header: 'Omzet', key: 'omzet', width: 15 },
+            { header: 'Cash', key: 'cash', width: 15 },
+            { header: 'QRIS', key: 'qris', width: 15 },
+            { header: 'Transfer/Lain', key: 'other', width: 15 }
+        ];
+
+        // Group by Operational Day
+        const dailyAgg: Record<string, any> = {};
+        _sales.filter(s => !s.isVoided).forEach(sale => {
+            const dateObj = new Date(sale.createdAt);
+            const offsetDate = new Date(dateObj.getTime() - (5 * 60 * 60 * 1000));
+            const dayKey = offsetDate.toLocaleDateString('id-ID');
+
+            if (!dailyAgg[dayKey]) {
+                dailyAgg[dayKey] = { date: dayKey, txCount: 0, itemQty: 0, omzet: 0, cash: 0, qris: 0, other: 0 };
+            }
+
+            dailyAgg[dayKey].txCount += 1;
+            dailyAgg[dayKey].omzet += parseFloat(sale.totalAmount);
+            if (sale.paymentMethod === 'CASH') dailyAgg[dayKey].cash += parseFloat(sale.totalAmount);
+            else if (sale.paymentMethod === 'QRIS') dailyAgg[dayKey].qris += parseFloat(sale.totalAmount);
+            else dailyAgg[dayKey].other += parseFloat(sale.totalAmount);
+
+            const items = _items.filter(i => i.saleId === sale.id);
+            dailyAgg[dayKey].itemQty += items.reduce((acc, it) => acc + it.quantity, 0);
+        });
+
+        Object.values(dailyAgg).forEach(day => wsRecap.addRow(day));
+
+        // SHEET 3: MENU & HARGA (Profit Analysis)
+        const wsMenu = workbook.addWorksheet('Menu & Profit');
+        wsMenu.columns = [
+            { header: 'Nama Produk', key: 'name', width: 25 },
+            { header: 'Kategori', key: 'category', width: 15 },
+            { header: 'Harga Modal (HPP)', key: 'cost', width: 15 },
+            { header: 'Harga Jual', key: 'price', width: 15 },
+            { header: 'Profit/Margin', key: 'profit', width: 15 }
+        ];
+
+        const activeRecipes = await db.select().from(schema.recipes).where(eq(schema.recipes.isDeleted, false));
+        activeRecipes.forEach(r => {
+            const cost = parseFloat(r.costPrice || '0');
+            const price = parseFloat(r.price || '0');
+            wsMenu.addRow({
+                name: r.name,
+                category: r.category,
+                cost: cost,
+                price: price,
+                profit: price - cost
+            });
+        });
+
+        // Styles
+        [wsDetail, wsRecap, wsMenu].forEach(ws => {
+            ws.getRow(1).font = { bold: true };
+            ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        });
+
+        return workbook;
     }
 }

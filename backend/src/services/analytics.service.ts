@@ -11,7 +11,8 @@ export class AnalyticsService {
         const now = new Date();
         const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
         const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate); 
-        const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
+        // Business day starts at 05:00 WIB
+        const todayStart = new Date(`${jakartaDate}T05:00:00+07:00`); 
 
         // 1. Revenue & Sales
         const salesData = await db.select({
@@ -87,7 +88,8 @@ export class AnalyticsService {
         const now = new Date();
         const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
         const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate); 
-        const todayStart = new Date(`${jakartaDate}T00:00:00+07:00`); 
+        // Business day starts at 05:00 WIB
+        const todayStart = new Date(`${jakartaDate}T05:00:00+07:00`); 
 
         return await db.select({
             id: schema.sales.id,
@@ -309,7 +311,7 @@ export class AnalyticsService {
             eq(schema.shifts.isDeleted, false),
             sql`CAST(${schema.shifts.discrepancy} AS DECIMAL) != 0`
         ))
-        .limit(5);
+        .limit(10);
 
         for (const d of discrepancies) {
             alerts.push({
@@ -359,6 +361,8 @@ export class AnalyticsService {
             endTime: schema.shifts.endTime,
             initialCash: schema.shifts.initialCash,
             status: schema.shifts.status,
+            totalCashActual: schema.shifts.totalCashActual,
+            discrepancy: schema.shifts.discrepancy,
             cashierName: schema.users.name,
             totalSales: sql<number>`COALESCE((
                 SELECT SUM(CAST(total_amount AS DECIMAL)) 
@@ -428,7 +432,9 @@ export class AnalyticsService {
                 totalExpenses: expenses,
                 cashIn: 0, // Fallback as requested
                 cashOut: expenses,
-                cashDrawer: cashDrawer,
+                cashDrawer: parseFloat(r.totalCashActual || '0'),
+                expectedCash: cashDrawer,
+                discrepancy: parseFloat(r.discrepancy || '0'),
                 profit: profit,
                 status: r.status,
                 cashierName: r.cashierName,

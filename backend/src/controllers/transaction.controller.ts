@@ -6,11 +6,42 @@ export class TransactionController {
     // ... (getAll, getOpenBills, getById remain the same)
     static async getAll(req: Request, res: Response) {
         try {
-            const transactions = await TransactionService.getAllTransactions();
+            const { limit, offset, startDate, endDate } = req.query;
+            const transactions = await TransactionService.getAllTransactions(
+                limit ? parseInt(limit as string) : undefined,
+                offset ? parseInt(offset as string) : undefined,
+                startDate as string,
+                endDate as string
+            );
             res.json({ success: true, data: transactions });
         } catch (error: any) {
             console.error('--- TransactionController.getAll ERROR ---', error);
             res.status(500).json({ success: false, message: 'Gagal mengambil data transaksi' });
+        }
+    }
+
+    static async exportExcel(req: Request, res: Response) {
+        try {
+            const { startDate, endDate } = req.query;
+            const workbook = await TransactionService.exportTransactionsExcel(
+                startDate as string,
+                endDate as string
+            );
+
+            res.setHeader(
+                'Content-Type',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            );
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename=Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.xlsx`
+            );
+
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (error: any) {
+            console.error('--- TransactionController.exportExcel ERROR ---', error);
+            res.status(500).json({ success: false, message: 'Gagal ekspor excel: ' + error.message });
         }
     }
 

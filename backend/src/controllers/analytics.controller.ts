@@ -13,15 +13,19 @@ export class AnalyticsController {
                 // 5-hour offset: If it's before 5 AM, it still counts as yesterday
                 const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
                 const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(offsetDate);
-                start = new Date(`${jakartaDate}T00:00:00+07:00`);
-                end = new Date(`${jakartaDate}T23:59:59+07:00`);
+                
+                // Business day starts at 05:00 WIB of the calculated jakartaDate
+                start = new Date(`${jakartaDate}T05:00:00+07:00`);
+                // and ends at 05:00 WIB the next day
+                end = new Date(start.getTime() + (24 * 60 * 60 * 1000));
             } else if (date === 'yesterday') {
                 const now = new Date();
-                const yesterday = new Date(now.getTime() - (5 * 60 * 60 * 1000));
-                yesterday.setDate(yesterday.getDate() - 1);
-                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(yesterday);
-                start = new Date(`${jakartaDate}T00:00:00+07:00`);
-                end = new Date(`${jakartaDate}T23:59:59+07:00`);
+                const yesterdayOffset = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+                yesterdayOffset.setDate(yesterdayOffset.getDate() - 1);
+                const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(yesterdayOffset);
+                
+                start = new Date(`${jakartaDate}T05:00:00+07:00`);
+                end = new Date(start.getTime() + (24 * 60 * 60 * 1000));
             } else if (startDate && endDate) {
                 start = new Date(`${startDate}T00:00:00+07:00`);
                 end = new Date(`${endDate}T23:59:59.999+07:00`);
