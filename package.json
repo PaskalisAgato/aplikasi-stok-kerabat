@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build && bash consolidate-dist.sh",
-    "build:vercel": "turbo build --concurrency=2 && bash consolidate-dist.sh",
+    "build:vercel": "bash build-all.sh",
     "build:android": "turbo build && bash consolidate-dist.sh && rm -rf apps/pos/dist-combined && cp -r dist apps/pos/dist-combined",
     "type-check": "tsc -b",
     "install-all": "npm install --include=dev",
