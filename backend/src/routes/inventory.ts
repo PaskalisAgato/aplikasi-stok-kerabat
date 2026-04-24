@@ -480,8 +480,14 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
 
                 if (!item) continue;
 
-                const currentStock = parseFloat(item.currentStock);
+                const currentStock = parseFloat(item.currentStock) || 0;
                 const targetStock = parseFloat(physicalStock);
+                
+                if (isNaN(targetStock)) {
+                    console.warn(`Opname: Skipping invalid physical stock "${physicalStock}" for ${item.name}`);
+                    continue;
+                }
+                
                 const delta = targetStock - currentStock;
 
                 if (delta === 0) continue;
@@ -531,12 +537,14 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
              return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
         }
 
-        const wadah = parseFloat(containerWeight?.toString() || '0');
+        const wadah = parseFloat(containerWeight?.toString() || '0') || 0;
         let initialStock = '0';
         if (physicalStock !== undefined) {
-            initialStock = (parseFloat(physicalStock.toString()) - wadah).toString();
+            const p = parseFloat(physicalStock.toString());
+            initialStock = isNaN(p) ? '0' : (p - wadah).toString();
         } else if (currentStock !== undefined) {
-            initialStock = currentStock.toString();
+            const c = parseFloat(currentStock.toString());
+            initialStock = isNaN(c) ? '0' : c.toString();
         }
 
         const [newItem] = await db.insert(schema.inventory).values({
@@ -597,6 +605,24 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
             const oldItem = oldItemArr[0];
 
             if (oldItem.isDeleted) return { error: 'Item has been deleted', status: 410 };
+
+            // 1.5 Safety check for Stock Adjustment
+            let finalStock = oldItem.currentStock;
+            if (physicalStock !== undefined) {
+                const p = parseFloat(physicalStock.toString());
+                const wadah = parseFloat(containerWeight?.toString() || oldItem.containerWeight || '0') || 0;
+                if (!isNaN(p)) {
+                    finalStock = Math.max(0, p - wadah).toString();
+                }
+            } else if (currentStock !== undefined) {
+                const c = parseFloat(currentStock.toString());
+                if (!isNaN(c)) {
+                    finalStock = c.toString();
+                }
+            }
+            
+            // If finalStock is currently "NaN" in DB, and we aren't updating it, force it to "0"
+            if (finalStock === 'NaN') finalStock = '0';
 
             // Concurrency Check (Optimistic Locking)
             if (version && new Date(version).getTime() !== new Date(oldItem.version).getTime()) {
@@ -913,6 +939,25 @@ inventoryRouter.delete('/:id', requireAuth, async (req: Request, res: Response) 
     } catch (error) {
         console.error('Error deleting inventory item:', error);
         res.status(500).json({ error: 'Failed to delete inventory item' });
+    }
+});
+
+// Recovery/Sanitization Endpoint
+inventoryRouter.post('/recovery/sanitize-nan', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const affected = await db.update(schema.inventory)
+            .set({ currentStock: '0' })
+            .where(eq(schema.inventory.currentStock, 'NaN'))
+            .returning();
+            
+        res.json({ 
+            success: true, 
+            message: `Sanitization complete. Fixed ${affected.length} items.`,
+            fixedItems: affected.map(i => ({ id: i.id, name: i.name }))
+        });
+    } catch (error) {
+        console.error('Sanitization Error:', error);
+        res.status(500).json({ success: false, message: 'Gagal menjalankan sanitasi data' });
     }
 });
 

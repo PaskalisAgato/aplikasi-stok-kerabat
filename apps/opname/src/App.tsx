@@ -34,7 +34,7 @@ function App() {
             const controller = new AbortController();
             controllerRef.current = controller;
 
-            const response = await apiClient.getInventory(20, (currentPage - 1) * 20, searchTerm, '', '', controller.signal);
+            const response = await apiClient.getInventory(20, (currentPage - 1) * 20, searchTerm, '', '', '', controller.signal);
             
             if (isLoadMore) {
                 setInventoryList(prev => [...prev, ...response.data]);
@@ -167,63 +167,63 @@ function App() {
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Menghubungkan ke Cold Storage...</p>
                         </div>
                     ) : inventoryList.map((item, idx) => {
-                        const physical = parseFloat(physicalStocks[item.id] || (item.currentStock ?? 0).toString());
-                        const system = parseFloat((item.currentStock ?? 0).toString());
-                        const diff = physical - system;
+                                        const physicalVal = parseFloat(physicalStocks[item.id] || (item.currentStock ?? 0).toString());
+                                        const systemVal = parseFloat((item.currentStock ?? 0).toString());
+                                        const diff = isNaN(physicalVal) || isNaN(systemVal) ? 0 : physicalVal - systemVal;
 
-                        return (
-                            <div 
-                                key={item.id} 
-                                className="card group p-6 border-white/5 hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
-                                style={{ animationDelay: `${idx * 50}ms` }}
-                            >
-                                <div className="flex gap-6 items-start mb-8 relative z-10">
-                                    <div
-                                        className="size-20 rounded-2xl shrink-0 border-2 border-white/10 shadow-2xl bg-cover bg-center bg-[var(--bg-app)] group-hover:rotate-3 transition-transform duration-500"
-                                        style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
-                                    >
-                                        {!item.imageUrl && (
-                                            <div className="flex items-center justify-center h-full text-[var(--text-main)]/10 bg-white/5">
-                                                <span className="material-symbols-outlined text-3xl font-black">image</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0 space-y-2">
-                                        <h4 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none truncate group-hover:text-primary transition-colors">{item.name}</h4>
-                                        <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Satuan: {item.unit}</p>
-                                        
-                                        <div className="flex items-center gap-3 mt-4">
-                                            <div className="px-3 py-1.5 glass rounded-lg border-white/5 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[14px]">terminal</span>
-                                                System: {item.currentStock}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                        return (
+                                            <div 
+                                                key={item.id} 
+                                                className="card group p-6 border-white/5 hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
+                                                style={{ animationDelay: `${idx * 50}ms` }}
+                                            >
+                                                <div className="flex gap-6 items-start mb-8 relative z-10">
+                                                    <div
+                                                        className="size-20 rounded-2xl shrink-0 border-2 border-white/10 shadow-2xl bg-cover bg-center bg-[var(--bg-app)] group-hover:rotate-3 transition-transform duration-500"
+                                                        style={{ backgroundImage: item.imageUrl ? `url('${item.imageUrl}')` : 'none' }}
+                                                    >
+                                                        {!item.imageUrl && (
+                                                            <div className="flex items-center justify-center h-full text-[var(--text-main)]/10 bg-white/5">
+                                                                <span className="material-symbols-outlined text-3xl font-black">image</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 space-y-2">
+                                                        <h4 className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-none truncate group-hover:text-primary transition-colors">{item.name}</h4>
+                                                        <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Satuan: {item.unit}</p>
+                                                        
+                                                        <div className="flex items-center gap-3 mt-4">
+                                                            <div className="px-3 py-1.5 glass rounded-lg border-white/5 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+                                                                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                                                                System: {item.currentStock}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                <div className="grid grid-cols-2 gap-6 mb-6 relative z-10">
-                                    <div className="space-y-3">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Stok Fisik</label>
-                                        <input
-                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
-                                            type="number"
-                                            inputMode="decimal"
-                                            value={physicalStocks[item.id] ?? ''}
-                                            onChange={(e) => handleStockChange(item.id, e.target.value)}
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Varian (Diff)</label>
-                                        <div className={`w-full rounded-2xl text-center font-black text-2xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
-                                            diff < 0 ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-red-500/10' :
-                                            diff > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10' :
-                                            'glass border-white/10 text-[var(--text-muted)] opacity-40'
-                                        }`}>
-                                            {diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)}
-                                        </div>
-                                    </div>
-                                </div>
+                                                <div className="grid grid-cols-2 gap-6 mb-6 relative z-10">
+                                                    <div className="space-y-3">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Stok Fisik</label>
+                                                        <input
+                                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
+                                                            type="number"
+                                                            inputMode="decimal"
+                                                            value={physicalStocks[item.id] ?? ''}
+                                                            onChange={(e) => handleStockChange(item.id, e.target.value)}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Varian (Diff)</label>
+                                                        <div className={`w-full rounded-2xl text-center font-black text-2xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
+                                                            diff < 0 ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-red-500/10' :
+                                                            diff > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10' :
+                                                            'glass border-white/10 text-[var(--text-muted)] opacity-40'
+                                                        }`}>
+                                                            {isNaN(diff) ? '0.00' : (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2))}
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                                 <div className="space-y-3 border-t border-white/5 pt-6 relative z-10">
                                     <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Memo Penyesuaian</label>

@@ -142,9 +142,10 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
 
             // Deduction logic: If user changed currentStock, we treat it as Physical (Gross) Stock
             // and the backend will subtract the container weight.
-            const newStockVal = Math.max(0, parseFloat(currentStock));
+            const newStockVal = parseFloat(currentStock);
             const oldStockVal = parseFloat(item.currentStock || '0');
-            if (newStockVal !== oldStockVal) {
+            
+            if (!isNaN(newStockVal) && newStockVal !== oldStockVal) {
                 updateData.physicalStock = newStockVal;
             }
 
@@ -172,7 +173,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onUpdate
         setCurrentStock(val);
     };
 
-    const kotorDisplay = (parseFloat(currentStock) || 0) + (parseFloat(containerWeight) || 0);
+    const parsedCurrent = parseFloat(currentStock);
+    const parsedContainer = parseFloat(containerWeight);
+    const kotorDisplay = (isNaN(parsedCurrent) ? 0 : parsedCurrent) + (isNaN(parsedContainer) ? 0 : parsedContainer);
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
