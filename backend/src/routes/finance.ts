@@ -53,7 +53,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         })
         .from(schema.expenses)
         .where(whereClause)
-        .orderBy(desc(schema.expenses.expenseDate))
+        .orderBy(desc(schema.expenses.expenseDate), desc(schema.expenses.id))
         .limit(limit + 1)
         .offset(offset);
 
@@ -224,7 +224,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         })
         .from(schema.expenses)
         .where(and(...filters))
-        .orderBy(desc(schema.expenses.expenseDate));
+        .orderBy(desc(schema.expenses.expenseDate), desc(schema.expenses.id));
 
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Kerabat POS';
