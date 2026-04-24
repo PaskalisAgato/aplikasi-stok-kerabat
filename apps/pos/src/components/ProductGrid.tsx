@@ -16,9 +16,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ items, sales, updateQt
     useEffect(() => {
         const updateColumns = () => {
             const width = window.innerWidth;
-            if (width >= 1280) setColumnCount(6); // xl
-            else if (width >= 1024) setColumnCount(5); // lg
-            else if (width >= 768) setColumnCount(4); // md
+            if (width >= 1536) setColumnCount(6); // 2xl
+            else if (width >= 1280) setColumnCount(5); // xl
+            else if (width >= 1024) setColumnCount(3); // lg (Optimized for side-by-side)
+            else if (width >= 768) setColumnCount(4); // md (Full width)
             else setColumnCount(2); // default
         };
 

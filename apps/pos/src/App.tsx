@@ -205,7 +205,7 @@ export default function App() {
                     <>
                         <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0">
                             {/* Column 1: Bill List */}
-                            <div className={`w-full lg:w-[20%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-4 overflow-hidden ${mobileTab === 'bills' ? 'flex' : 'hidden lg:flex'}`}>
+                            <div className={`w-full xl:w-[20%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-4 overflow-hidden ${mobileTab === 'bills' ? 'flex' : 'hidden xl:flex'}`}>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">Daftar Bill</h3>
                                     <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-[10px] font-bold text-primary hover:underline">Bill Baru</button>
@@ -248,7 +248,7 @@ export default function App() {
                             </div>
 
                             {/* Column 2: Product Menu */}
-                            <div className={`w-full lg:flex-1 flex flex-col h-full min-h-0 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
+                            <div className={`w-full lg:flex-[1.2] xl:flex-1 flex flex-col h-full min-h-0 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
                                 <div className="flex flex-col sm:flex-row gap-3 mb-4 shrink-0 px-1">
                                     <div className="flex-1 relative">
                                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg">search</span>
@@ -291,7 +291,7 @@ export default function App() {
                             </div>
 
                             {/* Column 3: Cart */}
-                            <div className={`w-full lg:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
+                            <div className={`w-full lg:w-[45%] xl:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
                                 <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
                                     <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
                                         <span className="material-symbols-outlined text-xl text-primary">shopping_cart</span>
