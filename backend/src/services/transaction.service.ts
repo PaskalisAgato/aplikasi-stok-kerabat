@@ -892,7 +892,8 @@ export class TransactionService {
         // 0. Active Shift Guard
         const activeShift = await CashierShiftService.getActiveShift(userId);
         if (!activeShift) {
-            throw new Error('Shift belum dibuka. Tidak bisa menggabungkan meja.');
+            console.warn(`[MERGE_BILL] userid ${userId} attempted merge without active shift`);
+            throw new Error('Shift Kasir Belum Dibuka: Anda harus membuka shift kasir terlebih dahulu untuk menggabungkan bill/meja.');
         }
 
         return await db.transaction(async (tx: any) => {
@@ -962,7 +963,8 @@ export class TransactionService {
         // 0. Active Shift Guard
         const activeShift = await CashierShiftService.getActiveShift(userId);
         if (!activeShift) {
-            throw new Error('Shift belum dibuka. Tidak bisa melakukan pisah meja.');
+            console.warn(`[SPLIT_BILL] userid ${userId} attempted split without active shift`);
+            throw new Error('Shift Kasir Belum Dibuka: Anda harus membuka shift kasir terlebih dahulu untuk melakukan pisah meja.');
         }
 
         return await db.transaction(async (tx: any) => {

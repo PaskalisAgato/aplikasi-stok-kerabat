@@ -407,9 +407,11 @@ export default function App() {
                 setSelectedSplitItems={setSelectedSplitItems}
                 performSplit={async () => {
                     const payload = {
-                        sourceTransactionId: splitSourceBill.id,
-                        targetCustomerInfo: splitTargetInfo,
-                        splitItems: Object.entries(selectedSplitItems).filter(([_, q]) => q > 0).map(([id, q]) => ({ recipeId: parseInt(id), quantity: q }))
+                        sourceId: splitSourceBill.id,
+                        targetInfo: splitTargetInfo,
+                        items: Object.entries(selectedSplitItems)
+                            .filter(([_, q]) => q > 0)
+                            .map(([id, q]) => ({ saleItemId: parseInt(id), quantity: q }))
                     };
                     const res = await performSplit(payload);
                     if (res?.success) setIsSplitModalOpen(false);
