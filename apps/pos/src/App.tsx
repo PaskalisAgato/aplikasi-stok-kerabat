@@ -162,7 +162,7 @@ export default function App() {
     };
 
     const onSaveBill = async () => {
-        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift);
+        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales);
         if (result?.success) {
             resetCart();
             setCustomerInfo('');

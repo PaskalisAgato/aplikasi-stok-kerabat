@@ -190,21 +190,27 @@ export class TransactionService {
         const tolerance = isBill ? 100 : 0.01; 
 
         if (Math.abs(serverCalculatedSubTotal - clientTotal) > tolerance) {
-            console.error(`[FRAUD ALERT] Price mismatch! Client: ${clientTotal}, Server: ${serverCalculatedSubTotal}, Status: ${data.status}`);
+            console.error(`[FRAUD ALERT] Price mismatch! 
+                Client Total: ${clientTotal}, 
+                Server Calc: ${serverCalculatedSubTotal}, 
+                Status: ${data.status},
+                Tolerance: ${tolerance},
+                Items Count: ${items.length},
+                UserId: ${userId}`);
             
             // LOG CRITICAL FRAUD ALARM
             await db.insert(schema.auditLogs).values({
                 userId,
                 action: isBill ? 'BILL_PRICE_DISCREPANCY' : 'FRAUD_PRICE_MISMATCH_ATTEMPT',
                 tableName: 'sales',
-                oldData: JSON.stringify({ items, clientTotal }),
-                newData: JSON.stringify({ serverCalculatedSubTotal, status: 'REJECTED_BY_SERVER_ARMOR' }),
+                oldData: JSON.stringify({ items, clientTotal, serverCalculatedSubTotal, tolerance }),
+                newData: JSON.stringify({ status: 'REJECTED_BY_SERVER_ARMOR_V2' }),
                 createdAt: new Date()
             });
 
             const errorMsg = isBill 
-                ? `Sinkronisasi Harga Gagal: Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${serverCalculatedSubTotal}). Silakan muat ulang menu.`
-                : 'Manipulasi Harga Terdeteksi: Total harga tidak sesuai dengan database server.';
+                ? `Sinkronisasi Harga Gagal (V2): Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${serverCalculatedSubTotal}).`
+                : 'Manipulasi Harga Terdeteksi (V2): Total harga tidak sesuai dengan database server.';
             throw new Error(errorMsg);
         }
 

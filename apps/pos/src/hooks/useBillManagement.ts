@@ -23,7 +23,7 @@ export function useBillManagement() {
         fetchOpenBills();
     }, [fetchOpenBills]);
 
-    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any) => {
+    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any, sales: Record<number, number>) => {
         if (!activeShift) {
             showNotification('Shift kasir belum dibuka. Tidak bisa menyimpan bill.', "error");
             return { success: false };
@@ -47,9 +47,9 @@ export function useBillManagement() {
                 id: crypto.randomUUID(),
                 items: activeCartItems.map(item => ({
                     recipeId: item.id,
-                    quantity: item.qty, // Using item.qty from cart
+                    quantity: sales[item.id] || 1, // Correctly use sales map for quantities
                     price: item.price,
-                    subtotal: (item.price || 0) * (item.qty || 0),
+                    subtotal: (item.price || 0) * (sales[item.id] || 1),
                     notes: itemNotes[item.id]
                 })),
                 status: 'OPEN',
