@@ -183,27 +183,36 @@ export class TransactionService {
 
         // 2. HARDENING: Compare with client total
         const clientTotal = parseFloat(totalAmount?.toString() || '0');
-        // Tolerance for floating point if needed, but POS should be exact
-        if (Math.abs(serverCalculatedSubTotal - clientTotal) > 0.01) {
-            console.error(`[FRAUD ALERT] Price mismatch! Client: ${clientTotal}, Server: ${serverCalculatedSubTotal}`);
+        const isBill = data.status === 'OPEN';
+
+        // Loosen price check for OPEN bills (unpaid table orders) to avoid minor frontend-backend rounding issues
+        // but keep it strict for PAID transactions
+        const tolerance = isBill ? 100 : 0.01; 
+
+        if (Math.abs(serverCalculatedSubTotal - clientTotal) > tolerance) {
+            console.error(`[FRAUD ALERT] Price mismatch! Client: ${clientTotal}, Server: ${serverCalculatedSubTotal}, Status: ${data.status}`);
             
             // LOG CRITICAL FRAUD ALARM
             await db.insert(schema.auditLogs).values({
                 userId,
-                action: 'FRAUD_PRICE_MISMATCH_ATTEMPT',
+                action: isBill ? 'BILL_PRICE_DISCREPANCY' : 'FRAUD_PRICE_MISMATCH_ATTEMPT',
                 tableName: 'sales',
                 oldData: JSON.stringify({ items, clientTotal }),
                 newData: JSON.stringify({ serverCalculatedSubTotal, status: 'REJECTED_BY_SERVER_ARMOR' }),
                 createdAt: new Date()
             });
 
-            throw new Error('Manipulasi Harga Terdeteksi: Total harga tidak sesuai dengan database server.');
+            const errorMsg = isBill 
+                ? `Sinkronisasi Harga Gagal: Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${serverCalculatedSubTotal}). Silakan muat ulang menu.`
+                : 'Manipulasi Harga Terdeteksi: Total harga tidak sesuai dengan database server.';
+            throw new Error(errorMsg);
         }
 
         // 3. HARDENING: Active Shift Guard
         const activeShift = await CashierShiftService.getActiveShift(userId);
         if (!activeShift) {
-            throw new Error('Shift belum dibuka. Tidak bisa melakukan transaksi.');
+            console.warn(`[CHECKOUT_BLOCKED] No active shift for user ${userId}`);
+            throw new Error('Shift belum dibuka. Silakan buka shift kasir terlebih dahulu di menu utama.');
         }
 
         return await db.transaction(async (tx: any) => {
@@ -681,7 +690,10 @@ export class TransactionService {
         if (!sale) throw new Error('Transaction not found');
 
         const transactionAgeMinutes = (Date.now() - new Date(sale.createdAt).getTime()) / (1000 * 60);
-        const requiresAdminApproval = transactionAgeMinutes > 2 || sale.paymentMethod === 'CASH';
+
+        // Skip Admin PIN for Unpaid Bills (OPEN)
+        const isBill = sale.status === 'OPEN';
+        const requiresAdminApproval = !isBill && (transactionAgeMinutes > 2 || sale.paymentMethod === 'CASH');
 
         let approvedByAdminId = adminId;
 

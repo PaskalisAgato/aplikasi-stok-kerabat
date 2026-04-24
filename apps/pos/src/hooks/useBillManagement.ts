@@ -23,7 +23,12 @@ export function useBillManagement() {
         fetchOpenBills();
     }, [fetchOpenBills]);
 
-    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>) => {
+    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any) => {
+        if (!activeShift) {
+            showNotification('Shift kasir belum dibuka. Tidak bisa menyimpan bill.', "error");
+            return { success: false };
+        }
+
         let info: string | null = customerInfo;
         if (!info) {
             const table = prompt('Masukkan Nomor Meja / Nama Pelanggan:');
@@ -42,7 +47,7 @@ export function useBillManagement() {
                 id: crypto.randomUUID(),
                 items: activeCartItems.map(item => ({
                     recipeId: item.id,
-                    quantity: item.qty,
+                    quantity: item.qty, // Using item.qty from cart
                     price: item.price,
                     subtotal: (item.price || 0) * (item.qty || 0),
                     notes: itemNotes[item.id]
@@ -58,34 +63,32 @@ export function useBillManagement() {
             showNotification('Bill berhasil disimpan!', "success");
             fetchOpenBills();
             return { success: true };
-        } catch (error) {
-            showNotification('Gagal menyimpan bill', "error");
+        } catch (error: any) {
+            console.error('Failed to save bill', error);
+            const msg = error.response?.data?.message || 'Gagal menyimpan bill';
+            showNotification(msg, "error");
             return { success: false };
         }
     };
 
     const handleDeleteBill = async (bill: any) => {
         if (!confirm(`Hapus/Batalkan Bill untuk "${bill.customerInfo}"? Stok yang sudah dipotong tidak akan otomatis kembali.`)) return;
-        
-        const adminPin = prompt('OTORISASI DIPERLUKAN: Masukkan PIN Admin/Supervisor untuk menghapus bill:');
-        if (!adminPin) {
-            showNotification('Penghapusan dibatalkan. PIN Admin wajib diisi.', 'warning');
-            return { resetCart: false };
-        }
 
         try {
+            // Unpaid bills (OPEN) no longer require Admin PIN verification in the backend change made earlier
+            // We can now call the delete API directly or use offline actions without adminPin
             await db.offlineActions.add({
                 id: `del-${bill.id}-${Date.now()}`,
                 idempotency_key: `req_del_${bill.id}_${Date.now()}`,
                 type: 'DELETE_TRANSACTION',
-                payload: { id: bill.id, adminPin },
+                payload: { id: bill.id }, // No adminPin needed for OPEN status
                 created_at: new Date().toISOString(),
                 sync_status: 'PENDING',
                 retry_count: 0
             });
 
             syncEngine.forceSync().catch(console.error);
-            showNotification('Penghapusan telah masuk antrean.', "info");
+            showNotification('Penghapusan bill sedang diproses.', "info");
 
             setOpenBills(prev => prev.filter(b => b.id !== bill.id));
             if (currentBillId === bill.id) {
