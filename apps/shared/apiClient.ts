@@ -342,7 +342,12 @@ export const apiClient = {
         return apiFetch<ApiResponse<any>>(url);
     },
     getExpenseById: (id: number) => apiFetch<any>(`/finance/expenses/${id}`),
-    exportExpensesExcel: () => apiFetch<Blob>('/finance/expenses/export', { method: 'GET' }, true),
+    exportExpensesExcel: (startDate?: string, endDate?: string) => {
+        let url = '/finance/expenses/export?';
+        if (startDate) url += `&startDate=${encodeURIComponent(startDate)}`;
+        if (endDate) url += `&endDate=${encodeURIComponent(endDate)}`;
+        return apiFetch<Blob>(url, { method: 'GET' }, true);
+    },
     addExpense: (data: unknown) => apiFetch<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
     updateExpense: (id: number, data: unknown) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteExpense: (id: number) => apiFetch<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),

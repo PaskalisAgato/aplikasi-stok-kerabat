@@ -195,6 +195,23 @@ financeRouter.post('/expenses/categories', requireAdmin, async (req: Request, re
 // GET Export Expenses Excel
 financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
     try {
+        const { startDate, endDate } = req.query;
+        console.log(`[API] GET /finance/expenses/export | Params: start=${startDate}, end=${endDate}`);
+
+        // 1. Build the same filter as the list endpoint
+        const filters = [eq(schema.expenses.isDeleted, false)];
+        
+        if (startDate) {
+            const startStr = (startDate as string).includes('T') ? (startDate as string) : `${startDate}T00:00:00+07:00`;
+            const d = new Date(startStr);
+            if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
+        }
+        if (endDate) {
+            const endStr = (endDate as string).includes('T') ? (endDate as string) : `${endDate}T23:59:59.999+07:00`;
+            const d = new Date(endStr);
+            if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
+        }
+
         const allExpenses = await db.select({
             id: schema.expenses.id,
             title: schema.expenses.title,
@@ -202,8 +219,12 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
             category: schema.expenses.category,
             amount: schema.expenses.amount,
             expenseDate: schema.expenses.expenseDate,
-            externalReceiptUrl: schema.expenses.externalReceiptUrl
-        }).from(schema.expenses).orderBy(desc(schema.expenses.expenseDate));
+            externalReceiptUrl: schema.expenses.externalReceiptUrl,
+            fundSource: schema.expenses.fundSource
+        })
+        .from(schema.expenses)
+        .where(and(...filters))
+        .orderBy(desc(schema.expenses.expenseDate));
 
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Kerabat POS';
@@ -218,7 +239,8 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
             { header: 'Kategori', key: 'category', width: 20 },
             { header: 'Jumlah', key: 'amount', width: 15 },
             { header: 'Tanggal', key: 'date', width: 20 },
-            { header: 'Bukti', key: 'receipt', width: 40 },
+            { header: 'Sumber Dana', key: 'fundSource', width: 15 },
+            { header: 'Bukti (External URL)', key: 'receipt', width: 40 },
         ];
 
         // Style header
@@ -228,17 +250,18 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         allExpenses.forEach(exp => {
             sheet.addRow({
                 id: exp.id,
-                title: exp.title,
-                vendor: (exp as any).vendor || '-',
-                category: exp.category,
+                title: exp.title || '-',
+                vendor: exp.vendor || '-',
+                category: exp.category || 'Uncategorized',
                 amount: parseFloat(exp.amount),
-                date: exp.expenseDate.toLocaleString('id-ID'),
+                date: exp.expenseDate ? exp.expenseDate.toLocaleString('id-ID') : '-',
+                fundSource: exp.fundSource || 'CASHIER',
                 receipt: exp.externalReceiptUrl || '-'
             });
         });
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename=Pengeluaran_Kerabat_POS.xlsx');
+        res.setHeader('Content-Disposition', `attachment; filename=Pengeluaran_Kerabat_POS_${new Date().toISOString().split('T')[0]}.xlsx`);
 
         await workbook.xlsx.write(res);
     } catch (error: any) {

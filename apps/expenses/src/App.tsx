@@ -148,7 +148,7 @@ function App() {
     const handleExportExcel = async () => {
         try {
             console.log('[ExpensesApp] Exporting to Excel...');
-            const blob = await apiClient.exportExpensesExcel();
+            const blob = await apiClient.exportExpensesExcel(startDate, endDate);
             console.log(`[ExpensesApp] Export blob received: ${blob.size} bytes`);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
