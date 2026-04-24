@@ -10,9 +10,9 @@ interface InventoryCardProps {
 }
 
 const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect, onEdit, onDelete }) => {
-    const currentStock = parseFloat(item.currentStock);
-    const containerWeight = parseFloat(item.containerWeight || '0');
-    const minStock = parseFloat(item.minStock) || 100;
+    const currentStock = parseFloat(item.currentStock) || 0;
+    const containerWeight = parseFloat(item.containerWeight) || 0;
+    const minStock = parseFloat(item.minStock) || 0;
 
     return (
         <div 
