@@ -25,12 +25,19 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const filters = [eq(schema.expenses.isDeleted, false)];
         
         if (startDate) {
-            const startStr = (startDate as string).includes('T') ? (startDate as string) : `${startDate}T00:00:00+07:00`;
+            let startStr = startDate as string;
+            // If it doesn't specify a timezone explicitly (like Z or +07:00), force +07:00 (WIB)
+            if (!startStr.includes('+') && !startStr.endsWith('Z')) {
+                startStr = startStr.includes('T') ? `${startStr}+07:00` : `${startStr}T00:00:00+07:00`;
+            }
             const d = new Date(startStr);
             if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
         }
         if (endDate) {
-            const endStr = (endDate as string).includes('T') ? (endDate as string) : `${endDate}T23:59:59.999+07:00`;
+            let endStr = endDate as string;
+            if (!endStr.includes('+') && !endStr.endsWith('Z')) {
+                endStr = endStr.includes('T') ? `${endStr}+07:00` : `${endStr}T23:59:59.999+07:00`;
+            }
             const d = new Date(endStr);
             if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
         }
@@ -202,12 +209,18 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         const filters = [eq(schema.expenses.isDeleted, false)];
         
         if (startDate) {
-            const startStr = (startDate as string).includes('T') ? (startDate as string) : `${startDate}T00:00:00+07:00`;
+            let startStr = startDate as string;
+            if (!startStr.includes('+') && !startStr.endsWith('Z')) {
+                startStr = startStr.includes('T') ? `${startStr}+07:00` : `${startStr}T00:00:00+07:00`;
+            }
             const d = new Date(startStr);
             if (!isNaN(d.getTime())) filters.push(gte(schema.expenses.expenseDate, d));
         }
         if (endDate) {
-            const endStr = (endDate as string).includes('T') ? (endDate as string) : `${endDate}T23:59:59.999+07:00`;
+            let endStr = endDate as string;
+            if (!endStr.includes('+') && !endStr.endsWith('Z')) {
+                endStr = endStr.includes('T') ? `${endStr}+07:00` : `${endStr}T23:59:59.999+07:00`;
+            }
             const d = new Date(endStr);
             if (!isNaN(d.getTime())) filters.push(lte(schema.expenses.expenseDate, d));
         }
