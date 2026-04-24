@@ -99,7 +99,8 @@ export declare const apiClient: {
     createRecipe: (data: unknown) => Promise<any>;
     updateRecipe: (id: number, data: unknown) => Promise<any>;
     deleteRecipe: (id: number) => Promise<any>;
-    getTransactions: (limit?: number, offset?: number) => Promise<ApiResponse<any>>;
+    getTransactions: (limit?: number, offset?: number, startDate?: string, endDate?: string) => Promise<ApiResponse<any>>;
+    exportTransactionsExcel: (startDate?: string, endDate?: string) => Promise<Blob>;
     getTransactionById: (id: number) => Promise<any>;
     checkoutCart: (checkoutData: unknown) => Promise<any>;
     getOpenBills: () => Promise<ApiResponse<any>>;
@@ -120,7 +121,7 @@ export declare const apiClient: {
     getFinanceReports: () => Promise<any>;
     getExpenses: (limit?: number, offset?: number, startDate?: string, endDate?: string) => Promise<ApiResponse<any>>;
     getExpenseById: (id: number) => Promise<any>;
-    exportExpensesExcel: () => Promise<Blob>;
+    exportExpensesExcel: (startDate?: string, endDate?: string) => Promise<Blob>;
     addExpense: (data: unknown) => Promise<any>;
     updateExpense: (id: number, data: unknown) => Promise<any>;
     deleteExpense: (id: number) => Promise<any>;
@@ -131,6 +132,18 @@ export declare const apiClient: {
     getCOGSAnalysis: () => Promise<ApiResponse<any>>;
     getExpensePhoto: (id: number) => Promise<any>;
     getRecipePhoto: (id: number) => Promise<any>;
+    getOwnerIncome: (params?: {
+        startDate?: string;
+        endDate?: string;
+    }) => Promise<any>;
+    addOwnerIncome: (data: {
+        title: string;
+        amount: number | string;
+        source?: string;
+        incomeDate?: string;
+        notes?: string;
+    }) => Promise<any>;
+    deleteOwnerIncome: (id: number) => Promise<any>;
     getAllShifts: () => Promise<ApiResponse<any>>;
     getMyShifts: () => Promise<ApiResponse<any>>;
     createShift: (data: unknown) => Promise<any>;

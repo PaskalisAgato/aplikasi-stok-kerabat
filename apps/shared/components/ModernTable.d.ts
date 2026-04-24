@@ -11,7 +11,7 @@ interface ModernTableProps<T> {
     isLoading?: boolean;
     emptyMessage?: string;
 }
-export declare function ModernTable<T extends {
+export declare const ModernTable: <T extends {
     id: any;
-}>({ columns, data, isLoading, emptyMessage }: ModernTableProps<T>): import("react/jsx-runtime").JSX.Element;
+}>(props: ModernTableProps<T>) => React.ReactElement;
 export {};

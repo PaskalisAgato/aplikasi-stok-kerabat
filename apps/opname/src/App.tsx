@@ -21,6 +21,7 @@ function App() {
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterCategory, setFilterCategory] = useState('Semua');
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const controllerRef = useRef<AbortController | null>(null);
@@ -34,7 +35,7 @@ function App() {
             const controller = new AbortController();
             controllerRef.current = controller;
 
-            const response = await apiClient.getInventory(20, (currentPage - 1) * 20, searchTerm, '', '', '', controller.signal);
+            const response = await apiClient.getInventory(20, (currentPage - 1) * 20, searchTerm, '', filterCategory === 'Semua' ? '' : filterCategory, '', controller.signal);
             
             if (isLoadMore) {
                 setInventoryList(prev => [...prev, ...response.data]);
@@ -71,7 +72,7 @@ function App() {
             fetchInventory();
         }, 300);
         return () => clearTimeout(timeout);
-    }, [searchTerm]);
+    }, [searchTerm, filterCategory]);
 
     const handleStockChange = (id: number, value: string) => {
         setPhysicalStocks(prev => ({ ...prev, [id]: value }));
@@ -147,6 +148,23 @@ function App() {
                         />
                     </div>
                 </section>
+
+                {/* Category Filter */}
+                <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 -mx-2 px-2 animate-in fade-in slide-in-from-left duration-1000">
+                    {['Semua', 'Bar', 'Dapur', 'Frezer', 'Showcase', 'Lainnya'].map(cat => (
+                        <button 
+                            key={cat}
+                            onClick={() => setFilterCategory(cat)}
+                            className={`whitespace-nowrap px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 border ${
+                                filterCategory === cat 
+                                    ? 'bg-primary text-white border-primary shadow-xl shadow-primary/30' 
+                                    : 'glass text-[var(--text-muted)] border-white/5 opacity-80 hover:opacity-100'
+                            }`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
 
                 {/* Section Header */}
                 <div className="flex items-center justify-between px-2">
