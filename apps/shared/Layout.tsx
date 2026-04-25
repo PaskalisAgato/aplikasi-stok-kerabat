@@ -273,11 +273,11 @@ const Layout: React.FC<LayoutProps> = ({
                         )}
 
                         {/* Content Area - Added spacer for fixed mobile header */}
-                        <main className="flex-1 px-4 md:px-10 pb-10 pt-[88px] lg:pt-0 overflow-y-auto custom-scrollbar relative">
+                        <main className="flex-1 px-4 md:px-10 pb-10 pt-[110px] lg:pt-0 overflow-y-auto custom-scrollbar relative">
                             <div>
                                 {/* Page Header (New Location) */}
                                 {!hideTitle && (
-                                    <div className="mt-2 md:mt-8 mb-6 md:mb-12 px-2">
+                                    <div className="mt-10 md:mt-8 mb-6 md:mb-12 px-2">
                                         <p className="text-[9px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
                                         <h1 className="text-xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
                                     </div>

@@ -22,8 +22,8 @@ interface ExpenseItemProps {
 
 const ExpenseItem: React.FC<ExpenseItemProps> = ({ expense, onEdit, onDelete, onPreview, formatDisplayDate }) => {
     return (
-        <div className="card group p-4 flex items-center justify-between gap-4 gpu transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-white/5">
-            <div className="flex items-center gap-5 flex-1 min-w-0">
+        <div className="card group p-3 flex items-center justify-between gap-3 gpu transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-white/5">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div
                     onClick={() => {
                         if (expense.receiptUrl || expense.hasReceipt) {
@@ -54,7 +54,7 @@ const ExpenseItem: React.FC<ExpenseItemProps> = ({ expense, onEdit, onDelete, on
                         )}
                         <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50">• {formatDisplayDate(expense.date)}</p>
                     </div>
-                    <h4 className="font-black text-[var(--text-main)] text-sm font-display tracking-tight leading-tight uppercase truncate">{expense.title}</h4>
+                    <h4 className="font-black text-[var(--text-main)] text-sm font-display tracking-tight leading-tight uppercase">{expense.title}</h4>
                 </div>
             </div>
 
