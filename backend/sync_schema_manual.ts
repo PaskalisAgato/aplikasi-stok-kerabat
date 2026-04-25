@@ -98,6 +98,15 @@ async function syncSchema() {
         await db.execute(sql`CREATE INDEX IF NOT EXISTS "owner_income_is_deleted_idx" ON "owner_income" ("is_deleted");`);
         await db.execute(sql`CREATE INDEX IF NOT EXISTS "expenses_fund_source_idx" ON "expenses" ("fund_source");`);
 
+        // 8. Data Correction: Fix NULL booleans that cause filtering issues
+        console.log("Correcting NULL values in boolean columns...");
+        await db.execute(sql`UPDATE "sales" SET "is_deleted" = false WHERE "is_deleted" IS NULL;`);
+        await db.execute(sql`UPDATE "sales" SET "is_voided" = false WHERE "is_voided" IS NULL;`);
+        await db.execute(sql`UPDATE "expenses" SET "is_deleted" = false WHERE "is_deleted" IS NULL;`);
+        await db.execute(sql`UPDATE "shifts" SET "is_deleted" = false WHERE "is_deleted" IS NULL;`);
+        await db.execute(sql`UPDATE "inventory" SET "is_deleted" = false WHERE "is_deleted" IS NULL;`);
+        console.log("Data correction completed.");
+
         console.log("Schema sync completed successfully.");
     } catch (error) {
         console.error("Error syncing schema:", error);
