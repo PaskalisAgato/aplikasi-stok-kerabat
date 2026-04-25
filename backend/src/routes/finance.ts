@@ -56,7 +56,8 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             createdAt: schema.expenses.createdAt,
             receiptUrl: schema.expenses.receiptUrl,
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
-            fundSource: schema.expenses.fundSource
+            fundSource: schema.expenses.fundSource,
+            paymentMethod: schema.expenses.paymentMethod
         })
         .from(schema.expenses)
         .where(whereClause)
