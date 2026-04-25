@@ -94,117 +94,99 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                     </button>
                     {showMemberPanel && (
                         <>
-                            <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none" onClick={() => setShowMemberPanel(false)} />
-                            <div className={`fixed inset-x-4 top-24 sm:absolute sm:inset-auto sm:right-0 sm:top-12 sm:mt-3 w-auto sm:w-80 max-w-[calc(100vw-32px)] ${PerformanceSettings.getGlassClass()} border border-[var(--border-dim)] rounded-3xl p-5 shadow-[var(--card-shadow)] z-50 animate-in slide-in-from-top-4 fade-in duration-300`}>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
-                                        {selectedMember && (
-                                            <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
-                                        )}
-                                    </div>
-                                    {!selectedMember ? (
-                                        <div className="space-y-3">
-                                            {isAddingMember ? (
-                                                <div className="space-y-3 p-1 animate-in slide-in-from-right-2 duration-300">
-                                                    <div className="space-y-2">
-                                                        <input 
-                                                            placeholder="Nama Member Baru"
-                                                            value={newMemberName}
-                                                            onChange={e => setNewMemberName(e.target.value)}
-                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
-                                                        />
-                                                        <input 
-                                                            placeholder="Nomor Handphone (WhatsApp)"
-                                                            value={newMemberPhone}
-                                                            onChange={e => setNewMemberPhone(e.target.value)}
-                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
-                                                        />
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button 
-                                                            onClick={() => setIsAddingMember(false)} 
-                                                            className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)]"
-                                                        >
-                                                            Batal
-                                                        </button>
-                                                        <button 
-                                                            onClick={handleCreateMember} 
-                                                            disabled={isCreatingMember}
-                                                            className="flex-[2] py-3 bg-primary text-[#0b1220] font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50"
-                                                        >
-                                                            {isCreatingMember ? 'Menyimpan...' : 'Daftar & Pilih'}
-                                                        </button>
-                                                    </div>
+                            <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowMemberPanel(false)} />
+                            <div className={`fixed inset-y-0 right-0 w-[85%] sm:w-[400px] bg-[var(--bg-app)] border-l border-white/5 shadow-[-20px_0_60px_-15px_rgba(0,0,0,0.5)] z-[120] animate-in slide-in-from-right duration-500 ease-out flex flex-col`}>
+                                <div className="p-6 flex-1 flex flex-col min-h-0">
+                                    <div className="space-y-4 flex flex-col h-full uppercase">
+                                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                                            <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Member</h4>
+                                            {selectedMember && (
+                                                <button onClick={() => { setSelectedMember(null); setPointsToRedeem(0); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+                                            {!selectedMember ? (
+                                                <div className="space-y-3">
+                                                    {isAddingMember ? (
+                                                        <div className="space-y-3 p-1 animate-in slide-in-from-right-2 duration-300">
+                                                            <div className="space-y-2">
+                                                                <input 
+                                                                    placeholder="Nama Member Baru"
+                                                                    value={newMemberName}
+                                                                    onChange={e => setNewMemberName(e.target.value)}
+                                                                    className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
+                                                                />
+                                                                <input 
+                                                                    placeholder="Nomor Handphone (WhatsApp)"
+                                                                    value={newMemberPhone}
+                                                                    onChange={e => setNewMemberPhone(e.target.value)}
+                                                                    className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary"
+                                                                />
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <button onClick={() => setIsAddingMember(false)} className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Batal</button>
+                                                                <button onClick={handleCreateMember} disabled={isCreatingMember} className="flex-[2] py-3 bg-primary text-[#0b1220] font-black uppercase tracking-[0.2em] text-[10px] rounded-xl">Daftar</button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="relative group">
+                                                                <input
+                                                                    autoFocus
+                                                                    placeholder="Cari nama / No HP..."
+                                                                    value={memberSearch}
+                                                                    onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
+                                                                    className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-4 pr-10 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary/40 shadow-inner"
+                                                                />
+                                                                <button onClick={() => setIsAddingMember(true)} className="absolute right-2 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center bg-primary text-[#0b1220] rounded-lg">
+                                                                    <span className="material-symbols-outlined text-sm">person_add</span>
+                                                                </button>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                {memberSearchResults.map((m) => (
+                                                                    <button key={m.id} onClick={() => { setSelectedMember(m); setShowMemberPanel(false); }} className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20">
+                                                                        <div className="text-left">
+                                                                            <p className="font-black text-[12px] text-[var(--text-main)] uppercase">{m.name}</p>
+                                                                            <p className="text-[10px] text-primary font-bold">{m.phone}</p>
+                                                                        </div>
+                                                                        <span className="text-[11px] text-primary font-black">{m.points.toLocaleString('id-ID')} PTS</span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             ) : (
-                                                <>
-                                                    <div className="relative group">
-                                                        <input
-                                                            autoFocus
-                                                            placeholder="Cari nama / No HP..."
-                                                            value={memberSearch}
-                                                            onChange={e => { setMemberSearch(e.target.value); searchMembers(e.target.value); }}
-                                                            onKeyDown={e => e.key === 'Escape' && setShowMemberPanel(false)}
-                                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-4 pr-10 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary/40 shadow-inner"
-                                                        />
-                                                        <button 
-                                                            onClick={() => setIsAddingMember(true)}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center bg-primary text-[#0b1220] rounded-lg shadow-lg active:scale-90 transition-all hover:rotate-12"
-                                                        >
-                                                            <span className="material-symbols-outlined text-sm font-black">person_add</span>
-                                                        </button>
+                                                <div className="space-y-4">
+                                                    <div className="bg-[var(--bg-app)] p-4 rounded-2xl border border-[var(--border-dim)] flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-xs font-black text-[var(--text-main)]">{selectedMember.name}</p>
+                                                            <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[9px] text-[var(--text-muted)] uppercase">Total Poin</p>
+                                                            <p className="text-base font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
+                                                        </div>
                                                     </div>
-                                                    {memberSearchResults.length > 0 && (
-                                                        <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                                                            {memberSearchResults.map((m) => (
-                                                                <button key={m.id} onClick={() => {
-                                                                    setSelectedMember({ id: m.id, name: m.name, phone: m.phone, points: m.points, level: m.level });
-                                                                    setShowMemberPanel(false); setMemberSearch('');
-                                                                }} className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20 group">
-                                                                    <div className="text-left">
-                                                                        <p className="font-black text-[12px] text-[var(--text-main)] uppercase tracking-tight">{m.name}</p>
-                                                                        <p className="text-[10px] text-primary font-bold">{m.phone}</p>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <span className="text-[11px] text-primary font-black font-display">{m.points.toLocaleString('id-ID')} <span className="text-[8px] opacity-60">PTS</span></span>
-                                                                    </div>
-                                                                </button>
-                                                            ))}
+                                                    {selectedMember.points > 0 && (
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase">Tukar Poin</label>
+                                                            <input
+                                                                type="number" min={0} max={selectedMember.points}
+                                                                value={pointsToRedeem || ''}
+                                                                onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
+                                                                className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] outline-none"
+                                                                placeholder="0"
+                                                            />
                                                         </div>
                                                     )}
-                                                </>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <div className="bg-[var(--bg-app)] p-3 rounded-xl border border-[var(--border-dim)] flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-xs font-black text-[var(--text-main)]">{selectedMember.name}</p>
-                                                    <p className="text-[10px] text-[var(--text-muted)]">{selectedMember.phone}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider">Total Poin</p>
-                                                    <p className="text-sm font-black text-primary">{selectedMember.points.toLocaleString('id-ID')}</p>
-                                                </div>
-                                            </div>
-                                            {selectedMember.points > 0 && (
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Tukar Poin</label>
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="number" min={0} max={selectedMember.points}
-                                                            value={pointsToRedeem || ''}
-                                                            onChange={e => setPointsToRedeem(Math.min(selectedMember.points, Math.max(0, parseInt(e.target.value) || 0)))}
-                                                            className="flex-1 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] outline-none"
-                                                            placeholder="0"
-                                                        />
-                                                    </div>
                                                 </div>
                                             )}
-                                            <button onClick={() => setShowMemberPanel(false)} className="w-full py-2 bg-primary text-[#0b1220] font-black tracking-widest uppercase text-[10px] rounded-xl hover:opacity-90">Selesai</button>
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+                                <div className="p-6 border-t border-white/5 bg-black/20 shrink-0">
+                                    <button onClick={() => setShowMemberPanel(false)} className="w-full py-4 bg-primary text-[#0b1220] font-black tracking-[0.2em] uppercase text-xs rounded-2xl shadow-xl shadow-primary/20 transition-all">Tutup Menu</button>
                                 </div>
                             </div>
                         </>
@@ -226,27 +208,32 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                     </button>
                     {showDiscountPanel && (
                         <>
-                            <div className="fixed inset-0 z-40" onClick={() => setShowDiscountPanel(false)} />
-                            <div className={`absolute right-0 mt-3 w-[280px] sm:w-80 ${PerformanceSettings.getGlassClass()} border border-[var(--border-dim)] rounded-2xl p-4 shadow-[var(--card-shadow)] z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                                        <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
-                                        {selectedDiscount && (
-                                            <button onClick={() => { setSelectedDiscount(null); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
-                                        )}
+                            <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowDiscountPanel(false)} />
+                            <div className={`fixed inset-y-0 right-0 w-[85%] sm:w-[400px] bg-[var(--bg-app)] border-l border-white/5 shadow-[-20px_0_60px_-15px_rgba(0,0,0,0.5)] z-[120] animate-in slide-in-from-right duration-500 ease-out flex flex-col font-black`}>
+                                <div className="p-6 flex-1 flex flex-col min-h-0 uppercase">
+                                    <div className="space-y-4 flex flex-col h-full">
+                                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                                            <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
+                                            {selectedDiscount && (
+                                                <button onClick={() => { setSelectedDiscount(null); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                                            {availableDiscounts.length === 0 ? (
+                                                <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon berlaku</p>
+                                            ) : availableDiscounts.map((d) => (
+                                                <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className={`w-full text-left p-4 rounded-2xl transition-all border ${selectedDiscount?.id === d.id ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
+                                                    <div className="flex justify-between items-start">
+                                                        <span className={`font-black text-[12px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>{d.name}</span>
+                                                        <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
-                                        {availableDiscounts.length === 0 ? (
-                                            <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon yang berlaku saat ini</p>
-                                        ) : availableDiscounts.map((d) => (
-                                            <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className={`w-full text-left p-3 rounded-xl transition-all border ${selectedDiscount?.id === d.id ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className={`font-black text-[11px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>{d.name}</span>
-                                                    <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
+                                </div>
+                                <div className="p-6 border-t border-white/5 bg-black/20 shrink-0">
+                                    <button onClick={() => setShowDiscountPanel(false)} className="w-full py-4 bg-[#606c38] text-white font-black tracking-[0.2em] uppercase text-xs rounded-2xl shadow-xl shadow-[#606c38]/20 transition-all">Tutup Menu</button>
                                 </div>
                             </div>
                         </>
