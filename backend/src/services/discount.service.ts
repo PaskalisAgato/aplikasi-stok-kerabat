@@ -21,6 +21,7 @@ export class DiscountService {
             type: data.type,
             value: data.value?.toString() || '0',
             conditions: data.conditions ? JSON.stringify(data.conditions) : null,
+            minPurchase: data.minPurchase?.toString() || '0',
             isActive: data.isActive ?? true,
             startDate: data.startDate ? new Date(data.startDate) : null,
             endDate: data.endDate ? new Date(data.endDate) : null,
@@ -35,6 +36,7 @@ export class DiscountService {
         if (data.value !== undefined) updateData.value = data.value.toString();
         if (data.conditions !== undefined) updateData.conditions = JSON.stringify(data.conditions);
         if (data.isActive !== undefined) updateData.isActive = data.isActive;
+        if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase.toString();
         if (data.startDate !== undefined) updateData.startDate = data.startDate ? new Date(data.startDate) : null;
         if (data.endDate !== undefined) updateData.endDate = data.endDate ? new Date(data.endDate) : null;
 
@@ -68,6 +70,10 @@ export class DiscountService {
 
             let conditions: any = {};
             try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
+
+            // Check minimum purchase
+            const minPurchase = parseFloat(discount.minPurchase || '0');
+            if (subtotal < minPurchase) continue;
 
             let applies = false;
             let discountAmount = 0;
@@ -112,6 +118,24 @@ export class DiscountService {
                         discountAmount = conditions.discountType === 'percent'
                             ? (subtotal * parseFloat(discount.value)) / 100
                             : parseFloat(discount.value);
+                    }
+                    break;
+                }
+                case 'buy_x_get_y': {
+                    const buyQty = conditions.buyQty || 2;
+                    const freeQty = conditions.freeQty || 1;
+                    const targetRecipeId = conditions.recipeId;
+                    
+                    const cartItem = cartItems.find(i => i.recipeId === targetRecipeId);
+                    if (cartItem && cartItem.quantity >= buyQty) {
+                        applies = true;
+                        // Example: Buy 2 Get 1 Free. If 3 in cart, 1 is free.
+                        // Formula: floor(qty / (buy + free)) * price
+                        // OR floor(qty / buy) * price * free? 
+                        // User said "Beli 2 gratis 1", usually means buy 2, total 3, pay 2.
+                        const setSize = buyQty + freeQty;
+                        const freeUnits = Math.floor(cartItem.quantity / setSize) * freeQty;
+                        discountAmount = freeUnits * cartItem.price;
                     }
                     break;
                 }

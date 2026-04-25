@@ -18,6 +18,8 @@ interface POSFooterProps {
     handleSaveBill: () => void;
     currentBillId: string | number | null;
     setMobileTab: (tab: 'menu' | 'cart' | 'bills') => void;
+    orderSource: 'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD';
+    setOrderSource: (source: 'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD') => void;
 }
 
 export const POSFooter: React.FC<POSFooterProps> = ({
@@ -27,7 +29,7 @@ export const POSFooter: React.FC<POSFooterProps> = ({
     amountPaid, setAmountPaid,
     changeDue, isCheckingOut, totalItems,
     handleCheckout, handleUpdateBill, handleSaveBill,
-    currentBillId, setMobileTab
+    currentBillId, setMobileTab, orderSource, setOrderSource
 }) => {
     return (
         <footer className="bg-transparent p-3 shrink-0 flex flex-col gap-3">
@@ -51,6 +53,32 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                         >
                             <span className="material-symbols-outlined text-base font-black">{method.icon}</span>
                             <span className="text-[13px] font-bold uppercase tracking-tight">{method.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Order Source Selector */}
+            <div className="space-y-1.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 px-1">Sumber Order</p>
+                <div className="grid grid-cols-4 gap-2">
+                    {[
+                        { id: 'DIRECT', label: 'Langsung', icon: 'person' },
+                        { id: 'GRABFOOD', label: 'Grab', icon: 'delivery_dining' },
+                        { id: 'GOFOOD', label: 'Gojek', icon: 'delivery_dining' },
+                        { id: 'SHOPEEFOOD', label: 'Shopee', icon: 'delivery_dining' }
+                    ].map((source) => (
+                        <button
+                            key={source.id}
+                            onClick={() => setOrderSource(source.id as any)}
+                            className={`flex flex-col items-center justify-center py-2 rounded-md border transition-all active:scale-95 ${
+                                orderSource === source.id 
+                                    ? 'bg-primary/20 border-primary text-primary shadow-sm' 
+                                    : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-white/5'
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-sm font-black mb-1">{source.icon}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-tighter">{source.label}</span>
                         </button>
                     ))}
                 </div>

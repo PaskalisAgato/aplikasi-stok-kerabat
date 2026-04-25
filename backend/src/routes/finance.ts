@@ -92,7 +92,8 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
             receiptUrl: e.receiptUrl || null,
             externalReceiptUrl: e.externalReceiptUrl || null,
             hasReceipt: !!(e.receiptUrl || e.externalReceiptUrl),
-            fundSource: e.fundSource || "CASHIER"
+            fundSource: e.fundSource || "CASHIER",
+            paymentMethod: e.paymentMethod || "CASH"
         }));
         
         res.status(200).json({ 
@@ -233,7 +234,8 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
             amount: schema.expenses.amount,
             expenseDate: schema.expenses.expenseDate,
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
-            fundSource: schema.expenses.fundSource
+            fundSource: schema.expenses.fundSource,
+            paymentMethod: schema.expenses.paymentMethod
         })
         .from(schema.expenses)
         .where(and(...filters))
@@ -253,6 +255,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
             { header: 'Jumlah', key: 'amount', width: 15 },
             { header: 'Tanggal', key: 'date', width: 20 },
             { header: 'Sumber Dana', key: 'fundSource', width: 15 },
+            { header: 'Metode Bayar', key: 'paymentMethod', width: 15 },
             { header: 'Bukti (External URL)', key: 'receipt', width: 40 },
         ];
 
@@ -269,6 +272,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
                 amount: parseFloat(exp.amount),
                 date: exp.expenseDate ? exp.expenseDate.toLocaleString('id-ID') : '-',
                 fundSource: exp.fundSource || 'CASHIER',
+                paymentMethod: exp.paymentMethod || 'CASH',
                 receipt: exp.externalReceiptUrl || '-'
             });
         });
@@ -301,6 +305,7 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
             externalReceiptUrl: schema.expenses.externalReceiptUrl,
             expenseDate: schema.expenses.expenseDate,
             fundSource: schema.expenses.fundSource,
+            paymentMethod: schema.expenses.paymentMethod,
             userId: schema.expenses.userId,
             createdAt: schema.expenses.createdAt
         }).from(schema.expenses).where(
@@ -345,8 +350,8 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
         // 1. HARDENING: Server-side Idempotency Cache
         const cached = await IdempotencyService.getCachedResponse(idempotencyKey);
         if (cached) return res.status(cached.statusCode).json(cached.body);
-
-        const { title, vendor, category, amount, date, receiptUrl, fundSource = 'CASHIER' } = req.body;
+        
+        const { title, vendor, category, amount, date, receiptUrl, fundSource = 'CASHIER', paymentMethod = 'CASH' } = req.body;
         
         if (!title || !category || amount === undefined || isNaN(Number(amount))) {
             return res.status(400).json({ success: false, message: 'Data pengeluaran tidak lengkap atau nominal tidak valid' });
@@ -377,7 +382,8 @@ financeRouter.post('/expenses', requireAuth, validateBase64Image('receiptUrl'), 
             expenseDate: expenseDate,
             userId: userId || null,
             shiftId: activeShift ? activeShift.id : null,
-            fundSource: fundSource
+            fundSource: fundSource,
+            paymentMethod: paymentMethod
         }).returning({
             id: schema.expenses.id,
             amount: schema.expenses.amount,
@@ -521,6 +527,15 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         .orderBy(sql`sum(${schema.saleItems.quantity}) DESC`)
         .limit(5);
 
+        // 5. Revenue by Order Source
+        const sourceRevenue = await db.select({
+            source: schema.sales.orderSource,
+            total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)`
+        })
+        .from(schema.sales)
+        .where(eq(schema.sales.isDeleted, false))
+        .groupBy(schema.sales.orderSource);
+
         res.json({
             success: true,
             data: {
@@ -528,7 +543,8 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
                 revenueToday,
                 expenses: totalExpenses,
                 netProfit: revenue - totalExpenses,
-                topMenus: topMenusRaw
+                topMenus: topMenusRaw,
+                revenueBySource: sourceRevenue
             }
         });
 

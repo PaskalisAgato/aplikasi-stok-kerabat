@@ -22,12 +22,13 @@ export function useCheckout() {
         pointsToRedeem: number;
         itemNotes: Record<number, string>;
         activeShift: any;
+        orderSource: string;
     }) => {
         const {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscount, pointsToRedeem,
-            itemNotes, activeShift
+            itemNotes, activeShift, orderSource
         } = params;
 
         if (totalSalesValue === 0) return;
@@ -56,6 +57,7 @@ export function useCheckout() {
                 pointsUsed: pointsToRedeem,
                 pointsEarned,
                 sourceId: currentBillId,
+                orderSource,
                 createdAt: new Date().toISOString(),
             };
 

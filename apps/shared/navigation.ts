@@ -22,7 +22,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Riwayat Absen', icon: 'assignment_turned_in', port: 5190, requiredRole: 'Admin' },
     { label: 'Daftar Tugas', icon: 'checklist', port: 5191, requiredRole: 'Karyawan' },
     { label: 'Pengaturan Printer', icon: 'print', port: 5192, requiredRole: 'Karyawan' },
-    { label: 'Member & Diskon', icon: 'loyalty', port: 5193, requiredRole: 'Admin' },
+    { label: 'Member & Diskon', icon: 'loyalty', port: 5193, requiredRole: 'Karyawan' },
 ];
 
 

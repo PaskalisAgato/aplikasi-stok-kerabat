@@ -64,6 +64,7 @@ export default function App() {
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [amountPaid, setAmountPaid] = useState(0);
+    const [orderSource, setOrderSource] = useState<'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD'>('DIRECT');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     
     // Shift State
@@ -144,7 +145,7 @@ export default function App() {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscount, pointsToRedeem,
-            itemNotes, activeShift
+            itemNotes, activeShift, orderSource
         });
 
         if (result?.success) {
@@ -337,7 +338,8 @@ export default function App() {
                                             discountAmount, pointsDiscountAmount, pointsToRedeem, amountPaid, setAmountPaid,
                                             changeDue, isCheckingOut, totalItems, handleCheckout,
                                             handleUpdateBill: onUpdateBillHandle, handleSaveBill: onSaveBill,
-                                            currentBillId, setMobileTab
+                                            currentBillId, setMobileTab,
+                                            orderSource, setOrderSource
                                         }}
                                     />
                                 </div>

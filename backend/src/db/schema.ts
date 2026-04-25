@@ -180,6 +180,7 @@ export const discounts = pgTable('discounts', {
     isActive: boolean('is_active').default(true).notNull(),
     startDate: timestamp('start_date'),
     endDate: timestamp('end_date'),
+    minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).default('0').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     typeIdx: index('discounts_type_idx').on(t.type),
@@ -236,6 +237,7 @@ export const sales = pgTable('sales', {
     discountTotal: decimal('discount_total', { precision: 12, scale: 2 }).default('0').notNull(),
     pointsUsed: integer('points_used').default(0).notNull(),
     pointsEarned: integer('points_earned').default(0).notNull(),
+    orderSource: text('order_source').default('DIRECT').notNull(), // 'DIRECT', 'GRABFOOD', 'GOFOOD', 'SHOPEEFOOD'
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
@@ -270,6 +272,7 @@ export const expenses = pgTable('expenses', {
     expenseDate: timestamp('expense_date').defaultNow().notNull(),
     isDeleted: boolean('is_deleted').default(false).notNull(),
     fundSource: text('fund_source').default('CASHIER').notNull(), // 'CASHIER' or 'OWNER'
+    paymentMethod: text('payment_method').default('CASH').notNull(), // 'CASH', 'NON-CASH'
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     createdIdx: index('expenses_created_at_idx').on(t.createdAt),

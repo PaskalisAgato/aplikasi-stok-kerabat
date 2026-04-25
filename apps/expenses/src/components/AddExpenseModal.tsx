@@ -25,6 +25,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [fundSource, setFundSource] = useState<'CASHIER' | 'OWNER'>('CASHIER');
+    const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'NON-CASH'>('CASH');
 
     const fetchCategories = async () => {
         try {
@@ -59,6 +60,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setReceipt(existingReceipt);
             setExpenseDate(new Date(initialData.expenseDate || initialData.date).toISOString().split('T')[0]);
             setFundSource(initialData.fundSource || 'CASHIER');
+            setPaymentMethod(initialData.paymentMethod || 'CASH');
         } else if (isOpen && !initialData) {
             // Reset for new expense
             setName('');
@@ -68,6 +70,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
             setReceipt(null);
             setExpenseDate(new Date().toISOString().split('T')[0]);
             setFundSource('CASHIER');
+            setPaymentMethod('CASH');
         }
     }, [initialData, isOpen, categories]);
 
@@ -134,7 +137,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                 amount: Number(amount),
                 receiptUrl: receipt, // Pass Base64 string directly
                 date: expenseDate,
-                fundSource: fundSource
+                fundSource: fundSource,
+                paymentMethod: paymentMethod
             };
 
             console.log('[ExpenseForm] Final Payload:', expensePayload);
@@ -330,6 +334,37 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClose, onAd
                                     ? '* Mengurangi saldo laci kasir saat closing.' 
                                     : '* Tidak mengurangi saldo laci kasir (pribadi owner).'}
                             </p>
+                        </div>
+
+                        {/* Payment Method Selection */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-primary/80 uppercase tracking-wider">Metode Pembayaran</label>
+                            <div className="flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('CASH')}
+                                    className={`flex-1 h-14 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                                        paymentMethod === 'CASH' 
+                                        ? 'bg-primary/20 border-primary text-primary font-bold shadow-sm' 
+                                        : 'bg-primary/5 border-primary/20 text-slate-500 hover:bg-primary/10'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined">payments</span>
+                                    <span>Tunai</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('NON-CASH')}
+                                    className={`flex-1 h-14 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+                                        paymentMethod === 'NON-CASH' 
+                                        ? 'bg-blue-500/20 border-blue-500 text-blue-600 font-bold shadow-sm' 
+                                        : 'bg-primary/5 border-primary/20 text-slate-500 hover:bg-primary/10'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined">credit_card</span>
+                                    <span>Non-Tunai</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Categories — chip-based */}
