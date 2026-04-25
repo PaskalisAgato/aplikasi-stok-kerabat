@@ -231,12 +231,12 @@ export default function App() {
             <div className="flex-1 flex flex-col min-h-0 relative">
                 {view === 'pos' ? (
                     <>
-                        <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0">
+                        <div className="flex-1 flex flex-col lg:flex-row gap-6 p-4 md:p-6 min-h-0">
                             {/* Column 1: Bill List */}
-                            <div className={`w-full xl:w-[20%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl p-4 overflow-hidden ${mobileTab === 'bills' ? 'flex' : 'hidden xl:flex'}`}>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">Daftar Bill</h3>
-                                    <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="text-[10px] font-bold text-primary hover:underline">Bill Baru</button>
+                            <div className={`w-full xl:w-[20%] flex-col h-full bg-[var(--bg-app)] border border-primary/5 rounded-[2.5rem] p-6 overflow-hidden shadow-xl ${mobileTab === 'bills' ? 'flex' : 'hidden xl:flex'}`}>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Daftar Bill</h3>
+                                    <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="px-3 py-1 rounded-full bg-primary/10 text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm">Bill Baru</button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-1">
                                     {openBills.length === 0 ? (
@@ -275,30 +275,30 @@ export default function App() {
                                 </div>
                             </div>
 
-                            {/* Column 2: Product Menu */}
-                            <div className={`w-full lg:flex-[1.2] xl:flex-1 flex flex-col h-full min-h-0 ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
-                                <div className="flex flex-col sm:flex-row gap-3 mb-4 shrink-0 px-1">
-                                    <div className="flex-1 relative">
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-lg">search</span>
+                            {/* Column 2: Product Menu & Grid */}
+                            <div className={`flex-1 flex flex-col h-full bg-[var(--bg-app)] border border-primary/5 rounded-[2.5rem] overflow-hidden shadow-xl ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
+                                {/* Search Bar */}
+                                <div className="px-6 pt-6 pb-2 shrink-0">
+                                    <div className="relative group">
+                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 text-xl group-focus-within:text-primary transition-colors">search</span>
                                         <input 
                                             placeholder="Cari menu (Alt+S)..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none focus:border-primary/50 transition-all shadow-sm"
+                                            className="w-full bg-[var(--secondary)] border border-white/5 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-black text-[#fefae0] outline-none focus:border-primary/50 transition-all shadow-inner"
                                         />
                                     </div>
                                 </div>
-
-                                <div className="flex gap-2 mb-4 overflow-x-auto pb-2 custom-scrollbar shrink-0 no-scrollbar">
+                                <div className="flex items-center gap-3 p-4 md:p-6 overflow-x-auto hide-scrollbar shrink-0 bg-[var(--secondary)]/5">
                                     <button 
                                         onClick={() => setSelectedCategory(null)}
-                                        className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${!selectedCategory ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20' : 'bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-white/5'}`}
+                                        className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${!selectedCategory ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-[var(--secondary)] border border-white/5 text-[#fefae0]/70 hover:text-[#fefae0]'}`}
                                     >Semua</button>
                                     {categories.map(cat => (
                                         <button 
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
-                                            className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-slate-950 shadow-lg shadow-primary/20' : 'bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-muted)] hover:bg-white/5'}`}
+                                            className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${selectedCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-[var(--secondary)] border border-white/5 text-[#fefae0]/70 hover:text-[#fefae0]'}`}
                                         >{cat}</button>
                                     ))}
                                 </div>
@@ -319,14 +319,14 @@ export default function App() {
                             </div>
 
                             {/* Column 3: Cart */}
-                            <div className={`w-full lg:w-[45%] xl:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-2xl shadow-xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
-                                <div className="p-4 border-b border-[var(--border-dim)] shrink-0 bg-white/5 flex items-center justify-between">
-                                    <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-main)] flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-xl text-primary">shopping_cart</span>
-                                        Keranjang
+                            <div className={`w-full lg:w-[45%] xl:w-[35%] flex-col h-full bg-[var(--bg-app)] border border-primary/5 rounded-[2.5rem] shadow-2xl overflow-hidden ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
+                                <div className="p-6 border-b border-primary/5 shrink-0 bg-[var(--secondary)] flex items-center justify-between">
+                                    <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#fefae0] flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-2xl text-primary">shopping_bag</span>
+                                        Order Details
                                     </h2>
-                                    <button onClick={() => setSales({})} className="text-[10px] font-black text-red-500 bg-red-500/10 px-3 py-2 flex items-center gap-1.5 rounded-xl border border-red-500/20">
-                                        <span className="material-symbols-outlined text-base">delete_sweep</span>
+                                    <button onClick={() => setSales({})} className="size-11 flex items-center justify-center text-danger bg-danger/10 p-0 rounded-2xl border border-danger/20 hover:bg-danger hover:text-white transition-all shadow-sm">
+                                        <span className="material-symbols-outlined text-xl">delete_sweep</span>
                                     </button>
                                 </div>
                                 
@@ -373,31 +373,33 @@ export default function App() {
                             </div>
                         </div>
 
-                        {/* Mobile Navigation Bar */}
-                        <div className="lg:hidden fixed bottom-5 left-5 right-5 z-50 flex items-center justify-between gap-3 bg-[var(--bg-app)]/80 backdrop-blur-xl border border-white/10 p-2 rounded-[2.5rem] shadow-2xl">
+                        {/* Mobile Navigation Bar (Premium Elevated) */}
+                        <div className="lg:hidden fixed bottom-6 left-6 right-6 z-50 flex items-center justify-between gap-4 bg-[var(--secondary)]/90 backdrop-blur-2xl border border-white/10 p-3 rounded-[3rem] shadow-2xl h-20">
                             <button 
                                 onClick={() => setMobileTab('menu')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full transition-all active:scale-95 ${mobileTab === 'menu' ? 'bg-primary text-slate-900 shadow-xl shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5'}`}
+                                className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 ${mobileTab === 'menu' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
-                                <span className="material-symbols-outlined text-xl">restaurant_menu</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">{mobileTab === 'menu' ? 'Menu' : ''}</span>
+                                <span className="material-symbols-outlined text-2xl font-black">restaurant_menu</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Menu</span>
                             </button>
                             <button 
                                 onClick={() => setMobileTab('cart')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full transition-all active:scale-95 relative ${mobileTab === 'cart' ? 'bg-primary text-slate-900 shadow-xl shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5'}`}
+                                className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 relative ${mobileTab === 'cart' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
-                                <span className="material-symbols-outlined text-xl">shopping_cart</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">{mobileTab === 'cart' ? 'Cart' : ''}</span>
-                                {totalItems > 0 && mobileTab !== 'cart' && (
-                                    <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[var(--bg-app)] shadow-lg">{totalItems}</span>
-                                )}
+                                <div className="relative">
+                                    <span className="material-symbols-outlined text-2xl font-black">shopping_bag</span>
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-1 -right-1 size-5 bg-danger text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-[var(--secondary)] shadow-lg animate-bounce">{totalItems}</span>
+                                    )}
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Cart</span>
                             </button>
                             <button 
                                 onClick={() => setMobileTab('bills')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full transition-all active:scale-95 ${mobileTab === 'bills' ? 'bg-primary text-slate-900 shadow-xl shadow-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5'}`}
+                                className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 ${mobileTab === 'bills' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
-                                <span className="material-symbols-outlined text-xl">receipt_long</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">{mobileTab === 'bills' ? 'Bills' : ''}</span>
+                                <span className="material-symbols-outlined text-2xl font-black">receipt_long</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest">Bills</span>
                             </button>
                         </div>
                     </>

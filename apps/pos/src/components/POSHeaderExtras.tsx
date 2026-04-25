@@ -74,18 +74,22 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                             setIsActionMenuOpen(false); 
                             if (!showMemberPanel) searchMembers('');
                         }}
-                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 relative ${showMemberPanel || selectedMember ? 'bg-primary text-[#0b1220] font-black' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)] font-bold'} active:scale-95 transition-all shadow-lg`}
+                        className={`h-11 px-4 rounded-2xl flex items-center justify-center gap-3 relative transition-all active:scale-95 shadow-lg border ${
+                            showMemberPanel || selectedMember 
+                                ? 'bg-primary text-[#faf9f6] border-primary/20 font-black' 
+                                : 'bg-[var(--secondary)] border-white/5 text-[#fefae0]/80 hover:text-[#fefae0]'
+                        }`}
                         title="Pilih Member"
                     >
-                        <span className="material-symbols-outlined text-lg">person_search</span>
+                        <span className="material-symbols-outlined text-xl font-black">person_search</span>
                         <div className="flex flex-col items-start leading-none gap-0.5">
-                            <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedMember ? selectedMember.name.substring(0,12) : 'Member'}</span>
+                            <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">{selectedMember ? selectedMember.name.substring(0,12) : 'Loyalty'}</span>
                             {selectedMember && (
-                                <span className="text-[7px] hidden sm:inline uppercase font-black tracking-tighter text-emerald-700 opacity-80">Aktif</span>
+                                <span className="text-[8px] hidden sm:inline uppercase font-black tracking-tighter text-[#faf9f6]/70">Verified</span>
                             )}
                         </div>
                         {selectedMember && (
-                            <span className="absolute -top-1 -right-1 size-3 bg-emerald-500 border-2 border-[#0b1220] rounded-full shadow-lg animate-pulse" />
+                            <span className="absolute -top-1 -right-1 size-3.5 bg-success border-2 border-[var(--secondary)] rounded-full shadow-lg animate-pulse" />
                         )}
                     </button>
                     {showMemberPanel && (
@@ -210,11 +214,15 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                 <div className="relative">
                     <button 
                         onClick={() => { setShowDiscountPanel(!showDiscountPanel); setShowMemberPanel(false); loadDiscounts(); setIsActionMenuOpen(false); }}
-                        className={`h-10 px-3 rounded-xl flex items-center justify-center gap-2 ${showDiscountPanel || selectedDiscount ? 'bg-emerald-500 text-[#0b1220] font-black' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)] font-bold'} active:scale-95 transition-all shadow-lg`}
+                        className={`h-11 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg border ${
+                            showDiscountPanel || selectedDiscount 
+                                ? 'bg-[#606c38] text-white border-[#606c38]/20 font-black' 
+                                : 'bg-[var(--secondary)] border-white/5 text-[#fefae0]/80 hover:text-[#fefae0]'
+                        }`}
                         title="Pilih Diskon"
                     >
-                        <span className="material-symbols-outlined text-lg">local_offer</span>
-                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest">{selectedDiscount ? 'Diskon Aktif' : 'Diskon'}</span>
+                        <span className="material-symbols-outlined text-xl font-black">local_offer</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">{selectedDiscount ? 'Applied' : 'Offer'}</span>
                     </button>
                     {showDiscountPanel && (
                         <>
@@ -292,7 +300,11 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
             <div className="relative">
                 <button 
                     onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-                    className={`size-10 rounded-xl flex items-center justify-center ${isActionMenuOpen ? 'bg-primary text-[#0b1220]' : 'bg-[var(--bg-surface)] border border-[var(--border-dim)] text-[var(--text-main)] hover:bg-[var(--border-dim)]'} shadow-lg`}
+                    className={`size-11 rounded-2xl flex items-center justify-center transition-all shadow-lg border ${
+                        isActionMenuOpen 
+                            ? 'bg-primary text-white border-primary/20' 
+                            : 'bg-[var(--secondary)] border-white/5 text-[#fefae0]/80 hover:text-[#fefae0]'
+                    }`}
                     title="Menu Aksi"
                 >
                     <span className="material-symbols-outlined text-2xl font-black">more_vert</span>

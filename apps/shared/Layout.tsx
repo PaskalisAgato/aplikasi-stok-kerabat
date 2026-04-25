@@ -102,27 +102,29 @@ const Layout: React.FC<LayoutProps> = ({
     if (isPending || isRetrying) {
         return (
             <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-8 text-center overflow-hidden">
-                <div className="flex flex-col items-center gap-8">
+                <div className="flex flex-col items-center gap-10">
                     <div className="relative">
-                        <div className="size-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary text-4xl">local_cafe</span>
+                        <div className="size-32 rounded-full border-[1px] border-primary/10 border-t-primary animate-spin duration-[2000ms]"></div>
+                        <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+                            <span className="material-symbols-outlined text-primary text-5xl">local_cafe</span>
                         </div>
                     </div>
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">{title}</h1>
-                        {subtitle && <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80 font-bold leading-tight">{subtitle}</p>}
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-black font-display tracking-tight text-[var(--text-main)] uppercase leading-tight">{title}</h1>
+                        {subtitle && <p className="text-[11px] font-black text-primary uppercase tracking-[0.5em] opacity-90 font-bold leading-tight">{subtitle}</p>}
                     </div>
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-black uppercase tracking-[0.4em] text-primary">
-                            {retryCount > 0 ? `Sinkronisasi (${retryCount}/${maxRetries})` : 'Membuka Kerabat'}
+                    <div className="space-y-5">
+                        <h2 className="text-sm font-black uppercase tracking-[0.5em] text-primary">
+                            {retryCount > 0 ? `Sinkronisasi (${retryCount}/${maxRetries})` : 'Menyiapkan Pengalaman'}
                         </h2>
-                        <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-80">Menyiapkan pengalaman premium Anda...</p>
-                        {retryCount > 1 && (
-                            <div className={`${PerformanceSettings.getGlassClass()} px-6 py-2 rounded-full`}>
-                                <p className="text-[10px] text-primary font-black uppercase">Server sedang bersiap...</p>
-                            </div>
-                        )}
+                        <div className="flex flex-col items-center gap-3">
+                            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em] opacity-60">Kemewahan dalam setiap tegukan...</p>
+                            {retryCount > 1 && (
+                                <div className="bg-primary/5 px-6 py-2 rounded-full border border-primary/10">
+                                    <p className="text-[9px] text-primary font-black uppercase tracking-widest">Server sedang memanaskan mesin...</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,20 +212,20 @@ const Layout: React.FC<LayoutProps> = ({
                 
                 <div className={`flex flex-col h-screen lg:flex-row mx-auto bg-[var(--bg-app)] relative w-full overflow-hidden`} style={{ maxWidth }}>
                     
-                    {/* Desktop Sidebar (Floating Glass Effect) */}
+                    {/* Desktop Sidebar (Floating Coffee Grain Effect) */}
                     {sidebar && (
-                        <aside className={`hidden lg:flex w-80 h-[calc(100vh-2.5rem)] sticky top-5 ml-5 my-5 ${PerformanceSettings.getGlassClass()} rounded-[3rem] flex-col p-8 space-y-10 z-20`}>
-                            <div className="flex items-center gap-4">
-                                <div className="size-12 rounded-2xl accent-gradient flex items-center justify-center text-[var(--text-main)] shadow-lg shadow-primary/20">
-                                    <span className="material-symbols-outlined font-black">coffee</span>
+                        <aside className={`hidden lg:flex w-84 h-[calc(100vh-3rem)] sticky top-6 ml-6 my-6 bg-[var(--secondary)] text-[var(--text-main)] rounded-[3.5rem] flex-col p-10 space-y-12 z-20 shadow-2xl border border-white/5`}>
+                            <div className="flex flex-col gap-6">
+                                <div className="size-16 rounded-[1.75rem] bg-gradient-to-br from-primary to-danger flex items-center justify-center text-white shadow-xl shadow-primary/20 group hover:scale-105 transition-transform duration-500">
+                                    <span className="material-symbols-outlined font-black text-2xl group-hover:rotate-[360deg] transition-transform duration-700">local_cafe</span>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Kerabat POS</p>
-                                    <h1 className="text-xl font-black tracking-tight truncate font-display leading-tight">{title}</h1>
-                                    {subtitle && <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate opacity-80">{subtitle}</p>}
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1">Authentic Experience</p>
+                                    <h1 className="text-2xl font-black tracking-tight text-[#fefae0] font-display leading-tight">{title}</h1>
+                                    {subtitle && <p className="text-[10px] font-bold text-[#fefae0]/50 uppercase tracking-[0.3em] truncate">{subtitle}</p>}
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto hide-scrollbar pr-2 -mr-2">
+                            <div className="flex-1 overflow-y-auto hide-scrollbar -mx-2 px-2 space-y-6">
                                 {sidebar}
                             </div>
                         </aside>
@@ -234,35 +236,41 @@ const Layout: React.FC<LayoutProps> = ({
                         {/* Shell Header (Glass) - Changed to fixed for robustness on mobile */}
                         {!hideHeader && !drawerOpen && (
                             <header 
-                                className="fixed top-0 left-0 right-0 lg:relative p-3 md:px-6 md:py-4 shrink-0 w-full z-40"
-                                style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
+                                className="fixed top-0 left-0 right-0 lg:relative p-4 md:px-10 md:py-8 shrink-0 w-full z-40"
+                                style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
                             >
-                                <div className={`${PerformanceSettings.getGlassClass()} rounded-2xl md:rounded-[2rem] px-3 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 h-16 w-full max-w-full relative shadow-[var(--card-shadow)]`}>
+                                <div className={`${PerformanceSettings.getGlassClass()} rounded-[2rem] md:rounded-[2.5rem] px-5 md:px-10 py-3 md:py-4 flex items-center justify-between gap-4 h-20 w-full max-w-full relative shadow-[var(--card-shadow)] border-primary/5`}>
                                     
-                                    {/* Kiri: Hamburger + Logo */}
-                                    <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-start">
+                                    {/* Kiri: Hamburger + App Identity */}
+                                    <div className="flex items-center gap-4 shrink-0 justify-start">
                                         <button 
                                             onClick={() => setDrawerOpen(true)} 
-                                            className="size-9 sm:size-10 flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all active:scale-95"
-                                            style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}
+                                            className="size-11 flex items-center justify-center shrink-0 rounded-2xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-90 shadow-sm border border-primary/10"
                                         >
-                                            <span className="material-symbols-outlined text-[18px] sm:text-[20px] font-black">menu</span>
+                                            <span className="material-symbols-outlined text-[24px] font-black">menu</span>
                                         </button>
                                         
                                         {!sidebar && (
-                                             <div className="size-9 sm:size-10 hidden xs:flex shrink-0 rounded-xl accent-gradient items-center justify-center text-[var(--text-main)] shadow-md">
-                                                <span className="material-symbols-outlined text-[18px] sm:text-[20px]">coffee</span>
-                                            </div>
+                                             <div className="flex flex-col xs:flex items-start">
+                                                <h1 className="text-sm md:text-lg font-black tracking-tighter text-[var(--text-main)] uppercase leading-none">{title}</h1>
+                                                {subtitle && <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] hidden sm:block">{subtitle}</p>}
+                                             </div>
                                         )}
                                     </div>
                                     
-                                    {/* Tengah: Kosong atau Navigasi Tambahan */}
-                                    <div className="flex-1 min-w-0"></div>
+                                    {/* Tengah: Mobile Logo (only if no sidebar) */}
+                                    <div className="flex-1 flex justify-center lg:hidden">
+                                        {!sidebar && (
+                                            <div className="size-10 rounded-[1.25rem] bg-primary flex items-center justify-center text-white shadow-lg animate-pulse">
+                                                <span className="material-symbols-outlined font-black text-xl">local_cafe</span>
+                                            </div>
+                                        )}
+                                    </div>
 
-                                    {/* Kanan: Header Extras & Theme Toggle */}
-                                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 justify-end">
+                                    {/* Kanan: Header Extras */}
+                                    <div className="flex items-center gap-4 shrink-0 justify-end">
                                         {headerExtras && (
-                                            <div className="flex items-center shrink-0">
+                                            <div className="flex items-center shrink-0 animate-in fade-in slide-in-from-right-4 duration-500">
                                                 {headerExtras}
                                             </div>
                                         )}

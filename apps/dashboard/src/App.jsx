@@ -7,7 +7,8 @@ import {
 } from 'recharts';
 import DailyReportCard from './components/DailyReportCard';
 
-const COLORS = ['#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
+const COLORS = ['#c24b30', '#3c2a21', '#606c38', '#bc6c25', '#dda15e'];
+// Terracotta, Espresso, Moss, Sienna, Sand
 
 function App() {
   const [data, setData] = useState(null);
@@ -187,7 +188,26 @@ function App() {
   }, [paymentMethods]);
 
   return (
-    <Layout currentPort={5173} title="Enterprise Dashboard" subtitle="DATA-DRIVEN BUSINESS CONTROL">
+    <Layout 
+      currentPort={5173} 
+      title="Dashboard" 
+      subtitle="BUSINESS ANALYTICS"
+      headerExtras={
+        <div className="flex items-center gap-3">
+          <div className="hidden xs:flex flex-col items-end mr-3">
+            <span className="text-[9px] font-black uppercase text-primary tracking-[0.2em] opacity-80 leading-none">System Status</span>
+            <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest leading-none mt-1">Live Feed</span>
+          </div>
+          <button 
+            onClick={fetchData} 
+            disabled={isLoading}
+            className="size-11 flex items-center justify-center rounded-2xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm border border-primary/10 group"
+          >
+            <span className={`material-symbols-outlined font-black text-xl ${isLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'}`}>refresh</span>
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         
         {/* HEADER: Filter & Refresh */}
@@ -246,12 +266,12 @@ function App() {
           <>
             {/* 1. SUMMARY CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
-              <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-amber-500" />
-              <SummaryCard title="Uang Tunai" value={summary.cashRevenue} icon="payments" color="text-emerald-400" />
-              <SummaryCard title="Non Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-blue-400" />
-              <SummaryCard title="Total Transaksi" value={summary.totalTransactions} icon="shopping_cart" color="text-blue-500" suffix="Order" noCurrency />
-              <SummaryCard title="Avg. Order" value={summary.avgOrderValue} icon="analytics" color="text-emerald-500" />
-              <SummaryCard title="Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-red-500" />
+              <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-[#bc6c25]" />
+              <SummaryCard title="Uang Tunai" value={summary.cashRevenue} icon="payments" color="text-[#606c38]" />
+              <SummaryCard title="Non Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-[#c24b30]" />
+              <SummaryCard title="Total Transaksi" value={summary.totalTransactions} icon="shopping_cart" color="text-[#bc6c25]" suffix="Order" noCurrency />
+              <SummaryCard title="Avg. Order" value={summary.avgOrderValue} icon="analytics" color="text-[#685634]" />
+              <SummaryCard title="Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-[#c24b30]" />
               <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight />
             </div>
 
