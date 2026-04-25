@@ -240,7 +240,7 @@ export default function App() {
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Daftar Bill</h3>
                                     <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="px-3 py-1 rounded-full bg-primary/10 text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm">Bill Baru</button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-1">
+                                <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-1 pb-[120px] xl:pb-0">
                                     {openBills.length === 0 ? (
                                         <p className="text-[10px] text-[var(--text-muted)] text-center py-10 italic">Belum ada bill aktif</p>
                                     ) : openBills.map(bill => (
@@ -342,7 +342,7 @@ export default function App() {
                                     </div>
                                 )}
 
-                                <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 pb-[120px] lg:pb-0">
                                     {activeCartItems.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center opacity-30">
                                             <span className="material-symbols-outlined text-4xl mb-2">remove_shopping_cart</span>

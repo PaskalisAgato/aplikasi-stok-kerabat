@@ -40,7 +40,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ items, sales, updateQt
     return (
         <div 
             ref={parentRef}
-            className="flex-1 overflow-y-auto custom-scrollbar h-full w-full"
+            className="flex-1 overflow-y-auto custom-scrollbar h-full w-full pb-[120px] lg:pb-6"
             id="product-grid-container"
         >
             <div
