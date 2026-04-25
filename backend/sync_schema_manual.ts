@@ -60,6 +60,44 @@ async function syncSchema() {
         `);
         console.log("[Payroll] Table created (if not exists).");
 
+        // 5. Create owner_income
+        await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS "owner_income" (
+                "id" serial PRIMARY KEY NOT NULL,
+                "title" text NOT NULL,
+                "amount" numeric(12, 2) NOT NULL,
+                "source" text DEFAULT 'OWNER' NOT NULL,
+                "user_id" text REFERENCES "user"("id"),
+                "income_date" timestamp DEFAULT now() NOT NULL,
+                "notes" text,
+                "is_deleted" boolean DEFAULT false NOT NULL,
+                "created_at" timestamp DEFAULT now() NOT NULL
+            );
+        `);
+        console.log("[OwnerIncome] Table created (if not exists).");
+
+        // 6. Maintenance: Add missing columns to existing tables
+        console.log("Updating existing tables with new columns...");
+        
+        // Shifts
+        await db.execute(sql`ALTER TABLE "shifts" ADD COLUMN IF NOT EXISTS "ledger_snapshot" text;`);
+        
+        // Sales
+        await db.execute(sql`ALTER TABLE "sales" ADD COLUMN IF NOT EXISTS "order_source" text DEFAULT 'DIRECT' NOT NULL;`);
+        
+        // Expenses
+        await db.execute(sql`ALTER TABLE "expenses" ADD COLUMN IF NOT EXISTS "vendor" text;`);
+        await db.execute(sql`ALTER TABLE "expenses" ADD COLUMN IF NOT EXISTS "fund_source" text DEFAULT 'CASHIER' NOT NULL;`);
+        await db.execute(sql`ALTER TABLE "expenses" ADD COLUMN IF NOT EXISTS "payment_method" text DEFAULT 'CASH' NOT NULL;`);
+        
+        // Discounts
+        await db.execute(sql`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS "min_purchase" numeric(12, 2) DEFAULT '0' NOT NULL;`);
+
+        // 7. Add Indices
+        await db.execute(sql`CREATE INDEX IF NOT EXISTS "owner_income_date_idx" ON "owner_income" ("income_date");`);
+        await db.execute(sql`CREATE INDEX IF NOT EXISTS "owner_income_is_deleted_idx" ON "owner_income" ("is_deleted");`);
+        await db.execute(sql`CREATE INDEX IF NOT EXISTS "expenses_fund_source_idx" ON "expenses" ("fund_source");`);
+
         console.log("Schema sync completed successfully.");
     } catch (error) {
         console.error("Error syncing schema:", error);
