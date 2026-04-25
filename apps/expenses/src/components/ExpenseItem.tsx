@@ -54,12 +54,12 @@ const ExpenseItem: React.FC<ExpenseItemProps> = ({ expense, onEdit, onDelete, on
                         )}
                         <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50">• {formatDisplayDate(expense.date)}</p>
                     </div>
-                    <h4 className="font-black text-[var(--text-main)] text-lg font-display tracking-tight leading-tight uppercase truncate">{expense.title}</h4>
+                    <h4 className="font-black text-[var(--text-main)] text-sm font-display tracking-tight leading-tight uppercase truncate">{expense.title}</h4>
                 </div>
             </div>
 
             <div className="flex flex-col items-end gap-3 shrink-0">
-                <p className="text-xl font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
+                <p className="text-lg font-black text-primary font-display tracking-tighter uppercase whitespace-nowrap">
                     Rp {Number(expense.amount).toLocaleString('id-ID')}
                 </p>
                 <div className="flex gap-2">

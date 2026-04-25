@@ -277,9 +277,9 @@ const Layout: React.FC<LayoutProps> = ({
                             <div>
                                 {/* Page Header (New Location) */}
                                 {!hideTitle && (
-                                    <div className="mt-4 md:mt-8 mb-8 md:mb-12 px-2">
-                                        <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
-                                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
+                                    <div className="mt-2 md:mt-8 mb-6 md:mb-12 px-2">
+                                        <p className="text-[9px] md:text-xs font-black text-primary uppercase tracking-[0.4em] mb-1 opacity-80">{subtitle}</p>
+                                        <h1 className="text-xl md:text-4xl font-black tracking-tighter uppercase text-[var(--text-main)] leading-none">{title}</h1>
                                     </div>
                                 )}
                                 {children}
