@@ -378,7 +378,7 @@ function DiscountTab() {
 
   const openEdit = (d: Discount) => {
     let cond: any = {};
-    try { cond = d.conditions ? JSON.parse(d.conditions) : {}; } catch {}
+    try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
     setSelected(d);
     setForm({
       name: d.name, type: d.type, value: d.value, isActive: d.isActive,
@@ -459,7 +459,7 @@ function DiscountTab() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {discounts.map(d => {
             let cond: any = {};
-            try { cond = d.conditions ? JSON.parse(d.conditions) : {}; } catch {}
+            try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
             const isBundling = d.type === 'bundling';
             return (
               <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
