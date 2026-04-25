@@ -210,6 +210,8 @@ export default function App() {
     return (
         <Layout 
             title="Point of Sale"
+            hideHeaderTitle={true}
+            hideTitle={true}
             currentPort={3000}
             headerExtras={
                 <POSHeaderExtras 

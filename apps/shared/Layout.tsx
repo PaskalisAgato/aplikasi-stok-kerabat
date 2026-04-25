@@ -17,6 +17,7 @@ interface LayoutProps {
     maxWidth?: string;
     hideHeader?: boolean;
     hideTitle?: boolean;
+    hideHeaderTitle?: boolean;
     onDrawerOpen?: () => void;
     drawerOpen?: boolean;
     onDrawerClose?: () => void;
@@ -33,6 +34,7 @@ const Layout: React.FC<LayoutProps> = ({
     maxWidth = '1600px',
     hideHeader = false,
     hideTitle = false,
+    hideHeaderTitle = false,
     onDrawerOpen,
     drawerOpen: externalDrawerOpen,
     onDrawerClose: onExternalDrawerClose,
@@ -232,7 +234,7 @@ const Layout: React.FC<LayoutProps> = ({
                     )}
 
                     {/* Main Viewport */}
-                    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+                    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative pt-24 lg:pt-0">
                         {/* Shell Header (Glass) - Changed to fixed for robustness on mobile */}
                         {!hideHeader && !drawerOpen && (
                             <header 
@@ -250,7 +252,7 @@ const Layout: React.FC<LayoutProps> = ({
                                             <span className="material-symbols-outlined text-[24px] font-black">menu</span>
                                         </button>
                                         
-                                        {!sidebar && (
+                                        {!sidebar && !hideHeaderTitle && (
                                              <div className="flex flex-col xs:flex items-start">
                                                 <h1 className="text-sm md:text-lg font-black tracking-tighter text-[var(--text-main)] uppercase leading-none">{title}</h1>
                                                 {subtitle && <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em] hidden sm:block">{subtitle}</p>}
