@@ -753,10 +753,12 @@ export default function App() {
       subtitle="Kerabat POS Ecosystem"
       maxWidth="1400px"
     >
-      <div className="sticky top-0 lg:top-0 z-40 mb-8 -mx-4 md:-mx-10 px-4 md:px-10 py-4 bg-[var(--bg-app)]/80 backdrop-blur-md border-b border-[var(--border-dim)]">
+      <div className="fixed top-[80px] left-0 right-0 z-40 px-4 md:px-10 py-3 bg-[var(--bg-app)]/95 backdrop-blur-md border-b border-[var(--border-dim)] shadow-lg">
         {headerTabs}
       </div>
-      {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
+      <div className="pt-[64px]">
+        {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
+      </div>
     </Layout>
   );
 }
