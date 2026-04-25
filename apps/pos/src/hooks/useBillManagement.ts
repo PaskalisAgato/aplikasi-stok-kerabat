@@ -13,7 +13,25 @@ export function useBillManagement() {
     const fetchOpenBills = useCallback(async () => {
         try {
             const response = await apiClient.get('/transactions/open-bills') as any;
-            if (response && response.data) setOpenBills(response.data);
+            if (response && response.data) {
+                let bills = response.data;
+                
+                // Filter out bills that have a pending CHECKOUT or DELETE_TRANSACTION in the local sync queue
+                try {
+                    const pendingActions = await syncEngine.getAllActions();
+                    const pendingProcessedIds = pendingActions
+                        .filter(a => (a.type === 'CHECKOUT' || a.type === 'DELETE_TRANSACTION') && a.sync_status === 'PENDING')
+                        .map(a => a.payload.sourceId || a.payload.id);
+                    
+                    if (pendingProcessedIds.length > 0) {
+                        bills = bills.filter((b: any) => !pendingProcessedIds.includes(b.id));
+                    }
+                } catch (syncErr) {
+                    console.warn('Failed to filter bills against sync queue', syncErr);
+                }
+
+                setOpenBills(bills);
+            }
         } catch (error) {
             console.error('Failed to fetch open bills');
         }

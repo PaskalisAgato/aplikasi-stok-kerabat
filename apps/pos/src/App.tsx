@@ -139,6 +139,33 @@ export default function App() {
         return Math.max(0, amountPaid - finalTotal);
     }, [paymentMethod, amountPaid, finalTotal]);
 
+    // Sync active cart with openBills data (Refreshes items after MERGE)
+    useEffect(() => {
+        if (currentBillId) {
+            const activeBill = openBills.find(b => b.id === currentBillId);
+            if (activeBill && activeBill.items) {
+                const newSales: Record<number, number> = {};
+                activeBill.items.forEach((i: any) => {
+                    newSales[i.recipeId] = i.quantity;
+                });
+                
+                // Shallow equality check to prevent infinite re-renders or unnecessary state sets
+                const salesKeys = Object.keys(sales);
+                const newSalesKeys = Object.keys(newSales);
+                const isDifferent = salesKeys.length !== newSalesKeys.length || 
+                    newSalesKeys.some(key => newSales[parseInt(key)] !== sales[parseInt(key)]);
+
+                if (isDifferent) {
+                    setSales(newSales);
+                    // Also sync customer info/table name if it changed during merge
+                    if (activeBill.customerInfo && activeBill.customerInfo !== customerInfo) {
+                        setCustomerInfo(activeBill.customerInfo);
+                    }
+                }
+            }
+        }
+    }, [openBills, currentBillId, sales, customerInfo, setSales, setCustomerInfo]);
+
     // Handlers
     const handleCheckout = async () => {
         const result = await checkoutLogic({
