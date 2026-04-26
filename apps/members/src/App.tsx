@@ -769,7 +769,7 @@ export default function App() {
       subtitle="Kerabat POS Ecosystem"
       maxWidth="1400px"
     >
-      <div className="sticky top-[80px] lg:top-0 z-40 pt-2 pb-4 bg-[var(--bg-app)]/95 backdrop-blur-md -mx-4 md:-mx-10 px-4 md:px-10 mb-2">
+      <div className="z-40 pt-2 pb-4 -mx-4 md:-mx-10 px-4 md:px-10 mb-2">
         {headerTabs}
       </div>
       <div className="relative">
