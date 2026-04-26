@@ -282,8 +282,8 @@ function App() {
                                                         <div className="flex justify-between items-center ml-2 mr-1">
                                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Wadah (Tare)</label>
                                                             <div className="relative">
-                                                                <button title="Pilih dari Master Data" className="flex items-center justify-center text-primary/60 hover:text-primary bg-primary/5 hover:bg-primary/20 rounded px-1 transition-colors cursor-pointer outline-none">
-                                                                    <span className="material-symbols-outlined text-[14px]">database</span>
+                                                                <button title="Pilih dari Master Data" className="flex items-center justify-center gap-1.5 text-primary hover:text-slate-950 bg-primary/20 hover:bg-primary border border-primary/30 rounded-lg px-3 py-1.5 transition-all cursor-pointer outline-none active:scale-95 shadow-lg shadow-primary/10">
+                                                                    <span className="material-symbols-outlined text-[16px] font-black">database</span>
                                                                 </button>
                                                                 <select 
                                                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
