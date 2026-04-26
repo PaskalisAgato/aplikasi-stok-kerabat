@@ -414,8 +414,8 @@ export default function TransactionHistory({ onBack }: { onBack: () => void }) {
             </div>
 
             {/* FILTERS */}
-            <div className="glass p-3 rounded-2xl flex flex-wrap items-center gap-4 mb-6 border border-white/5">
-                <div className="flex items-center gap-2">
+            <div className="glass p-3 md:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 mb-6 border border-white/5">
+                <div className="flex flex-col gap-2 items-start w-full sm:w-auto">
                     <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Filter Tanggal:</span>
                     <div className="flex items-center gap-1.5 bg-slate-950/30 p-1.5 rounded-xl border border-white/5">
                         <input 
