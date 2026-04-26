@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@shared/apiClient';
 import Layout from '@shared/Layout';
+import { useContainers, type Container } from '@shared/hooks/useContainers';
 
 interface InventoryItem {
     id: number;
@@ -16,6 +17,9 @@ interface InventoryItem {
 
 
 function App() {
+    const { data: containersList } = useContainers();
+    const containers = (containersList || []) as unknown as Container[];
+
     const [inventoryList, setInventoryList] = useState<InventoryItem[]>([]);
     const [physicalStocks, setPhysicalStocks] = useState<Record<number, string>>({});
     const [grossStocks, setGrossStocks] = useState<Record<number, string>>({});
@@ -275,7 +279,31 @@ function App() {
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Wadah (Tare)</label>
+                                                        <div className="flex justify-between items-center ml-2 mr-1">
+                                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Wadah (Tare)</label>
+                                                            <div className="relative">
+                                                                <button title="Pilih dari Master Data" className="flex items-center justify-center text-primary/60 hover:text-primary bg-primary/5 hover:bg-primary/20 rounded px-1 transition-colors cursor-pointer outline-none">
+                                                                    <span className="material-symbols-outlined text-[14px]">database</span>
+                                                                </button>
+                                                                <select 
+                                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                    value=""
+                                                                    onChange={(e) => {
+                                                                        const id = e.target.value ? parseInt(e.target.value) : undefined;
+                                                                        const container = containers.find(c => c.id === id);
+                                                                        if (container) {
+                                                                            handleTareChange(item.id, container.tareWeight.toString());
+                                                                        }
+                                                                        e.target.value = '';
+                                                                    }}
+                                                                >
+                                                                    <option value="" disabled>Pilih Master Wadah...</option>
+                                                                    {containers.map(c => (
+                                                                        <option key={c.id} value={c.id}>{c.name} ({c.tareWeight}g)</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <input
                                                             className="w-full glass border-white/10 rounded-2xl text-center font-black text-xl py-4 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500/40 transition-all outline-none placeholder:opacity-30"
                                                             type="number"
