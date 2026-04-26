@@ -265,6 +265,7 @@ export const apiClient = {
         apiFetch<ApiResponse<any>>(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     submitOpname: (adjustments: Array<{ inventoryId: number, physicalStock: string | number, reason: string, containerWeight?: string | number }>) => apiFetch<any>('/inventory/opname', { method: 'POST', body: JSON.stringify({ adjustments }) }),
     recordStockMovement: (inventoryId: number, data: unknown) => apiFetch<any>(`/inventory/${inventoryId}/movement`, { method: 'POST', body: JSON.stringify(data) }),
+    getItemMovements: (inventoryId: number) => apiFetch<ApiResponse<any>>(`/inventory/${inventoryId}/movements`),
     getWasteSummary: async (params?: any) => {
         try {
             let url = '/finance/waste-analysis';
