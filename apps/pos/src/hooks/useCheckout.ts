@@ -18,7 +18,7 @@ export function useCheckout() {
         customerInfo: string;
         currentBillId: string | number | null;
         selectedMember: any;
-        selectedDiscount: any;
+        selectedDiscounts: any[];
         pointsToRedeem: number;
         itemNotes: Record<number, string>;
         activeShift: any;
@@ -27,7 +27,7 @@ export function useCheckout() {
         const {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
-            selectedMember, selectedDiscount, pointsToRedeem,
+            selectedMember, selectedDiscounts, pointsToRedeem,
             itemNotes, activeShift, orderSource
         } = params;
 
@@ -52,7 +52,8 @@ export function useCheckout() {
                 totalAmount: finalTotal,
                 taxAmount: 0,
                 memberId: selectedMember?.id || null,
-                discountId: selectedDiscount?.id || null,
+                discountId: selectedDiscounts?.length === 1 ? selectedDiscounts[0].id : null,
+                discountIds: selectedDiscounts?.length > 0 ? selectedDiscounts.map(d => d.id) : null,
                 discountTotal: (totalSalesValue - finalTotal),
                 pointsUsed: pointsToRedeem,
                 pointsEarned,

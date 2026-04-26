@@ -23,6 +23,7 @@ export class DiscountService {
             conditions: data.conditions ? JSON.stringify(data.conditions) : null,
             minPurchase: data.minPurchase?.toString() || '0',
             isActive: data.isActive ?? true,
+            isStackable: data.isStackable ?? false,
             startDate: data.startDate ? new Date(data.startDate) : null,
             endDate: data.endDate ? new Date(data.endDate) : null,
         }).returning();
@@ -36,6 +37,7 @@ export class DiscountService {
         if (data.value !== undefined) updateData.value = data.value.toString();
         if (data.conditions !== undefined) updateData.conditions = JSON.stringify(data.conditions);
         if (data.isActive !== undefined) updateData.isActive = data.isActive;
+        if (data.isStackable !== undefined) updateData.isStackable = data.isStackable;
         if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase.toString();
         if (data.startDate !== undefined) updateData.startDate = data.startDate ? new Date(data.startDate) : null;
         if (data.endDate !== undefined) updateData.endDate = data.endDate ? new Date(data.endDate) : null;

@@ -22,8 +22,9 @@ interface POSHeaderExtrasProps {
     isCreatingMember: boolean;
     showDiscountPanel: boolean;
     setShowDiscountPanel: (show: boolean) => void;
-    selectedDiscount: any;
-    setSelectedDiscount: (discount: any) => void;
+    selectedDiscounts: any[];
+    setSelectedDiscounts: (discounts: any[]) => void;
+    toggleDiscount: (discount: any) => void;
     loadDiscounts: () => void;
     availableDiscounts: any[];
     activeShift: any;
@@ -52,7 +53,7 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
     newMemberPhone, setNewMemberPhone,
     handleCreateMember, isCreatingMember,
     showDiscountPanel, setShowDiscountPanel,
-    selectedDiscount, setSelectedDiscount,
+    selectedDiscounts, setSelectedDiscounts, toggleDiscount,
     loadDiscounts, availableDiscounts,
     activeShift, pendingSyncs,
     setIsHandoverShiftOpen, setIsCloseShiftOpen,
@@ -197,14 +198,14 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                     <button 
                         onClick={() => { setShowDiscountPanel(!showDiscountPanel); setShowMemberPanel(false); loadDiscounts(); setIsActionMenuOpen(false); }}
                         className={`h-11 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg border ${
-                            showDiscountPanel || selectedDiscount 
+                            showDiscountPanel || selectedDiscounts.length > 0
                                 ? 'bg-[#606c38] text-white border-[#606c38]/20 font-black' 
                                 : 'bg-[var(--secondary)] border-white/5 text-[#fefae0]/80 hover:text-[#fefae0]'
                         }`}
                         title="Pilih Diskon"
                     >
                         <span className="material-symbols-outlined text-xl font-black">local_offer</span>
-                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">{selectedDiscount ? 'Applied' : 'Offer'}</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">{selectedDiscounts.length > 0 ? `${selectedDiscounts.length} Applied` : 'Offer'}</span>
                     </button>
                     {showDiscountPanel && (
                         <>
@@ -214,21 +215,35 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                     <div className="space-y-4 flex flex-col h-full">
                                         <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                             <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
-                                            {selectedDiscount && (
-                                                <button onClick={() => { setSelectedDiscount(null); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus</button>
+                                            {selectedDiscounts.length > 0 && (
+                                                <button onClick={() => { setSelectedDiscounts([]); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus Semua</button>
                                             )}
                                         </div>
                                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
                                             {availableDiscounts.length === 0 ? (
                                                 <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon berlaku</p>
-                                            ) : availableDiscounts.map((d) => (
-                                                <button key={d.id} onClick={() => { setSelectedDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type }); setShowDiscountPanel(false); }} className={`w-full text-left p-4 rounded-2xl transition-all border ${selectedDiscount?.id === d.id ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
-                                                    <div className="flex justify-between items-start">
-                                                        <span className={`font-black text-[12px] ${selectedDiscount?.id === d.id ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>{d.name}</span>
-                                                        <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
-                                                    </div>
-                                                </button>
-                                            ))}
+                                            ) : availableDiscounts.map((d) => {
+                                                const isSelected = selectedDiscounts.some(sd => sd.id === d.id);
+                                                return (
+                                                    <button key={d.id} onClick={() => { 
+                                                        toggleDiscount({ id: d.id, name: d.name, value: parseFloat(d.value), type: d.type, isStackable: d.isStackable, discountAmount: d.discountAmount }); 
+                                                        if (!d.isStackable) setShowDiscountPanel(false); // only close on non-stackable
+                                                    }} className={`w-full text-left p-4 rounded-2xl transition-all border ${isSelected ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-[var(--bg-app)] border-[var(--border-dim)] hover:border-emerald-500/30'}`}>
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className={`font-black text-[12px] flex items-center gap-2 ${isSelected ? 'text-emerald-400' : 'text-[var(--text-main)]'}`}>
+                                                                    {isSelected && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
+                                                                    {d.name}
+                                                                </span>
+                                                                <span className="text-[11px] text-emerald-400 font-black">-Rp {d.discountAmount?.toLocaleString('id-ID')}</span>
+                                                            </div>
+                                                            {d.isStackable && (
+                                                                <span className="text-[8px] bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full inline-block w-fit">BISA DIGABUNG</span>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 </div>

@@ -52,7 +52,7 @@ export default function App() {
         memberSearchResults, showMemberPanel, setShowMemberPanel,
         isAddingMember, setIsAddingMember, newMemberName, setNewMemberName,
         newMemberPhone, setNewMemberPhone, isCreatingMember,
-        pointsToRedeem, setPointsToRedeem, selectedDiscount, setSelectedDiscount,
+        pointsToRedeem, setPointsToRedeem, selectedDiscounts, setSelectedDiscounts, toggleDiscount,
         availableDiscounts, showDiscountPanel, setShowDiscountPanel,
         loyaltySettings, searchMembers, loadDiscounts, handleCreateMember, resetLoyaltyState
     } = useLoyalty(activeCartItems, totalSalesValue);
@@ -120,11 +120,9 @@ export default function App() {
 
     // Derived Values
     const discountAmount = useMemo(() => {
-        if (!selectedDiscount) return 0;
-        return selectedDiscount.type === 'PERCENTAGE' 
-            ? (totalSalesValue * (selectedDiscount.value / 100)) 
-            : selectedDiscount.value;
-    }, [selectedDiscount, totalSalesValue]);
+        if (!selectedDiscounts || selectedDiscounts.length === 0) return 0;
+        return selectedDiscounts.reduce((total, d) => total + (d.discountAmount || 0), 0);
+    }, [selectedDiscounts]);
 
     const pointsDiscountAmount = useMemo(() => {
         return pointsToRedeem * (loyaltySettings.pointValue || 100);
@@ -171,7 +169,7 @@ export default function App() {
         const result = await checkoutLogic({
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
-            selectedMember, selectedDiscount, pointsToRedeem,
+            selectedMember, selectedDiscounts, pointsToRedeem,
             itemNotes, activeShift, orderSource
         });
 
@@ -221,7 +219,7 @@ export default function App() {
                         memberSearchResults, isAddingMember, setIsAddingMember,
                         newMemberName, setNewMemberName, newMemberPhone, setNewMemberPhone,
                         handleCreateMember, isCreatingMember, showDiscountPanel, setShowDiscountPanel,
-                        selectedDiscount, setSelectedDiscount, loadDiscounts, availableDiscounts,
+                        selectedDiscounts, setSelectedDiscounts, toggleDiscount, loadDiscounts, availableDiscounts,
                         activeShift, pendingSyncs, setIsHandoverShiftOpen, setIsCloseShiftOpen,
                         getSummary: (id) => apiClient.get(`/cashier-shifts/summary/${id}`),
                         setShiftSummaryData, showNotification, isActionMenuOpen, setIsActionMenuOpen,

@@ -231,6 +231,8 @@ export class TransactionService {
                 userId: userId,
                 memberId: data.memberId || null,
                 customerInfo: data.customerInfo || null,
+                discountId: data.discountId || null, // Keep for backwards compatibility
+                discountIds: Array.isArray(data.discountIds) ? JSON.stringify(data.discountIds) : null,
                 subTotal: serverCalculatedSubTotal.toString(),
                 totalAmount: serverCalculatedSubTotal.toString(), // Using server calculated for security
                 taxAmount: data.taxAmount?.toString() || '0',

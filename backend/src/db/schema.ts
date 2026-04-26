@@ -178,6 +178,7 @@ export const discounts = pgTable('discounts', {
     value: decimal('value', { precision: 12, scale: 2 }).notNull().default('0'), // percent or nominal amount
     conditions: text('conditions'), // JSON: { days, startHour, endHour, productIds, minLevel }
     isActive: boolean('is_active').default(true).notNull(),
+    isStackable: boolean('is_stackable').default(false).notNull(), // Can be combined with other discounts
     startDate: timestamp('start_date'),
     endDate: timestamp('end_date'),
     minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).default('0').notNull(),
@@ -234,6 +235,7 @@ export const sales = pgTable('sales', {
     // Member & Loyalty fields
     memberId: integer('member_id').references((): any => members.id),
     discountId: integer('discount_id').references((): any => discounts.id),
+    discountIds: text('discount_ids'), // JSON array of applied discount IDs for stacking e.g. "[1,3,5]"
     discountTotal: decimal('discount_total', { precision: 12, scale: 2 }).default('0').notNull(),
     pointsUsed: integer('points_used').default(0).notNull(),
     pointsEarned: integer('points_earned').default(0).notNull(),

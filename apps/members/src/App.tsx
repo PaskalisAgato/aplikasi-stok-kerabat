@@ -46,6 +46,7 @@ interface Discount {
   value: string;
   conditions?: string;
   isActive: boolean;
+  isStackable: boolean;
   startDate?: string;
   endDate?: string;
   createdAt: string;
@@ -372,7 +373,7 @@ function DiscountTab() {
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
-    setForm({ name: '', type: 'bundling', value: '', isActive: true, startDate: '', endDate: '', days: [], startHour: '', endHour: '', productIds: '', minLevel: 'bronze', discountType: 'percent' });
+    setForm({ name: '', type: 'bundling', value: '', isActive: true, isStackable: false, startDate: '', endDate: '', days: [], startHour: '', endHour: '', productIds: '', minLevel: 'bronze', discountType: 'percent' });
     setError(''); setModal('create');
   };
 
@@ -381,7 +382,7 @@ function DiscountTab() {
     try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
     setSelected(d);
     setForm({
-      name: d.name, type: d.type, value: d.value, isActive: d.isActive,
+      name: d.name, type: d.type, value: d.value, isActive: d.isActive, isStackable: d.isStackable,
       startDate: d.startDate?.slice(0, 10) || '', endDate: d.endDate?.slice(0, 10) || '',
       days: cond.days || [], startHour: cond.startHour?.toString() || '', endHour: cond.endHour?.toString() || '',
       productIds: (cond.productIds || []).join(','), minLevel: cond.minLevel || 'bronze', discountType: cond.discountType || 'percent'
@@ -411,7 +412,7 @@ function DiscountTab() {
     try {
       const payload = {
         name: form.name, type: form.type, value: parseFloat(form.value),
-        isActive: form.isActive,
+        isActive: form.isActive, isStackable: form.isStackable,
         startDate: form.startDate || null, endDate: form.endDate || null,
         conditions: buildConditions(),
       };
@@ -514,11 +515,19 @@ function DiscountTab() {
                      )}
                    </div>
 
-                   <div className="pt-3 border-t border-[var(--border-dim)] flex items-center justify-between">
-                      <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
-                        {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Mulai Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Eternity'}
+                   <div className="pt-3 border-t border-[var(--border-dim)] flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
+                          {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Mulai Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Eternity'}
+                        </div>
+                        {d.isStackable && (
+                          <div className="flex items-center gap-1 text-[8px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full font-black">
+                            <span className="material-symbols-outlined text-[10px]">stacks</span>
+                            <span>BISA DIGABUNG</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 shrink-0">
                         <button onClick={() => openEdit(d)} className="size-8 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
                         <button onClick={() => handleDelete(d)} className="size-8 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
                       </div>
@@ -553,6 +562,13 @@ function DiscountTab() {
                       <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-bold" />
                     </div>
                   </Field>
+                  <label className="flex items-center gap-3 p-4 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl cursor-pointer hover:border-[var(--primary)] transition-all">
+                    <input type="checkbox" checked={form.isStackable} onChange={e => setForm((f: any) => ({ ...f, isStackable: e.target.checked }))} className="w-5 h-5 accent-[var(--primary)] rounded focus:ring-primary focus:ring-offset-2" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold select-none text-[var(--test-main)]">Bisa Digabung (Stackable)</span>
+                      <span className="text-[10px] text-[var(--text-muted)] mt-0.5">Diskon ini bisa dikombinasikan dengan diskon lain saat checkout.</span>
+                    </div>
+                  </label>
                 </div>
 
                 <div className="space-y-4 p-5 glass-lite rounded-3xl border-dashed border-2">
