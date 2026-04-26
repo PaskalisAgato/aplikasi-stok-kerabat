@@ -35,6 +35,7 @@ APPS=(
   "attendance-history:apps/attendance-history"
   "todo-list:apps/todo-list"
   "members:apps/members"
+  "printer-settings:apps/printer-settings"
 )
 
 # 3. Build each app sequentially (reliable on Vercel)
