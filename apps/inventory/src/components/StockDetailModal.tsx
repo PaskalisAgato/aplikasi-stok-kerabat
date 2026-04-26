@@ -96,25 +96,25 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({ isOpen, onClose, se
                                 movements.map((m) => (
                                     <div key={m.id} className="flex items-start gap-3">
                                         <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                            m.type === 'IN' ? 'bg-green-500/10' : 'bg-red-500/10'
+                                            (m.type === 'IN' || m.type === 'OPNAME_IN') ? 'bg-green-500/10' : 'bg-red-500/10'
                                         }`}>
                                             <span className={`material-symbols-outlined text-lg ${
-                                                m.type === 'IN' ? 'text-green-500' : 'text-red-500'
+                                                (m.type === 'IN' || m.type === 'OPNAME_IN') ? 'text-green-500' : 'text-red-500'
                                             }`}>
-                                                {m.type === 'IN' ? 'add' : 'remove'}
+                                                {(m.type === 'IN' || m.type === 'OPNAME_IN') ? 'add' : 'remove'}
                                             </span>
                                         </div>
                                         <div className="flex-1 border-b border-border-dim pb-3">
                                             <div className="flex justify-between items-center">
                                                 <p className="text-main font-medium">
-                                                    {m.type === 'OPNAME_ADJUSTMENT' ? 'Hasil Stok Opname' : 
+                                                    {(m.type === 'OPNAME_ADJUSTMENT' || m.type === 'OPNAME_IN' || m.type === 'OPNAME_WASTE') ? 'Hasil Stok Opname' : 
                                                      m.reason?.includes('Manual Adjustment') ? 'Penyesuaian Stok' :
                                                      m.type === 'IN' ? `Restok: ${m.supplierName || 'General'}` : 
                                                      m.type === 'OUT' ? 'Penjualan' : 
                                                      m.type === 'WASTE' ? 'Waste/Rusak' : 'Penyesuaian'}
                                                 </p>
-                                                <p className={`font-bold ${m.type === 'IN' ? 'text-green-500' : 'text-red-500'}`}>
-                                                    {m.type === 'IN' ? '+' : '-'}{m.quantity} {selectedItem?.unit}
+                                                <p className={`font-bold ${(m.type === 'IN' || m.type === 'OPNAME_IN') ? 'text-green-500' : 'text-red-500'}`}>
+                                                    {(m.type === 'IN' || m.type === 'OPNAME_IN') ? '+' : '-'}{m.quantity} {selectedItem?.unit}
                                                 </p>
                                             </div>
                                             <p className="text-muted text-xs mt-0.5">

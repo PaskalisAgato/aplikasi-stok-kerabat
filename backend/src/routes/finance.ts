@@ -869,7 +869,7 @@ financeRouter.get('/waste-analysis', requireAdmin, async (req: Request, res: Res
         const totalUsed = Number(usedResult[0].totalUsed) || 0;
 
         // --- 2. Total Waste & Breakdown by Category & Inventory ---
-        const wasteFilter = and(eq(schema.stockMovements.type, 'WASTE'), ...dateFilters);
+        const wasteFilter = and(inArray(schema.stockMovements.type, ['WASTE', 'OPNAME_WASTE']), ...dateFilters);
         
         const wasteRaw = await db.select({
             inventoryId: schema.inventory.id,

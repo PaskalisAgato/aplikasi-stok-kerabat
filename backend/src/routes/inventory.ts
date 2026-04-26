@@ -496,9 +496,9 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
                 if (delta !== 0) {
                     await tx.insert(schema.stockMovements).values({
                         inventoryId,
-                        type: 'OPNAME_ADJUSTMENT',
+                        type: delta > 0 ? 'OPNAME_IN' : 'OPNAME_WASTE',
                         quantity: Math.abs(delta).toString(),
-                        reason: reason || 'Manual Opname',
+                        reason: reason || 'Koreksi Stok Opname otomatis',
                         createdAt: new Date()
                     });
                 }
