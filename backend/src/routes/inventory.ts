@@ -466,7 +466,7 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
 
         await db.transaction(async (tx) => {
             for (const adj of adjustments) {
-                const { inventoryId, physicalStock, reason } = adj;
+                const { inventoryId, physicalStock, reason, containerWeight } = adj;
                 
                 // 1. Get current stock
                 const [item] = await tx.select({
@@ -490,21 +490,24 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
                 
                 const delta = targetStock - currentStock;
 
-                if (delta === 0) continue;
+                if (delta === 0 && containerWeight === undefined) continue;
 
-                // 2. record movement
-                await tx.insert(schema.stockMovements).values({
-                    inventoryId,
-                    type: 'OPNAME_ADJUSTMENT',
-                    quantity: Math.abs(delta).toString(),
-                    reason: reason || 'Manual Opname',
-                    createdAt: new Date()
-                });
+                // 2. record movement only if stock actually changed
+                if (delta !== 0) {
+                    await tx.insert(schema.stockMovements).values({
+                        inventoryId,
+                        type: 'OPNAME_ADJUSTMENT',
+                        quantity: Math.abs(delta).toString(),
+                        reason: reason || 'Manual Opname',
+                        createdAt: new Date()
+                    });
+                }
 
-                // 3. Update current stock
+                // 3. Update current stock and optionally containerWeight
                 await tx.update(schema.inventory)
                     .set({
                         currentStock: targetStock.toString(),
+                        ...(containerWeight !== undefined && { containerWeight: containerWeight.toString() }),
                         version: new Date()
                     })
                     .where(eq(schema.inventory.id, inventoryId));

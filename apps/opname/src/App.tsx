@@ -7,6 +7,7 @@ interface InventoryItem {
     name: string;
     unit: string;
     currentStock: string | number;
+    containerWeight?: string | number;
     imageUrl?: string;
 }
 
@@ -17,6 +18,8 @@ interface InventoryItem {
 function App() {
     const [inventoryList, setInventoryList] = useState<InventoryItem[]>([]);
     const [physicalStocks, setPhysicalStocks] = useState<Record<number, string>>({});
+    const [grossStocks, setGrossStocks] = useState<Record<number, string>>({});
+    const [containerWeights, setContainerWeights] = useState<Record<number, string>>({});
     const [reasons, setReasons] = useState<Record<number, string>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +60,16 @@ function App() {
                 });
                 return newStocks;
             });
+
+            setContainerWeights(prev => {
+                const newCW = { ...prev };
+                response.data.forEach((item: any) => {
+                    if (!(item.id in newCW)) {
+                        newCW[item.id] = (item.containerWeight ?? 0).toString();
+                    }
+                });
+                return newCW;
+            });
         } catch (error: any) {
             if (error.name !== 'AbortError') {
                 console.error('Failed to load inventory', error);
@@ -76,6 +89,30 @@ function App() {
 
     const handleStockChange = (id: number, value: string) => {
         setPhysicalStocks(prev => ({ ...prev, [id]: value }));
+        setGrossStocks(prev => ({ ...prev, [id]: '' }));
+    };
+
+    const handleGrossChange = (id: number, value: string) => {
+        setGrossStocks(prev => ({ ...prev, [id]: value }));
+        const gross = parseFloat(value);
+        const tare = parseFloat(containerWeights[id] || '0');
+        if (!isNaN(gross) && !isNaN(tare)) {
+            const net = Math.max(0, gross - tare);
+            setPhysicalStocks(prev => ({ ...prev, [id]: net.toString() }));
+        }
+    };
+
+    const handleTareChange = (id: number, value: string) => {
+        setContainerWeights(prev => ({ ...prev, [id]: value }));
+        const grossStr = grossStocks[id];
+        if (grossStr) {
+            const gross = parseFloat(grossStr);
+            const tare = parseFloat(value || '0');
+            if (!isNaN(gross) && !isNaN(tare)) {
+                const net = Math.max(0, gross - tare);
+                setPhysicalStocks(prev => ({ ...prev, [id]: net.toString() }));
+            }
+        }
     };
 
     const handleReasonChange = (id: number, value: string) => {
@@ -88,10 +125,16 @@ function App() {
             const adjustments = inventoryList.map(item => ({
                 inventoryId: item.id,
                 physicalStock: physicalStocks[item.id] || (item.currentStock ?? 0).toString(),
-                reason: reasons[item.id] || 'Manual Opname'
+                reason: reasons[item.id] || 'Manual Opname',
+                containerWeight: containerWeights[item.id]
             })).filter(adj => {
                 const item = inventoryList.find(i => i.id === adj.inventoryId);
-                return item && adj.physicalStock !== (item.currentStock ?? 0).toString();
+                if (!item) return false;
+                const stock1 = parseFloat(adj.physicalStock.toString());
+                const stock2 = parseFloat((item.currentStock ?? 0).toString());
+                const tare1 = parseFloat(adj.containerWeight || '0');
+                const tare2 = parseFloat((item.containerWeight ?? 0).toString());
+                return stock1 !== stock2 || tare1 !== tare2;
             });
 
             if (adjustments.length === 0) {
@@ -219,11 +262,33 @@ function App() {
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-6 mb-6 relative z-10">
-                                                    <div className="space-y-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 relative z-10">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Kotor (Gross)</label>
+                                                        <input
+                                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-xl py-4 focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500/40 transition-all outline-none placeholder:opacity-30"
+                                                            type="number"
+                                                            inputMode="decimal"
+                                                            value={grossStocks[item.id] ?? ''}
+                                                            onChange={(e) => handleGrossChange(item.id, e.target.value)}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Wadah (Tare)</label>
+                                                        <input
+                                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-xl py-4 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500/40 transition-all outline-none placeholder:opacity-30"
+                                                            type="number"
+                                                            inputMode="decimal"
+                                                            value={containerWeights[item.id] ?? ''}
+                                                            onChange={(e) => handleTareChange(item.id, e.target.value)}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
                                                         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Stok Fisik</label>
                                                         <input
-                                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-2xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
+                                                            className="w-full glass border-white/10 rounded-2xl text-center font-black text-xl py-4 focus:ring-4 focus:ring-primary/20 focus:border-primary/40 focus:bg-primary/5 transition-all outline-none"
                                                             type="number"
                                                             inputMode="decimal"
                                                             value={physicalStocks[item.id] ?? ''}
@@ -231,9 +296,9 @@ function App() {
                                                             placeholder="0"
                                                         />
                                                     </div>
-                                                    <div className="space-y-3">
+                                                    <div className="space-y-2">
                                                         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Varian (Diff)</label>
-                                                        <div className={`w-full rounded-2xl text-center font-black text-2xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
+                                                        <div className={`w-full rounded-2xl text-center font-black text-xl py-4 border-2 flex items-center justify-center gap-2 shadow-2xl transition-colors duration-500 ${
                                                             diff < 0 ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-red-500/10' :
                                                             diff > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10' :
                                                             'glass border-white/10 text-[var(--text-muted)] opacity-40'
