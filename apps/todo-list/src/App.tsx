@@ -172,7 +172,7 @@ function App() {
         >
             <div className="space-y-8 pb-32">
                 {/* Custom Tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none sticky top-0 z-10 bg-[var(--bg-app)]/80 backdrop-blur-sm py-4">
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none bg-[var(--bg-app)]/80 backdrop-blur-sm py-4">
                     {categories.map(cat => (
                         <button
                             key={cat}
