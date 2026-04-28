@@ -202,6 +202,18 @@ export default function App() {
         if (result?.clearCart) resetCart();
     };
 
+    const handlePreOpenShift = async () => {
+        try {
+            const attendance = await apiClient.get('/attendance/today');
+            if (!attendance?.data?.checkIn) {
+                showNotification('Peringatan: Anda belum melakukan absensi masuk (Check-In) hari ini!', 'warning');
+            }
+        } catch (e) {
+            console.error('Failed to check attendance:', e);
+        }
+        setIsOpeningShift(true);
+    };
+
     const navigateTo = (newView: any) => {
         setView(newView);
         setIsActionMenuOpen(false);
@@ -494,7 +506,7 @@ export default function App() {
                 onCancel={() => setIsHandoverShiftOpen(false)}
             />
             {!activeShift && !isOpeningShift && (
-                <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
+                <ShiftRequired onOpenShift={handlePreOpenShift} />
             )}
         </Layout>
     );

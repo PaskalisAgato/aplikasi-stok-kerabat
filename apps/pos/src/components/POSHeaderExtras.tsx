@@ -271,8 +271,8 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                         onClick={async () => {
                             try {
                                 const attendance = await apiClient.get('/attendance/today');
-                                if (!attendance?.data?.checkIn) {
-                                    showNotification('Peringatan: Anda belum melakukan absensi (Check-In) hari ini!', 'warning');
+                                if (!attendance?.data?.checkOut) {
+                                    showNotification('Peringatan: Anda belum melakukan absensi keluar (Check-Out) hari ini!', 'warning');
                                 }
                             } catch (e) {
                                 console.error('Failed to check attendance:', e);
