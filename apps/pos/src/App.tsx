@@ -413,7 +413,7 @@ export default function App() {
                         {view === 'sync-queue' && <SyncQueuePage onBack={() => navigateTo('pos')} />}
                     </React.Suspense>
                 )}
-                {!activeShift && view === 'pos' && !isOpeningShift && (
+                {!activeShift && !isOpeningShift && (
                     <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
                 )}
             </div>
