@@ -9,34 +9,30 @@ const safeNumber = (val: any) => {
 };
 
 function App() {
-    const [wasteSummary, setWasteSummary] = useState<any>({
-        totalValueMonth: 0,
-        topOffenders: [],
-        status: 'NORMAL'
-    });
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [wasteHistory, setWasteHistory] = useState<any[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const response = await apiClient.getWasteSummary();
-            const data = response?.data || {};
-            
-            console.log("Waste API response:", response);
+            const [summaryRes, historyRes] = await Promise.all([
+                apiClient.getWasteSummary(),
+                apiClient.getWasteHistory(20, 0)
+            ]);
 
+            const data = summaryRes?.data || {};
             setWasteSummary({
                 totalValueMonth: safeNumber(data.totalValueMonth),
                 topOffenders: Array.isArray(data.topOffenders) ? data.topOffenders : [],
+                wasteByReason: Array.isArray(data.wasteByReason) ? data.wasteByReason : [],
                 status: data.status || "NORMAL"
             });
+
+            if (historyRes?.success) {
+                setWasteHistory(historyRes.data);
+            }
         } catch (error) {
-            console.error('Failed to fetch waste summary', error);
-            setWasteSummary({
-                totalValueMonth: 0,
-                topOffenders: [],
-                status: "ERROR"
-            });
+            console.error('Failed to fetch waste data', error);
         } finally {
             setIsLoading(false);
         }
@@ -88,12 +84,6 @@ function App() {
                                             </div>
                                             <p className="text-[10px] font-black tracking-[0.4em] text-primary uppercase opacity-80">Total Pengeluaran Sia-Sia</p>
                                         </div>
-                                        {wasteSummary?.status === 'ERROR' && (
-                                            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl animate-pulse">
-                                                <span className="material-symbols-outlined text-red-500 text-sm font-black">error</span>
-                                                <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">Data Error</span>
-                                            </div>
-                                        )}
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <h2 className="text-5xl sm:text-6xl font-black text-[var(--text-main)] tracking-tighter uppercase font-display leading-tight">
@@ -111,59 +101,6 @@ function App() {
                             </div>
                         </section>
 
-                        {/* Waste Trend Chart */}
-                        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="flex items-center justify-between mb-6 px-4">
-                                <div className="space-y-1">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Tren Kerugian</h3>
-                                    <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Historikal 30 Hari</p>
-                                </div>
-                                <span className="text-[9px] text-primary font-black tracking-widest uppercase bg-primary/10 px-4 py-2 rounded-full border border-primary/20 shadow-inner">
-                                    {new Date().toLocaleString('id-ID', { month: 'long' })}
-                                </span>
-                            </div>
-                            <div className="card p-8 group overflow-hidden bg-white/5 border-white/5">
-                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10 relative z-10">
-                                    <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Rata-rata Harian</p>
-                                        <p className="text-3xl font-black tracking-tighter text-primary font-display uppercase">Rp {(totalWasteValue / 30).toLocaleString('id-ID', { maximumFractionDigits: 0 })}</p>
-                                    </div>
-                                    <div className="hidden sm:block text-right">
-                                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">Status Keamanan</p>
-                                        <p className="text-lg font-black tracking-tight text-emerald-500 font-display uppercase">Secure Flow</p>
-                                    </div>
-                                </div>
-                                <div className="h-48 w-full relative">
-                                    {totalWasteValue > 0 ? (
-                                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-                                            <defs>
-                                                <linearGradient id="wasteChartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
-                                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4"></stop>
-                                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0"></stop>
-                                                </linearGradient>
-                                                <filter id="glow">
-                                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                                    <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                                                </filter>
-                                            </defs>
-                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10 L 400 100 L 0 100 Z" fill="url(#wasteChartGradient)" className="animate-pulse duration-[3s]"></path>
-                                            <path d="M0 80 Q 20 70, 40 85 T 80 60 T 120 75 T 160 40 T 200 65 T 240 30 T 280 55 T 320 20 T 360 45 T 400 10" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"></path>
-                                        </svg>
-                                    ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-                                            <div className="w-full h-[1px] bg-white/10 relative">
-                                                <div className="absolute inset-0 bg-primary/20 blur-sm"></div>
-                                            </div>
-                                            <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.4em]">Belum ada data</p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex justify-between mt-8 text-[8px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em] opacity-40 relative z-10">
-                                    <span>Monitoring Start</span><span>Current Period</span><span>Realtime Trace</span>
-                                </div>
-                            </div>
-                        </section>
-
                         {/* Top Waste Offenders */}
                         <section className="animate-in fade-in zoom-in duration-1000">
                             <div className="space-y-1 mb-6 px-4">
@@ -175,7 +112,6 @@ function App() {
                                     <div className="flex flex-col items-center justify-center p-20 text-center glass rounded-[3rem] border-dashed border-2 opacity-40">
                                         <span className="material-symbols-outlined text-6xl text-primary font-black mb-4">inventory_2</span>
                                         <p className="font-black text-xs uppercase tracking-[0.2em]">Kondisi Stok Optimal</p>
-                                        <p className="text-[9px] uppercase tracking-widest mt-1 opacity-60 italic">Zero waste terdeteksi</p>
                                     </div>
                                 ) : (
                                     topOffenders.map((item: any) => (
@@ -192,15 +128,72 @@ function App() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="w-full sm:w-auto text-right flex flex-row sm:flex-col justify-between items-center sm:items-end p-4 sm:p-0 bg-white/5 sm:bg-transparent rounded-2xl border border-white/5 sm:border-none">
+                                            <div className="w-full sm:w-auto text-right">
                                                 <p className="text-2xl sm:text-3xl font-black text-red-500 font-display tracking-tighter uppercase whitespace-nowrap">
                                                     Rp {parseFloat(item.totalWasteValue).toLocaleString('id-ID')}
                                                 </p>
-                                                <span className="text-[8px] text-red-600 font-black uppercase tracking-[0.4em] bg-red-500/10 px-3 py-1 rounded-full shadow-inner border border-red-500/20">Critical Status</span>
                                             </div>
                                         </div>
                                     ))
                                 )}
+                            </div>
+                        </section>
+
+                        {/* Waste History List */}
+                        <section className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                            <div className="flex items-center justify-between mb-6 px-4">
+                                <div className="space-y-1">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-60">Log Riwayat</h3>
+                                    <p className="text-xl font-black font-display tracking-tight text-[var(--text-main)] uppercase">Aktivitas Terakhir</p>
+                                </div>
+                            </div>
+                            <div className="card p-4 sm:p-8 bg-white/5 border-white/5">
+                                <div className="space-y-4">
+                                    {wasteHistory.length === 0 ? (
+                                        <div className="py-10 text-center opacity-40 italic text-[10px] uppercase tracking-widest">Belum ada riwayat pengeluaran</div>
+                                    ) : (
+                                        wasteHistory.map((log: any) => (
+                                            <div key={log.id} className="group flex items-center justify-between p-4 rounded-3xl bg-black/20 border border-white/5 hover:border-primary/50 transition-all duration-300">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`size-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                                        log.reason === 'Owner' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
+                                                        log.reason === 'Staff' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' :
+                                                        log.reason === 'R&D' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
+                                                        'bg-red-500/10 border-red-500/20 text-red-500'
+                                                    }`}>
+                                                        <span className="material-symbols-outlined text-lg font-black">
+                                                            {log.reason === 'Owner' ? 'person' : 
+                                                             log.reason === 'Staff' ? 'groups' :
+                                                             log.reason === 'R&D' ? 'labs' : 'inventory_2'}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-[var(--text-main)] uppercase tracking-tight">{log.itemName}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${
+                                                                log.reason === 'Owner' ? 'bg-purple-500/20 text-purple-400' :
+                                                                log.reason === 'Staff' ? 'bg-blue-500/20 text-blue-400' :
+                                                                log.reason === 'R&D' ? 'bg-orange-500/20 text-orange-400' :
+                                                                'bg-white/10 text-[var(--text-muted)]'
+                                                            }`}>
+                                                                {log.reason === 'Owner' ? 'Konsumsi Owner' : 
+                                                                 log.reason === 'Staff' ? 'Makan Karyawan' :
+                                                                 log.reason === 'R&D' ? 'Trial Menu' : (log.reason || 'Lainnya')}
+                                                            </span>
+                                                            <span className="text-[8px] text-[var(--text-muted)] opacity-40 font-black uppercase">
+                                                                {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs font-black text-[var(--text-main)]">-{log.quantity} {log.unit}</p>
+                                                    <p className="text-[9px] font-black text-red-500/60 mt-0.5">Rp {(parseFloat(log.quantity) * parseFloat(log.priceAtTime || 0)).toLocaleString('id-ID')}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </section>
 
@@ -220,7 +213,12 @@ function App() {
                                             return (
                                                 <div key={r.reason} className="space-y-4 group/item transition-all duration-500">
                                                     <div className="flex justify-between items-end px-2">
-                                                        <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-80 group-hover/item:text-primary transition-colors">{r.reason || 'Lainnya'}</span>
+                                                        <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-80 group-hover/item:text-primary transition-colors">
+                                                            {r.reason === 'Owner' ? 'KONSUMSI OWNER' : 
+                                                             r.reason === 'Staff' ? 'MAKAN KARYAWAN' :
+                                                             r.reason === 'R&D' ? 'TRIAL MENU BARU' : 
+                                                             (r.reason?.toUpperCase() || 'LAINNYA')}
+                                                        </span>
                                                         <span className="text-lg font-black text-[var(--text-main)] font-display tracking-wide">{pct}%</span>
                                                     </div>
                                                     <div className="w-full bg-[var(--bg-app)] h-4 rounded-full overflow-hidden shadow-2xl border border-white/10 p-1">

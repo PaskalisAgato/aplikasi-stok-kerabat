@@ -280,6 +280,7 @@ export const apiClient = {
         }
     },
     getStockInHistory: () => apiFetch<ApiResponse<any>>('/inventory/movements/in'),
+    getWasteHistory: (limit = 50, offset = 0) => apiFetch<ApiResponse<any>>(`/inventory/waste/history?limit=${limit}&offset=${offset}`),
     getItemWaste: (id: number) => apiFetch<ApiResponse<any>>(`/inventory/${id}/waste`),
     deleteInventoryItem: (id: number) => apiFetch<any>(`/inventory/${id}`, { method: 'DELETE' }),
 

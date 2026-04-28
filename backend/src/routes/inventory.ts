@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
-import { eq, sql, and, gte, desc, ilike } from 'drizzle-orm';
+import { eq, sql, and, gte, lte, desc, ilike, inArray } from 'drizzle-orm';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { validateBase64Image } from '../middleware/validateImage.js';
 import ExcelJS from 'exceljs';
@@ -425,6 +425,37 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
             success: false, 
             message: `Gagal mengambil ringkasan limbah: ${error.message}` 
         });
+    }
+});
+
+// GET Global Waste History
+inventoryRouter.get('/waste/history', async (req: Request, res: Response) => {
+    try {
+        const { limit = 50, offset = 0 } = req.query;
+        const wasteLogs = await db.select({
+            id: schema.stockMovements.id,
+            inventoryId: schema.stockMovements.inventoryId,
+            itemName: schema.inventory.name,
+            unit: schema.inventory.unit,
+            type: schema.stockMovements.type,
+            quantity: schema.stockMovements.quantity,
+            reason: schema.stockMovements.reason,
+            createdAt: schema.stockMovements.createdAt,
+            priceAtTime: schema.inventory.pricePerUnit
+        })
+        .from(schema.stockMovements)
+        .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(
+            inArray(schema.stockMovements.type, ['WASTE', 'OPNAME_WASTE'])
+        )
+        .orderBy(desc(schema.stockMovements.createdAt))
+        .limit(Number(limit))
+        .offset(Number(offset));
+
+        res.json({ success: true, data: wasteLogs });
+    } catch (error: any) {
+        console.error('Waste History Error:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil riwayat waste' });
     }
 });
 
