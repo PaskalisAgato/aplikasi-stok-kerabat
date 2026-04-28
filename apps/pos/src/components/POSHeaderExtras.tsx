@@ -1,5 +1,6 @@
 import React from 'react';
 import SyncWidget from './SyncWidget';
+import { apiClient } from '@shared/apiClient';
 import { PerformanceSettings } from '@shared/services/performance';
 
 interface POSHeaderExtrasProps {
@@ -267,7 +268,17 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                         <span className="text-[10px] font-bold text-[var(--text-main)] leading-none whitespace-nowrap">{activeShift.userName || 'Kasir'}</span>
                     </div>
                     <button
-                        onClick={() => setIsHandoverShiftOpen(true)}
+                        onClick={async () => {
+                            try {
+                                const attendance = await apiClient.get('/attendance/today');
+                                if (!attendance?.data?.checkIn) {
+                                    showNotification('Peringatan: Anda belum melakukan absensi (Check-In) hari ini!', 'warning');
+                                }
+                            } catch (e) {
+                                console.error('Failed to check attendance:', e);
+                            }
+                            setIsHandoverShiftOpen(true);
+                        }}
                         className="ml-2 size-8 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center transition-all cursor-pointer"
                         title="Oper Shift (Handover)"
                     >
@@ -280,11 +291,16 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                 return;
                             }
                             try {
+                                const attendance = await apiClient.get('/attendance/today');
+                                if (!attendance?.data?.checkIn) {
+                                    showNotification('Peringatan: Anda belum melakukan absensi (Check-In) hari ini!', 'warning');
+                                }
+
                                 const summary = await getSummary(activeShift.id);
                                 setShiftSummaryData(summary.data);
                                 setIsCloseShiftOpen(true);
                             } catch (error: any) {
-                                console.error('Failed to load shift summary:', error);
+                                console.error('Failed to load shift summary or verify attendance:', error);
                                 showNotification('Gagal memuat ringkasan shift.', 'error');
                             }
                         }}
