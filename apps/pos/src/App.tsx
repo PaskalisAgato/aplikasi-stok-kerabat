@@ -4,6 +4,7 @@ import { useNotification } from '@shared/components/NotificationProvider';
 import { syncEngine } from '@shared/services/SyncEngine';
 import { PrintService } from '@shared/services/PrintService';
 import { apiClient } from '@shared/apiClient';
+import { useSession } from '@shared/authClient';
 
 // Hooks
 import { usePOSData } from './hooks/usePOSData';
@@ -21,6 +22,7 @@ import { MergeModal } from './components/MergeModal';
 import { SplitModal } from './components/SplitModal';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
 import ShiftRequired from './components/ShiftRequired';
+import { ShiftSelectionModal } from './components/ShiftSelectionModal';
 
 // Lazy Loaded Pages
 const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
@@ -68,8 +70,13 @@ export default function App() {
     const [orderSource, setOrderSource] = useState<'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD'>('DIRECT');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     
+    const { data: session } = useSession();
+    const [attendance, setAttendance] = useState<any>(null);
+    
     // Shift State
     const [activeShift, setActiveShift] = useState<any>(null);
+    const [selectedShiftForAdmin, setSelectedShiftForAdmin] = useState<any>(null); // For Admin to link sales to others
+    const [allActiveShifts, setAllActiveShifts] = useState<any[]>([]);
     const [isHandoverShiftOpen, setIsHandoverShiftOpen] = useState(false);
     const [isCloseShiftOpen, setIsCloseShiftOpen] = useState(false);
     const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
@@ -78,6 +85,9 @@ export default function App() {
     // Sync & Print State
     const [pendingSyncs, setPendingSyncs] = useState(0);
     const [printQueueCount, setPrintQueueCount] = useState(0);
+
+    // Modal State
+    const [isShiftSelectionModalOpen, setIsShiftSelectionModalOpen] = useState(false);
 
     // Modal State
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
@@ -95,6 +105,16 @@ export default function App() {
         apiClient.get('/cashier-shifts/active').then((res: any) => {
             if (res && res.data) setActiveShift(res.data);
         }).catch(console.error);
+
+        apiClient.get('/attendance/today').then((res: any) => {
+            if (res && res.data) setAttendance(res.data);
+        }).catch(console.error);
+
+        if (session?.user?.role === 'Admin') {
+            apiClient.get('/cashier-shifts/all-active').then((res: any) => {
+                if (res && res.data) setAllActiveShifts(res.data);
+            }).catch(console.error);
+        }
 
         syncEngine.start();
 
@@ -168,14 +188,25 @@ export default function App() {
 
     // Handlers
     const handleCheckout = async () => {
+        // If Admin and no active shift, and haven't selected a target shift yet
+        if (session?.user?.role === 'Admin' && !activeShift && !selectedShiftForAdmin) {
+            setIsShiftSelectionModalOpen(true);
+            return;
+        }
+
         const result = await checkoutLogic({
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscounts, pointsToRedeem,
-            itemNotes, activeShift, orderSource
+            itemNotes, activeShift, 
+            selectedShiftForAdmin,
+            isEmployee: session?.user?.role === 'Karyawan',
+            attendance,
+            orderSource
         });
 
         if (result?.success) {
+            setSelectedShiftForAdmin(null);
             resetCart();
             resetLoyaltyState();
             setAmountPaid(0);
@@ -505,8 +536,22 @@ export default function App() {
                 }}
                 onCancel={() => setIsHandoverShiftOpen(false)}
             />
-            {!activeShift && !isOpeningShift && (
-                <ShiftRequired onOpenShift={handlePreOpenShift} />
+            <ShiftSelectionModal 
+                isOpen={isShiftSelectionModalOpen}
+                onClose={() => setIsShiftSelectionModalOpen(false)}
+                shifts={allActiveShifts}
+                onSelect={(shift: any) => {
+                    setSelectedShiftForAdmin(shift);
+                    setTimeout(() => handleCheckout(), 100); // Delayed execution to ensure state is readable
+                }}
+            />
+
+            {!activeShift && !isOpeningShift && (session?.user?.role !== 'Admin' || !session) && (
+                <ShiftRequired 
+                    onOpenShift={handlePreOpenShift} 
+                    isEmployee={session?.user?.role === 'Karyawan'}
+                    attendance={attendance}
+                />
             )}
         </Layout>
     );

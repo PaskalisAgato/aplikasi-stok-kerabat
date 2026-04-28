@@ -15,6 +15,21 @@ export class CashierShiftController {
         }
     }
 
+    static async getAllActiveShifts(req: Request, res: Response) {
+        try {
+            // Role check: Admin only (or similar supervisor role)
+            const user = (req as any).user;
+            if (user?.role !== 'Admin') {
+                return res.status(403).json({ error: 'Forbidden: Admin access only' });
+            }
+
+            const shifts = await CashierShiftService.getAllActiveShifts();
+            res.json({ success: true, data: shifts });
+        } catch (error: any) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
     static async openShift(req: Request, res: Response) {
         try {
             const userId = (req as any).user?.id;

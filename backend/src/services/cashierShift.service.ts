@@ -18,6 +18,19 @@ export class CashierShiftService {
         return activeShifts.length > 0 ? activeShifts[0] : null;
     }
 
+    static async getAllActiveShifts() {
+        return await db.select({
+            id: schema.shifts.id,
+            userId: schema.shifts.userId,
+            userName: schema.users.name,
+            startTime: schema.shifts.startTime,
+            initialCash: schema.shifts.initialCash
+        })
+        .from(schema.shifts)
+        .innerJoin(schema.users, eq(schema.shifts.userId, schema.users.id))
+        .where(eq(schema.shifts.status, 'OPEN'));
+    }
+
     static async openShift(userId: string, initialCash: number) {
         // Check if there's already an open shift
         const existing = await this.getActiveShift(userId);

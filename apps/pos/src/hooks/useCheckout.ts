@@ -22,16 +22,32 @@ export function useCheckout() {
         pointsToRedeem: number;
         itemNotes: Record<number, string>;
         activeShift: any;
+        selectedShiftForAdmin?: any;
+        isEmployee?: boolean;
+        attendance?: any;
         orderSource: string;
     }) => {
         const {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscounts, pointsToRedeem,
-            itemNotes, activeShift, orderSource
+            itemNotes, activeShift, selectedShiftForAdmin, isEmployee, attendance, orderSource
         } = params;
 
         if (totalSalesValue === 0) return;
+
+        // Security Check: Employee must have checked in
+        if (isEmployee && !attendance?.checkIn) {
+            showNotification('Gagal! Anda wajib melakukan absensi masuk (Check-In) terlebih dahulu.', 'error');
+            return;
+        }
+
+        // Shift Selection: Admin must have a shift or have selected an active one
+        const effectiveShiftId = activeShift?.id || selectedShiftForAdmin?.id;
+        if (!effectiveShiftId) {
+            showNotification('Gagal! Transaksi membutuhkan shift aktif. Silahkan buka shift atau pilih kasir berjalan.', 'error');
+            return;
+        }
 
         setIsCheckingOut(true);
         try {
@@ -41,6 +57,7 @@ export function useCheckout() {
 
             const checkoutData = {
                 id: transactionId, 
+                shiftId: effectiveShiftId, // Ensure it's linked
                 items: activeCartItems.map(item => ({
                     recipeId: item.id,
                     quantity: sales[item.id],

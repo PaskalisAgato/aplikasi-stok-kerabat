@@ -7,6 +7,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/active', CashierShiftController.getActiveShift);
+router.get('/all-active', CashierShiftController.getAllActiveShifts);
 router.post('/open', CashierShiftController.openShift);
 router.get('/summary/:id', CashierShiftController.getShiftSummary);
 router.post('/close/:id', CashierShiftController.closeShift);

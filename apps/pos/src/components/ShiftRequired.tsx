@@ -2,9 +2,13 @@ import React from 'react';
 
 interface ShiftRequiredProps {
     onOpenShift: () => void;
+    isEmployee?: boolean;
+    attendance?: any;
 }
 
-const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
+const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift, isEmployee, attendance }) => {
+    const hasCheckedIn = !isEmployee || (attendance && attendance.checkIn);
+
     return (
         <div className="fixed inset-0 z-[39] flex items-center justify-center p-4 md:p-8 overflow-hidden font-black">
             {/* Dark Backdrop with heavy blur to truly separate from POS UI */}
@@ -18,8 +22,10 @@ const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
                 {/* Icon Container */}
                 <div className="relative mb-6 md:mb-10 group">
                     <div className="size-20 md:size-28 bg-white/[0.03] rounded-2xl md:rounded-[2.5rem] border border-white/10 flex items-center justify-center shadow-2xl relative z-10">
-                        <div className="size-14 md:size-20 bg-primary/10 rounded-xl md:rounded-3xl flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform duration-500">
-                            <span className="material-symbols-outlined text-3xl md:text-5xl text-primary font-black">lock</span>
+                        <div className={`size-14 md:size-20 ${!hasCheckedIn ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'} rounded-xl md:rounded-3xl flex items-center justify-center border group-hover:scale-110 transition-transform duration-500`}>
+                            <span className={`material-symbols-outlined text-3xl md:text-5xl ${!hasCheckedIn ? 'text-red-500' : 'text-primary'} font-black`}>
+                                {!hasCheckedIn ? 'person_off' : 'lock'}
+                            </span>
                         </div>
                     </div>
                     {/* Ring decoration */}
@@ -29,28 +35,49 @@ const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
                 {/* Content */}
                 <div className="space-y-3 md:space-y-4 mb-8 md:mb-12 px-2">
                     <h2 className="text-xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight">
-                        Akses Kasir <span className="text-primary italic">Terkunci</span>
+                        {!hasCheckedIn ? (
+                            <>Absensi <span className="text-red-500 italic">Belum Ada</span></>
+                        ) : (
+                            <>Akses Kasir <span className="text-primary italic">Terkunci</span></>
+                        )}
                     </h2>
-                    <div className="h-1 w-12 md:w-20 bg-primary/50 mx-auto rounded-full" />
+                    <div className={`h-1 w-12 md:w-20 ${!hasCheckedIn ? 'bg-red-500/50' : 'bg-primary/50'} mx-auto rounded-full`} />
                     <p className="text-[10px] md:text-base text-white/50 font-bold uppercase tracking-[0.2em] max-w-md mx-auto leading-relaxed">
-                        Shift kasir belum dibuka. Harap masukkan modal awal laci untuk mulai bertransaksi hari ini.
+                        {!hasCheckedIn 
+                            ? "Maaf, Anda belum melakukan absensi masuk hari ini. Silahkan lakukan absensi di menu absensi terlebih dahulu."
+                            : "Shift kasir belum dibuka. Harap masukkan modal awal laci untuk mulai bertransaksi hari ini."}
                     </p>
                 </div>
 
                 {/* Main Action */}
-                <button 
-                    onClick={onOpenShift}
-                    className="group relative w-full sm:w-auto min-w-[200px] sm:min-w-[280px] h-14 md:h-18 bg-primary text-[#020617] rounded-2xl md:rounded-3xl font-black text-xs md:text-sm uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 md:gap-4 py-4 md:py-5"
-                >
-                    <span className="material-symbols-outlined font-black text-xl md:text-2xl group-hover:rotate-12 transition-transform">key</span>
-                    Buka Shift Sekarang
-                </button>
+                {hasCheckedIn ? (
+                    <button 
+                        onClick={onOpenShift}
+                        className="group relative w-full sm:w-auto min-w-[200px] sm:min-w-[280px] h-14 md:h-18 bg-primary text-[#020617] rounded-2xl md:rounded-3xl font-black text-xs md:text-sm uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 md:gap-4 py-4 md:py-5"
+                    >
+                        <span className="material-symbols-outlined font-black text-xl md:text-2xl group-hover:rotate-12 transition-transform">key</span>
+                        Buka Shift Sekarang
+                    </button>
+                ) : (
+                    <div className="flex flex-col items-center gap-4">
+                        <span className="text-red-500 text-[10px] font-black uppercase tracking-widest">Wajib Absen Sebelum Mulai</span>
+                        <button 
+                            disabled
+                            className="group relative w-full sm:w-auto min-w-[200px] sm:min-w-[280px] h-14 md:h-18 bg-red-500/20 text-red-500 border border-red-500/30 rounded-2xl md:rounded-3xl font-black text-xs md:text-sm uppercase tracking-[0.3em] opacity-50 cursor-not-allowed flex items-center justify-center gap-3 md:gap-4 py-4 md:py-5"
+                        >
+                            <span className="material-symbols-outlined font-black text-xl md:text-2xl">error</span>
+                            Belum Absen Masuk
+                        </button>
+                    </div>
+                )}
 
                 {/* Footer Info */}
                 <div className="mt-10 md:mt-16 flex flex-col items-center gap-3 md:gap-4">
                     <div className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 bg-white/[0.02] rounded-xl md:rounded-2xl border border-white/5 backdrop-blur-md">
-                        <div className="size-1.5 md:size-2 bg-emerald-500 rounded-full animate-ping" />
-                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/40">Sistem Siap Operasional</span>
+                        <div className={`size-1.5 md:size-2 ${!hasCheckedIn ? 'bg-red-500' : 'bg-emerald-500'} rounded-full animate-ping`} />
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/40">
+                            {hasCheckedIn ? "Sistem Siap Operasional" : "Sistem Menunggu Absensi"}
+                        </span>
                     </div>
                     
                     <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest leading-relaxed max-w-[200px] md:max-w-[250px]">
