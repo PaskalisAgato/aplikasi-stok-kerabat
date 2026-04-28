@@ -413,9 +413,6 @@ export default function App() {
                         {view === 'sync-queue' && <SyncQueuePage onBack={() => navigateTo('pos')} />}
                     </React.Suspense>
                 )}
-                {!activeShift && !isOpeningShift && (
-                    <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
-                )}
             </div>
 
             <MergeModal 
@@ -496,6 +493,9 @@ export default function App() {
                 }}
                 onCancel={() => setIsHandoverShiftOpen(false)}
             />
+            {!activeShift && !isOpeningShift && (
+                <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
+            )}
         </Layout>
     );
 }
