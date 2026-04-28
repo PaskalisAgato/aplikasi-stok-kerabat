@@ -413,6 +413,9 @@ export default function App() {
                         {view === 'sync-queue' && <SyncQueuePage onBack={() => navigateTo('pos')} />}
                     </React.Suspense>
                 )}
+                {!activeShift && view === 'pos' && !isOpeningShift && (
+                    <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
+                )}
             </div>
 
             <MergeModal 
@@ -452,9 +455,6 @@ export default function App() {
                 isCheckingOut={isCheckingOut}
             />
 
-            {!activeShift && view === 'pos' && !isOpeningShift && (
-                <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
-            )}
 
             <OpenShiftModal 
                 isOpen={!activeShift && view === 'pos' && isOpeningShift} 

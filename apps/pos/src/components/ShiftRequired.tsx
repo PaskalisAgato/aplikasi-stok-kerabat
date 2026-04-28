@@ -6,7 +6,7 @@ interface ShiftRequiredProps {
 
 const ShiftRequired: React.FC<ShiftRequiredProps> = ({ onOpenShift }) => {
     return (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-8 overflow-hidden">
+        <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 md:p-8 overflow-hidden font-black">
             {/* Dark Backdrop with heavy blur to truly separate from POS UI */}
             <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" />
             
