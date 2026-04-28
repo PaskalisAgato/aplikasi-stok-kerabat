@@ -1,6 +1,6 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq, and, gte, lte, sql, desc, count } from 'drizzle-orm';
+import { eq, and, gte, lte, sql, desc, count, isNull } from 'drizzle-orm';
 
 export class AnalyticsService {
     /**
@@ -198,7 +198,58 @@ export class AnalyticsService {
             eq(schema.sales.isDeleted, false),
             eq(schema.sales.status, 'PAID')
         ));
-        const grossProfit = Number(profitData[0]?.totalSelling || 0) - Number(profitData[0]?.totalCost || 0);
+        const totalSelling = Number(profitData[0]?.totalSelling || 0);
+        const grossProfit = totalSelling - Number(profitData[0]?.totalCost || 0);
+
+        // 1.5. Financial Reconciliation (Uang Kas vs Uang Bank)
+        // a. Owner Income
+        const ownerIncomeResult = await db.select({
+            total: sql<number>`COALESCE(SUM(CAST(${schema.ownerIncome.amount} AS DECIMAL)), 0)`
+        })
+        .from(schema.ownerIncome)
+        .where(and(
+            gte(schema.ownerIncome.incomeDate, start),
+            lte(schema.ownerIncome.incomeDate, end),
+            eq(schema.ownerIncome.isDeleted, false)
+        ));
+        const totalOwnerIncome = Number(ownerIncomeResult[0]?.total || 0);
+
+        // b. Detailed Expenses Breakdown
+        const expenseBreakdown = await db.select({
+            cashierTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'CASHIER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`,
+            ownerTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'OWNER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
+        })
+        .from(schema.expenses)
+        .where(and(
+            gte(schema.expenses.expenseDate, start),
+            lte(schema.expenses.expenseDate, end),
+            eq(schema.expenses.isDeleted, false)
+        ));
+        const cashierExpenses = Number(expenseBreakdown[0]?.cashierTotal || 0);
+        const ownerExpenses = Number(expenseBreakdown[0]?.ownerTotal || 0);
+
+        // c. Shift Modal (Initial Cash) - Only count new injections, not handovers
+        const shiftInitialResult = await db.select({
+            total: sql<number>`COALESCE(SUM(CAST(${schema.shifts.initialCash} AS DECIMAL)), 0)`
+        })
+        .from(schema.shifts)
+        .leftJoin(schema.shiftHandover, eq(schema.shifts.id, schema.shiftHandover.shiftTo))
+        .where(and(
+            gte(schema.shifts.startTime, start),
+            lte(schema.shifts.startTime, end),
+            eq(schema.shifts.isDeleted, false),
+            isNull(schema.shiftHandover.id) // Filter out handovers
+        ));
+        const totalInitialCash = Number(shiftInitialResult[0]?.total || 0);
+
+        const cashRevenue = Number(salesSummary[0]?.cashRevenue || 0);
+        const nonCashRevenue = Number(salesSummary[0]?.nonCashRevenue || 0);
+
+        // Expected Cash in Hand = Initial Modal + Cash Sales - Cashier Expenses
+        const expectedCashInHand = totalInitialCash + cashRevenue - cashierExpenses;
+        
+        // Expected Bank Balance Change = Non-Cash Sales + Owner Income - Owner Expenses
+        const bankBalanceDelta = nonCashRevenue + totalOwnerIncome - ownerExpenses;
 
         // 2. Hourly Sales (Line Chart)
         // Group by hour in WIB
@@ -330,8 +381,11 @@ export class AnalyticsService {
                 totalExpenses,
                 // Net Profit = Revenue (All Sales - Discounts) - COGS - All Expenses
                 grossProfit: grossProfit - totalExpenses,
-                cashRevenue: Number(salesSummary[0]?.cashRevenue || 0),
-                nonCashRevenue: Number(salesSummary[0]?.nonCashRevenue || 0)
+                cashRevenue: cashRevenue,
+                nonCashRevenue: nonCashRevenue,
+                expectedCashInHand,
+                bankBalanceDelta,
+                totalOwnerIncome
             },
             hourlySales: hourlySales.rows,
             topProducts,

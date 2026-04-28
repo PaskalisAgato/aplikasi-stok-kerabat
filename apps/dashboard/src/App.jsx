@@ -265,14 +265,17 @@ function App() {
         ) : (
           <>
             {/* 1. SUMMARY CARDS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
-              <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-[#bc6c25]" />
-              <SummaryCard title="Uang Tunai" value={summary.cashRevenue} icon="payments" color="text-[#606c38]" />
-              <SummaryCard title="Non Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-[#c24b30]" />
-              <SummaryCard title="Total Transaksi" value={summary.totalTransactions} icon="shopping_cart" color="text-[#bc6c25]" suffix="Order" noCurrency />
-              <SummaryCard title="Avg. Order" value={summary.avgOrderValue} icon="analytics" color="text-[#685634]" />
-              <SummaryCard title="Pengeluaran" value={summary.totalExpenses} icon="shopping_bag" color="text-[#c24b30]" />
-              <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+               <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-[#bc6c25]" subtitle="Total omzet kotor" />
+               <SummaryCard title="Kas di Tangan (Kasir)" value={summary.expectedCashInHand} icon="account_balance_wallet" color="text-[#606c38]" subtitle="Modal + Tunai - Pengeluaran Kasir" />
+               <SummaryCard title="Rekening (Estimasi)" value={summary.bankBalanceDelta} icon="account_balance" color="text-[#4361ee]" subtitle="Penjualan Non-Tunai + Modal Owner - Pengeluaran Owner" />
+               <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight subtitle="Omzet - HPP - Semua Pengeluaran" />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <SummaryCard title="Penjualan Tunai" value={summary.cashRevenue} icon="money" color="text-[#606c38]" />
+              <SummaryCard title="Penjualan Non-Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-[#c24b30]" />
+              <SummaryCard title="Uang Masuk Owner" value={summary.totalOwnerIncome} icon="add_card" color="text-emerald-500" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -642,7 +645,7 @@ function App() {
   );
 }
 
-const SummaryCard = React.memo(({ title, value, icon, color, isHighlight, noCurrency, suffix }) => {
+const SummaryCard = React.memo(({ title, value, icon, color, isHighlight, noCurrency, suffix, subtitle }) => {
   return (
     <div className={`p-6 rounded-[2rem] border transition-all ${isHighlight ? 'bg-primary shadow-2xl shadow-primary/20 border-primary text-slate-950' : 'bg-white/5 border-white/5 text-white hover:border-white/20'}`}>
       <div className="flex justify-between items-start mb-6">
@@ -658,6 +661,11 @@ const SummaryCard = React.memo(({ title, value, icon, color, isHighlight, noCurr
            {parseFloat(value || 0).toLocaleString()}
            {suffix && <span className="text-[10px] ml-1 uppercase opacity-60">{suffix}</span>}
         </p>
+        {subtitle && (
+          <p className={`text-[8px] font-bold mt-2 leading-tight ${isHighlight ? 'text-slate-950/40' : 'text-white/30'}`}>
+            {subtitle}
+          </p>
+        )}
       </div>
     </div>
   );
