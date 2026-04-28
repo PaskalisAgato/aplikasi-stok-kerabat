@@ -75,19 +75,19 @@ const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
             <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/5 blur-[80px] pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/5 blur-[80px] pointer-events-none"></div>
 
-            <div className="w-full max-w-md space-y-12 relative z-10">
-                <div className="text-center space-y-4">
-                    <div className="size-24 rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-6 cursor-default">
-                        <span className="material-symbols-outlined text-[var(--text-main)] text-5xl font-black">coffee</span>
+            <div className="w-full max-w-md space-y-6 md:space-y-12 relative z-10">
+                <div className="text-center space-y-2 md:space-y-4">
+                    <div className="size-16 md:size-24 rounded-[1.5rem] md:rounded-[2rem] accent-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/40 mb-4 md:mb-6 cursor-default">
+                        <span className="material-symbols-outlined text-[var(--text-main)] text-3xl md:text-5xl font-black">coffee</span>
                     </div>
-                    <div className="space-y-1">
-                        <h1 className="text-5xl font-black tracking-tighter font-display">KERABAT<span className="text-primary italic">.</span></h1>
-                        <p className="text-[var(--text-muted)] font-bold uppercase tracking-[0.3em] text-[10px] opacity-80">Sistem Kasir Premium v1.0</p>
+                    <div className="space-y-0.5 md:space-y-1">
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter font-display">KERABAT<span className="text-primary italic">.</span></h1>
+                        <p className="text-[var(--text-muted)] font-bold uppercase tracking-[0.3em] text-[8px] md:text-[10px] opacity-80">Sistem Kasir Premium v1.0</p>
                     </div>
                 </div>
 
                 {mode === 'select' ? (
-                    <div className="grid grid-cols-2 gap-8 p-2">
+                    <div className="grid grid-cols-2 gap-4 md:gap-8 p-2">
                         {[
                             { id: 'Admin', label: 'ADMIN', icon: 'admin_panel_settings', desc: 'Kelola Sistem' },
                             { id: 'Karyawan', label: 'STAF', icon: 'badge', desc: 'Operasional' }
@@ -95,79 +95,79 @@ const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
                             <button 
                                 key={r.id}
                                 onClick={() => handleRoleSelect(r.id as Role)}
-                                className="aspect-square glass rounded-[2.5rem] flex flex-col items-center justify-center gap-4 group relative overflow-hidden"
+                                className="aspect-square glass rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center justify-center gap-2 md:gap-4 group relative overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-150"></div>
-                                <div className="size-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-950 transition-colors duration-150 shadow-lg">
-                                    <span className="material-symbols-outlined text-4xl">{r.icon}</span>
+                                <div className="size-14 md:size-20 rounded-[1rem] md:rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-950 transition-colors duration-150 shadow-lg">
+                                    <span className="material-symbols-outlined text-2xl md:text-4xl">{r.icon}</span>
                                 </div>
-                                <div className="text-center">
-                                    <span className="font-black tracking-[0.2em] text-xs uppercase block">{r.label}</span>
-                                    <span className="text-[9px] font-bold opacity-50 uppercase tracking-widest">{r.desc}</span>
+                                <div className="text-center px-1">
+                                    <span className="font-black tracking-[0.1em] md:tracking-[0.2em] text-[10px] md:text-xs uppercase block">{r.label}</span>
+                                    <span className="text-[7px] md:text-[9px] font-bold opacity-50 uppercase tracking-widest leading-none">{r.desc}</span>
                                 </div>
                             </button>
                         ))}
                     </div>
                 ) : (
-                    <div className="glass rounded-[3rem] overflow-hidden shadow-2xl shadow-black/20">
-                        <div className="p-10 space-y-10">
-                            <div className="flex items-center gap-4">
+                    <div className="glass rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl shadow-black/20">
+                        <div className="p-6 md:p-10 space-y-6 md:space-y-10">
+                            <div className="flex items-center gap-2 md:gap-4">
                                 <button 
                                     onClick={() => setMode('select')} 
-                                    className="size-12 rounded-2xl hover:bg-primary/10 flex items-center justify-center text-primary transition-colors"
+                                    className="size-10 md:size-12 rounded-xl md:rounded-2xl hover:bg-primary/10 flex items-center justify-center text-primary transition-colors"
                                 >
-                                    <span className="material-symbols-outlined font-black">arrow_back</span>
+                                    <span className="material-symbols-outlined font-black text-sm md:text-base">arrow_back</span>
                                 </button>
-                                <div className="flex-1 text-center pr-12">
-                                    <h2 className="text-2xl font-black font-display tracking-tight uppercase">{role} LOGIN</h2>
-                                    <p className="text-[10px] text-primary font-black tracking-[0.3em] uppercase opacity-70">Masukkan PIN Keamanan</p>
+                                <div className="flex-1 text-center pr-10 md:pr-12">
+                                    <h2 className="text-lg md:text-2xl font-black font-display tracking-tight uppercase">{role} LOGIN</h2>
+                                    <p className="text-[8px] md:text-[10px] text-primary font-black tracking-[0.3em] uppercase opacity-70 leading-none">Masukkan PIN Keamanan</p>
                                 </div>
                             </div>
 
-                            <div className="flex justify-center gap-4">
+                            <div className="flex justify-center gap-2 md:gap-4">
                                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className={`size-4 rounded-full border-2 transition-all duration-300 ${pin.length >= i ? 'bg-primary border-primary scale-125 accent-glow' : 'border-[var(--border-dim)]'}`} />
+                                    <div key={i} className={`size-3 md:size-4 rounded-full border-2 transition-all duration-300 ${pin.length >= i ? 'bg-primary border-primary scale-110 md:scale-125 accent-glow' : 'border-[var(--border-dim)]'}`} />
                                 ))}
                             </div>
 
                             {error && (
-                                <div className="glass bg-red-500/10 border-red-500/20 text-red-500 p-5 rounded-[1.5rem] text-xs font-bold flex items-center gap-4">
-                                    <span className="material-symbols-outlined text-base font-black">warning</span>
+                                <div className="glass bg-red-500/10 border-red-500/20 text-red-500 p-3 md:p-5 rounded-xl md:rounded-[1.5rem] text-[10px] md:text-xs font-bold flex items-center gap-3 md:gap-4">
+                                    <span className="material-symbols-outlined text-sm md:text-base font-black">warning</span>
                                     <span className="flex-1">{error}</span>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-3 gap-5 pb-4">
+                            <div className="grid grid-cols-3 gap-3 md:gap-5 pb-2 md:pb-4">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                                     <button 
                                         key={n} 
                                         onClick={() => handleNumberClick(n.toString())}
-                                        className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-colors duration-150"
+                                        className="h-14 md:h-20 rounded-xl md:rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-xl md:text-2xl font-black transition-colors duration-150"
                                     >
                                         {n}
                                     </button>
                                 ))}
-                                <button className="h-20" />
+                                <button className="h-14 md:h-20" />
                                 <button 
                                     onClick={() => handleNumberClick('0')}
-                                    className="h-20 rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-2xl font-black transition-all active:scale-90"
+                                    className="h-14 md:h-20 rounded-xl md:rounded-[1.5rem] glass hover:bg-primary hover:text-slate-950 text-xl md:text-2xl font-black transition-all active:scale-90"
                                 >
                                     0
                                 </button>
                                 <button 
                                     onClick={handleDelete}
-                                    className="h-20 rounded-[1.5rem] glass hover:text-red-500 transition-all flex items-center justify-center active:scale-90"
+                                    className="h-14 md:h-20 rounded-xl md:rounded-[1.5rem] glass hover:text-red-500 transition-all flex items-center justify-center active:scale-90"
                                 >
-                                    <span className="material-symbols-outlined text-3xl font-black">backspace</span>
+                                    <span className="material-symbols-outlined text-2xl md:text-3xl font-black">backspace</span>
                                 </button>
                             </div>
 
                             <button
                                 onClick={handleLogin}
                                 disabled={isLoading || pin.length < 4}
-                                className={`btn-primary w-full h-20 text-xl font-black tracking-widest ${isLoading || pin.length < 4 ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
+                                className={`btn-primary w-full h-16 md:h-20 text-base md:text-xl font-black tracking-widest ${isLoading || pin.length < 4 ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
                             >
-                                {isLoading ? <span className="material-symbols-outlined animate-spin font-black text-3xl">sync</span> : 'MASUK SEKARANG'}
+                                {isLoading ? <span className="material-symbols-outlined animate-spin font-black text-2xl md:text-3xl">sync</span> : 'MASUK SEKARANG'}
                             </button>
                         </div>
                     </div>
