@@ -20,6 +20,7 @@ import { POSHeaderExtras } from './components/POSHeaderExtras';
 import { MergeModal } from './components/MergeModal';
 import { SplitModal } from './components/SplitModal';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
+import ShiftRequired from './components/ShiftRequired';
 
 // Lazy Loaded Pages
 const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
@@ -72,6 +73,7 @@ export default function App() {
     const [isHandoverShiftOpen, setIsHandoverShiftOpen] = useState(false);
     const [isCloseShiftOpen, setIsCloseShiftOpen] = useState(false);
     const [shiftSummaryData, setShiftSummaryData] = useState<any>(null);
+    const [isOpeningShift, setIsOpeningShift] = useState(false);
 
     // Sync & Print State
     const [pendingSyncs, setPendingSyncs] = useState(0);
@@ -450,12 +452,20 @@ export default function App() {
                 isCheckingOut={isCheckingOut}
             />
 
+            {!activeShift && view === 'pos' && !isOpeningShift && (
+                <ShiftRequired onOpenShift={() => setIsOpeningShift(true)} />
+            )}
+
             <OpenShiftModal 
-                isOpen={!activeShift && view === 'pos'} 
+                isOpen={!activeShift && view === 'pos' && isOpeningShift} 
                 onOpen={async (initialCash) => {
                     const res = await apiClient.post('/cashier-shifts/open', { initialCash });
-                    if (res?.data) setActiveShift(res.data);
+                    if (res?.data) {
+                        setActiveShift(res.data);
+                        setIsOpeningShift(false);
+                    }
                 }} 
+                onCancel={() => setIsOpeningShift(false)}
             />
 
             <CloseShiftModal 

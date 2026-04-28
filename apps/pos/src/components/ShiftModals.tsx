@@ -4,9 +4,10 @@ import { useNotification } from '@shared/components/NotificationProvider';
 interface OpenShiftModalProps {
     isOpen: boolean;
     onOpen: (initialCash: number) => Promise<void>;
+    onCancel: () => void;
 }
 
-export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }) => {
+export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen, onCancel }) => {
     const [initialCash, setInitialCash] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showNotification } = useNotification();
@@ -26,28 +27,31 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
     };
 
     return (
-        <div className="absolute inset-0 z-[50] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
-                <div className="flex flex-col items-center text-center mb-8">
-                    <div className="size-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
-                        <span className="material-symbols-outlined text-4xl text-primary">login</span>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-6">
+            <div className="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 sm:p-10 w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                {/* Decorative background glow */}
+                <div className="absolute -top-24 -right-24 size-48 bg-primary/10 rounded-full blur-3xl" />
+                
+                <div className="flex flex-col items-center text-center mb-8 relative z-10">
+                    <div className="size-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-5 border border-primary/20 shadow-inner">
+                        <span className="material-symbols-outlined text-4xl text-primary font-black">currency_exchange</span>
                     </div>
-                    <h2 className="text-2xl font-black text-[var(--text-main)] uppercase tracking-tight">Buka Shift Kasir</h2>
-                    <p className="text-[var(--text-muted)] text-sm mt-1">Masukkan modal awal laci kas (Petty Cash)</p>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">Modal Awal Laci</h2>
+                    <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2">Masukkan nominal cash (Petty Cash)</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 ml-2">Kas Awal (Tunai)</label>
-                        <div className="relative">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black">Rp</span>
+                <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Kas Awal (Tunai)</label>
+                        <div className="relative group">
+                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-black text-lg">Rp</span>
                             <input 
                                 type="number"
                                 autoFocus
                                 required
                                 value={initialCash || ''}
                                 onChange={(e) => setInitialCash(parseInt(e.target.value) || 0)}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xl font-black text-[var(--text-main)] outline-none focus:border-primary/50"
+                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-2xl font-black text-white outline-none focus:border-primary/50 focus:bg-white/[0.05] transition-all shadow-inner"
                                 placeholder="0"
                             />
                         </div>
@@ -59,20 +63,29 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onOpen }
                                 key={val}
                                 type="button"
                                 onClick={() => setInitialCash(val)}
-                                className="py-2.5 bg-white/5 border border-white/5 rounded-xl text-xs font-black hover:bg-primary/20 hover:text-primary uppercase"
+                                className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${initialCash === val ? 'bg-primary text-[#0f172a] border-primary shadow-lg shadow-primary/20 scale-105' : 'bg-white/5 border-white/5 text-white/50 hover:border-white/20'}`}
                             >
                                 {val === 0 ? 'Kosong' : `Rp ${val.toLocaleString('id-ID')}`}
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-4 pt-2">
                         <button 
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full bg-primary text-[#0f172a] h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-95 transition-all disabled:opacity-50"
+                            className="w-full bg-primary text-[#0f172a] h-16 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
                         >
-                            {isSubmitting ? 'Membuka...' : 'Mulai Shift Sekarang'}
+                            {isSubmitting ? 'Memproses...' : 'Mulai Shift Sekarang'}
+                        </button>
+                        
+                        <button 
+                            type="button"
+                            onClick={onCancel}
+                            disabled={isSubmitting}
+                            className="w-full h-12 text-white/30 hover:text-white/60 font-black text-[10px] uppercase tracking-widest transition-all"
+                        >
+                            Kembali ke layar kunci
                         </button>
                     </div>
                 </form>
