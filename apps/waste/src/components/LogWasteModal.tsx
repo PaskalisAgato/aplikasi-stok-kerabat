@@ -5,6 +5,9 @@ const WASTE_REASONS = [
     { id: 'Expired', label: 'Kadaluwarsa / Basi', icon: 'timer_off' },
     { id: 'Spillage', label: 'Tumpah / Rusak', icon: 'water_drop' },
     { id: 'Burnt', label: 'Salah Masak / Gosong', icon: 'local_fire_department' },
+    { id: 'R&D', label: 'Trial Menu Baru', icon: 'labs' },
+    { id: 'Owner', label: 'Konsumsi Owner', icon: 'person' },
+    { id: 'Staff', label: 'Makan Karyawan', icon: 'groups' },
     { id: 'Quality Reject', label: 'Kualitas Buruk', icon: 'thumb_down' },
     { id: 'Other', label: 'Lainnya', icon: 'category' },
 ];
@@ -57,7 +60,7 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
         controllerRef.current = controller;
 
         try {
-            const res = await apiClient.getInventory(20, 0, searchTerm, '', '', controller.signal);
+            const res = await apiClient.getInventory(20, 0, searchTerm, '', '', '', controller.signal);
             setInventoryList(res.data);
         } catch (error: any) {
             if (error.name !== 'AbortError') {
