@@ -266,16 +266,42 @@ function App() {
           <>
             {/* 1. SUMMARY CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-               <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-[#bc6c25]" subtitle="Total omzet kotor" />
-               <SummaryCard title="Kas di Tangan (Kasir)" value={summary.expectedCashInHand} icon="account_balance_wallet" color="text-[#606c38]" subtitle="Modal + Tunai - Pengeluaran Kasir" />
-               <SummaryCard title="Rekening (Estimasi)" value={summary.bankBalanceDelta} icon="account_balance" color="text-[#4361ee]" subtitle="Penjualan Non-Tunai + Modal Owner - Pengeluaran Owner" />
-               <SummaryCard title="Profit Bersih" value={summary.grossProfit} icon="trending_up" color="text-primary" isHighlight subtitle="Omzet - HPP - Semua Pengeluaran" />
+               <SummaryCard 
+                 title="Kas di Laci (Kasir)" 
+                 value={summary.expectedCashInHand} 
+                 icon="account_balance_wallet" 
+                 color="text-[#606c38]" 
+                 subtitle="Uang yang seharusnya ada di laci POS saat ini." 
+               />
+               <SummaryCard 
+                 title="Kas di Tangan (Owner)" 
+                 value={summary.ownerCollectedCash} 
+                 icon="person" 
+                 color="text-[#bc6c25]" 
+                 subtitle="Uang tunai terkumpul (sudah disetor ke Owner)." 
+               />
+               <SummaryCard 
+                 title="Rekening (Taksiran)" 
+                 value={summary.bankBalanceDelta} 
+                 icon="account_balance" 
+                 color="text-[#4361ee]" 
+                 subtitle="Estimasi saldo bank (Penjualan Non-Tunai + Modal)." 
+               />
+               <SummaryCard 
+                 title="Profit Bersih" 
+                 value={summary.grossProfit} 
+                 icon="trending_up" 
+                 color="text-primary" 
+                 isHighlight 
+                 subtitle="Omzet - HPP - Semua Pengeluaran" 
+               />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <SummaryCard title="Total Penjualan" value={summary.totalRevenue} icon="payments" color="text-[#bc6c25]" subtitle="Omzet kotor" />
               <SummaryCard title="Penjualan Tunai" value={summary.cashRevenue} icon="money" color="text-[#606c38]" />
               <SummaryCard title="Penjualan Non-Tunai" value={summary.nonCashRevenue} icon="credit_card" color="text-[#c24b30]" />
-              <SummaryCard title="Uang Masuk Owner" value={summary.totalOwnerIncome} icon="add_card" color="text-emerald-500" />
+              <SummaryCard title="Uang Masuk (Modal)" value={summary.totalOwnerIncome} icon="add_card" color="text-emerald-500" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

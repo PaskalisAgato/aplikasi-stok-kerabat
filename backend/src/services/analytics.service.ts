@@ -217,7 +217,8 @@ export class AnalyticsService {
         // b. Detailed Expenses Breakdown
         const expenseBreakdown = await db.select({
             cashierTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'CASHIER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`,
-            ownerTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'OWNER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
+            ownerCashTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'OWNER' AND ${schema.expenses.paymentMethod} = 'CASH' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`,
+            ownerNonCashTotal: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'OWNER' AND ${schema.expenses.paymentMethod} != 'CASH' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
         })
         .from(schema.expenses)
         .where(and(
@@ -226,9 +227,11 @@ export class AnalyticsService {
             eq(schema.expenses.isDeleted, false)
         ));
         const cashierExpenses = Number(expenseBreakdown[0]?.cashierTotal || 0);
-        const ownerExpenses = Number(expenseBreakdown[0]?.ownerTotal || 0);
+        const ownerCashExpenses = Number(expenseBreakdown[0]?.ownerCashTotal || 0);
+        const ownerNonCashExpenses = Number(expenseBreakdown[0]?.ownerNonCashTotal || 0);
 
-        // c. Shift Modal (Initial Cash) - Only count new injections, not handovers
+        // c. Shift Lifecycle (Initial Cash & Collected Cash)
+        // c1. Modal dari Owner ke Laci (Initial Cash but NOT from handover)
         const shiftInitialResult = await db.select({
             total: sql<number>`COALESCE(SUM(CAST(${schema.shifts.initialCash} AS DECIMAL)), 0)`
         })
@@ -238,18 +241,37 @@ export class AnalyticsService {
             gte(schema.shifts.startTime, start),
             lte(schema.shifts.startTime, end),
             eq(schema.shifts.isDeleted, false),
-            isNull(schema.shiftHandover.id) // Filter out handovers
+            isNull(schema.shiftHandover.id)
         ));
         const totalInitialCash = Number(shiftInitialResult[0]?.total || 0);
+
+        // c2. Koleksi Kas dari laci ke Owner (Actual Cash from CLOSED shifts but NOT handed over)
+        const shiftCollectedResult = await db.select({
+            total: sql<number>`COALESCE(SUM(CAST(${schema.shifts.totalCashActual} AS DECIMAL)), 0)`
+        })
+        .from(schema.shifts)
+        .leftJoin(schema.shiftHandover, eq(schema.shifts.id, schema.shiftHandover.shiftFrom))
+        .where(and(
+            gte(schema.shifts.endTime, start),
+            lte(schema.shifts.endTime, end),
+            eq(schema.shifts.status, 'CLOSED'),
+            eq(schema.shifts.isDeleted, false),
+            isNull(schema.shiftHandover.id)
+        ));
+        const totalCollectedCash = Number(shiftCollectedResult[0]?.total || 0);
 
         const cashRevenue = Number(salesSummary[0]?.cashRevenue || 0);
         const nonCashRevenue = Number(salesSummary[0]?.nonCashRevenue || 0);
 
-        // Expected Cash in Hand = Initial Modal + Cash Sales - Cashier Expenses
+        // 1. Kas di Laci = Modal Awal + Penjualan Tunai - Pengeluaran Kasir
+        // Note: Handovers don't affect this as they balance out (minus A, plus B)
         const expectedCashInHand = totalInitialCash + cashRevenue - cashierExpenses;
         
-        // Expected Bank Balance Change = Non-Cash Sales + Owner Income - Owner Expenses
-        const bankBalanceDelta = nonCashRevenue + totalOwnerIncome - ownerExpenses;
+        // 2. Kas di Tangan Owner = Uang yang dikumpulkan dari shift tutup - Pengeluaran Tunai Owner
+        const ownerCollectedCash = totalCollectedCash - ownerCashExpenses;
+
+        // 3. Saldo Rekening = Penjualan Non-Tunai + Modal Owner - Pengeluaran Non-Tunai Owner
+        const bankBalanceDelta = nonCashRevenue + totalOwnerIncome - ownerNonCashExpenses;
 
         // 2. Hourly Sales (Line Chart)
         // Group by hour in WIB
@@ -384,6 +406,7 @@ export class AnalyticsService {
                 cashRevenue: cashRevenue,
                 nonCashRevenue: nonCashRevenue,
                 expectedCashInHand,
+                ownerCollectedCash,
                 bankBalanceDelta,
                 totalOwnerIncome
             },
