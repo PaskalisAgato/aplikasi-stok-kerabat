@@ -98,110 +98,147 @@ export default function LogWasteModal({ isOpen, onClose, onSaved }: LogWasteModa
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm">
-            <div className="w-full bg-background-app  rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] border-t border-primary/20">
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/60 backdrop-blur-md transition-all duration-500">
+            <div className="w-full bg-[#121212] rounded-t-[3rem] shadow-2xl flex flex-col max-h-[94vh] border-t border-white/5 animate-in slide-in-from-bottom duration-500">
                 {/* Drag Handle */}
-                <div className="flex h-6 w-full items-center justify-center flex-shrink-0">
-                    <div className="h-1.5 w-12 rounded-full bg-primary/30" />
+                <div className="flex h-8 w-full items-center justify-center flex-shrink-0">
+                    <div className="h-1.5 w-16 rounded-full bg-white/10" />
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-5 pb-8">
+                <div className="flex-1 overflow-y-auto px-6 pb-10 custom-scrollbar">
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-5">
+                    <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h2 className="text-xl font-bold text-[var(--text-main)] ">Catat Waste</h2>
-                            <p className="text-xs text-[var(--text-muted)] mt-0.5">Log barang rusak atau terbuang</p>
+                            <h2 className="text-2xl font-black text-[var(--text-main)] font-display tracking-tight uppercase">Catat Waste</h2>
+                            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Log barang rusak atau terbuang</p>
                         </div>
-                        <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center bg-primary/10 text-primary">
-                            <span className="material-symbols-outlined">close</span>
+                        <button onClick={onClose} className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5 text-[var(--text-main)] hover:bg-white/10 transition-all border border-white/5 shadow-inner">
+                            <span className="material-symbols-outlined font-black">close</span>
                         </button>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-8">
                         {/* Step 1: Select Item */}
-                        <div>
-                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">1. Pilih Bahan Baku</label>
-                            <div className="relative mb-2">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[18px]">search</span>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/10 px-3 py-1 rounded-full border border-primary/20">TAHAP 1</span>
+                                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">Pilih Bahan Baku</label>
+                            </div>
+                            
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[20px] font-black">search</span>
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    placeholder="Cari bahan..."
-                                    className="w-full pl-10 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none text-sm font-medium"
+                                    placeholder="Cari bahan persediaan..."
+                                    className="w-full pl-12 pr-4 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-base font-bold text-[var(--text-main)] placeholder:text-white/20 transition-all"
                                 />
                             </div>
-                            <div className="max-h-40 overflow-y-auto space-y-1.5 rounded-xl border border-slate-200  p-1 bg-slate-50 ">
-                                {filteredInventory.map(item => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => setSelectedItem(item)}
-                                        className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-sm ${selectedItem?.id === item.id
-                                            ? 'bg-primary text-white'
-                                            : 'hover:bg-primary/10 text-slate-700 '
-                                            }`}
-                                    >
-                                        <span className="font-bold">{item.name}</span>
-                                        <span className={`text-xs font-medium ${selectedItem?.id === item.id ? 'text-[var(--text-main)]/70' : 'text-[var(--text-muted)]'}`}>
-                                            Stok: {item.currentStock} {item.unit}
-                                        </span>
-                                    </button>
-                                ))}
+
+                            <div className="max-h-52 overflow-y-auto space-y-2 rounded-[2rem] border border-white/5 p-2 bg-white/5 backdrop-blur-xl shadow-inner custom-scrollbar">
+                                {searchTerm.length >= 2 && filteredInventory.length === 0 ? (
+                                    <div className="py-10 text-center opacity-40">
+                                        <p className="text-[9px] font-black uppercase tracking-widest italic">Tidak ditemukan...</p>
+                                    </div>
+                                ) : filteredInventory.length > 0 ? (
+                                    filteredInventory.map(item => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => setSelectedItem(item)}
+                                            className={`w-full text-left px-4 py-4 rounded-2xl flex items-center justify-between transition-all duration-300 ${selectedItem?.id === item.id
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[0.98]'
+                                                : 'bg-white/5 hover:bg-white/10 text-[var(--text-main)] border border-white/5'
+                                                }`}
+                                        >
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-black text-sm uppercase tracking-tight">{item.name}</span>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest ${selectedItem?.id === item.id ? 'text-white/70' : 'text-primary'}`}>
+                                                    {item.category || 'INVENTORY'}
+                                                </span>
+                                            </div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest opacity-80`}>
+                                                {item.currentStock} {item.unit}
+                                            </span>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="py-10 text-center opacity-20">
+                                        <span className="material-symbols-outlined text-4xl mb-2 font-black">inventory_2</span>
+                                        <p className="text-[9px] font-black uppercase tracking-widest">Ketik minimal 2 huruf</p>
+                                    </div>
+                                )}
                             </div>
+                            
                             {selectedItem && (
-                                <p className="text-xs text-primary font-bold mt-1.5 px-1">✓ Dipilih: {selectedItem.name}</p>
+                                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl animate-in zoom-in duration-300">
+                                    <span className="material-symbols-outlined text-emerald-500 font-black">check_circle</span>
+                                    <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Dipilih: {selectedItem.name}</p>
+                                </div>
                             )}
                         </div>
 
                         {/* Step 2: Quantity */}
-                        <div>
-                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">
-                                2. Jumlah yang Dibuang {selectedItem && `(${selectedItem.unit})`}
-                            </label>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/10 px-3 py-1 rounded-full border border-primary/20">TAHAP 2</span>
+                                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">
+                                    Jumlah Terbuang {selectedItem && `(${selectedItem.unit})`}
+                                </label>
+                            </div>
                             <input
                                 type="number"
                                 value={quantity}
                                 onChange={e => setQuantity(e.target.value)}
-                                placeholder="Contoh: 0.5"
+                                placeholder="0.00"
                                 min="0.01"
                                 step="0.01"
-                                className="w-full py-3 px-4 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none text-lg font-bold text-center"
+                                className="w-full py-6 px-6 bg-white/5 border border-white/10 rounded-[2rem] focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none text-4xl font-black text-center text-primary font-display tracking-tighter transition-all"
                             />
                         </div>
 
                         {/* Step 3: Reason */}
-                        <div>
-                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider block mb-2">3. Alasan</label>
-                            <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/10 px-3 py-1 rounded-full border border-primary/20">TAHAP 3</span>
+                                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">Alasan Pemborosan</label>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
                                 {WASTE_REASONS.map(r => (
                                     <button
                                         key={r.id}
                                         onClick={() => setReason(r.id)}
-                                        className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${reason === r.id
-                                            ? 'bg-red-500 border-red-500 text-white'
-                                            : 'bg-primary/5 border-primary/20 text-slate-600  hover:border-red-400/50'
+                                        className={`flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] border transition-all duration-500 group relative overflow-hidden ${reason === r.id
+                                            ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20'
+                                            : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:border-red-500/50'
                                             }`}
                                     >
-                                        <span className="material-symbols-outlined text-[18px]">{r.icon}</span>
-                                        <span className="text-xs font-bold leading-tight">{r.label}</span>
+                                        <span className={`material-symbols-outlined text-2xl font-black transition-transform duration-500 ${reason === r.id ? 'scale-110' : 'group-hover:rotate-12'}`}>{r.icon}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-center leading-tight">{r.label}</span>
+                                        
+                                        {reason === r.id && (
+                                            <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
+                                        )}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Submit */}
-                        <button
-                            onClick={handleSubmit}
-                            disabled={isSaving}
-                            className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:bg-slate-400 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                        >
-                            {isSaving ? (
-                                <span className="material-symbols-outlined animate-spin">refresh</span>
-                            ) : (
-                                <span className="material-symbols-outlined">delete_sweep</span>
-                            )}
-                            {isSaving ? 'Menyimpan...' : 'Catat Waste Sekarang'}
-                        </button>
+                        <div className="pt-4">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isSaving || !selectedItem || !quantity}
+                                className="w-full py-6 bg-gradient-to-r from-red-500 to-orange-600 disabled:from-white/5 disabled:to-white/5 disabled:text-white/10 text-white font-black rounded-[2.5rem] shadow-2xl shadow-red-500/30 flex items-center justify-center gap-4 transition-all active:scale-[0.98] uppercase tracking-[0.4em] text-xs border border-white/10 group overflow-hidden"
+                            >
+                                {isSaving ? (
+                                    <span className="material-symbols-outlined animate-spin text-2xl font-black">refresh</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-2xl font-black group-hover:translate-x-1 transition-transform">delete_sweep</span>
+                                )}
+                                {isSaving ? 'Memproses...' : 'Catat Waste'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

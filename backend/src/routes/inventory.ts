@@ -878,7 +878,8 @@ inventoryRouter.post('/:id/movement', requireAuth, async (req: Request, res: Res
 
             const [updatedInventory] = await tx.update(schema.inventory)
                 .set({
-                    currentStock: sql`${schema.inventory.currentStock} + ${adjustment}`
+                    currentStock: sql`${schema.inventory.currentStock} + ${adjustment}`,
+                    ...(req.body.tareWeight !== undefined && { containerWeight: req.body.tareWeight.toString() })
                 })
                 .where(eq(schema.inventory.id, inventoryId))
                 .returning();
