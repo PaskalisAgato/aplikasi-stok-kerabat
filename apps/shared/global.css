@@ -7,10 +7,12 @@
 /* Standardize properties to avoid browser warnings */
 html, body {
   overflow-x: hidden;
+  position: relative;
   width: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  touch-action: pan-y; /* Prevent horizontal panning while allowing vertical scroll */
 }
 
 *, *::before, *::after {

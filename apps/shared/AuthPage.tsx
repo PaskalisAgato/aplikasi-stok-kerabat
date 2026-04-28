@@ -71,7 +71,7 @@ const AuthPage: React.FC<{ onSuccess?: () => void }> = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-y-auto relative">
+        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 text-[var(--text-main)] overflow-y-auto overflow-x-hidden relative">
             <div className="absolute top-[-10%] left-[-10%] size-[40vw] rounded-full bg-primary/5 blur-[80px] pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] size-[40vw] rounded-full bg-blue-500/5 blur-[80px] pointer-events-none"></div>
 
