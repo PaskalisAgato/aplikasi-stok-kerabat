@@ -216,7 +216,9 @@ export class TransactionService {
 
         // 3. HARDENING: Active Shift Guard
         const activeShift = await CashierShiftService.getActiveShift(userId);
-        if (!activeShift) {
+        const shiftIdToUse = shiftId || activeShift?.id || null;
+
+        if (!isBill && !shiftIdToUse) {
             console.warn(`[CHECKOUT_BLOCKED] No active shift for user ${userId}`);
             throw new Error('Shift belum dibuka. Silakan buka shift kasir terlebih dahulu di menu utama.');
         }
@@ -227,7 +229,7 @@ export class TransactionService {
 
             const saleValues = {
                 offlineId: offlineId || null,
-                shiftId: activeShift.id,
+                shiftId: shiftIdToUse,
                 userId: userId,
                 memberId: data.memberId || null,
                 customerInfo: data.customerInfo || null,
@@ -394,7 +396,7 @@ export class TransactionService {
             // 6. Record to Cash Ledger (Anti-Fraud)
             if (data.paymentMethod === 'CASH' && (data.status === 'PAID' || saleValues.status === 'PAID')) {
                 await tx.insert(schema.cashLedger).values({
-                    shiftId: activeShift.id,
+                    shiftId: shiftIdToUse,
                     type: 'sale',
                     amount: finalizedTotalAmount.toString(),
                     referenceId: finalizedSaleId,
