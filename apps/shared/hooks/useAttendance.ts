@@ -50,7 +50,7 @@ export function useAttendance(filters: any = {}) {
     });
 
     return {
-        todayAttendance: todayQuery.data || null,
+        todayAttendance: todayQuery.data?.data ?? todayQuery.data ?? null,
         history: historyQuery.data?.data ?? [],
         isLoading: todayQuery.isLoading || historyQuery.isLoading,
         isActionLoading: checkInMutation.isPending || checkOutMutation.isPending || deleteByRangeMutation.isPending,

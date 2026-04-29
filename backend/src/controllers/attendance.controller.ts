@@ -9,7 +9,7 @@ export class AttendanceController {
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
             const status = await AttendanceService.getTodayAttendance(userId);
-            res.json(status);
+            res.json({ success: true, data: status });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }
