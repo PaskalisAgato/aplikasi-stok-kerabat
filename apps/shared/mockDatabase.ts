@@ -52,6 +52,7 @@ export interface Recipe {
     category: 'Minuman' | 'Makanan' | 'Snack';
     hpp: number;
     price: number;
+    priceStand?: number;
     margin: number;
     overhead: number;
     ingredients: RecipeIngredient[];

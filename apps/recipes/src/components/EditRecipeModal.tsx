@@ -33,6 +33,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
     const [category, setCategory] = useState(recipe.category || 'Minuman');
     const [overhead, setOverhead] = useState(recipe.overhead ?? 10); // Use explicit overhead from DB
     const [hargaJual, setHargaJual] = useState(recipe.price);
+    const [hargaStand, setHargaStand] = useState(recipe.priceStand || recipe.price || 0);
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -144,6 +145,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
         });
         setIngredients(initialIngredients);
         setHargaJual(recipe.price);
+        setHargaStand(recipe.priceStand || recipe.price || 0);
         // We no longer estimate overhead from HPP because it is now stored in the DB
     }, [recipe, initialInventoryData]); // Removed inventoryData to avoid unwanted resets during search
 
@@ -247,6 +249,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                 name: namaResep,
                 category: category,
                 price: hargaJual,
+                priceStand: hargaStand,
                 costPrice: totalHPP, // Persist calculated HPP for profit tracking
                 margin: parseFloat(margin),
                 overhead: overhead, // Include overhead in payload
@@ -608,7 +611,7 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                             <div className="space-y-4">
                                 {/* Selling Price */}
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-[var(--text-muted)]">Harga Jual per Cup</span>
+                                    <span className="text-sm font-medium text-[var(--text-muted)]">Harga Jual (Reguler)</span>
                                     <div className="flex items-center gap-1.5 border-b-2 border-primary/30 pb-1">
                                         <span className="text-xs font-extrabold text-[var(--text-muted)]">Rp</span>
                                         <input
@@ -616,6 +619,23 @@ export default function EditRecipeModal({ recipe, onClose, onSave }: EditRecipeM
                                             type="text"
                                             value={hargaJual.toLocaleString('id-ID')}
                                             onChange={e => setHargaJual(parseInt(e.target.value.replace(/\./g, '')) || 0)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Stand Price */}
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-[var(--text-muted)]">Harga Jual (Stand / Bazar)</span>
+                                        <span className="text-[8px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-widest leading-none flex items-center justify-center">Baru</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 border-b-2 border-primary/30 pb-1">
+                                        <span className="text-xs font-extrabold text-[var(--text-muted)]">Rp</span>
+                                        <input
+                                            className="bg-transparent border-none p-0 text-right font-extrabold text-lg focus:ring-0 w-24 text-primary"
+                                            type="text"
+                                            value={hargaStand.toLocaleString('id-ID')}
+                                            onChange={e => setHargaStand(parseInt(e.target.value.replace(/\./g, '')) || 0)}
                                         />
                                     </div>
                                 </div>
