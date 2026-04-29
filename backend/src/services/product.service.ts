@@ -55,6 +55,7 @@ export class ProductService {
                 imageUrl: (recipe.imageUrl && !recipe.imageUrl.startsWith('data:')) ? recipe.imageUrl : undefined, // Include URL/path, omit large Base64
                 hasImage: !!recipe.imageUrl,
                 price: parseFloat(recipe.price),
+                priceStand: parseFloat(recipe.priceStand || '0'),
                 margin: parseFloat(recipe.margin),
                 overhead: parseFloat(recipe.overhead),
                 hpp: currentHpp > 0 ? currentHpp : 0, 
@@ -83,11 +84,12 @@ export class ProductService {
 
         return await db.transaction(async (tx: any) => {
             try {
-                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
+                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients } = data;
                 const [newRecipe] = await tx.insert(schema.recipes).values({
                     name,
                     category,
                     price: toNumericString(price),
+                    priceStand: toNumericString(priceStand),
                     margin: toNumericString(margin),
                     overhead: toNumericString(overhead || 10),
                     imageUrl,
@@ -124,7 +126,7 @@ export class ProductService {
 
         const result: any = await db.transaction(async (tx: any) => {
             try {
-                const { name, category, price, margin, overhead, imageUrl, ingredients } = data;
+                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients } = data;
 
                 // 1. Fetch old recipe to check for image updates
                 const [oldRecipe] = await tx.select({ imageUrl: schema.recipes.imageUrl })
@@ -149,6 +151,9 @@ export class ProductService {
                 const priceStr = toNumericString(price);
                 if (priceStr !== null) updatePayload.price = priceStr;
                 
+                const priceStandStr = toNumericString(priceStand);
+                if (priceStandStr !== null) updatePayload.priceStand = priceStandStr;
+
                 const marginStr = toNumericString(margin);
                 if (marginStr !== null) updatePayload.margin = marginStr;
 
