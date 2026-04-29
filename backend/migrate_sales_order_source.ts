@@ -11,6 +11,10 @@ async function run() {
             {
                 label: "order_source in sales",
                 sql: `ALTER TABLE sales ADD COLUMN IF NOT EXISTS order_source TEXT NOT NULL DEFAULT 'DIRECT';`
+            },
+            {
+                label: "discount_ids in sales",
+                sql: `ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount_ids TEXT;`
             }
         ];
 
