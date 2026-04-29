@@ -1,4 +1,5 @@
 import 'dotenv/config';
+process.env.TZ = 'Asia/Jakarta';
 import app from './app.js';
 import cron from 'node-cron';
 import { BackupService } from './services/backup.service.js';
