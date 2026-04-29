@@ -41,8 +41,8 @@ export function useBillManagement() {
         fetchOpenBills();
     }, [fetchOpenBills]);
 
-    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any, sales: Record<number, number>) => {
-        if (!activeShift) {
+    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any, sales: Record<number, number>, isAdmin?: boolean) => {
+        if (!activeShift && !isAdmin) {
             showNotification('Shift kasir belum dibuka. Tidak bisa menyimpan bill.', "error");
             return { success: false };
         }
