@@ -18,8 +18,8 @@ interface POSFooterProps {
     handleSaveBill: () => void;
     currentBillId: string | number | null;
     setMobileTab: (tab: 'menu' | 'cart' | 'bills') => void;
-    orderSource: 'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD';
-    setOrderSource: (source: 'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD') => void;
+    orderSource: 'DIRECT' | 'STAND' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD';
+    setOrderSource: (source: 'DIRECT' | 'STAND' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD') => void;
 }
 
 export const POSFooter: React.FC<POSFooterProps> = ({
@@ -61,9 +61,10 @@ export const POSFooter: React.FC<POSFooterProps> = ({
             {/* Order Source Selector */}
             <div className="space-y-1.5">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60 px-1">Sumber Order</p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                     {[
                         { id: 'DIRECT', label: 'Langsung', icon: 'person' },
+                        { id: 'STAND', label: 'Stand', icon: 'storefront' },
                         { id: 'GRABFOOD', label: 'Grab', icon: 'delivery_dining' },
                         { id: 'GOFOOD', label: 'Gojek', icon: 'delivery_dining' },
                         { id: 'SHOPEEFOOD', label: 'Shopee', icon: 'delivery_dining' }

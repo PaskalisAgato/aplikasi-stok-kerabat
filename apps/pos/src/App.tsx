@@ -35,9 +35,25 @@ export default function App() {
     
     // Core State Hooks
     const { 
-        items, isLoading, categories, selectedCategory, setSelectedCategory, 
-        searchTerm, setSearchTerm, filteredRecipes 
+        items: baseItems, isLoading, categories, selectedCategory, setSelectedCategory, 
+        searchTerm, setSearchTerm, filteredRecipes: baseFilteredRecipes 
     } = usePOSData();
+
+    const [orderSource, setOrderSource] = useState<'DIRECT' | 'STAND' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD'>('DIRECT');
+
+    const items = useMemo(() => {
+        return baseItems.map(item => ({
+            ...item,
+            price: (orderSource === 'STAND' && (item as any).priceStand > 0) ? (item as any).priceStand : item.price
+        }));
+    }, [baseItems, orderSource]);
+
+    const filteredRecipes = useMemo(() => {
+        return baseFilteredRecipes.map(item => ({
+            ...item,
+            price: (orderSource === 'STAND' && (item as any).priceStand > 0) ? (item as any).priceStand : item.price
+        }));
+    }, [baseFilteredRecipes, orderSource]);
 
     const { 
         sales, setSales, itemNotes, updateQty, onNoteChange, 
@@ -67,7 +83,6 @@ export default function App() {
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [amountPaid, setAmountPaid] = useState(0);
-    const [orderSource, setOrderSource] = useState<'DIRECT' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD'>('DIRECT');
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
     
     const { data: session } = useSession();
