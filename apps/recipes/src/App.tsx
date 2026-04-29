@@ -171,6 +171,12 @@ function App() {
                                         <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">Rp {recipe.hpp.toLocaleString('id-ID')}</span>
                                     </div>
                                     <p className="text-xl font-black text-primary font-display uppercase tracking-tight">Rp {recipe.price.toLocaleString('id-ID')}</p>
+                                    {recipe.priceStand ? (
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[7px] font-black text-amber-500 uppercase tracking-widest opacity-80">STAND</span>
+                                            <span className="text-[10px] font-black text-amber-500 font-display">Rp {recipe.priceStand.toLocaleString('id-ID')}</span>
+                                        </div>
+                                    ) : null}
                                 </div>
                                 <div className="flex gap-2">
                                     <button
