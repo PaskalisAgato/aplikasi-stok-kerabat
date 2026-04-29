@@ -110,11 +110,7 @@ export default function App() {
             if (res && res.data) setAttendance(res.data);
         }).catch(console.error);
 
-        if (session?.user?.role === 'Admin') {
-            apiClient.get('/cashier-shifts/all-active').then((res: any) => {
-                if (res && res.data) setAllActiveShifts(res.data);
-            }).catch(console.error);
-        }
+
 
         syncEngine.start();
 
@@ -139,6 +135,15 @@ export default function App() {
             window.removeEventListener('open-sync-queue', handleOpenSync);
         };
     }, []);
+
+    // Load Admin shifts strictly when session is ready
+    useEffect(() => {
+        if (session?.user?.role === 'Admin') {
+            apiClient.get('/cashier-shifts/all-active').then((res: any) => {
+                if (res && res.data) setAllActiveShifts(res.data);
+            }).catch(console.error);
+        }
+    }, [session?.user?.role]);
 
     // Derived Values
     const discountAmount = useMemo(() => {
