@@ -133,6 +133,7 @@ export const recipes = pgTable('recipes', {
     name: text('name').notNull(),
     category: text('category').notNull(),
     price: decimal('price', { precision: 12, scale: 2 }).notNull().default('0'),
+    priceStand: decimal('price_stand', { precision: 12, scale: 2 }).notNull().default('0'),
     margin: decimal('margin', { precision: 5, scale: 2 }).notNull().default('0'), // Percentage 0-100
     overhead: decimal('overhead', { precision: 5, scale: 2 }).notNull().default('10'), // Percentage 0-100
     imageUrl: text('image_url'),
