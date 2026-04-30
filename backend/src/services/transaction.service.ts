@@ -183,16 +183,24 @@ export class TransactionService {
 
         // 2. HARDENING: Compare with client total
         const clientTotal = parseFloat(totalAmount?.toString() || '0');
+        const clientDiscountTotal = parseFloat(data.discountTotal?.toString() || data.discountAmount?.toString() || '0');
+        const clientTax = parseFloat(data.taxAmount?.toString() || '0');
+        const clientService = parseFloat(data.serviceChargeAmount?.toString() || '0');
+        
         const isBill = data.status === 'OPEN';
+
+        // Expected Total = Subtotal - Discounts + Tax + Service
+        const expectedTotal = serverCalculatedSubTotal - clientDiscountTotal + clientTax + clientService;
 
         // Loosen price check for OPEN bills (unpaid table orders) to avoid minor frontend-backend rounding issues
         // but keep it strict for PAID transactions
         const tolerance = isBill ? 100 : 0.01; 
 
-        if (Math.abs(serverCalculatedSubTotal - clientTotal) > tolerance) {
+        if (Math.abs(expectedTotal - clientTotal) > tolerance) {
             console.error(`[FRAUD ALERT] Price mismatch! 
                 Client Total: ${clientTotal}, 
-                Server Calc: ${serverCalculatedSubTotal}, 
+                Expected Total (Server): ${expectedTotal},
+                Server SubTotal Calc: ${serverCalculatedSubTotal}, 
                 Status: ${data.status},
                 Tolerance: ${tolerance},
                 Items Count: ${items.length},
@@ -203,13 +211,13 @@ export class TransactionService {
                 userId,
                 action: isBill ? 'BILL_PRICE_DISCREPANCY' : 'FRAUD_PRICE_MISMATCH_ATTEMPT',
                 tableName: 'sales',
-                oldData: JSON.stringify({ items, clientTotal, serverCalculatedSubTotal, tolerance }),
+                oldData: JSON.stringify({ items, clientTotal, expectedTotal, serverCalculatedSubTotal, tolerance }),
                 newData: JSON.stringify({ status: 'REJECTED_BY_SERVER_ARMOR_V2' }),
                 createdAt: new Date()
             });
 
             const errorMsg = isBill 
-                ? `Sinkronisasi Harga Gagal (V2): Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${serverCalculatedSubTotal}).`
+                ? `Sinkronisasi Harga Gagal (V2): Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${expectedTotal}).`
                 : 'Manipulasi Harga Terdeteksi (V2): Total harga tidak sesuai dengan database server.';
             throw new Error(errorMsg);
         }
@@ -236,9 +244,9 @@ export class TransactionService {
                 discountId: data.discountId || null, // Keep for backwards compatibility
                 discountIds: Array.isArray(data.discountIds) ? JSON.stringify(data.discountIds) : null,
                 subTotal: serverCalculatedSubTotal.toString(),
-                totalAmount: serverCalculatedSubTotal.toString(), // Using server calculated for security
-                taxAmount: data.taxAmount?.toString() || '0',
-                discountAmount: data.discountTotal?.toString() || data.discountAmount?.toString() || '0',
+                totalAmount: expectedTotal.toString(), // Using server calculated/verified total
+                taxAmount: clientTax.toString(),
+                discountAmount: clientDiscountTotal.toString(),
                 paymentMethod: data.paymentMethod || 'CASH',
                 paymentReferenceId: data.paymentReferenceId || null,
                 status: data.status || 'PAID',
