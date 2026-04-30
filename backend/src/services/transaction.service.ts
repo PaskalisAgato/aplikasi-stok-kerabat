@@ -166,11 +166,23 @@ export class TransactionService {
 
         // 1. HARDENING: Re-validate prices from DB (Source of Truth)
         const recipeIds = items.map((i: any) => i.recipeId);
-        const dbRecipes = await db.select({ id: schema.recipes.id, price: schema.recipes.price, costPrice: schema.recipes.costPrice })
+        const dbRecipes = await db.select({ 
+            id: schema.recipes.id, 
+            price: schema.recipes.price, 
+            priceStand: schema.recipes.priceStand, 
+            costPrice: schema.recipes.costPrice 
+        })
             .from(schema.recipes)
             .where(inArray(schema.recipes.id, recipeIds));
         
-        const priceMap = new Map(dbRecipes.map(r => [r.id, parseFloat(r.price)]));
+        const isStand = data.orderSource === 'STAND';
+        const priceMap = new Map(dbRecipes.map(r => {
+            const basePrice = parseFloat(r.price);
+            const standPrice = parseFloat(r.priceStand);
+            // Follow frontend logic: Use priceStand if STAND mode and priceStand > 0
+            const finalPrice = (isStand && standPrice > 0) ? standPrice : basePrice;
+            return [r.id, finalPrice];
+        }));
         const costMap = new Map(dbRecipes.map(r => [r.id, parseFloat(r.costPrice)]));
         
         let serverCalculatedSubTotal = 0;
