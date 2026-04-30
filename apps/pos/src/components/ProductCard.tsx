@@ -41,6 +41,11 @@ export const ProductCard = memo(({
             </div>
         </div>
     );
-}, (prev, next) => prev.item.id === next.item.id && prev.saleCount === next.saleCount && prev.isHighlighted === next.isHighlighted);
+}, (prev, next) => 
+    prev.item.id === next.item.id && 
+    prev.item.price === next.item.price && 
+    prev.saleCount === next.saleCount && 
+    prev.isHighlighted === next.isHighlighted
+);
 
 ProductCard.displayName = 'ProductCard';
