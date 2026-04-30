@@ -89,7 +89,7 @@ export const POSFooter: React.FC<POSFooterProps> = ({
             {paymentMethod === 'CASH' && (
                 <div className="bg-black/10 rounded-xl p-2 border border-white/5 space-y-2">
                     <div className="flex flex-wrap gap-1.5">
-                        {[10000, 20000, 50000, 100000, totalSalesValue].map((amount, idx) => (
+                        {[10000, 20000, 50000, 100000, finalTotal].map((amount, idx) => (
                             <button 
                                 key={idx}
                                 onClick={() => setAmountPaid(amount)}
@@ -99,7 +99,7 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                                         : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:bg-white/5'
                                 }`}
                             >
-                                {amount === totalSalesValue ? 'PAS' : `${amount / 1000}k`}
+                                {amount === finalTotal ? 'PAS' : `${amount / 1000}k`}
                             </button>
                         ))}
                     </div>
@@ -175,9 +175,9 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                     <button 
                         id="btn-checkout"
                         onClick={() => handleCheckout(true)}
-                        disabled={isCheckingOut || totalItems === 0 || (paymentMethod === 'CASH' && amountPaid < totalSalesValue)}
+                        disabled={isCheckingOut || totalItems === 0 || (paymentMethod === 'CASH' && amountPaid < finalTotal)}
                         className={`flex-1 h-12 rounded-lg font-bold text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
-                            (paymentMethod === 'CASH' && amountPaid >= totalSalesValue) || paymentMethod !== 'CASH'
+                            (paymentMethod === 'CASH' && amountPaid >= finalTotal) || paymentMethod !== 'CASH'
                                 ? 'bg-primary text-slate-950 shadow-primary/20' 
                                 : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
                         }`}

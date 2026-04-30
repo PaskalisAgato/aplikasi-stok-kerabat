@@ -230,7 +230,7 @@ export class TransactionService {
 
             const errorMsg = isBill 
                 ? `Sinkronisasi Harga Gagal (V2): Total bill (Rp ${clientTotal}) berbeda dengan harga server (Rp ${expectedTotal}).`
-                : 'Manipulasi Harga Terdeteksi (V2): Total harga tidak sesuai dengan database server.';
+                : `Manipulasi Harga Terdeteksi (V2): Total harga (Rp ${clientTotal}) tidak sesuai dengan database server (Rp ${expectedTotal}). [S:${serverCalculatedSubTotal}, D:${clientDiscountTotal}]`;
             throw new Error(errorMsg);
         }
 
