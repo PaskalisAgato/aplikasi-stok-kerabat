@@ -205,8 +205,8 @@ export class TransactionService {
         const expectedTotal = serverCalculatedSubTotal - clientDiscountTotal + clientTax + clientService;
 
         // Loosen price check for OPEN bills (unpaid table orders) to avoid minor frontend-backend rounding issues
-        // but keep it strict for PAID transactions
-        const tolerance = isBill ? 100 : 0.01; 
+        // but keep it strict for PAID transactions (tolerance 1 IDR to allow for minor float rounding)
+        const tolerance = isBill ? 100 : 1; 
 
         if (Math.abs(expectedTotal - clientTotal) > tolerance) {
             console.error(`[FRAUD ALERT] Price mismatch! 
