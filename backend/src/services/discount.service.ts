@@ -152,7 +152,7 @@ export class DiscountService {
             };
         });
 
-        const subtotal = cartItems.reduce((sum, i) => sum + (Number(i.price) * i.quantity), 0);
+        const subtotal = cartItems.reduce((sum, i) => sum + (Number(i.price || 0) * (i.quantity || 0)), 0);
 
         const applicable: any[] = [];
         let hasExclusiveApplied = false;
@@ -164,7 +164,7 @@ export class DiscountService {
             try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
 
             // ── Skip if orderSource doesn't match ────────────────────────
-            if (conditions.orderSource && conditions.orderSource !== orderSource) {
+            if (conditions.orderSource && orderSource && conditions.orderSource !== orderSource) {
                  console.log(`[PROMO SKIP] "${discount.name}" - Order source mismatch (wanted: ${conditions.orderSource}, current: ${orderSource})`);
                  continue;
             }
@@ -220,10 +220,10 @@ export class DiscountService {
             if (conditions.productIds && Array.isArray(conditions.productIds) && conditions.productIds.length > 0) {
                 const targetIds = conditions.productIds.map(Number);
                 targetItems = itemsWithMetadata.filter(i => targetIds.includes(i.recipeId));
-                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
+                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price || 0) * (i.quantity || 0)), 0);
             } else if (conditions.category) {
                 targetItems = itemsWithMetadata.filter(i => i.category === conditions.category);
-                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
+                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price || 0) * (i.quantity || 0)), 0);
             }
 
             // Quick function to resolve value
@@ -231,9 +231,9 @@ export class DiscountService {
                 if (conditions.flatPrice) {
                     const flat = parseFloat(conditions.flatPrice);
                     const res = targetItems.reduce((sum, item) => {
-                        const price = Number(item.price);
+                        const price = Number(item.price || 0);
                         const diff = price - flat;
-                        return sum + (diff > 0 ? diff * item.quantity : 0);
+                        return sum + (diff > 0 ? diff * (item.quantity || 0) : 0);
                     }, 0);
                     console.log(`[PROMO CALC] "${discount.name}" FlatPrice:${flat} | BasePrice:${base} | Result:${res}`);
                     return res;
