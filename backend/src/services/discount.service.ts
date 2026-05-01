@@ -125,7 +125,8 @@ export class DiscountService {
         cartItems: { recipeId: number; quantity: number; price: number }[],
         memberLevel?: string,
         memberId?: number,
-        voucherCode?: string
+        voucherCode?: string,
+        orderSource?: string
     ) {
         const allActive = await this.getAllDiscounts(true); // already sorted by priority DESC
         const now = new Date();
@@ -156,9 +157,18 @@ export class DiscountService {
         const applicable: any[] = [];
         let hasExclusiveApplied = false;
 
-        console.log(`[PROMO EVAL] Starting: ${itemsWithMetadata.length} items, subtotal: ${subtotal}, member: ${memberId}, code: ${voucherCode}`);
+        console.log(`[PROMO EVAL] Starting: ${itemsWithMetadata.length} items, subtotal: ${subtotal}, member: ${memberId}, source: ${orderSource}, code: ${voucherCode}`);
         
         for (const discount of allActive) {
+            let conditions: any = {};
+            try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
+
+            // ── Skip if orderSource doesn't match ────────────────────────
+            if (conditions.orderSource && conditions.orderSource !== orderSource) {
+                 console.log(`[PROMO SKIP] "${discount.name}" - Order source mismatch (wanted: ${conditions.orderSource}, current: ${orderSource})`);
+                 continue;
+            }
+
             // ── Skip if budget is exhausted ───────────────────────────────
             if (discount.budgetLimit) {
                 const remaining = parseFloat(discount.budgetLimit) - parseFloat(discount.budgetUsed || '0');
@@ -191,9 +201,6 @@ export class DiscountService {
                 console.log(`[PROMO SKIP] "${discount.name}" - Expired (${discount.endDate})`);
                 continue;
             }
-
-            let conditions: any = {};
-            try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
 
             // ── Minimum purchase ───────────────────────────────────────────
             const minPurchase = parseFloat(discount.minPurchase || '0');

@@ -73,11 +73,11 @@ router.delete('/:id', requireAdmin, async (req: Request, res: Response) => {
 // Body: { items: [...], memberLevel?: string, memberId?: number, voucherCode?: string }
 router.post('/evaluate', requireAuth, async (req: Request, res: Response) => {
     try {
-        const { items, memberLevel, memberId, voucherCode } = req.body;
+        const { items, memberLevel, memberId, voucherCode, orderSource } = req.body;
         if (!items || !Array.isArray(items)) {
             return res.status(400).json({ success: false, message: 'items array required' });
         }
-        const applicable = await DiscountService.evaluateDiscounts(items, memberLevel, memberId, voucherCode);
+        const applicable = await DiscountService.evaluateDiscounts(items, memberLevel, memberId, voucherCode, orderSource);
         res.json({ success: true, data: applicable });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });

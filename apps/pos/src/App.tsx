@@ -74,7 +74,7 @@ export default function App() {
         pointsToRedeem, setPointsToRedeem, selectedDiscounts, setSelectedDiscounts, toggleDiscount,
         availableDiscounts, voucherCode, setVoucherCode, showDiscountPanel, setShowDiscountPanel,
         loyaltySettings, searchMembers, loadDiscounts, handleCreateMember, resetLoyaltyState
-    } = useLoyalty(activeCartItems, totalSalesValue, sales);
+    } = useLoyalty(activeCartItems, totalSalesValue, sales, orderSource);
 
     const { isCheckingOut, handleCheckout: checkoutLogic } = useCheckout();
 

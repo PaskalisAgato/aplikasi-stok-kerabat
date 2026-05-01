@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { useNotification } from '@shared/components/NotificationProvider';
 
-export function useLoyalty(activeCartItems: any[], totalSalesValue: number, sales: Record<number, number>) {
+export function useLoyalty(activeCartItems: any[], totalSalesValue: number, sales: Record<number, number>, orderSource: string) {
     const [selectedMember, setSelectedMember] = useState<{ id: number; name: string; phone: string; points: number; level: string } | null>(null);
     const [memberSearch, setMemberSearch] = useState('');
     const [memberSearchResults, setMemberSearchResults] = useState<any[]>([]);
@@ -47,7 +47,8 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number, sale
             const res = await apiClient.post('/discounts/evaluate', { 
                 items, 
                 memberLevel: selectedMember?.level,
-                voucherCode: voucherCode.trim().toUpperCase() || undefined
+                voucherCode: voucherCode.trim().toUpperCase() || undefined,
+                orderSource
             }) as any;
             const fetched = res?.data || [];
             setAvailableDiscounts(fetched);
@@ -74,11 +75,11 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number, sale
                 }
             }
         } catch { setAvailableDiscounts([]); }
-    }, [activeCartItems, sales, selectedMember, voucherCode]); // added sales to deps
+    }, [activeCartItems, sales, selectedMember, voucherCode, orderSource]); // added orderSource to deps
 
     useEffect(() => {
         loadDiscounts();
-    }, [totalSalesValue, selectedMember?.id, voucherCode, loadDiscounts]);
+    }, [totalSalesValue, selectedMember?.id, voucherCode, orderSource, loadDiscounts]);
 
     const handleCreateMember = async () => {
         if (!newMemberName || !newMemberPhone) {
