@@ -279,6 +279,8 @@ export class DiscountService {
                     
                     const hasAll = targetIds.every((tid: number) => itemsWithMetadata.some(i => i.recipeId === tid));
                     
+                    console.log(`[PROMO BUNDLE] "${discount.name}" -> target: ${targetIds} | hasAll: ${hasAll} | cart: ${itemsWithMetadata.map(i => i.recipeId)}`);
+                    
                     if (hasAll) {
                         // How many full sets?
                         const setQty = Math.min(...targetIds.map((tid: number) => {
