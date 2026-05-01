@@ -19,8 +19,8 @@ ALTER TABLE discounts ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT
 ALTER TABLE discounts ADD COLUMN IF NOT EXISTS voucher_code TEXT UNIQUE DEFAULT NULL;
 
 -- Audit Trail
-ALTER TABLE discounts ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(id);
-ALTER TABLE discounts ADD COLUMN IF NOT EXISTS updated_by TEXT REFERENCES users(id);
+ALTER TABLE discounts ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES "user"(id);
+ALTER TABLE discounts ADD COLUMN IF NOT EXISTS updated_by TEXT REFERENCES "user"(id);
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS discounts_voucher_code_idx ON discounts(voucher_code);
