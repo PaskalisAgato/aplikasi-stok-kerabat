@@ -52,27 +52,29 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
             const fetched = res?.data || [];
             setAvailableDiscounts(fetched);
             
+            // ✅ FIX: Keep selectedDiscount amounts in sync with freshly evaluated ones
+            setSelectedDiscounts(prev => {
+                if (prev.length === 0) return prev;
+                return prev.map(sel => {
+                    const fresh = fetched.find((f: any) => f.id === sel.id);
+                    return fresh ? { ...sel, discountAmount: fresh.discountAmount } : sel;
+                }).filter(sel => fetched.some((f: any) => f.id === sel.id)); // remove no-longer-valid
+            });
+
             // Auto-select voucher if valid and not already selected
             if (voucherCode && fetched.length > 0) {
                 const voucherPromo = fetched.find((f: any) => f.voucherCode === voucherCode.trim().toUpperCase());
-                if (voucherPromo && !selectedDiscounts.some(d => d.id === voucherPromo.id)) {
+                if (voucherPromo) {
                     setSelectedDiscounts(prev => {
+                        if (prev.some(d => d.id === voucherPromo.id)) return prev; // already there
                         if (voucherPromo.isExclusive) return [voucherPromo];
                         const stackable = prev.filter(d => d.isStackable && !voucherPromo.isExclusive);
                         return [...stackable, voucherPromo];
                     });
                 }
             }
-
-            if (selectedDiscounts.length > 0) {
-                // Remove discounts that are no longer applicable
-                const validDiscounts = selectedDiscounts.filter(d => fetched.some((f: any) => f.id === d.id));
-                if (validDiscounts.length !== selectedDiscounts.length) {
-                    setSelectedDiscounts(validDiscounts);
-                }
-            }
         } catch { setAvailableDiscounts([]); }
-    }, [activeCartItems, selectedMember, selectedDiscounts, voucherCode]);
+    }, [activeCartItems, selectedMember, voucherCode]); // removed selectedDiscounts from deps to prevent loop
 
     useEffect(() => {
         loadDiscounts();
