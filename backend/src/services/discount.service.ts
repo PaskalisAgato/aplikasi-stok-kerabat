@@ -278,20 +278,33 @@ export class DiscountService {
                     const targetIds = conditions.productIds.map(Number);
                     
                     const hasAll = targetIds.every((tid: number) => itemsWithMetadata.some(i => i.recipeId === tid));
-                    console.log(`[PROMO BUNDLE] "${discount.name}" - TargetIds: ${targetIds} | InCartIds: ${cartProductIds} | HasAll: ${hasAll}`);
                     
                     if (hasAll) {
-                        const flat = parseFloat(discount.value);
-                        const currentPrice = targetIds.reduce((sum: number, tid: number) => {
+                        // How many full sets?
+                        const setQty = Math.min(...targetIds.map((tid: number) => {
+                            const found = itemsWithMetadata.find(i => i.recipeId === tid);
+                            return found ? found.quantity : 0;
+                        }));
+
+                        const flat = parseFloat(conditions.flatPrice || discount.value || '0');
+                        if (flat <= 0) {
+                            console.log(`[PROMO SKIP] "${discount.name}" - Invalid flat price for bundling`);
+                            break;
+                        }
+
+                        const bundleBaseSetPrice = targetIds.reduce((sum: number, tid: number) => {
                             const item = itemsWithMetadata.find(i => i.recipeId === tid);
                             return sum + (Number(item?.price || 0));
                         }, 0);
                         
-                        console.log(`[PROMO BUNDLE] "${discount.name}" - CurrentPrice Sum: ${currentPrice} | BundleFlat: ${flat}`);
+                        const totalOriginalPrice = bundleBaseSetPrice * setQty;
+                        const totalBundledPrice = flat * setQty;
 
-                        if (currentPrice > flat) {
+                        console.log(`[PROMO BUNDLE] "${discount.name}" - Sets: ${setQty} | Original: ${totalOriginalPrice} | BundleFlat: ${totalBundledPrice}`);
+
+                        if (totalOriginalPrice > totalBundledPrice) {
                             applies = true;
-                            discountAmount = currentPrice - flat;
+                            discountAmount = totalOriginalPrice - totalBundledPrice;
                         }
                     }
                     if (discount.discountCap) {
