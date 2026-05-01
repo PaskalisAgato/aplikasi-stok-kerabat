@@ -1,4 +1,4 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 
@@ -7,10 +7,10 @@ export class DiscountService {
         if (activeOnly) {
             return await db.select().from(schema.discounts)
                 .where(eq(schema.discounts.isActive, true))
-                .orderBy(sql`${schema.discounts.priority} DESC`);
+                .orderBy(desc(schema.discounts.priority));
         }
         return await db.select().from(schema.discounts)
-            .orderBy(sql`${schema.discounts.priority} DESC`);
+            .orderBy(desc(schema.discounts.priority));
     }
 
     static async getDiscountById(id: number) {
@@ -132,6 +132,20 @@ export class DiscountService {
         const currentHour = now.getHours();
         const currentDay = now.getDay(); // 0=Sun, 6=Sat
         const cartProductIds = cartItems.map(i => i.recipeId);
+        
+        // Fetch recipes to know their categories
+        let cartRecipes: { id: number, category: string }[] = [];
+        if (cartProductIds.length > 0) {
+            cartRecipes = await db.select({ id: schema.recipes.id, category: schema.recipes.category })
+                .from(schema.recipes)
+                .where(inArray(schema.recipes.id, cartProductIds));
+        }
+
+        const itemsWithMetadata = cartItems.map(item => {
+            const r = cartRecipes.find(cr => cr.id === item.recipeId);
+            return { ...item, category: r?.category || 'Unknown' };
+        });
+
         const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
         const applicable: any[] = [];
@@ -168,30 +182,51 @@ export class DiscountService {
             let applies = false;
             let discountAmount = 0;
 
+            // Calculate targeted items
+            let targetedSubtotal = subtotal;
+            let targetItems = itemsWithMetadata;
+
+            if (conditions.productIds && conditions.productIds.length > 0) {
+                targetItems = itemsWithMetadata.filter(i => conditions.productIds.includes(i.recipeId));
+                targetedSubtotal = targetItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+            } else if (conditions.category) {
+                targetItems = itemsWithMetadata.filter(i => i.category === conditions.category);
+                targetedSubtotal = targetItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+            }
+
+            // Quick function to resolve value
+            const calcAmount = (base: number) => {
+                if (conditions.flatPrice) {
+                    // Flat price means discount is: Normal Base Total - Flat Price
+                    // Example: Normally 16k, Flat 10k -> Discount 6k
+                    const diff = base - parseFloat(conditions.flatPrice);
+                    return diff > 0 ? diff : 0; // Negative means it's cheaper normally, no discount.
+                }
+                if (conditions.discountType === 'percent' || discount.type === 'percent') {
+                     return (base * parseFloat(discount.value)) / 100;
+                }
+                return parseFloat(discount.value);
+            };
+
             switch (discount.type) {
                 case 'percent':
-                    applies = true;
-                    discountAmount = (subtotal * parseFloat(discount.value)) / 100;
-                    // Apply Discount Cap
+                case 'nominal':
+                    if (targetItems.length > 0) {
+                        applies = true;
+                        discountAmount = calcAmount(targetedSubtotal);
+                    }
                     if (discount.discountCap) {
                         discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
-                    break;
-
-                case 'nominal':
-                    applies = true;
-                    discountAmount = parseFloat(discount.value);
                     break;
 
                 case 'time-based': {
                     const dayMatch = !conditions.days || conditions.days.length === 0 || conditions.days.includes(currentDay);
                     const hourMatch = conditions.startHour === undefined ||
                         (currentHour >= conditions.startHour && currentHour < conditions.endHour);
-                    applies = dayMatch && hourMatch;
+                    applies = dayMatch && hourMatch && targetItems.length > 0;
                     if (applies) {
-                        discountAmount = conditions.discountType === 'percent'
-                            ? (subtotal * parseFloat(discount.value)) / 100
-                            : parseFloat(discount.value);
+                        discountAmount = calcAmount(targetedSubtotal);
                         if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
@@ -199,12 +234,42 @@ export class DiscountService {
 
                 case 'bundling': {
                     if (!conditions.productIds || conditions.productIds.length === 0) break;
+                    // For bundle, user must have EVERY product id in the bundle
                     applies = conditions.productIds.every((pid: number) => cartProductIds.includes(pid));
                     if (applies) {
-                        discountAmount = conditions.discountType === 'percent'
-                            ? (subtotal * parseFloat(discount.value)) / 100
-                            : parseFloat(discount.value);
+                        const bundleSubtotal = targetItems.reduce((s, i) => s + i.price, 0); // Price of 1 set
+                        discountAmount = calcAmount(bundleSubtotal);
                         if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
+                    }
+                    break;
+                }
+
+                case 'mix_and_match': {
+                    // e.g., Buy 2 Minuman for a flat price of 25.000
+                    const reqQty = conditions.minQty || 2;
+                    const itemsInPool = targetItems.map(i => ({ price: i.price, qty: i.quantity })).sort((a,b) => b.price - a.price);
+                    
+                    let totalEligibleQty = targetItems.reduce((sum, i) => sum + i.quantity, 0);
+                    if (totalEligibleQty >= reqQty) {
+                        applies = true;
+                        const validSets = Math.floor(totalEligibleQty / reqQty);
+                        
+                        // We discount the N most expensive eligible items per set to maximize benefit
+                        let discountedTotalValue = 0;
+                        let itemsToGrab = validSets * reqQty;
+                        for (const it of itemsInPool) {
+                            if (itemsToGrab <= 0) break;
+                            const qtyToTake = Math.min(it.qty, itemsToGrab);
+                            discountedTotalValue += (qtyToTake * it.price);
+                            itemsToGrab -= qtyToTake;
+                        }
+                        
+                        if (conditions.flatPrice) {
+                            const expectedPrice = validSets * parseFloat(conditions.flatPrice);
+                            discountAmount = discountedTotalValue - expectedPrice;
+                        } else {
+                            discountAmount = calcAmount(discountedTotalValue);
+                        }
                     }
                     break;
                 }
@@ -215,9 +280,7 @@ export class DiscountService {
                     const requiredLevel = conditions.minLevel || 'bronze';
                     applies = (levels[memberLevel] || 0) >= (levels[requiredLevel] || 0);
                     if (applies) {
-                        discountAmount = conditions.discountType === 'percent'
-                            ? (subtotal * parseFloat(discount.value)) / 100
-                            : parseFloat(discount.value);
+                        discountAmount = calcAmount(subtotal);
                         if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;

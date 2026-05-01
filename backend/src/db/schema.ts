@@ -185,13 +185,13 @@ export const discounts = pgTable('discounts', {
     endDate: timestamp('end_date'),
     minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).default('0').notNull(),
     // Financial Controls
-    discountCap: decimal('discount_cap', { precision: 12, scale: 2 }).default(null), // Max rupiah deduction for % discounts. NULL = no cap
-    budgetLimit: decimal('budget_limit', { precision: 12, scale: 2 }).default(null), // Total budget in Rp. Auto-stops when reached. NULL = unlimited
+    discountCap: decimal('discount_cap', { precision: 12, scale: 2 }), // Max rupiah deduction for % discounts. NULL = no cap
+    budgetLimit: decimal('budget_limit', { precision: 12, scale: 2 }), // Total budget in Rp. Auto-stops when reached. NULL = unlimited
     budgetUsed: decimal('budget_used', { precision: 12, scale: 2 }).default('0').notNull(), // Running total of discount given
     // Quota & Fraud Prevention
-    totalQuota: integer('total_quota').default(null), // Max total redemptions. NULL = unlimited
+    totalQuota: integer('total_quota'), // Max total redemptions. NULL = unlimited
     totalUsed: integer('total_used').default(0).notNull(), // Running count of redemptions
-    limitPerUser: integer('limit_per_user').default(null), // Max uses per member. NULL = unlimited
+    limitPerUser: integer('limit_per_user'), // Max uses per member. NULL = unlimited
     // Priority & Distribution
     priority: integer('priority').default(5).notNull(), // 1-10, higher = evaluated first
     voucherCode: text('voucher_code').unique(), // For voucher-type promos. NULL = auto-apply
