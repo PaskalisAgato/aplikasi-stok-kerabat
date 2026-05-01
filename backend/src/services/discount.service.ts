@@ -321,6 +321,7 @@ export class DiscountService {
                 }
             }
 
+            console.log(`[PROMO DEBUG] "${discount.name}" type=${discount.type} applies=${applies} discountAmount=${discountAmount} targetItems=${targetItems.length} productIds=${JSON.stringify(conditions.productIds)} flatPrice=${conditions.flatPrice}`);
             if (!applies || discountAmount <= 0) continue;
 
             // ── Cap discountAmount if it would exceed remaining budget ─────
