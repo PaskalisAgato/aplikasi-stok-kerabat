@@ -142,8 +142,13 @@ export class DiscountService {
         }
 
         const itemsWithMetadata = cartItems.map(item => {
-            const r = cartRecipes.find(cr => cr.id === item.recipeId);
-            return { ...item, category: r?.category || 'Unknown' };
+            const recipeId = Number(item.recipeId);
+            const r = cartRecipes.find(cr => Number(cr.id) === recipeId);
+            return { 
+                ...item, 
+                recipeId, // Coerce to number
+                category: r?.category || 'Unknown' 
+            };
         });
 
         const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -186,26 +191,28 @@ export class DiscountService {
             let targetedSubtotal = subtotal;
             let targetItems = itemsWithMetadata;
 
-            if (conditions.productIds && conditions.productIds.length > 0) {
-                targetItems = itemsWithMetadata.filter(i => conditions.productIds.includes(i.recipeId));
-                targetedSubtotal = targetItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+            if (conditions.productIds && Array.isArray(conditions.productIds) && conditions.productIds.length > 0) {
+                const targetIds = conditions.productIds.map(Number);
+                targetItems = itemsWithMetadata.filter(i => targetIds.includes(i.recipeId));
+                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
             } else if (conditions.category) {
                 targetItems = itemsWithMetadata.filter(i => i.category === conditions.category);
-                targetedSubtotal = targetItems.reduce((s, i) => s + (i.price * i.quantity), 0);
+                targetedSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
             }
 
             // Quick function to resolve value
             const calcAmount = (base: number) => {
                 if (conditions.flatPrice) {
-                    // Flat price means each targeted item is sold at flatPrice
                     const flat = parseFloat(conditions.flatPrice);
                     return targetItems.reduce((sum, item) => {
-                        const diff = item.price - flat;
+                        const price = Number(item.price);
+                        const diff = price - flat;
                         return sum + (diff > 0 ? diff * item.quantity : 0);
                     }, 0);
                 }
                 if (conditions.discountType === 'percent' || discount.type === 'percent') {
-                     return (base * parseFloat(discount.value)) / 100;
+                     const val = parseFloat(discount.value);
+                     return (base * val) / 100;
                 }
                 return parseFloat(discount.value);
             };
@@ -321,7 +328,7 @@ export class DiscountService {
                 }
             }
 
-            console.log(`[PROMO DEBUG] "${discount.name}" type=${discount.type} applies=${applies} discountAmount=${discountAmount} targetItems=${targetItems.length} productIds=${JSON.stringify(conditions.productIds)} flatPrice=${conditions.flatPrice}`);
+            console.log(`[PROMO EVAL] "${discount.name}" (${discount.type}) | targetItems: ${targetItems.length} | subtotal: ${targetedSubtotal} | calc: ${discountAmount} | applies: ${applies}`);
             if (!applies || discountAmount <= 0) continue;
 
             // ── Cap discountAmount if it would exceed remaining budget ─────
