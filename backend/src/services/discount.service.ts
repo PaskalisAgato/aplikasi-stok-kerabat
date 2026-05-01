@@ -197,10 +197,12 @@ export class DiscountService {
             // Quick function to resolve value
             const calcAmount = (base: number) => {
                 if (conditions.flatPrice) {
-                    // Flat price means discount is: Normal Base Total - Flat Price
-                    // Example: Normally 16k, Flat 10k -> Discount 6k
-                    const diff = base - parseFloat(conditions.flatPrice);
-                    return diff > 0 ? diff : 0; // Negative means it's cheaper normally, no discount.
+                    // Flat price means each targeted item is sold at flatPrice
+                    const flat = parseFloat(conditions.flatPrice);
+                    return targetItems.reduce((sum, item) => {
+                        const diff = item.price - flat;
+                        return sum + (diff > 0 ? diff * item.quantity : 0);
+                    }, 0);
                 }
                 if (conditions.discountType === 'percent' || discount.type === 'percent') {
                      return (base * parseFloat(discount.value)) / 100;
@@ -237,8 +239,26 @@ export class DiscountService {
                     // For bundle, user must have EVERY product id in the bundle
                     applies = conditions.productIds.every((pid: number) => cartProductIds.includes(pid));
                     if (applies) {
-                        const bundleSubtotal = targetItems.reduce((s, i) => s + i.price, 0); // Price of 1 set
-                        discountAmount = calcAmount(bundleSubtotal);
+                        // Find how many sets are bought
+                        const setQty = Math.min(...conditions.productIds.map((pid: number) => {
+                            const found = targetItems.find(i => i.recipeId === pid);
+                            return found ? found.quantity : 0;
+                        }));
+
+                        const bundleBaseSetPrice = targetItems
+                            .filter(i => conditions.productIds.includes(i.recipeId))
+                            .reduce((s, i) => s + i.price, 0); 
+                            
+                        const bundleSubtotal = bundleBaseSetPrice * setQty;
+
+                        if (conditions.flatPrice) {
+                           const diff = bundleSubtotal - (setQty * parseFloat(conditions.flatPrice));
+                           discountAmount = diff > 0 ? diff : 0;
+                        } else {
+                           discountAmount = calcAmount(bundleSubtotal);
+                           // Prevent flatPrice from duplicating inside calcAmount, so we bypass calcAmount for flatPrice here
+                        }
+                        
                         if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
