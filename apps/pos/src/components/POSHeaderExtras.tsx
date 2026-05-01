@@ -41,6 +41,8 @@ interface POSHeaderExtrasProps {
     view: string;
     printQueueCount: number;
     pointsToRedeem: number;
+    voucherCode: string;
+    setVoucherCode: (code: string) => void;
 }
 
 export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
@@ -62,7 +64,7 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
     showNotification,
     isActionMenuOpen, setIsActionMenuOpen,
     navigateTo, view, printQueueCount,
-    pointsToRedeem
+    pointsToRedeem, voucherCode, setVoucherCode
 }) => {
     return (
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
@@ -217,13 +219,30 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                         <div className="flex items-center justify-between border-b border-white/10 pb-2">
                                             <h4 className="font-black text-sm uppercase tracking-widest text-[var(--text-main)]">Pilih Diskon</h4>
                                             {selectedDiscounts.length > 0 && (
-                                                <button onClick={() => { setSelectedDiscounts([]); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus Semua</button>
+                                                <button onClick={() => { setSelectedDiscounts([]); setVoucherCode(''); setShowDiscountPanel(false); }} className="text-[10px] text-red-400 font-bold hover:text-red-300">Hapus Semua</button>
                                             )}
                                         </div>
+                                        
+                                        <div className="space-y-3">
+                                            <div className="relative group">
+                                                <input
+                                                    placeholder="KODE VOUCHER (OPSIONAL)"
+                                                    value={voucherCode}
+                                                    onChange={e => setVoucherCode(e.target.value.toUpperCase())}
+                                                    className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl pl-4 pr-10 py-3 text-xs text-[var(--text-main)] outline-none focus:border-primary/40 shadow-inner font-black tracking-widest placeholder:opacity-50"
+                                                />
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                    <span className={`material-symbols-outlined text-sm ${voucherCode ? 'text-primary' : 'text-[var(--text-muted)] animate-pulse'}`}>
+                                                        {voucherCode ? 'verified' : 'confirmation_number'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
                                             {availableDiscounts.length === 0 ? (
                                                 <p className="text-[10px] text-[var(--text-muted)] text-center py-4 bg-[var(--bg-app)] rounded-xl border border-[var(--border-dim)]">Tidak ada diskon berlaku</p>
-                                            ) : availableDiscounts.map((d) => {
+                                            ) : availableDiscounts.map((d: any) => {
                                                 const isSelected = selectedDiscounts.some(sd => sd.id === d.id);
                                                 return (
                                                     <button key={d.id} onClick={() => { 

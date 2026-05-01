@@ -1,13 +1,16 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 
 export class DiscountService {
     static async getAllDiscounts(activeOnly = false) {
         if (activeOnly) {
-            return await db.select().from(schema.discounts).where(eq(schema.discounts.isActive, true));
+            return await db.select().from(schema.discounts)
+                .where(eq(schema.discounts.isActive, true))
+                .orderBy(sql`${schema.discounts.priority} DESC`);
         }
-        return await db.select().from(schema.discounts);
+        return await db.select().from(schema.discounts)
+            .orderBy(sql`${schema.discounts.priority} DESC`);
     }
 
     static async getDiscountById(id: number) {
@@ -15,7 +18,7 @@ export class DiscountService {
         return d || null;
     }
 
-    static async createDiscount(data: any) {
+    static async createDiscount(data: any, userId?: string) {
         const [created] = await db.insert(schema.discounts).values({
             name: data.name,
             type: data.type,
@@ -24,13 +27,26 @@ export class DiscountService {
             minPurchase: data.minPurchase?.toString() || '0',
             isActive: data.isActive ?? true,
             isStackable: data.isStackable ?? false,
+            isExclusive: data.isExclusive ?? false,
             startDate: data.startDate ? new Date(data.startDate) : null,
             endDate: data.endDate ? new Date(data.endDate) : null,
+            // Financial Controls
+            discountCap: data.discountCap ? data.discountCap.toString() : null,
+            budgetLimit: data.budgetLimit ? data.budgetLimit.toString() : null,
+            // Quota
+            totalQuota: data.totalQuota ? parseInt(data.totalQuota) : null,
+            limitPerUser: data.limitPerUser ? parseInt(data.limitPerUser) : null,
+            // Priority & Distribution
+            priority: data.priority ? parseInt(data.priority) : 5,
+            voucherCode: data.voucherCode ? data.voucherCode.toUpperCase().trim() : null,
+            // Audit
+            createdBy: userId || null,
+            updatedBy: userId || null,
         }).returning();
         return created;
     }
 
-    static async updateDiscount(id: number, data: any) {
+    static async updateDiscount(id: number, data: any, userId?: string) {
         const updateData: any = {};
         if (data.name !== undefined) updateData.name = data.name;
         if (data.type !== undefined) updateData.type = data.type;
@@ -38,9 +54,21 @@ export class DiscountService {
         if (data.conditions !== undefined) updateData.conditions = JSON.stringify(data.conditions);
         if (data.isActive !== undefined) updateData.isActive = data.isActive;
         if (data.isStackable !== undefined) updateData.isStackable = data.isStackable;
+        if (data.isExclusive !== undefined) updateData.isExclusive = data.isExclusive;
         if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase.toString();
         if (data.startDate !== undefined) updateData.startDate = data.startDate ? new Date(data.startDate) : null;
         if (data.endDate !== undefined) updateData.endDate = data.endDate ? new Date(data.endDate) : null;
+        // Financial Controls
+        if (data.discountCap !== undefined) updateData.discountCap = data.discountCap ? data.discountCap.toString() : null;
+        if (data.budgetLimit !== undefined) updateData.budgetLimit = data.budgetLimit ? data.budgetLimit.toString() : null;
+        // Quota
+        if (data.totalQuota !== undefined) updateData.totalQuota = data.totalQuota ? parseInt(data.totalQuota) : null;
+        if (data.limitPerUser !== undefined) updateData.limitPerUser = data.limitPerUser ? parseInt(data.limitPerUser) : null;
+        // Priority & Distribution
+        if (data.priority !== undefined) updateData.priority = parseInt(data.priority);
+        if (data.voucherCode !== undefined) updateData.voucherCode = data.voucherCode ? data.voucherCode.toUpperCase().trim() : null;
+        // Audit
+        if (userId) updateData.updatedBy = userId;
 
         const [updated] = await db.update(schema.discounts).set(updateData).where(eq(schema.discounts.id, id)).returning();
         if (!updated) throw new Error('Diskon tidak ditemukan');
@@ -52,11 +80,54 @@ export class DiscountService {
     }
 
     /**
+     * Get per-promo analytics stats
+     */
+    static async getDiscountStats(id: number) {
+        const discount = await this.getDiscountById(id);
+        if (!discount) throw new Error('Diskon tidak ditemukan');
+        return {
+            id: discount.id,
+            name: discount.name,
+            totalUsed: discount.totalUsed || 0,
+            budgetUsed: parseFloat(discount.budgetUsed || '0'),
+            budgetLimit: discount.budgetLimit ? parseFloat(discount.budgetLimit) : null,
+            totalQuota: discount.totalQuota,
+            budgetProgress: discount.budgetLimit
+                ? Math.min(100, (parseFloat(discount.budgetUsed || '0') / parseFloat(discount.budgetLimit)) * 100)
+                : null,
+            quotaProgress: discount.totalQuota
+                ? Math.min(100, ((discount.totalUsed || 0) / discount.totalQuota) * 100)
+                : null,
+        };
+    }
+
+    /**
+     * After a successful checkout, increment usage counters.
+     * Called from TransactionService after a sale is recorded.
+     */
+    static async redeemDiscounts(discountIds: number[], discountAmount: number) {
+        if (!discountIds || discountIds.length === 0) return;
+        const amountPerDiscount = discountIds.length > 0 ? discountAmount / discountIds.length : 0;
+        for (const id of discountIds) {
+            await db.update(schema.discounts).set({
+                totalUsed: sql`${schema.discounts.totalUsed} + 1`,
+                budgetUsed: sql`${schema.discounts.budgetUsed} + ${amountPerDiscount.toFixed(2)}`
+            }).where(eq(schema.discounts.id, id));
+        }
+    }
+
+    /**
      * Evaluate which discounts apply to the given cart & context.
+     * Supports: priority, discount cap, exclusive flag, budget limit, total quota, voucher code.
      * Returns a list of applicable discounts with calculated amounts.
      */
-    static async evaluateDiscounts(cartItems: { recipeId: number; quantity: number; price: number }[], memberLevel?: string) {
-        const active = await this.getAllDiscounts(true);
+    static async evaluateDiscounts(
+        cartItems: { recipeId: number; quantity: number; price: number }[],
+        memberLevel?: string,
+        memberId?: number,
+        voucherCode?: string
+    ) {
+        const allActive = await this.getAllDiscounts(true); // already sorted by priority DESC
         const now = new Date();
         const currentHour = now.getHours();
         const currentDay = now.getDay(); // 0=Sun, 6=Sat
@@ -64,19 +135,36 @@ export class DiscountService {
         const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
         const applicable: any[] = [];
+        let hasExclusiveApplied = false;
 
-        for (const discount of active) {
-            // Check date range validity
+        for (const discount of allActive) {
+            // ── Skip if budget is exhausted ───────────────────────────────
+            if (discount.budgetLimit) {
+                const remaining = parseFloat(discount.budgetLimit) - parseFloat(discount.budgetUsed || '0');
+                if (remaining <= 0) continue;
+            }
+
+            // ── Skip if total quota reached ───────────────────────────────
+            if (discount.totalQuota !== null && (discount.totalUsed || 0) >= discount.totalQuota) continue;
+
+            // ── Voucher logic: skip auto-apply if voucherCode is set ─────
+            if (discount.voucherCode) {
+                // Only apply if the user explicitly entered this code
+                if (!voucherCode || voucherCode.toUpperCase().trim() !== discount.voucherCode) continue;
+            }
+
+            // ── Date range validity ────────────────────────────────────────
             if (discount.startDate && now < new Date(discount.startDate)) continue;
             if (discount.endDate && now > new Date(discount.endDate)) continue;
 
             let conditions: any = {};
             try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
 
-            // Check minimum purchase
+            // ── Minimum purchase ───────────────────────────────────────────
             const minPurchase = parseFloat(discount.minPurchase || '0');
             if (subtotal < minPurchase) continue;
 
+            // ── Evaluate per type ──────────────────────────────────────────
             let applies = false;
             let discountAmount = 0;
 
@@ -84,33 +172,43 @@ export class DiscountService {
                 case 'percent':
                     applies = true;
                     discountAmount = (subtotal * parseFloat(discount.value)) / 100;
+                    // Apply Discount Cap
+                    if (discount.discountCap) {
+                        discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
+                    }
                     break;
+
                 case 'nominal':
                     applies = true;
                     discountAmount = parseFloat(discount.value);
                     break;
+
                 case 'time-based': {
-                    const dayMatch = !conditions.days || conditions.days.includes(currentDay);
-                    const hourMatch = !conditions.startHour || (currentHour >= conditions.startHour && currentHour < conditions.endHour);
+                    const dayMatch = !conditions.days || conditions.days.length === 0 || conditions.days.includes(currentDay);
+                    const hourMatch = conditions.startHour === undefined ||
+                        (currentHour >= conditions.startHour && currentHour < conditions.endHour);
                     applies = dayMatch && hourMatch;
                     if (applies) {
                         discountAmount = conditions.discountType === 'percent'
                             ? (subtotal * parseFloat(discount.value)) / 100
                             : parseFloat(discount.value);
+                        if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
                 }
+
                 case 'bundling': {
                     if (!conditions.productIds || conditions.productIds.length === 0) break;
-                    // All required products must be in the cart
                     applies = conditions.productIds.every((pid: number) => cartProductIds.includes(pid));
                     if (applies) {
                         discountAmount = conditions.discountType === 'percent'
                             ? (subtotal * parseFloat(discount.value)) / 100
                             : parseFloat(discount.value);
+                        if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
                 }
+
                 case 'member': {
                     if (!memberLevel) break;
                     const levels: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
@@ -120,21 +218,18 @@ export class DiscountService {
                         discountAmount = conditions.discountType === 'percent'
                             ? (subtotal * parseFloat(discount.value)) / 100
                             : parseFloat(discount.value);
+                        if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
                 }
+
                 case 'buy_x_get_y': {
                     const buyQty = conditions.buyQty || 2;
                     const freeQty = conditions.freeQty || 1;
                     const targetRecipeId = conditions.recipeId;
-                    
                     const cartItem = cartItems.find(i => i.recipeId === targetRecipeId);
                     if (cartItem && cartItem.quantity >= buyQty) {
                         applies = true;
-                        // Example: Buy 2 Get 1 Free. If 3 in cart, 1 is free.
-                        // Formula: floor(qty / (buy + free)) * price
-                        // OR floor(qty / buy) * price * free? 
-                        // User said "Beli 2 gratis 1", usually means buy 2, total 3, pay 2.
                         const setSize = buyQty + freeQty;
                         const freeUnits = Math.floor(cartItem.quantity / setSize) * freeQty;
                         discountAmount = freeUnits * cartItem.price;
@@ -143,13 +238,34 @@ export class DiscountService {
                 }
             }
 
-            if (applies && discountAmount >= 0) {
-                applicable.push({
-                    ...discount,
-                    discountAmount: Math.round(discountAmount),
-                    conditions,
-                });
+            if (!applies || discountAmount <= 0) continue;
+
+            // ── Cap discountAmount if it would exceed remaining budget ─────
+            if (discount.budgetLimit) {
+                const remaining = parseFloat(discount.budgetLimit) - parseFloat(discount.budgetUsed || '0');
+                discountAmount = Math.min(discountAmount, remaining);
             }
+
+            applicable.push({
+                ...discount,
+                discountAmount: Math.round(discountAmount),
+                conditions,
+            });
+
+            // ── Exclusive logic: stop evaluating more promos ───────────────
+            if (discount.isExclusive) {
+                hasExclusiveApplied = true;
+                break;
+            }
+        }
+
+        // If a non-exclusive exclusive promo was not hit, filter out non-stackable duplicates:
+        // Only the highest-priority non-stackable promo survives
+        if (!hasExclusiveApplied) {
+            const nonStackable = applicable.filter(d => !d.isStackable);
+            const stackable = applicable.filter(d => d.isStackable);
+            // Keep at most 1 non-stackable (already highest priority due to sort order)
+            return [...(nonStackable.length > 0 ? [nonStackable[0]] : []), ...stackable];
         }
 
         return applicable;

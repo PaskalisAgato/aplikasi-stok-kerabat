@@ -175,18 +175,35 @@ export const members = pgTable('members', {
 export const discounts = pgTable('discounts', {
     id: serial('id').primaryKey(),
     name: text('name').notNull(),
-    type: text('type').notNull(), // 'percent', 'nominal', 'bundling', 'time-based', 'member'
+    type: text('type').notNull(), // 'percent', 'nominal', 'bundling', 'time-based', 'member', 'buy_x_get_y'
     value: decimal('value', { precision: 12, scale: 2 }).notNull().default('0'), // percent or nominal amount
-    conditions: text('conditions'), // JSON: { days, startHour, endHour, productIds, minLevel }
+    conditions: text('conditions'), // JSON: { days, startHour, endHour, productIds, minLevel, buyQty, freeQty, recipeId }
     isActive: boolean('is_active').default(true).notNull(),
     isStackable: boolean('is_stackable').default(false).notNull(), // Can be combined with other discounts
+    isExclusive: boolean('is_exclusive').default(false).notNull(), // If true, no other promo can stack with this
     startDate: timestamp('start_date'),
     endDate: timestamp('end_date'),
     minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).default('0').notNull(),
+    // Financial Controls
+    discountCap: decimal('discount_cap', { precision: 12, scale: 2 }).default(null), // Max rupiah deduction for % discounts. NULL = no cap
+    budgetLimit: decimal('budget_limit', { precision: 12, scale: 2 }).default(null), // Total budget in Rp. Auto-stops when reached. NULL = unlimited
+    budgetUsed: decimal('budget_used', { precision: 12, scale: 2 }).default('0').notNull(), // Running total of discount given
+    // Quota & Fraud Prevention
+    totalQuota: integer('total_quota').default(null), // Max total redemptions. NULL = unlimited
+    totalUsed: integer('total_used').default(0).notNull(), // Running count of redemptions
+    limitPerUser: integer('limit_per_user').default(null), // Max uses per member. NULL = unlimited
+    // Priority & Distribution
+    priority: integer('priority').default(5).notNull(), // 1-10, higher = evaluated first
+    voucherCode: text('voucher_code').unique(), // For voucher-type promos. NULL = auto-apply
+    // Audit Trail
+    createdBy: text('created_by').references(() => users.id),
+    updatedBy: text('updated_by').references(() => users.id),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     typeIdx: index('discounts_type_idx').on(t.type),
-    activeIdx: index('discounts_active_idx').on(t.isActive)
+    activeIdx: index('discounts_active_idx').on(t.isActive),
+    voucherIdx: index('discounts_voucher_code_idx').on(t.voucherCode),
+    priorityIdx: index('discounts_priority_idx').on(t.priority)
 }));
 
 export const shifts = pgTable('shifts', {

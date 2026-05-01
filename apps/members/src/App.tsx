@@ -42,13 +42,26 @@ interface Member {
 interface Discount {
   id: number;
   name: string;
-  type: 'percent' | 'nominal' | 'time-based' | 'bundling' | 'member';
+  type: 'percent' | 'nominal' | 'time-based' | 'bundling' | 'member' | 'buy_x_get_y';
   value: string;
   conditions?: string;
   isActive: boolean;
   isStackable: boolean;
+  isExclusive: boolean;
   startDate?: string;
   endDate?: string;
+  minPurchase?: string;
+  // Financial Controls
+  discountCap?: string | null;
+  budgetLimit?: string | null;
+  budgetUsed?: string;
+  // Quota
+  totalQuota?: number | null;
+  totalUsed?: number;
+  limitPerUser?: number | null;
+  // Priority & Distribution
+  priority?: number;
+  voucherCode?: string | null;
   createdAt: string;
 }
 
@@ -71,6 +84,7 @@ const TYPE_LABELS: Record<string, string> = {
   'time-based': '⏰ Waktu',
   bundling: '📦 Bundling',
   member: '👤 Member',
+  'buy_x_get_y': '🎁 Beli X Gratis Y',
 };
 
 function formatRp(n: number) {
@@ -333,18 +347,23 @@ function MemberTab() {
 }
 
 // ─── Discount Tab ─────────────────────────────────────────────────────────────
+// ─── Discount Tab ─────────────────────────────────────────────────────────────
 function DiscountTab() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
   const [selected, setSelected] = useState<Discount | null>(null);
-  const [form, setForm] = useState<any>({
-    name: '', type: 'bundling', value: '', isActive: true,
+  const EMPTY_FORM = {
+    name: '', type: 'percent', value: '', isActive: true, isStackable: false, isExclusive: false,
     startDate: '', endDate: '',
     days: [] as number[], startHour: '', endHour: '',
-    productIds: '', minLevel: 'bronze', discountType: 'percent'
-  });
+    productIds: '', minLevel: 'bronze', discountType: 'percent',
+    minPurchase: '', discountCap: '', budgetLimit: '',
+    totalQuota: '', limitPerUser: '',
+    priority: 5, voucherCode: '',
+  };
+  const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [prodSearch, setProdSearch] = useState('');
@@ -356,36 +375,39 @@ function DiscountTab() {
     }
   };
 
+  const removeProductId = (id: string) => {
+    const ids = form.productIds.split(',').map((s: string) => s.trim()).filter((s: string) => s && s !== id);
+    setForm((f: any) => ({ ...f, productIds: ids.join(',') }));
+  };
+
   const load = useCallback(async () => {
     setLoading(true);
-    try { 
-      const [dRes, pRes] = await Promise.all([
-        apiFetch('/discounts'),
-        apiFetch('/products')
-      ]);
+    try {
+      const dRes = await apiFetch('/discounts');
       setDiscounts(dRes.data || []);
-      setProducts(pRes || []);
-    }
-    catch (e: any) { console.error(e); }
+      const pRes = await apiFetch('/recipes'); // Changed from /products to match the POS system's recipe naming
+      setProducts(pRes.data || pRes || []);
+    } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => {
-    setForm({ name: '', type: 'bundling', value: '', isActive: true, isStackable: false, startDate: '', endDate: '', days: [], startHour: '', endHour: '', productIds: '', minLevel: 'bronze', discountType: 'percent' });
-    setError(''); setModal('create');
-  };
+  const openCreate = () => { setForm(EMPTY_FORM); setError(''); setModal('create'); };
 
   const openEdit = (d: Discount) => {
     let cond: any = {};
     try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
     setSelected(d);
     setForm({
-      name: d.name, type: d.type, value: d.value, isActive: d.isActive, isStackable: d.isStackable,
+      name: d.name, type: d.type, value: d.value,
+      isActive: d.isActive, isStackable: d.isStackable, isExclusive: d.isExclusive,
       startDate: d.startDate?.slice(0, 10) || '', endDate: d.endDate?.slice(0, 10) || '',
       days: cond.days || [], startHour: cond.startHour?.toString() || '', endHour: cond.endHour?.toString() || '',
-      productIds: (cond.productIds || []).join(','), minLevel: cond.minLevel || 'bronze', discountType: cond.discountType || 'percent'
+      productIds: (cond.productIds || []).join(','), minLevel: cond.minLevel || 'bronze', discountType: cond.discountType || 'percent',
+      minPurchase: d.minPurchase || '', discountCap: d.discountCap || '', budgetLimit: d.budgetLimit || '',
+      totalQuota: d.totalQuota?.toString() || '', limitPerUser: d.limitPerUser?.toString() || '',
+      priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
     });
     setError(''); setModal('edit');
   };
@@ -399,10 +421,9 @@ function DiscountTab() {
     }
     if (form.type === 'bundling') {
       c.productIds = form.productIds.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n));
+      c.discountType = 'percent'; // Default for bundling
     }
-    if (form.type === 'member') {
-      c.minLevel = form.minLevel;
-    }
+    if (form.type === 'member') { c.minLevel = form.minLevel; c.discountType = 'percent'; }
     return Object.keys(c).length > 0 ? c : null;
   };
 
@@ -412,9 +433,16 @@ function DiscountTab() {
     try {
       const payload = {
         name: form.name, type: form.type, value: parseFloat(form.value),
-        isActive: form.isActive, isStackable: form.isStackable,
+        isActive: form.isActive, isStackable: form.isStackable, isExclusive: form.isExclusive,
         startDate: form.startDate || null, endDate: form.endDate || null,
         conditions: buildConditions(),
+        minPurchase: form.minPurchase ? parseFloat(form.minPurchase) : 0,
+        discountCap: form.discountCap ? parseFloat(form.discountCap) : null,
+        budgetLimit: form.budgetLimit ? parseFloat(form.budgetLimit) : null,
+        totalQuota: form.totalQuota ? parseInt(form.totalQuota) : null,
+        limitPerUser: form.limitPerUser ? parseInt(form.limitPerUser) : null,
+        priority: parseInt(form.priority) || 5,
+        voucherCode: form.voucherCode?.trim().toUpperCase() || null,
       };
       if (modal === 'create') {
         await apiFetch('/discounts', { method: 'POST', body: JSON.stringify(payload) });
@@ -441,7 +469,7 @@ function DiscountTab() {
       <div className="flex justify-start sm:justify-end">
         <button onClick={openCreate} className="btn-primary py-3 px-6 h-12 w-full sm:w-auto">
           <span className="material-symbols-outlined">add_circle</span>
-          <span>Buat Diskon Baru</span>
+          <span>Buat Promo Baru</span>
         </button>
       </div>
 
@@ -454,80 +482,100 @@ function DiscountTab() {
         <div className="card p-12 text-center border-dashed border-2">
           <span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">local_offer_off</span>
           <h3 className="font-display text-xl font-bold mb-1">Belum ada promo</h3>
-          <p className="text-sm text-[var(--text-muted)]">Mulai buat promo paket bundling atau diskon member untuk meningkatkan penjualan.</p>
+          <p className="text-sm text-[var(--text-muted)]">Atur plafon diskon dan batasan penggunaan untuk menjaga profit bisnis Anda.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {discounts.map(d => {
             let cond: any = {};
             try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
-            const isBundling = d.type === 'bundling';
+            const budgetUsed = parseFloat(d.budgetUsed || '0');
+            const budgetLimit = d.budgetLimit ? parseFloat(d.budgetLimit) : null;
+            const budgetPct = budgetLimit ? Math.min(100, (budgetUsed / budgetLimit) * 100) : null;
+            const quotaPct = d.totalQuota ? Math.min(100, ((d.totalUsed || 0) / d.totalQuota) * 100) : null;
             return (
-              <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
+              <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 overflow-hidden" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
                 <div className="p-5 pb-3">
                   <div className="flex items-center justify-between mb-3">
-                     <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                         {d.isActive ? '● Aktif' : '○ Nonaktif'}
-                     </span>
-                     <span className="material-symbols-outlined text-lg text-[var(--text-muted)] opacity-50">{isBundling ? 'inventory_2' : 'local_offer'}</span>
+                      </span>
+                      {d.isExclusive && <span className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30">🔒 Eksklusif</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-black text-[var(--text-muted)] opacity-60">Prio: {d.priority ?? 5}</span>
+                      <span className="material-symbols-outlined text-sm text-[var(--text-muted)] opacity-50">{d.voucherCode ? 'confirmation_number' : 'local_offer'}</span>
+                    </div>
                   </div>
-                  <h4 className="font-display text-base font-black text-[var(--text-main)] leading-tight mb-1">{d.name}</h4>
+                  <h4 className="font-display text-base font-black text-[var(--text-main)] leading-tight mb-1 truncate">{d.name}</h4>
                   <p className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">{TYPE_LABELS[d.type] || d.type}</p>
                 </div>
 
                 <div className="relative h-20 bg-gradient-to-br from-black/20 to-black/40 flex items-center justify-center overflow-hidden border-y border-[var(--border-dim)]">
                    <div className="absolute inset-0 opacity-10 flex items-center justify-center">
-                     <span className="material-symbols-outlined text-[5rem] font-black">{isBundling ? 'package_2' : 'percent'}</span>
+                     <span className="material-symbols-outlined text-[5rem] font-black">percent</span>
                    </div>
-                   <div className="relative z-10 flex flex-col items-center">
+                   <div className="relative z-10 flex flex-col items-center text-center px-4">
                       <span className="text-3xl font-black text-[var(--text-main)] shadow-sm">
                         {d.type === 'percent' ? `${parseFloat(d.value)}%` : formatRp(parseFloat(d.value))}
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-0.5">Potongan Harga</span>
+                      <div className="flex flex-wrap justify-center gap-2 mt-0.5">
+                        {d.discountCap && <span className="text-[8px] font-bold text-amber-400">Maks. {formatRp(parseFloat(d.discountCap))}</span>}
+                        {d.minPurchase && parseFloat(d.minPurchase) > 0 && <span className="text-[8px] font-bold text-emerald-400">Min. {formatRp(parseFloat(d.minPurchase))}</span>}
+                      </div>
                    </div>
                 </div>
 
-                <div className="p-5 space-y-3 flex-1">
-                   <div className="space-y-1.5">
-                     {cond.days && (
-                       <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
-                         <span className="material-symbols-outlined text-sm">calendar_today</span>
-                         <span className="font-bold">{cond.days.map((n: number) => DAYS[n]).join(', ')}</span>
-                       </div>
-                     )}
-                     {cond.startHour !== undefined && (
-                       <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
-                         <span className="material-symbols-outlined text-sm">schedule</span>
-                         <span className="font-bold">{cond.startHour}:00 – {cond.endHour}:00</span>
-                       </div>
-                     )}
-                     {cond.productIds && (
-                       <div className="flex items-center gap-2 text-[10px] text-[var(--primary)]">
-                         <span className="material-symbols-outlined text-sm">inventory</span>
-                         <span className="font-bold underline">{cond.productIds.length} Produk Bundling</span>
-                       </div>
-                     )}
-                     {cond.minLevel && (
-                       <div className="flex items-center gap-2 text-[10px] font-bold" style={{ color: LEVEL_COLORS[cond.minLevel] }}>
-                         <span className="material-symbols-outlined text-sm">military_tech</span>
-                         <span>Level Min: {LEVEL_LABELS[cond.minLevel].split(' ')[1]}</span>
-                       </div>
-                     )}
+                {/* Progress Tracking Section */}
+                <div className="px-5 pt-3 space-y-3">
+                  {budgetLimit && (
+                    <div>
+                      <div className="flex justify-between text-[8px] font-black uppercase mb-1">
+                        <span className="text-[var(--text-muted)]">Budget Terpakai</span>
+                        <span className={budgetPct! >= 90 ? 'text-red-400' : 'text-emerald-400'}>{formatRp(budgetUsed)} / {formatRp(budgetLimit)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${budgetPct}%`, backgroundColor: budgetPct! >= 90 ? '#f87171' : 'var(--primary)' }}></div>
+                      </div>
+                    </div>
+                  )}
+                  {d.totalQuota && (
+                    <div>
+                      <div className="flex justify-between text-[8px] font-black uppercase mb-1">
+                        <span className="text-[var(--text-muted)]">Klaim Quota</span>
+                        <span className={quotaPct! >= 90 ? 'text-red-400' : 'text-blue-400'}>{d.totalUsed || 0} / {d.totalQuota} Terpakai</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${quotaPct}%` }}></div>
+                      </div>
+                    </div>
+                  )}
+                  {d.voucherCode && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-xs text-amber-500">confirmation_number</span>
+                        <span className="text-[9px] font-black text-amber-500 tracking-widest">{d.voucherCode}</span>
+                      </div>
+                      <span className="text-[7px] font-black uppercase text-amber-500/60">Voucher Code</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-5 pt-3 flex-1 flex flex-col justify-end">
+                   <div className="space-y-1.5 mb-3">
+                     {cond.days && <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]"><span className="material-symbols-outlined text-sm">calendar_today</span><span className="font-bold">{cond.days.map((n: number) => DAYS[n]).join(', ')}</span></div>}
+                     {cond.startHour !== undefined && <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]"><span className="material-symbols-outlined text-sm">schedule</span><span className="font-bold">{cond.startHour}:00 – {cond.endHour}:00</span></div>}
+                     {cond.productIds && <div className="flex items-center gap-2 text-[10px] text-[var(--primary)]"><span className="material-symbols-outlined text-sm">inventory</span><span className="font-bold">{cond.productIds.length} Produk Bundling</span></div>}
                    </div>
 
                    <div className="pt-3 border-t border-[var(--border-dim)] flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
-                          {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Mulai Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Eternity'}
+                          {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Seterusnya'}
                         </div>
-                        {d.isStackable && (
-                          <div className="flex items-center gap-1 text-[8px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full font-black">
-                            <span className="material-symbols-outlined text-[10px]">stacks</span>
-                            <span>BISA DIGABUNG</span>
-                          </div>
-                        )}
                       </div>
-                      <div className="flex gap-2 shrink-0">
+                      <div className="flex gap-2">
                         <button onClick={() => openEdit(d)} className="size-8 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
                         <button onClick={() => handleDelete(d)} className="size-8 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
                       </div>
@@ -540,110 +588,104 @@ function DiscountTab() {
       )}
 
       {(modal === 'create' || modal === 'edit') && (
-        <Modal title={modal === 'create' ? 'Promosi Baru' : 'Edit Promosi'} onClose={() => setModal(null)} wide>
-          <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <Field label="Identitas Promosi">
-                    <input value={form.name} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} placeholder="Contoh: Paket Bundling Kopi & Snack" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" />
-                  </Field>
-                  <Field label="Jenis Promosi">
-                    <select value={form.type} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm shadow-sm outline-none">
-                      <option value="bundling">📦 PAKET BUNDLING (Gabungan Produk)</option>
-                      <option value="percent">Persen (%) - Potongan Proporsional</option>
-                      <option value="nominal">Nominal (Rp) - Potongan Tetap</option>
-                      <option value="time-based">Berdasarkan Efek Waktu</option>
-                      <option value="member">Hanya Untuk Member Spesifik</option>
+        <Modal title={modal === 'create' ? 'Desain Promo Baru' : 'Edit Konfigurasi Promo'} onClose={() => setModal(null)} wide>
+          <div className="space-y-8 py-2">
+             {/* Section 1: Core Identity */}
+             <section className="space-y-4">
+                <div className="flex items-center gap-2"><span className="size-5 bg-primary text-slate-950 rounded-full flex items-center justify-center text-[10px] font-black">1</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Identitas & Jenis</h5></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Judul Promo"><input value={form.name} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} placeholder="e.g. Flash Sale Merdeka" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" /></Field>
+                  <Field label="Tipe Diskon">
+                    <select value={form.type} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none">
+                      {Object.entries(TYPE_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                     </select>
                   </Field>
-                  <Field label={`Nilai Potongan ${form.type === 'percent' ? '(%)' : '(Rupiah)'}`}>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'})`}>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{form.type === 'percent' ? '%' : 'Rp'}</span>
-                      <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-bold" />
+                      <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black" />
                     </div>
                   </Field>
-                  <label className="flex items-center gap-3 p-4 bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl cursor-pointer hover:border-[var(--primary)] transition-all">
-                    <input type="checkbox" checked={form.isStackable} onChange={e => setForm((f: any) => ({ ...f, isStackable: e.target.checked }))} className="w-5 h-5 accent-[var(--primary)] rounded focus:ring-primary focus:ring-offset-2" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold select-none text-[var(--test-main)]">Bisa Digabung (Stackable)</span>
-                      <span className="text-[10px] text-[var(--text-muted)] mt-0.5">Diskon ini bisa dikombinasikan dengan diskon lain saat checkout.</span>
-                    </div>
-                  </label>
-                </div>
-
-                <div className="space-y-4 p-5 glass-lite rounded-3xl border-dashed border-2">
-                   <h5 className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Konfigurasi Kondisi</h5>
-                   {form.type === 'time-based' && (
-                    <div className="space-y-4">
-                      <Field label="Hari Berlaku">
-                        <div className="flex flex-wrap gap-2">
-                          {DAYS.map((day, i) => (
-                            <button key={i} type="button" onClick={() => toggleDay(i)} className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${form.days.includes(i) ? 'bg-primary text-slate-950 shadow-md' : 'bg-white/5 text-[var(--text-muted)] border border-white/5'}`}>
-                              {day}
-                            </button>
-                          ))}
-                        </div>
-                      </Field>
-                      <div className="grid grid-cols-2 gap-4">
-                        <Field label="Jam Mulai">
-                          <input type="number" min={0} max={23} value={form.startHour} onChange={e => setForm((f: any) => ({ ...f, startHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" />
-                        </Field>
-                        <Field label="Jam Selesai">
-                          <input type="number" min={0} max={23} value={form.endHour} onChange={e => setForm((f: any) => ({ ...f, endHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" />
-                        </Field>
+                  {form.type === 'percent' && (
+                    <Field label="Plafon Potongan (Maks. Rp)">
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
+                        <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
                       </div>
-                    </div>
-                   )}
-                   {form.type === 'bundling' && (
-                    <div className="space-y-3">
-                      <Field label="Produk Dalam Paket (Gunakan Katalog >>)">
-                        <input value={form.productIds} placeholder="ID Produk..." className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" readOnly />
-                      </Field>
-                      <div className="bg-black/40 rounded-2xl p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-[9px] font-black uppercase text-primary">Katalog Produk</span>
-                           <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-transparent border-b border-white/10 text-[10px] outline-none w-20 px-1" />
-                         </div>
-                         <div className="max-h-32 overflow-y-auto space-y-1 custom-scrollbar pr-1">
-                           {products.filter((p: any) => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map((p: any) => (
-                             <div key={p.id} className="flex items-center justify-between text-[10px] hover:bg-white/5 p-1 rounded transition-colors group">
-                                <span className="truncate flex-1 pr-2 opacity-70 italic">#{p.id} {p.name}</span>
-                                <button type="button" onClick={() => addProductId(p.id)} className="size-5 bg-emerald-500/20 text-emerald-500 rounded hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center font-black">+</button>
-                             </div>
-                           ))}
-                         </div>
-                      </div>
-                    </div>
-                   )}
-                   {form.type === 'member' && (
-                    <Field label="Minimal Member Level">
-                      <select value={form.minLevel} onChange={e => setForm((f: any) => ({ ...f, minLevel: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-2 px-3 text-xs font-bold">
-                        <option value="bronze">🥈 Tier Bronze</option>
-                        <option value="silver">🥇 Tier Silver</option>
-                        <option value="gold">💎 Tier Gold</option>
-                      </select>
                     </Field>
-                   )}
+                  )}
                 </div>
-             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <Field label="Mulai Berlaku">
-                  <input type="date" value={form.startDate} onChange={e => setForm((f: any) => ({ ...f, startDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" />
+             </section>
+
+             {/* Section 2: Budget & Constraints */}
+             <section className="space-y-4">
+                <div className="flex items-center gap-2"><span className="size-5 bg-emerald-500 text-slate-950 rounded-full flex items-center justify-center text-[10px] font-black">2</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Keamanan & Quota</h5></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Field label="Min. Belanja (Rp)"><input type="number" value={form.minPurchase} onChange={e => setForm((f: any) => ({ ...f, minPurchase: e.target.value }))} placeholder="0 = Semua belanja" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
+                  <Field label="Budget Maksimal (Rp)"><input type="number" value={form.budgetLimit} onChange={e => setForm((f: any) => ({ ...f, budgetLimit: e.target.value }))} placeholder="Auto-stop promo" className="w-full bg-[var(--bg-app)] border border-emerald-500/20 rounded-xl py-3 px-4 text-sm font-bold focus:border-emerald-500" /></Field>
+                  <Field label="Voucher Code"><input value={form.voucherCode} onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} placeholder="KOSONG = AUTO" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 px-4 text-sm font-black tracking-widest text-amber-500 placeholder:opacity-30" /></Field>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Kuota Total (Klaim)"><input type="number" value={form.totalQuota} onChange={e => setForm((f: any) => ({ ...f, totalQuota: e.target.value }))} placeholder="e.g. 100" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
+                  <Field label="Maks. Pakai per User"><input type="number" value={form.limitPerUser} onChange={e => setForm((f: any) => ({ ...f, limitPerUser: e.target.value }))} placeholder="e.g. 1" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
+                </div>
+             </section>
+
+             {/* Section 3: Priority & Rules */}
+             <section className="space-y-4">
+                <div className="flex items-center gap-2"><span className="size-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-[10px] font-black">3</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Optimasi & Jadwal</h5></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label={`Prioritas: ${form.priority}/10 (Tinggi = Dulu)`}><input type="range" min={1} max={10} value={form.priority} onChange={e => setForm((f: any) => ({ ...f, priority: parseInt(e.target.value) }))} className="w-full accent-primary mt-4" /></Field>
+                  <div className="flex gap-4">
+                    <label className="flex-1 flex items-center gap-3 p-4 glass-lite rounded-2xl cursor-pointer hover:border-amber-500 transition-all border border-transparent"><input type="checkbox" checked={form.isStackable} onChange={e => setForm((f: any) => ({ ...f, isStackable: e.target.checked }))} className="size-5 accent-amber-500" /><span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Stackable</span></label>
+                    <label className="flex-1 flex items-center gap-3 p-4 glass-lite rounded-2xl cursor-pointer hover:border-purple-500 transition-all border border-transparent"><input type="checkbox" checked={form.isExclusive} onChange={e => setForm((f: any) => ({ ...f, isExclusive: e.target.checked }))} className="size-5 accent-purple-500" /><span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Exclusive</span></label>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Tanggal Mulai"><input type="date" value={form.startDate} onChange={e => setForm((f: any) => ({ ...f, startDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
+                  <Field label="Tanggal Selesai"><input type="date" value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
+                </div>
+             </section>
+
+             {/* Dynamic Section: Bundling Picker etc */}
+             {form.type === 'bundling' && (
+                <section className="p-5 glass-lite rounded-3xl border-dashed border-2 border-[var(--border-dim)] space-y-4">
+                   <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Konfigurasi Produk Bundling</h5>
+                   <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-black/20 rounded-2xl">
+                      {form.productIds.split(',').filter(Boolean).map((pid: string) => {
+                        const p = products.find(p => p.id.toString() === pid);
+                        return <div key={pid} className="bg-primary/10 text-primary px-3 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-2 border border-primary/20">{p?.name || `ID ${pid}`}<button onClick={() => removeProductId(pid)} className="hover:text-red-400">×</button></div>;
+                      })}
+                   </div>
+                   <div className="space-y-3">
+                      <div className="flex justify-between items-center px-1"><span className="text-[9px] font-black text-[var(--text-muted)] uppercase">Katalog Menu</span><input placeholder="Cari menu..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-white/5 border-b border-white/10 text-[10px] px-2 py-1 outline-none w-32" /></div>
+                      <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                         {products.filter(p => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p => (
+                            <button key={p.id} onClick={() => addProductId(p.id)} className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/50 text-[10px] font-bold text-left truncate transition-all flex justify-between items-center group"><span>{p.name}</span><span className="opacity-0 group-hover:opacity-100 text-primary">+</span></button>
+                         ))}
+                      </div>
+                   </div>
+                </section>
+             )}
+
+             {form.type === 'member' && (
+                <Field label="Minimal Member Level">
+                  <select value={form.minLevel} onChange={e => setForm((f: any) => ({ ...f, minLevel: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none">
+                    <option value="bronze">🥈 Tier Bronze ke Atas</option>
+                    <option value="silver">🥇 Tier Silver ke Atas</option>
+                    <option value="gold">💎 Khusus Tier Gold</option>
+                  </select>
                 </Field>
-                <Field label="Berakhir">
-                  <input type="date" value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-2.5 text-xs font-bold" />
-                </Field>
-             </div>
-             <label className="flex items-center gap-3 cursor-pointer group p-3 glass-lite rounded-2xl active:scale-[0.98] transition-all">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm((f: any) => ({ ...f, isActive: e.target.checked }))} className="size-5 rounded border-2 border-[var(--primary)] text-[var(--primary)] focus:ring-0" />
-                <span className="text-sm font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors">Promosi Aktif Secara Global</span>
-             </label>
-             {error && <p className="text-[var(--danger)] text-xs font-bold text-center bg-red-500/10 p-2 rounded-lg">{error}</p>}
-             <div className="flex gap-4 pt-4 border-t border-[var(--border-dim)]">
-                <button onClick={() => setModal(null)} className="flex-1 py-3 text-sm font-bold text-[var(--text-muted)]">Batal</button>
-                <button onClick={handleSave} disabled={saving} className="btn-primary flex-2 h-12">
-                   {saving ? 'Menyimpan...' : 'Rilis Promosi'}
-                </button>
+             )}
+
+             <div className="pt-6 border-t border-[var(--border-dim)] space-y-4">
+                {error && <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black text-center uppercase tracking-widest">{error}</div>}
+                <div className="flex gap-4">
+                  <button onClick={() => setModal(null)} className="flex-1 py-4 text-sm font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-colors">Batal</button>
+                  <button onClick={handleSave} disabled={saving} className="flex-[2] btn-primary h-14 shadow-2xl shadow-primary/20">{saving ? 'Sinkronisasi...' : (modal === 'create' ? 'Rilis Promosi' : 'Update Konfigurasi')}</button>
+                </div>
              </div>
           </div>
         </Modal>

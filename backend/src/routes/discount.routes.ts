@@ -26,10 +26,22 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/discounts/:id/stats — analytics for a single promo
+router.get('/:id/stats', requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const stats = await DiscountService.getDiscountStats(id);
+        res.json({ success: true, data: stats });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // POST /api/discounts (admin only)
 router.post('/', requireAdmin, async (req: Request, res: Response) => {
     try {
-        const discount = await DiscountService.createDiscount(req.body);
+        const userId = (req as any).user?.id;
+        const discount = await DiscountService.createDiscount(req.body, userId);
         res.status(201).json({ success: true, data: discount });
     } catch (e: any) {
         res.status(400).json({ success: false, message: e.message });
@@ -39,7 +51,8 @@ router.post('/', requireAdmin, async (req: Request, res: Response) => {
 // PUT /api/discounts/:id (admin only)
 router.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
-        const discount = await DiscountService.updateDiscount(parseInt(req.params.id as string), req.body);
+        const userId = (req as any).user?.id;
+        const discount = await DiscountService.updateDiscount(parseInt(req.params.id as string), req.body, userId);
         res.json({ success: true, data: discount });
     } catch (e: any) {
         res.status(400).json({ success: false, message: e.message });
@@ -57,13 +70,14 @@ router.delete('/:id', requireAdmin, async (req: Request, res: Response) => {
 });
 
 // POST /api/discounts/evaluate — evaluate applicable discounts for cart (used by POS)
+// Body: { items: [...], memberLevel?: string, memberId?: number, voucherCode?: string }
 router.post('/evaluate', requireAuth, async (req: Request, res: Response) => {
     try {
-        const { items, memberLevel } = req.body;
+        const { items, memberLevel, memberId, voucherCode } = req.body;
         if (!items || !Array.isArray(items)) {
             return res.status(400).json({ success: false, message: 'items array required' });
         }
-        const applicable = await DiscountService.evaluateDiscounts(items, memberLevel);
+        const applicable = await DiscountService.evaluateDiscounts(items, memberLevel, memberId, voucherCode);
         res.json({ success: true, data: applicable });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });

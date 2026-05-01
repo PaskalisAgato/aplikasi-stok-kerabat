@@ -448,6 +448,17 @@ export class TransactionService {
                     .where(eq(schema.members.id, saleValues.memberId));
             }
 
+            // 8. Discount Usage Tracking: Increment counters for applied discounts
+            if (saleValues.status === 'PAID' && data.discountIds && Array.isArray(data.discountIds) && data.discountIds.length > 0) {
+                try {
+                    const { DiscountService } = await import('./discount.service.js');
+                    await DiscountService.redeemDiscounts(data.discountIds, clientDiscountTotal);
+                } catch (e: any) {
+                    // Non-critical: log but don't fail the transaction
+                    console.warn('[Discount Tracking] Failed to update discount usage counters:', e.message);
+                }
+            }
+
             return { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
         });
     }

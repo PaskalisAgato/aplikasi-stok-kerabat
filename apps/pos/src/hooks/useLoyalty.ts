@@ -14,6 +14,7 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
     const [pointsToRedeem, setPointsToRedeem] = useState(0);
     const [selectedDiscounts, setSelectedDiscounts] = useState<any[]>([]);
     const [availableDiscounts, setAvailableDiscounts] = useState<any[]>([]);
+    const [voucherCode, setVoucherCode] = useState('');
     const [showDiscountPanel, setShowDiscountPanel] = useState(false);
     const [loyaltySettings, setLoyaltySettings] = useState({ pointRatio: 10000, pointValue: 100 });
     
@@ -43,10 +44,26 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
                 quantity: item.qty, 
                 price: item.price 
             }));
-            const res = await apiClient.post('/discounts/evaluate', { items, memberLevel: selectedMember?.level }) as any;
+            const res = await apiClient.post('/discounts/evaluate', { 
+                items, 
+                memberLevel: selectedMember?.level,
+                voucherCode: voucherCode.trim().toUpperCase() || undefined
+            }) as any;
             const fetched = res?.data || [];
             setAvailableDiscounts(fetched);
             
+            // Auto-select voucher if valid and not already selected
+            if (voucherCode && fetched.length > 0) {
+                const voucherPromo = fetched.find((f: any) => f.voucherCode === voucherCode.trim().toUpperCase());
+                if (voucherPromo && !selectedDiscounts.some(d => d.id === voucherPromo.id)) {
+                    setSelectedDiscounts(prev => {
+                        if (voucherPromo.isExclusive) return [voucherPromo];
+                        const stackable = prev.filter(d => d.isStackable && !voucherPromo.isExclusive);
+                        return [...stackable, voucherPromo];
+                    });
+                }
+            }
+
             if (selectedDiscounts.length > 0) {
                 // Remove discounts that are no longer applicable
                 const validDiscounts = selectedDiscounts.filter(d => fetched.some((f: any) => f.id === d.id));
@@ -55,11 +72,11 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
                 }
             }
         } catch { setAvailableDiscounts([]); }
-    }, [activeCartItems, selectedMember, selectedDiscounts]);
+    }, [activeCartItems, selectedMember, selectedDiscounts, voucherCode]);
 
     useEffect(() => {
         loadDiscounts();
-    }, [totalSalesValue, selectedMember?.id, loadDiscounts]);
+    }, [totalSalesValue, selectedMember?.id, voucherCode, loadDiscounts]);
 
     const handleCreateMember = async () => {
         if (!newMemberName || !newMemberPhone) {
@@ -123,6 +140,7 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
         pointsToRedeem, setPointsToRedeem,
         selectedDiscounts, setSelectedDiscounts, toggleDiscount,
         availableDiscounts,
+        voucherCode, setVoucherCode,
         showDiscountPanel, setShowDiscountPanel,
         loyaltySettings,
         searchMembers,

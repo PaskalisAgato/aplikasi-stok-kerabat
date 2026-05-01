@@ -32,11 +32,11 @@ const SyncQueuePage = React.lazy(() => import('./SyncQueuePage'));
 
 export default function App() {
     const { showNotification } = useNotification();
-    
+
     // Core State Hooks
-    const { 
-        items: baseItems, isLoading, categories, selectedCategory, setSelectedCategory, 
-        searchTerm, setSearchTerm, filteredRecipes: baseFilteredRecipes 
+    const {
+        items: baseItems, isLoading, categories, selectedCategory, setSelectedCategory,
+        searchTerm, setSearchTerm, filteredRecipes: baseFilteredRecipes
     } = usePOSData();
 
     const [orderSource, setOrderSource] = useState<'DIRECT' | 'STAND' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD'>('DIRECT');
@@ -55,9 +55,9 @@ export default function App() {
         }));
     }, [baseFilteredRecipes, orderSource]);
 
-    const { 
-        sales, setSales, itemNotes, updateQty, onNoteChange, 
-        activeCartItems, totalSalesValue, totalItems, resetCart 
+    const {
+        sales, setSales, itemNotes, updateQty, onNoteChange,
+        activeCartItems, totalSalesValue, totalItems, resetCart
     } = useCart(items);
 
     const {
@@ -72,7 +72,7 @@ export default function App() {
         isAddingMember, setIsAddingMember, newMemberName, setNewMemberName,
         newMemberPhone, setNewMemberPhone, isCreatingMember,
         pointsToRedeem, setPointsToRedeem, selectedDiscounts, setSelectedDiscounts, toggleDiscount,
-        availableDiscounts, showDiscountPanel, setShowDiscountPanel,
+        availableDiscounts, voucherCode, setVoucherCode, showDiscountPanel, setShowDiscountPanel,
         loyaltySettings, searchMembers, loadDiscounts, handleCreateMember, resetLoyaltyState
     } = useLoyalty(activeCartItems, totalSalesValue);
 
@@ -84,10 +84,10 @@ export default function App() {
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [amountPaid, setAmountPaid] = useState(0);
     const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-    
+
     const { data: session } = useSession();
     const [attendance, setAttendance] = useState<any>(null);
-    
+
     // Shift State
     const [activeShift, setActiveShift] = useState<any>(null);
     const [selectedShiftForAdmin, setSelectedShiftForAdmin] = useState<any>(null); // For Admin to link sales to others
@@ -108,7 +108,7 @@ export default function App() {
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
     const [targetBillForMerge, setTargetBillForMerge] = useState<any>(null);
     const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
-    
+
     const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
     const [splitSourceBill, setSplitSourceBill] = useState<any>(null);
     const [splitMode, setSplitMode] = useState<'table' | 'pay'>('table');
@@ -133,7 +133,7 @@ export default function App() {
         const unsubPrint = PrintService.onQueueChange((jobs: any[]) => {
             setPrintQueueCount(jobs.filter((j: any) => j.status === 'PENDING').length);
         });
-        
+
         const handlePrintAlert = (e: any) => {
             const data = e.detail;
             showNotification(data.message || 'Printer Error', 'warning');
@@ -188,11 +188,11 @@ export default function App() {
                 activeBill.items.forEach((i: any) => {
                     newSales[i.recipeId] = i.quantity;
                 });
-                
+
                 // Shallow equality check to prevent infinite re-renders or unnecessary state sets
                 const salesKeys = Object.keys(sales);
                 const newSalesKeys = Object.keys(newSales);
-                const isDifferent = salesKeys.length !== newSalesKeys.length || 
+                const isDifferent = salesKeys.length !== newSalesKeys.length ||
                     newSalesKeys.some(key => newSales[parseInt(key)] !== sales[parseInt(key)]);
 
                 if (isDifferent) {
@@ -218,7 +218,7 @@ export default function App() {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscounts, pointsToRedeem,
-            itemNotes, activeShift, 
+            itemNotes, activeShift,
             selectedShiftForAdmin,
             isEmployee: session?.user?.role === 'Karyawan',
             attendance,
@@ -229,6 +229,7 @@ export default function App() {
             setSelectedShiftForAdmin(null);
             resetCart();
             resetLoyaltyState();
+            setVoucherCode('');
             setAmountPaid(0);
 
             if (currentBillId) {
@@ -271,13 +272,13 @@ export default function App() {
     };
 
     return (
-        <Layout 
+        <Layout
             title="Point of Sale"
             hideHeaderTitle={true}
             hideTitle={true}
             currentPort={3000}
             headerExtras={
-                <POSHeaderExtras 
+                <POSHeaderExtras
                     {...{
                         showMemberPanel, setShowMemberPanel, selectedMember, setSelectedMember,
                         setPointsToRedeem, searchMembers, memberSearch, setMemberSearch,
@@ -285,6 +286,7 @@ export default function App() {
                         newMemberName, setNewMemberName, newMemberPhone, setNewMemberPhone,
                         handleCreateMember, isCreatingMember, showDiscountPanel, setShowDiscountPanel,
                         selectedDiscounts, setSelectedDiscounts, toggleDiscount, loadDiscounts, availableDiscounts,
+                        voucherCode, setVoucherCode,
                         activeShift, pendingSyncs, setIsHandoverShiftOpen, setIsCloseShiftOpen,
                         getSummary: (id) => apiClient.get(`/cashier-shifts/summary/${id}`),
                         setShiftSummaryData, showNotification, isActionMenuOpen, setIsActionMenuOpen,
@@ -307,8 +309,8 @@ export default function App() {
                                     {openBills.length === 0 ? (
                                         <p className="text-[10px] text-[var(--text-muted)] text-center py-10 italic">Belum ada bill aktif</p>
                                     ) : openBills.map(bill => (
-                                        <div 
-                                            key={bill.id} 
+                                        <div
+                                            key={bill.id}
                                             onClick={() => {
                                                 setCurrentBillId(bill.id);
                                                 setCustomerInfo(bill.customerInfo);
@@ -326,11 +328,11 @@ export default function App() {
                                             </div>
                                             <p className="text-[10px] font-bold text-primary mt-1">Rp {parseFloat(bill.totalAmount).toLocaleString('id-ID')}</p>
                                             <div className="flex gap-1 mt-2">
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); setTargetBillForMerge(bill); setSelectedSourceIds([]); setIsMergeModalOpen(true); }}
                                                     className="flex-1 py-1 bg-white/5 hover:bg-primary/20 rounded-md text-[8px] font-black uppercase text-[var(--text-muted)] hover:text-primary transition-all"
                                                 >Merge</button>
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); setSplitSourceBill(bill); setSplitMode('table'); setSplitTargetInfo(''); setSelectedSplitItems({}); setIsSplitModalOpen(true); }}
                                                     className="flex-1 py-1 bg-white/5 hover:bg-emerald-500/20 rounded-md text-[8px] font-black uppercase text-[var(--text-muted)] hover:text-emerald-500 transition-all"
                                                 >Split</button>
@@ -346,7 +348,7 @@ export default function App() {
                                 <div className="px-6 pt-6 pb-2 shrink-0">
                                     <div className="relative group">
                                         <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 text-xl group-focus-within:text-primary transition-colors">search</span>
-                                        <input 
+                                        <input
                                             placeholder="Cari menu (Alt+S)..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -355,12 +357,12 @@ export default function App() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-4 md:p-6 overflow-x-auto hide-scrollbar shrink-0 bg-[var(--secondary)]/5">
-                                    <button 
+                                    <button
                                         onClick={() => setSelectedCategory(null)}
                                         className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${!selectedCategory ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-[var(--secondary)] border border-white/5 text-[#fefae0]/70 hover:text-[#fefae0]'}`}
                                     >Semua</button>
                                     {categories.map(cat => (
-                                        <button 
+                                        <button
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
                                             className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${selectedCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-[var(--secondary)] border border-white/5 text-[#fefae0]/70 hover:text-[#fefae0]'}`}
@@ -375,7 +377,7 @@ export default function App() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <ProductGrid 
+                                    <ProductGrid
                                         items={filteredRecipes}
                                         sales={sales}
                                         updateQty={updateQty}
@@ -394,7 +396,7 @@ export default function App() {
                                         <span className="material-symbols-outlined text-xl">delete_sweep</span>
                                     </button>
                                 </div>
-                                
+
                                 {currentBillId && (
                                     <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 shrink-0">
                                         <span className="material-symbols-outlined text-primary text-xs">room_service</span>
@@ -412,11 +414,11 @@ export default function App() {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Kosong</p>
                                         </div>
                                     ) : activeCartItems.map((item) => (
-                                        <CartItem 
-                                            key={item.id} 
-                                            item={item} 
-                                            salesCount={sales[item.id]} 
-                                            updateQty={updateQty} 
+                                        <CartItem
+                                            key={item.id}
+                                            item={item}
+                                            salesCount={sales[item.id]}
+                                            updateQty={updateQty}
                                             note={itemNotes[item.id]}
                                             onNoteChange={onNoteChange}
                                         />
@@ -424,7 +426,7 @@ export default function App() {
                                 </div>
 
                                 <div className="shrink-0 p-0 border-t border-[var(--border-dim)] bg-black/20 block pb-24 lg:pb-0">
-                                    <POSFooter 
+                                    <POSFooter
                                         {...{
                                             paymentMethod, setPaymentMethod, totalSalesValue, finalTotal,
                                             discountAmount, pointsDiscountAmount, pointsToRedeem, amountPaid, setAmountPaid,
@@ -440,14 +442,14 @@ export default function App() {
 
                         {/* Mobile Navigation Bar (Premium Elevated) */}
                         <div className="lg:hidden fixed bottom-6 left-6 right-6 z-50 flex items-center justify-between gap-4 bg-[var(--secondary)]/90 backdrop-blur-2xl border border-white/10 p-3 rounded-[3rem] shadow-2xl h-20">
-                            <button 
+                            <button
                                 onClick={() => setMobileTab('menu')}
                                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 ${mobileTab === 'menu' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
                                 <span className="material-symbols-outlined text-2xl font-black">restaurant_menu</span>
                                 <span className="text-[9px] font-black uppercase tracking-widest">Menu</span>
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setMobileTab('cart')}
                                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 relative ${mobileTab === 'cart' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
@@ -459,7 +461,7 @@ export default function App() {
                                 </div>
                                 <span className="text-[9px] font-black uppercase tracking-widest">Cart</span>
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setMobileTab('bills')}
                                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1.5 rounded-[2rem] transition-all active:scale-95 ${mobileTab === 'bills' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 -translate-y-2' : 'text-[#fefae0]/50 hover:text-[#fefae0]'}`}
                             >
@@ -478,7 +480,7 @@ export default function App() {
                 )}
             </div>
 
-            <MergeModal 
+            <MergeModal
                 isOpen={isMergeModalOpen}
                 onClose={() => setIsMergeModalOpen(false)}
                 targetBill={targetBillForMerge}
@@ -492,7 +494,7 @@ export default function App() {
                 isCheckingOut={isCheckingOut}
             />
 
-            <SplitModal 
+            <SplitModal
                 isOpen={isSplitModalOpen}
                 onClose={() => setIsSplitModalOpen(false)}
                 splitSourceBill={splitSourceBill}
@@ -516,19 +518,19 @@ export default function App() {
             />
 
 
-            <OpenShiftModal 
-                isOpen={!activeShift && view === 'pos' && isOpeningShift} 
+            <OpenShiftModal
+                isOpen={!activeShift && view === 'pos' && isOpeningShift}
                 onOpen={async (initialCash) => {
                     const res = await apiClient.post('/cashier-shifts/open', { initialCash });
                     if (res?.data) {
                         setActiveShift(res.data);
                         setIsOpeningShift(false);
                     }
-                }} 
+                }}
                 onCancel={() => setIsOpeningShift(false)}
             />
 
-            <CloseShiftModal 
+            <CloseShiftModal
                 isOpen={isCloseShiftOpen}
                 shift={activeShift}
                 summary={shiftSummaryData}
@@ -543,7 +545,7 @@ export default function App() {
                 onCancel={() => setIsCloseShiftOpen(false)}
             />
 
-            <HandoverShiftModal 
+            <HandoverShiftModal
                 isOpen={isHandoverShiftOpen}
                 shift={activeShift}
                 onHandover={async (data) => {
@@ -556,7 +558,7 @@ export default function App() {
                 }}
                 onCancel={() => setIsHandoverShiftOpen(false)}
             />
-            <ShiftSelectionModal 
+            <ShiftSelectionModal
                 isOpen={isShiftSelectionModalOpen}
                 onClose={() => setIsShiftSelectionModalOpen(false)}
                 shifts={allActiveShifts}
@@ -567,8 +569,8 @@ export default function App() {
             />
 
             {!activeShift && !isOpeningShift && (session?.user?.role !== 'Admin' || !session) && (
-                <ShiftRequired 
-                    onOpenShift={handlePreOpenShift} 
+                <ShiftRequired
+                    onOpenShift={handlePreOpenShift}
                     isEmployee={session?.user?.role === 'Karyawan'}
                     attendance={attendance}
                 />
