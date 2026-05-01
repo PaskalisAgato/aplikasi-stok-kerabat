@@ -83,6 +83,7 @@ const TYPE_LABELS: Record<string, string> = {
   nominal: 'Rp Nominal',
   'time-based': '⏰ Waktu',
   bundling: '📦 Bundling',
+  'mix_and_match': '✨ Mix & Match (Flat)',
   member: '👤 Member',
   'buy_x_get_y': '🎁 Beli X Gratis Y',
 };
@@ -358,7 +359,7 @@ function DiscountTab() {
     name: '', type: 'percent', value: '', isActive: true, isStackable: false, isExclusive: false,
     startDate: '', endDate: '',
     days: [] as number[], startHour: '', endHour: '',
-    productIds: '', minLevel: 'bronze', discountType: 'percent',
+    productIds: '', minLevel: 'bronze', discountType: 'percent', flatPrice: '', category: '', minQty: '',
     minPurchase: '', discountCap: '', budgetLimit: '',
     totalQuota: '', limitPerUser: '',
     priority: 5, voucherCode: '',
@@ -405,6 +406,7 @@ function DiscountTab() {
       startDate: d.startDate?.slice(0, 10) || '', endDate: d.endDate?.slice(0, 10) || '',
       days: cond.days || [], startHour: cond.startHour?.toString() || '', endHour: cond.endHour?.toString() || '',
       productIds: (cond.productIds || []).join(','), minLevel: cond.minLevel || 'bronze', discountType: cond.discountType || 'percent',
+      flatPrice: cond.flatPrice || '', category: cond.category || '', minQty: cond.minQty?.toString() || '',
       minPurchase: d.minPurchase || '', discountCap: d.discountCap || '', budgetLimit: d.budgetLimit || '',
       totalQuota: d.totalQuota?.toString() || '', limitPerUser: d.limitPerUser?.toString() || '',
       priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
@@ -419,16 +421,30 @@ function DiscountTab() {
       if (form.startHour !== '') c.startHour = parseInt(form.startHour);
       if (form.endHour !== '') c.endHour = parseInt(form.endHour);
     }
-    if (form.type === 'bundling') {
+    
+    // Allow productIds on most types so we can target specific items
+    if (form.productIds) {
       c.productIds = form.productIds.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n));
-      c.discountType = 'percent'; // Default for bundling
+    }
+    
+    // Mix and match specific
+    if (form.type === 'mix_and_match') {
+      if (form.category) c.category = form.category;
+      if (form.minQty) c.minQty = parseInt(form.minQty);
+    }
+
+    if (form.flatPrice) c.flatPrice = form.flatPrice;
+
+    if (form.type === 'bundling') {
+      c.discountType = 'percent'; // Default for bundling if no flat price
     }
     if (form.type === 'member') { c.minLevel = form.minLevel; c.discountType = 'percent'; }
     return Object.keys(c).length > 0 ? c : null;
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.value) { setError('Nama dan Nilai diskon wajib diisi'); return; }
+    if (!form.name) { setError('Judul promo wajib diisi'); return; }
+    if (!form.value && !form.flatPrice) { setError('Masukkan Potongan atau Harga Jadi (Flat)'); return; }
     setSaving(true); setError('');
     try {
       const payload = {
@@ -602,21 +618,27 @@ function DiscountTab() {
                   </Field>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'})`}>
+                  <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'}) (Opsi 1)`}>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{form.type === 'percent' ? '%' : 'Rp'}</span>
                       <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black" />
                     </div>
                   </Field>
-                  {form.type === 'percent' && (
-                    <Field label="Plafon Potongan (Maks. Rp)">
+                  <Field label="Harga Menjadi (Harga Flat Opsi 2)">
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
-                        <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-indigo-400">Rp</span>
+                        <input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} placeholder="Mengesampingkan nilai potongan" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-indigo-400 text-indigo-300" />
                       </div>
-                    </Field>
-                  )}
+                  </Field>
                 </div>
+                {form.type === 'percent' && (
+                  <Field label="Plafon Potongan (Maks. Rp)">
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
+                      <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
+                    </div>
+                  </Field>
+                )}
              </section>
 
              {/* Section 2: Budget & Constraints */}
@@ -647,12 +669,40 @@ function DiscountTab() {
                   <Field label="Tanggal Mulai"><input type="date" value={form.startDate} onChange={e => setForm((f: any) => ({ ...f, startDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
                   <Field label="Tanggal Selesai"><input type="date" value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
                 </div>
+                {form.type === 'time-based' && (
+                  <div className="space-y-4 pt-4 border-t border-[var(--border-dim)]">
+                    <Field label="Hari Aktif (Kosong = Setiap Hari)">
+                      <div className="flex flex-wrap gap-2">
+                         {DAYS.map((day, idx) => (
+                           <label key={idx} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${form.days.includes(idx) ? 'bg-primary text-slate-900 shadow-md' : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'}`}>
+                             <input type="checkbox" checked={form.days.includes(idx)} onChange={() => toggleDay(idx)} className="hidden" />
+                             {day}
+                           </label>
+                         ))}
+                      </div>
+                    </Field>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Jam Mulai (e.g. 15)"><input type="number" min={0} max={23} value={form.startHour} onChange={e => setForm((f: any) => ({ ...f, startHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3" /></Field>
+                      <Field label="Jam Selesai (e.g. 17)"><input type="number" min={0} max={24} value={form.endHour} onChange={e => setForm((f: any) => ({ ...f, endHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3" /></Field>
+                    </div>
+                  </div>
+                )}
              </section>
 
              {/* Dynamic Section: Bundling Picker etc */}
-             {form.type === 'bundling' && (
+             {['bundling', 'percent', 'nominal', 'time-based', 'mix_and_match'].includes(form.type) && (
                 <section className="p-5 glass-lite rounded-3xl border-dashed border-2 border-[var(--border-dim)] space-y-4">
-                   <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Konfigurasi Produk Bundling</h5>
+                   <div className="flex justify-between items-center">
+                     <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Target Menu Terspesifik (Kosong = Seluruh Menu)</h5>
+                   </div>
+                   
+                   {form.type === 'mix_and_match' && (
+                     <div className="grid grid-cols-2 gap-4 mb-4 border-b border-white/5 pb-4">
+                        <Field label="Kategori Menu (e.g. Minuman)"><input value={form.category} onChange={e => setForm((f: any) => ({ ...f, category: e.target.value }))} placeholder="Nama Kategori" className="w-full bg-[var(--bg-app)] border border-primary/20 rounded-xl p-3" /></Field>
+                        <Field label="Minimal Pembelian (Qty)"><input type="number" value={form.minQty} onChange={e => setForm((f: any) => ({ ...f, minQty: e.target.value }))} placeholder="e.g. 2" className="w-full bg-[var(--bg-app)] border border-primary/20 rounded-xl p-3" /></Field>
+                     </div>
+                   )}
+
                    <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-black/20 rounded-2xl">
                       {form.productIds.split(',').filter(Boolean).map((pid: string) => {
                         const p = products.find(p => p.id.toString() === pid);
