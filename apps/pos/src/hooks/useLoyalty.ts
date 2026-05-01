@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@shared/apiClient';
 import { useNotification } from '@shared/components/NotificationProvider';
 
-export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
+export function useLoyalty(activeCartItems: any[], totalSalesValue: number, sales: Record<number, number>) {
     const [selectedMember, setSelectedMember] = useState<{ id: number; name: string; phone: string; points: number; level: string } | null>(null);
     const [memberSearch, setMemberSearch] = useState('');
     const [memberSearchResults, setMemberSearchResults] = useState<any[]>([]);
@@ -41,7 +41,7 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
         try {
             const items = activeCartItems.map(item => ({ 
                 recipeId: item.id, 
-                quantity: item.qty, 
+                quantity: sales[item.id] || 0, 
                 price: item.price 
             }));
             const res = await apiClient.post('/discounts/evaluate', { 
@@ -74,7 +74,7 @@ export function useLoyalty(activeCartItems: any[], totalSalesValue: number) {
                 }
             }
         } catch { setAvailableDiscounts([]); }
-    }, [activeCartItems, selectedMember, voucherCode]); // removed selectedDiscounts from deps to prevent loop
+    }, [activeCartItems, sales, selectedMember, voucherCode]); // added sales to deps
 
     useEffect(() => {
         loadDiscounts();

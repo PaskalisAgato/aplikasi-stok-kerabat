@@ -151,37 +151,56 @@ export class DiscountService {
             };
         });
 
-        const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+        const subtotal = cartItems.reduce((sum, i) => sum + (Number(i.price) * i.quantity), 0);
 
         const applicable: any[] = [];
         let hasExclusiveApplied = false;
 
+        console.log(`[PROMO EVAL] Starting: ${itemsWithMetadata.length} items, subtotal: ${subtotal}, member: ${memberId}, code: ${voucherCode}`);
+        
         for (const discount of allActive) {
             // ── Skip if budget is exhausted ───────────────────────────────
             if (discount.budgetLimit) {
                 const remaining = parseFloat(discount.budgetLimit) - parseFloat(discount.budgetUsed || '0');
-                if (remaining <= 0) continue;
+                if (remaining <= 0) {
+                     console.log(`[PROMO SKIP] "${discount.name}" - Budget exhausted (${discount.budgetUsed}/${discount.budgetLimit})`);
+                     continue;
+                }
             }
 
             // ── Skip if total quota reached ───────────────────────────────
-            if (discount.totalQuota !== null && (discount.totalUsed || 0) >= discount.totalQuota) continue;
+            if (discount.totalQuota !== null && (discount.totalUsed || 0) >= discount.totalQuota) {
+                 console.log(`[PROMO SKIP] "${discount.name}" - Quota reached (${discount.totalUsed}/${discount.totalQuota})`);
+                 continue;
+            }
 
             // ── Voucher logic: skip auto-apply if voucherCode is set ─────
             if (discount.voucherCode) {
                 // Only apply if the user explicitly entered this code
-                if (!voucherCode || voucherCode.toUpperCase().trim() !== discount.voucherCode) continue;
+                if (!voucherCode || voucherCode.toUpperCase().trim() !== discount.voucherCode) {
+                    continue;
+                }
             }
 
             // ── Date range validity ────────────────────────────────────────
-            if (discount.startDate && now < new Date(discount.startDate)) continue;
-            if (discount.endDate && now > new Date(discount.endDate)) continue;
+            if (discount.startDate && now < new Date(discount.startDate)) {
+                console.log(`[PROMO SKIP] "${discount.name}" - Not started yet (${discount.startDate})`);
+                continue;
+            }
+            if (discount.endDate && now > new Date(discount.endDate)) {
+                console.log(`[PROMO SKIP] "${discount.name}" - Expired (${discount.endDate})`);
+                continue;
+            }
 
             let conditions: any = {};
             try { conditions = discount.conditions ? JSON.parse(discount.conditions) : {}; } catch {}
 
             // ── Minimum purchase ───────────────────────────────────────────
             const minPurchase = parseFloat(discount.minPurchase || '0');
-            if (subtotal < minPurchase) continue;
+            if (subtotal < minPurchase) {
+                console.log(`[PROMO SKIP] "${discount.name}" - Subtotal ${subtotal} < Min ${minPurchase}`);
+                continue;
+            }
 
             // ── Evaluate per type ──────────────────────────────────────────
             let applies = false;
@@ -204,17 +223,23 @@ export class DiscountService {
             const calcAmount = (base: number) => {
                 if (conditions.flatPrice) {
                     const flat = parseFloat(conditions.flatPrice);
-                    return targetItems.reduce((sum, item) => {
+                    const res = targetItems.reduce((sum, item) => {
                         const price = Number(item.price);
                         const diff = price - flat;
                         return sum + (diff > 0 ? diff * item.quantity : 0);
                     }, 0);
+                    console.log(`[PROMO CALC] "${discount.name}" FlatPrice:${flat} | BasePrice:${base} | Result:${res}`);
+                    return res;
                 }
                 if (conditions.discountType === 'percent' || discount.type === 'percent') {
                      const val = parseFloat(discount.value);
-                     return (base * val) / 100;
+                     const res = (base * val) / 100;
+                     console.log(`[PROMO CALC] "${discount.name}" Percent:${val}% | Base:${base} | Result:${res}`);
+                     return res;
                 }
-                return parseFloat(discount.value);
+                const res = parseFloat(discount.value);
+                console.log(`[PROMO CALC] "${discount.name}" Nominal:${res} | Result:${res}`);
+                return res;
             };
 
             switch (discount.type) {
@@ -254,7 +279,7 @@ export class DiscountService {
 
                         const bundleBaseSetPrice = targetItems
                             .filter(i => conditions.productIds.includes(i.recipeId))
-                            .reduce((s, i) => s + i.price, 0); 
+                            .reduce((s, i) => s + Number(i.price), 0); 
                             
                         const bundleSubtotal = bundleBaseSetPrice * setQty;
 
@@ -272,16 +297,14 @@ export class DiscountService {
                 }
 
                 case 'mix_and_match': {
-                    // e.g., Buy 2 Minuman for a flat price of 25.000
                     const reqQty = conditions.minQty || 2;
-                    const itemsInPool = targetItems.map(i => ({ price: i.price, qty: i.quantity })).sort((a,b) => b.price - a.price);
+                    const itemsInPool = targetItems.map(i => ({ price: Number(i.price), qty: i.quantity })).sort((a,b) => b.price - a.price);
                     
                     let totalEligibleQty = targetItems.reduce((sum, i) => sum + i.quantity, 0);
                     if (totalEligibleQty >= reqQty) {
                         applies = true;
                         const validSets = Math.floor(totalEligibleQty / reqQty);
                         
-                        // We discount the N most expensive eligible items per set to maximize benefit
                         let discountedTotalValue = 0;
                         let itemsToGrab = validSets * reqQty;
                         for (const it of itemsInPool) {
@@ -322,7 +345,7 @@ export class DiscountService {
                         applies = true;
                         const setSize = buyQty + freeQty;
                         const freeUnits = Math.floor(cartItem.quantity / setSize) * freeQty;
-                        discountAmount = freeUnits * cartItem.price;
+                        discountAmount = freeUnits * Number(cartItem.price);
                     }
                     break;
                 }
@@ -339,26 +362,22 @@ export class DiscountService {
 
             applicable.push({
                 ...discount,
-                discountAmount: Math.round(discountAmount),
+                discountAmount: Math.round(discountAmount || 0),
                 conditions,
             });
 
-            // ── Exclusive logic: stop evaluating more promos ───────────────
             if (discount.isExclusive) {
-                hasExclusiveApplied = true;
-                break;
+                // Return immediately if an exclusive promo applies - nothing else should even be seen
+                return [{
+                    ...discount,
+                    discountAmount: Math.round(discountAmount),
+                    conditions,
+                }];
             }
         }
 
-        // If a non-exclusive exclusive promo was not hit, filter out non-stackable duplicates:
-        // Only the highest-priority non-stackable promo survives
-        if (!hasExclusiveApplied) {
-            const nonStackable = applicable.filter(d => !d.isStackable);
-            const stackable = applicable.filter(d => d.isStackable);
-            // Keep at most 1 non-stackable (already highest priority due to sort order)
-            return [...(nonStackable.length > 0 ? [nonStackable[0]] : []), ...stackable];
-        }
-
+        // Return all applicable promos found.
+        // Frontend will handle allowing the user to select between them.
         return applicable;
     }
 }
