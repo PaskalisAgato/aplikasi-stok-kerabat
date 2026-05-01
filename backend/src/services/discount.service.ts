@@ -274,31 +274,28 @@ export class DiscountService {
                 }
 
                 case 'bundling': {
-                    if (!conditions.productIds || conditions.productIds.length === 0) break;
-                    // For bundle, user must have EVERY product id in the bundle
-                    applies = conditions.productIds.every((pid: number) => cartProductIds.includes(pid));
-                    if (applies) {
-                        // Find how many sets are bought
-                        const setQty = Math.min(...conditions.productIds.map((pid: number) => {
-                            const found = targetItems.find(i => i.recipeId === pid);
-                            return found ? found.quantity : 0;
-                        }));
-
-                        const bundleBaseSetPrice = targetItems
-                            .filter(i => conditions.productIds.includes(i.recipeId))
-                            .reduce((s, i) => s + Number(i.price), 0); 
-                            
-                        const bundleSubtotal = bundleBaseSetPrice * setQty;
-
-                        if (conditions.flatPrice) {
-                           const diff = bundleSubtotal - (setQty * parseFloat(conditions.flatPrice));
-                           discountAmount = diff > 0 ? diff : 0;
-                        } else {
-                           discountAmount = calcAmount(bundleSubtotal);
-                           // Prevent flatPrice from duplicating inside calcAmount, so we bypass calcAmount for flatPrice here
-                        }
+                    if (!conditions.productIds || !Array.isArray(conditions.productIds)) break;
+                    const targetIds = conditions.productIds.map(Number);
+                    
+                    const hasAll = targetIds.every((tid: number) => itemsWithMetadata.some(i => i.recipeId === tid));
+                    console.log(`[PROMO BUNDLE] "${discount.name}" - TargetIds: ${targetIds} | InCartIds: ${cartProductIds} | HasAll: ${hasAll}`);
+                    
+                    if (hasAll) {
+                        const flat = parseFloat(discount.value);
+                        const currentPrice = targetIds.reduce((sum: number, tid: number) => {
+                            const item = itemsWithMetadata.find(i => i.recipeId === tid);
+                            return sum + (Number(item?.price || 0));
+                        }, 0);
                         
-                        if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
+                        console.log(`[PROMO BUNDLE] "${discount.name}" - CurrentPrice Sum: ${currentPrice} | BundleFlat: ${flat}`);
+
+                        if (currentPrice > flat) {
+                            applies = true;
+                            discountAmount = currentPrice - flat;
+                        }
+                    }
+                    if (discount.discountCap) {
+                        discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
                 }
