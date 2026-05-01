@@ -386,7 +386,7 @@ function DiscountTab() {
     try {
       const dRes = await apiFetch('/discounts');
       setDiscounts(dRes.data || []);
-      const pRes = await apiFetch('/recipes'); // Changed from /products to match the POS system's recipe naming
+      const pRes = await apiFetch('/products');
       setProducts(pRes.data || pRes || []);
     } catch (e: any) { console.error(e); }
     finally { setLoading(false); }
