@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import SyncWidget from './SyncWidget';
 import { apiClient } from '@shared/apiClient';
 import { PerformanceSettings } from '@shared/services/performance';
@@ -96,7 +97,7 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                             <span className="absolute -top-1 -right-1 size-3.5 bg-success border-2 border-[var(--secondary)] rounded-full shadow-lg animate-pulse" />
                         )}
                     </button>
-                    {showMemberPanel && (
+                    {showMemberPanel && createPortal(
                         <>
                             <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowMemberPanel(false)} />
                             <div className={`fixed inset-y-0 right-0 w-[85%] sm:w-[400px] bg-[var(--bg-app)] border-l border-white/5 shadow-[-20px_0_60px_-15px_rgba(0,0,0,0.5)] z-[120] animate-in slide-in-from-right duration-500 ease-out flex flex-col`}>
@@ -193,7 +194,8 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                     <button onClick={() => setShowMemberPanel(false)} className="w-full py-4 bg-primary text-[#0b1220] font-black tracking-[0.2em] uppercase text-xs rounded-2xl shadow-xl shadow-primary/20 transition-all">Tutup Menu</button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
                 </div>
 
@@ -210,7 +212,7 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                         <span className="material-symbols-outlined text-xl font-black">local_offer</span>
                         <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">{selectedDiscounts.length > 0 ? `${selectedDiscounts.length} Applied` : 'Offer'}</span>
                     </button>
-                    {showDiscountPanel && (
+                    {showDiscountPanel && createPortal(
                         <>
                             <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowDiscountPanel(false)} />
                             <div className={`fixed inset-y-0 right-0 w-[85%] sm:w-[400px] bg-[var(--bg-app)] border-l border-white/5 shadow-[-20px_0_60px_-15px_rgba(0,0,0,0.5)] z-[120] animate-in slide-in-from-right duration-500 ease-out flex flex-col font-black`}>
@@ -271,7 +273,8 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                     <button onClick={() => setShowDiscountPanel(false)} className="w-full py-4 bg-[#606c38] text-white font-black tracking-[0.2em] uppercase text-xs rounded-2xl shadow-xl shadow-[#606c38]/20 transition-all">Tutup Menu</button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
                 </div>
             </div>
