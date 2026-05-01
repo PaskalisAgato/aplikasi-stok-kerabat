@@ -190,7 +190,7 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                         ) : (
                             <>
                                 <span className="material-symbols-outlined text-xl">payments</span>
-                                {paymentMethod === 'CASH' && amountPaid < totalSalesValue ? 'Uang Kurang' : 'Bayar Sekarang'}
+                                {paymentMethod === 'CASH' && amountPaid < finalTotal ? 'Uang Kurang' : 'Bayar Sekarang'}
                             </>
                         )}
                     </button>
