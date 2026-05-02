@@ -14,6 +14,7 @@ export const users = pgTable('user', {
     role: text('role').default('Karyawan').notNull(), // 'Admin' or 'Karyawan'
     pin: text('pin'), // 4-6 digit numeric PIN
     status: text('status').default('active').notNull(),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull()
 });

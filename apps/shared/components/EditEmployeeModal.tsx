@@ -34,7 +34,7 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
         try {
             await updateMutation.mutateAsync({
                 id: employee.id,
-                data: { name, role, email, pin }
+                data: { name, role, email, pin, status }
             });
             onClose();
         } catch (error) {
@@ -167,14 +167,23 @@ const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, onClose, 
                     </div>
                 </main>
 
-                <footer className="p-4 border-t border-border-dim bg-surface">
+                <footer className="p-4 border-t border-border-dim bg-surface space-y-4">
                     <button 
                         onClick={handleSave}
                         disabled={updateMutation.isPending}
-                        className="w-full h-14 bg-gradient-to-r from-primary to-primary-dark text-[var(--text-main)] font-black rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-14 bg-gradient-to-r from-primary to-primary-dark text-black font-black rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {updateMutation.isPending && <span className="material-symbols-outlined animate-spin">refresh</span>}
                         {updateMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    </button>
+
+                    <button 
+                        onClick={handleDelete}
+                        disabled={deleteMutation.isPending}
+                        className="w-full h-14 flex items-center justify-center gap-3 text-red-500 font-black rounded-2xl border-2 border-red-500/20 hover:bg-red-500/5 transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                        {deleteMutation.isPending ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">delete</span>}
+                        {deleteMutation.isPending ? 'Menghapus...' : 'Hapus Karyawan'}
                     </button>
                 </footer>
             </div>

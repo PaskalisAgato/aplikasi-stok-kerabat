@@ -19,7 +19,7 @@ export class UserService {
     }
 
     static async getAllUsers() {
-        return await db.select().from(users).orderBy(desc(users.createdAt));
+        return await db.select().from(users).where(eq(users.isDeleted, false)).orderBy(desc(users.createdAt));
     }
 
     static async getAllUsersPublic() {
@@ -30,7 +30,7 @@ export class UserService {
             email: users.email,
             status: users.status,
             createdAt: users.createdAt
-        }).from(users).orderBy(desc(users.createdAt));
+        }).from(users).where(eq(users.isDeleted, false)).orderBy(desc(users.createdAt));
     }
 
     static async createUser(data: any, currentUserId: string) {
@@ -68,6 +68,7 @@ export class UserService {
                 email, 
                 role, 
                 pin,
+                status: data.status,
                 updatedAt: new Date()
             })
             .where(eq(users.id, id))
@@ -88,7 +89,8 @@ export class UserService {
     }
 
     static async deleteUser(id: string, currentUserId: string) {
-        const [deletedUser] = await db.delete(users)
+        const [deletedUser] = await db.update(users)
+            .set({ isDeleted: true, updatedAt: new Date() })
             .where(eq(users.id, id))
             .returning();
 

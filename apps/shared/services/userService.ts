@@ -24,6 +24,7 @@ export interface UpdateUserPayload {
     email?: string;
     role?: string;
     pin?: string;
+    status?: string;
 }
 
 export const userService = {
