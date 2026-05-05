@@ -394,6 +394,54 @@ export class DiscountService {
             }
         }
 
+        // ── Phase 5/6: QR Voucher (Stand 2 Outlet) Injection ────────────────
+        if (voucherCode && voucherCode.startsWith('KKT-')) {
+            try {
+                const { VoucherService } = await import('./voucher_barcode.service.js');
+                const vResult = await VoucherService.validateVoucher(voucherCode);
+                
+                if (vResult.isValid) {
+                    // Phase 6: Fetch dynamic settings from [SYSTEM] Voucher QR Stand record
+                    const [qrTemplate] = await db.select()
+                        .from(schema.discounts)
+                        .where(eq(schema.discounts.voucherCode, 'QR_SYSTEM_TEMPLATE'))
+                        .limit(1);
+
+                    const qrValue = qrTemplate ? parseFloat(qrTemplate.value) : 20;
+                    const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : { category: 'Kopi' };
+                    
+                    // Filter items by category or productIds from template
+                    let targetItems = itemsWithMetadata;
+                    if (qrConditions.category) {
+                        targetItems = itemsWithMetadata.filter(i => i.category.toLowerCase().includes(qrConditions.category.toLowerCase()));
+                    } else if (qrConditions.productIds) {
+                        const tIds = qrConditions.productIds.map(Number);
+                        targetItems = itemsWithMetadata.filter(i => tIds.includes(i.recipeId));
+                    }
+
+                    const qrBaseSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
+                    const qrDiscountValue = qrValue || 20;
+                    const qrDiscountAmount = Math.floor(qrBaseSubtotal * (qrDiscountValue / 100));
+
+                    if (qrDiscountAmount > 0) {
+                        applicable.push({
+                            id: qrTemplate?.id || -999,
+                            name: qrTemplate?.name || `QR Voucher (${voucherCode})`,
+                            type: 'percent',
+                            value: qrDiscountValue.toString(),
+                            discountAmount: qrDiscountAmount,
+                            priority: 100,
+                            isStackable: true,
+                            isExclusive: false,
+                            voucherCode: voucherCode
+                        });
+                    }
+                }
+            } catch (vErr) {
+                console.warn('[QR Voucher Eval] Failed:', vErr);
+            }
+        }
+
         // Return all applicable promos found.
         // Frontend will handle allowing the user to select between them.
         return applicable;
