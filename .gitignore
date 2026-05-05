@@ -8,6 +8,7 @@ dist/
 dist-global/
 dist-combined/
 dist-pages/
+dist-*/
 **/dist/
 
 # Temp & uploads
