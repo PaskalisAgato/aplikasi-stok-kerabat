@@ -412,7 +412,7 @@ export class TransactionService {
             // Log to Audit
             await tx.insert(schema.auditLogs).values({
                 userId,
-                outletId,
+                outletId: outletId || 1,
                 action: 'CREATE_TRANSACTION',
                 tableName: 'sales',
                 oldData: null,

@@ -52,6 +52,7 @@ export class CashierShiftService {
         // Audit Log
         await db.insert(schema.auditLogs).values({
             userId,
+            outletId: 1,
             action: 'OPEN_SHIFT',
             tableName: 'shifts',
             newData: JSON.stringify(newShift),
@@ -240,6 +241,7 @@ export class CashierShiftService {
             // Audit Log
             await tx.insert(schema.auditLogs).values({
                 userId,
+                outletId: 1,
                 action: 'CLOSE_SHIFT_ANTI_FRAUD',
                 tableName: 'shifts',
                 newData: JSON.stringify({ closedShift, denominations }),
@@ -306,6 +308,7 @@ export class CashierShiftService {
             // 3. Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId: approvedBy2,
+                outletId: 1,
                 action: 'SHIFT_HANDOVER',
                 tableName: 'shifts',
                 newData: JSON.stringify({ fromShiftId: fromShift.id, toShiftId: newShift.id, cashAmount }),
@@ -340,6 +343,7 @@ export class CashierShiftService {
             if (updatedShift) {
                 await tx.insert(schema.auditLogs).values({
                     userId: currentUserId,
+                    outletId: 1,
                     action: `DELETE_CASHIER_SHIFT_CASCADE ID: ${id}`,
                     tableName: 'shifts',
                     oldData: JSON.stringify(oldShift),

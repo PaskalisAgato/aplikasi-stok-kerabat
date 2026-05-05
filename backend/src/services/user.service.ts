@@ -70,6 +70,7 @@ export class UserService {
 
         await db.insert(schema.auditLogs).values({
             userId: currentUserId,
+            outletId: 1,
             action: `CREATE_USER: ${newUser.name} (${newUser.role})`,
             tableName: 'user',
             newData: JSON.stringify(newUser),
@@ -98,6 +99,7 @@ export class UserService {
         if (updatedUser) {
             await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
+                outletId: 1,
                 action: `UPDATE_USER: ${updatedUser.name}`,
                 tableName: 'user',
                 oldData: JSON.stringify(oldUser[0]),
@@ -118,6 +120,7 @@ export class UserService {
         if (deletedUser) {
             await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
+                outletId: 1,
                 action: `DELETE_USER: ${deletedUser.name}`,
                 tableName: 'user',
                 oldData: JSON.stringify(deletedUser),
@@ -247,6 +250,7 @@ export class UserService {
     static async logAction(userId: string, action: string, tableName: string, oldData?: any, newData?: any) {
         await db.insert(schema.auditLogs).values({
             userId,
+            outletId: 1,
             action,
             tableName,
             oldData: oldData ? JSON.stringify(oldData) : null,

@@ -455,6 +455,7 @@ financeRouter.delete('/expenses/:id', requireAuth, async (req: Request, res: Res
         // 3. Audit Log
         await db.insert(schema.auditLogs).values({
             userId: (req as any).user?.id,
+            outletId: 1,
             action: 'REVERSE_EXPENSE',
             tableName: 'expenses',
             oldData: JSON.stringify(expenseToReverse),

@@ -86,6 +86,7 @@ containersRouter.put('/:id', requireAdmin, async (req: Request, res: Response) =
         if (tareWeight !== undefined && tareWeight.toString() !== oldContainer.tareWeight) {
             await db.insert(schema.auditLogs).values({
                 userId: user.id,
+                outletId: 1,
                 action: 'UPDATE_CONTAINER_TARE',
                 tableName: 'containers',
                 oldData: JSON.stringify(oldContainer),

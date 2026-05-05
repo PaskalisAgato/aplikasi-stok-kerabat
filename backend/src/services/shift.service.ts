@@ -58,6 +58,7 @@ export class ShiftService {
         // Log action
         await db.insert(schema.auditLogs).values({
             userId: currentUserId,
+            outletId: 1,
             action: `CREATE_SHIFT for user ${userId} on ${date.toDateString()}`,
             tableName: 'work_shifts',
             newData: JSON.stringify(newShift),
@@ -84,6 +85,7 @@ export class ShiftService {
         if (updatedShift) {
             await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
+                outletId: 1,
                 action: `UPDATE_SHIFT ID: ${id}`,
                 tableName: 'work_shifts',
                 oldData: JSON.stringify(oldShift),
@@ -103,6 +105,7 @@ export class ShiftService {
         if (deletedShift) {
             await db.insert(schema.auditLogs).values({
                 userId: currentUserId,
+                outletId: 1,
                 action: `DELETE_SHIFT ID: ${id}`,
                 tableName: 'work_shifts',
                 oldData: JSON.stringify(deletedShift),
@@ -220,6 +223,7 @@ export class ShiftService {
 
             await tx.insert(schema.auditLogs).values({
                 userId: currentUserId,
+                outletId: 1,
                 action: `HRIS_BATCH_SAVE: ${insertedCount} shifts, settings synced`,
                 tableName: 'work_shifts',
                 newData: JSON.stringify({ count: insertedCount, userIdsSynced: userIds.length }),

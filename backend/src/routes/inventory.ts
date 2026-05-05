@@ -558,6 +558,7 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
                 // 4. Log to Audit
                 await tx.insert(schema.auditLogs).values({
                     userId: user.id,
+                    outletId: 1,
                     action: `OPNAME_ADJUSTMENT: ${item.name} from ${currentStock} to ${targetStock}`,
                     tableName: 'inventory',
                     oldData: JSON.stringify({ currentStock: currentStock.toString() }),
@@ -773,6 +774,7 @@ inventoryRouter.put('/:id', requireAdmin, validateBase64Image('imageUrl'), async
             // Log to Audit
             await tx.insert(schema.auditLogs).values({
                 userId: user.id,
+                outletId: 1,
                 action: `UPDATE_INVENTORY_ENTERPRISE: ${updatedItem.name}`,
                 tableName: 'inventory',
                 oldData: JSON.stringify(oldItem),
