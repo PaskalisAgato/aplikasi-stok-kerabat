@@ -401,10 +401,13 @@ export class DiscountService {
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 
                 if (vResult.isValid) {
-                    // Phase 6: Fetch dynamic settings from [SYSTEM] Voucher QR Stand record
+                    // Phase 6: Fetch dynamic settings from a record with type 'qr_voucher'
                     const [qrTemplate] = await db.select()
                         .from(schema.discounts)
-                        .where(eq(schema.discounts.voucherCode, 'QR_SYSTEM_TEMPLATE'))
+                        .where(and(
+                            eq(schema.discounts.type, 'qr_voucher'),
+                            eq(schema.discounts.isActive, true)
+                        ))
                         .limit(1);
 
                     const qrValue = qrTemplate ? parseFloat(qrTemplate.value) : 20;

@@ -42,7 +42,7 @@ interface Member {
 interface Discount {
   id: number;
   name: string;
-  type: 'percent' | 'nominal' | 'time-based' | 'bundling' | 'member' | 'buy_x_get_y';
+  type: 'percent' | 'nominal' | 'time-based' | 'bundling' | 'member' | 'buy_x_get_y' | 'qr_voucher';
   value: string;
   conditions?: string;
   isActive: boolean;
@@ -86,6 +86,7 @@ const TYPE_LABELS: Record<string, string> = {
   'mix_and_match': '✨ Mix & Match (Flat)',
   member: '👤 Member',
   'buy_x_get_y': '🎁 Beli X Gratis Y',
+  'qr_voucher': '🎟️ Voucher QR',
 };
 
 function formatRp(n: number) {
