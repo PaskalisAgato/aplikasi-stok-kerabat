@@ -11,7 +11,7 @@ interface VoucherRedeemModalProps {
 
 export const VoucherRedeemModal: React.FC<VoucherRedeemModalProps> = ({ isOpen, onClose, onApplyVoucher }) => {
     const [manualCode, setManualCode] = useState('');
-    const [status, setStatus] = useState<'idle' | 'scanning' | 'validating' | 'success' | 'error'>('idle');
+    const [status, setStatus] = useState<'idle' | 'scanning' | 'validating' | 'success' | 'error'>('scanning');
     const [errorMsg, setErrorMsg] = useState('');
     const [voucherData, setVoucherData] = useState<any>(null);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
