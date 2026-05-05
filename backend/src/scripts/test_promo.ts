@@ -18,8 +18,8 @@ async function testPromo() {
         const allTargetIds = new Set<number>();
         bundling.forEach(b => {
              const conditions = b.conditions ? JSON.parse(b.conditions) : null;
-             if (conditions && conditions.productIds) {
-                 conditions.productIds.map(Number).forEach(id => allTargetIds.add(id));
+             if (conditions && Array.isArray(conditions.productIds)) {
+                 conditions.productIds.map(Number).forEach((id: number) => allTargetIds.add(id));
              }
         });
         const targetIds = Array.from(allTargetIds);

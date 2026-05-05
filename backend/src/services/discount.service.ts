@@ -400,7 +400,7 @@ export class DiscountService {
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 
-                if (vResult.isValid) {
+                if (vResult.valid) {
                     // Phase 6: Fetch dynamic settings from a record with type 'qr_voucher'
                     const [qrTemplate] = await db.select()
                         .from(schema.discounts)
