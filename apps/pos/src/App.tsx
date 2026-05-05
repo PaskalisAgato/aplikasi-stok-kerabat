@@ -257,7 +257,7 @@ export default function App() {
     };
 
     const onSaveBill = async () => {
-        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, session?.user?.role === 'Admin');
+        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin');
         if (result?.success) {
             resetCart();
             setCustomerInfo('');
@@ -265,7 +265,7 @@ export default function App() {
     };
 
     const onUpdateBillHandle = async () => {
-        const result = await handleUpdateBill(activeCartItems, itemNotes);
+        const result = await handleUpdateBill(activeCartItems, itemNotes, orderSource);
         if (result?.clearCart) resetCart();
     };
 

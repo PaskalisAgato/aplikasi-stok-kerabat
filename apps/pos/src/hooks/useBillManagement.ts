@@ -41,7 +41,15 @@ export function useBillManagement() {
         fetchOpenBills();
     }, [fetchOpenBills]);
 
-    const handleSaveBill = async (activeCartItems: any[], totalSalesValue: number, itemNotes: Record<number, string>, activeShift: any, sales: Record<number, number>, isAdmin?: boolean) => {
+    const handleSaveBill = async (
+        activeCartItems: any[], 
+        totalSalesValue: number, 
+        itemNotes: Record<number, string>, 
+        activeShift: any, 
+        sales: Record<number, number>, 
+        orderSource: string,
+        isAdmin?: boolean
+    ) => {
         if (!activeShift && !isAdmin) {
             showNotification('Shift kasir belum dibuka. Tidak bisa menyimpan bill.', "error");
             return { success: false };
@@ -74,7 +82,8 @@ export function useBillManagement() {
                 customerInfo: info,
                 paymentMethod: 'CASH',
                 subTotal: totalSalesValue,
-                totalAmount: totalSalesValue
+                totalAmount: totalSalesValue,
+                orderSource
             };
 
             await apiClient.post('/transactions', checkoutData);
@@ -120,7 +129,7 @@ export function useBillManagement() {
         return { resetCart: false };
     };
 
-    const handleUpdateBill = async (activeCartItems: any[], itemNotes: Record<number, string>) => {
+    const handleUpdateBill = async (activeCartItems: any[], itemNotes: Record<number, string>, orderSource: string) => {
         if (!currentBillId) return;
         try {
             const items = activeCartItems.map(item => ({
@@ -130,7 +139,7 @@ export function useBillManagement() {
                 notes: itemNotes[item.id]
             }));
 
-            await syncEngine.enqueue('ADD_ITEMS_TO_BILL', { id: currentBillId, items });
+            await syncEngine.enqueue('ADD_ITEMS_TO_BILL', { id: currentBillId, items, orderSource });
             showNotification('Permintaan update bill disimpan ke antrean!', "success");
             fetchOpenBills();
             return { clearCart: true };

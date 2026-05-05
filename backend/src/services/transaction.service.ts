@@ -269,6 +269,7 @@ export class TransactionService {
                 paymentReferenceId: data.paymentReferenceId || null,
                 status: data.status || 'PAID',
                 pointsUsed: data.pointsUsed || 0,
+                orderSource: data.orderSource || 'DIRECT',
                 createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
             };
 
@@ -514,7 +515,7 @@ export class TransactionService {
     }
 
     // 3.1 ADD ITEMS TO EXISTING OPEN BILL
-    static async addItemsToTransaction(saleId: number, items: any[], userId: string) {
+    static async addItemsToTransaction(saleId: number, items: any[], userId: string, providedOrderSource?: string) {
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error('No items to add');
         }
@@ -530,15 +531,39 @@ export class TransactionService {
             if (oldSaleArr.length === 0) throw new Error('Open transaction not found or already paid');
             const oldSale = oldSaleArr[0];
 
-            // 1. Insert new items and calculate incremental totals
+            // 1. RE-VALIDATE PRICES: Use provided orderSource or fall back to oldSale's orderSource
+            const orderSourceToUse = providedOrderSource || oldSale.orderSource || 'DIRECT';
+            const recipeIds = [...new Set(items.map((i: any) => i.recipeId))];
+            
+            const dbRecipes = await tx.select({ 
+                id: schema.recipes.id, 
+                price: schema.recipes.price, 
+                priceStand: schema.recipes.priceStand 
+            }).from(schema.recipes).where(inArray(schema.recipes.id, recipeIds));
+
+            const isStand = orderSourceToUse === 'STAND';
+            const priceMap = new Map(dbRecipes.map((r: any) => {
+                const basePrice = parseFloat(r.price);
+                const standPrice = parseFloat(r.priceStand);
+                const finalPrice = (isStand && standPrice > 0) ? standPrice : basePrice;
+                return [r.id, finalPrice];
+            }));
+
+            // 2. Insert new items and calculate incremental totals
             let incrementalSubtotal = 0;
-            const saleItemsInsertData = items.map((item: any) => {
-                const itemPriceRaw = parseFloat(item.price?.toString() || '0');
-                const itemPrice = isNaN(itemPriceRaw) ? 0 : itemPriceRaw;
+            for (const item of items) {
+                const price = priceMap.get(item.recipeId);
+                if (price === undefined || price === null) throw new Error(`Menu dengan ID ${item.recipeId} tidak ditemukan`);
+                
                 const qty = parseInt(item.quantity?.toString() || '1');
-                const itemSubtotalRaw = item.subtotal ? parseFloat(item.subtotal.toString()) : (itemPrice * qty);
-                const subtotal = isNaN(itemSubtotalRaw) ? 0 : itemSubtotalRaw;
-                incrementalSubtotal += subtotal;
+                const subtotal = (price as number) * (isNaN(qty) ? 1 : qty);
+                incrementalSubtotal += (subtotal as number);
+            }
+
+            const saleItemsInsertData = items.map((item: any) => {
+                const freshPrice = priceMap.get(item.recipeId) || 0;
+                const qty = parseInt(item.quantity?.toString() || '1');
+                const subtotal = freshPrice * (isNaN(qty) ? 1 : qty);
                 
                 return {
                     saleId: saleId,
@@ -550,7 +575,7 @@ export class TransactionService {
             });
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
 
-            // 2. Update parent sale totals
+            // 3. Update parent sale totals
             const newSubTotal = (parseFloat(oldSale.subTotal) + incrementalSubtotal).toString();
             const newTotalAmount = (parseFloat(oldSale.totalAmount) + incrementalSubtotal).toString();
             
@@ -559,11 +584,11 @@ export class TransactionService {
                 totalAmount: newTotalAmount,
             }).where(eq(schema.sales.id, saleId));
 
-            const recipeIds = items.map((i: any) => i.recipeId);
-            const dbRecipes = await tx.select({ 
+            const addRecipeIds = items.map((i: any) => i.recipeId);
+            const addDbRecipes = await tx.select({ 
                 id: schema.recipes.id, 
                 name: schema.recipes.name 
-            }).from(schema.recipes).where(inArray(schema.recipes.id, recipeIds));
+            }).from(schema.recipes).where(inArray(schema.recipes.id, addRecipeIds));
 
             // 3. Deduct stock for NEW items
             const allBomDeps = await tx.select({
@@ -629,7 +654,7 @@ export class TransactionService {
                 customerInfo: oldSale.customerInfo || 'Pelanggan',
                 items: items.map((i: any) => ({
                     recipeId: i.recipeId,
-                    name: dbRecipes.find((r: any) => r.id === i.recipeId)?.name || 'Menu',
+                    name: addDbRecipes.find((r: any) => r.id === i.recipeId)?.name || 'Menu',
                     quantity: i.quantity,
                     notes: i.notes
                 })),

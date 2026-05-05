@@ -127,7 +127,7 @@ export class TransactionController {
     static async addItems(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id as string);
-            const { items } = req.body;
+            const { items, orderSource } = req.body;
             const userId = (req as any).user?.id || 'anonymous';
 
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
@@ -135,7 +135,7 @@ export class TransactionController {
                 return res.status(400).json({ error: 'Items list is empty' });
             }
 
-            const result = await (TransactionService as any).addItemsToTransaction(id, items, userId);
+            const result = await (TransactionService as any).addItemsToTransaction(id, items, userId, orderSource);
             res.json({ success: true, message: 'Menu berhasil ditambahkan ke bill', data: result });
         } catch (error: any) {
             console.error('--- TransactionController.addItems ERROR ---', error);
