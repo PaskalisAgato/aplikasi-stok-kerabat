@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.2.0",
+  "version": "1.2.1-debug",
   "description": "Kerabat Backend v1.2.0 - Critical Audit Log Fix",
   "main": "dist/server.js",
   "scripts": {

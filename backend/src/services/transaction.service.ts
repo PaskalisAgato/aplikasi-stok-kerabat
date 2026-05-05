@@ -410,15 +410,17 @@ export class TransactionService {
             }
             
             // Log to Audit
-            await tx.insert(schema.auditLogs).values({
+            const auditPayload: any = {
                 userId,
-                outletId: outletId || 1,
                 action: 'CREATE_TRANSACTION',
                 tableName: 'sales',
                 oldData: null,
                 newData: JSON.stringify({ saleId: finalizedSaleId, items }),
                 createdAt: new Date()
-            });
+            };
+            if (outletId) auditPayload.outletId = outletId;
+
+            await tx.insert(schema.auditLogs).values(auditPayload);
 
             // 6. Record to Cash Ledger (Anti-Fraud)
             if (data.paymentMethod === 'CASH' && (data.status === 'PAID' || saleValues.status === 'PAID')) {
