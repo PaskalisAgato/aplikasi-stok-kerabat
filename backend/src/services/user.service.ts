@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { db } from '../config/db.js';
 import { users } from '../db/schema.js';
 import * as schema from '../db/schema.js';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, inArray } from 'drizzle-orm';
 
 export class UserService {
     static async loginByPin(role: string, pin: string) {
@@ -16,6 +16,21 @@ export class UserService {
             )
             .limit(1);
         return user;
+    }
+
+    // For admin approval flows — accepts Admin, Owner, or Supervisor
+    static async verifyAdminPin(pin: string) {
+        const [user] = await db.select()
+            .from(users)
+            .where(
+                and(
+                    eq(users.pin, pin),
+                    inArray(users.role, ['Admin', 'Owner', 'Supervisor']),
+                    eq(users.isDeleted, false)
+                )
+            )
+            .limit(1);
+        return user || null;
     }
 
     static async getAllUsers() {

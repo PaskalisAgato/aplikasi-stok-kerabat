@@ -93,8 +93,8 @@ export class CashierShiftController {
                 return res.status(400).json({ error: 'Missing required fields for handover' });
             }
             
-            // 1. Verify Admin PIN (Acting as Supervisor)
-            const admin = await UserService.loginByPin('Admin', adminPin);
+            // 1. Verify Admin PIN (Accepts Admin, Owner, Supervisor)
+            const admin = await UserService.verifyAdminPin(adminPin);
             if (!admin) {
                 return res.status(403).json({ success: false, message: 'PIN Admin tidak valid. Handover membutuhkan otoritas Supervisor.' });
             }
