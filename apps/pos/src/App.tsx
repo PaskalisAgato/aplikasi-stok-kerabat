@@ -418,6 +418,18 @@ export default function App() {
                                         >{cat}</button>
                                     ))}
                                 </div>
+                                
+                                <div className="px-6 py-2 shrink-0 flex items-center gap-3">
+                                    <button 
+                                        onClick={() => setIsVoucherRedeemModalOpen(true)}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-primary/10 border border-primary/30 text-primary rounded-2xl hover:bg-primary hover:text-[#0b1220] transition-all shadow-lg active:scale-95 group"
+                                    >
+                                        <span className="material-symbols-outlined text-xl font-black group-hover:animate-pulse">qr_code_scanner</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Scan Voucher QR</span>
+                                    </button>
+                                    <div className="h-6 w-px bg-white/10 mx-1" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Terapkan diskon atau penawaran khusus</span>
+                                </div>
 
                                 {isLoading ? (
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-4">
