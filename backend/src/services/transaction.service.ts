@@ -211,6 +211,11 @@ export class TransactionService {
         // but keep it strict for PAID transactions (tolerance 1 IDR to allow for minor float rounding)
         const tolerance = isBill ? 100 : 1; 
 
+        // 3. HARDENING: Active Shift Guard & Context
+        const activeShift = await CashierShiftService.getActiveShift(userId);
+        const shiftIdToUse = shiftId || activeShift?.id || null;
+        const outletId = activeShift?.outletId || 1; // Fallback to 1
+
         if (Math.abs(expectedTotal - clientTotal) > tolerance) {
             console.error(`[FRAUD ALERT] Price mismatch! 
                 Client Total: ${clientTotal}, 
@@ -224,6 +229,7 @@ export class TransactionService {
             // LOG CRITICAL FRAUD ALARM
             await db.insert(schema.auditLogs).values({
                 userId,
+                outletId,
                 action: isBill ? 'BILL_PRICE_DISCREPANCY' : 'FRAUD_PRICE_MISMATCH_ATTEMPT',
                 tableName: 'sales',
                 oldData: JSON.stringify({ items, clientTotal, expectedTotal, serverCalculatedSubTotal, tolerance }),
@@ -237,10 +243,6 @@ export class TransactionService {
             throw new Error(errorMsg);
         }
 
-        // 3. HARDENING: Active Shift Guard
-        const activeShift = await CashierShiftService.getActiveShift(userId);
-        const shiftIdToUse = shiftId || activeShift?.id || null;
-
         if (!isBill && !shiftIdToUse) {
             console.warn(`[CHECKOUT_BLOCKED] No active shift for user ${userId}`);
             throw new Error('Shift belum dibuka. Silakan buka shift kasir terlebih dahulu di menu utama.');
@@ -252,6 +254,7 @@ export class TransactionService {
 
             const saleValues = {
                 offlineId: offlineId || null,
+                outletId,
                 shiftId: shiftIdToUse,
                 userId: userId,
                 memberId: data.memberId || null,
@@ -409,6 +412,7 @@ export class TransactionService {
             // Log to Audit
             await tx.insert(schema.auditLogs).values({
                 userId,
+                outletId,
                 action: 'CREATE_TRANSACTION',
                 tableName: 'sales',
                 oldData: null,
@@ -603,8 +607,10 @@ export class TransactionService {
             }
 
             // 4. Log to Audit
+            const activeShift = await CashierShiftService.getActiveShift(userId);
             await tx.insert(schema.auditLogs).values({
                 userId,
+                outletId: activeShift?.outletId || 1,
                 action: 'ADD_ITEMS_TO_BILL',
                 tableName: 'sales',
                 oldData: JSON.stringify(oldSale),
@@ -776,8 +782,10 @@ export class TransactionService {
             }
 
             // Log Audit
+            const activeShift = await CashierShiftService.getActiveShift(adminId);
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
+                outletId: activeShift?.outletId || 1,
                 action: 'UPDATE_TRANSACTION',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
@@ -827,8 +835,10 @@ export class TransactionService {
                 .where(eq(schema.sales.id, saleId));
 
             // Log Audit
+            const activeShift = await CashierShiftService.getActiveShift(approvedByAdminId);
             await tx.insert(schema.auditLogs).values({
                 userId: approvedByAdminId, // Use the actual admin who gave the PIN
+                outletId: activeShift?.outletId || 1,
                 action: 'SOFT_DELETE_TRANSACTION_HARDENED',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sale: oldSale, items: oldItems }),
@@ -942,7 +952,13 @@ export class TransactionService {
             await TransactionService.revertStockForSaleItems(tx, oldItems, id);
             
             await tx.insert(schema.voidLogs).values({ transactionId: sale.id, userId, reason });
-            await tx.insert(schema.auditLogs).values({ userId, action: 'VOID_TRANSACTION_FAST', tableName: 'sales', createdAt: new Date() });
+            await tx.insert(schema.auditLogs).values({ 
+                userId, 
+                outletId: sale.outletId,
+                action: 'VOID_TRANSACTION_FAST', 
+                tableName: 'sales', 
+                createdAt: new Date() 
+            });
         });
     }
 
@@ -962,8 +978,10 @@ export class TransactionService {
                 .where(eq(schema.sales.isDeleted, false));
 
             // Log Audit
+            const activeShift = await CashierShiftService.getActiveShift(adminId);
             await tx.insert(schema.auditLogs).values({
                 userId: adminId,
+                outletId: activeShift?.outletId || 1,
                 action: 'CLEAR_ALL_TRANSACTIONS',
                 tableName: 'sales',
                 oldData: 'BATCH_CLEAR',
@@ -1034,6 +1052,7 @@ export class TransactionService {
             // 7. Log Audit
             await tx.insert(schema.auditLogs).values({
                 userId,
+                outletId: activeShift?.outletId || 1,
                 action: 'MERGE_BILLS_MULTI',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sourceIds, targetId, targetInfo: targetBill.customerInfo }),
@@ -1145,8 +1164,10 @@ export class TransactionService {
             const targetTotal = await recalculateBill(targetId);
 
             // 5. Log Audit
+            const activeShift = await CashierShiftService.getActiveShift(userId);
             await tx.insert(schema.auditLogs).values({
                 userId,
+                outletId: activeShift?.outletId || 1,
                 action: 'SPLIT_BILL',
                 tableName: 'sales',
                 oldData: JSON.stringify({ sourceId, itemsMoved: itemsToMove }),
