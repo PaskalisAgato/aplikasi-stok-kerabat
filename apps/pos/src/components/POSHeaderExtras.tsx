@@ -452,6 +452,13 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                                         <span className="material-symbols-outlined text-base">cloud_sync</span>
                                         <span className="text-xs uppercase tracking-widest">Antrean Cloud</span>
                                     </button>
+                                    <button 
+                                        onClick={() => { navigateTo('kds'); setIsActionMenuOpen(false); }}
+                                        className={`w-full px-4 py-2.5 rounded-xl flex items-center gap-3 ${view === 'kds' ? 'bg-primary/20 text-primary font-black border border-primary/20' : 'text-[var(--text-muted)] hover:bg-white/5 font-bold'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-base">monitor</span>
+                                        <span className="text-xs uppercase tracking-widest">Kitchen Monitor (KDS)</span>
+                                    </button>
                                 </div>
 
                                 <div className="h-px bg-white/5 mx-2"></div>

@@ -33,7 +33,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ items, sales, updateQt
     const rowVirtualizer = useVirtualizer({
         count: rowCount,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 72 + 12, // Card height (72px) + gap-3 (12px)
+        estimateSize: () => 80 + 12, // Card height (80px) + gap-3 (12px)
         overscan: 5,
     });
 
@@ -62,7 +62,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ items, sales, updateQt
                                 top: 0,
                                 left: 0,
                                 width: '100%',
-                                height: `72px`,
+                                height: `80px`,
                                 transform: `translateY(${virtualRow.start + 16}px)`, // +16 for p-4 padding top
                                 display: 'grid',
                                 gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,

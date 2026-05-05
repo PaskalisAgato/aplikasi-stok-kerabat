@@ -1,11 +1,22 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export class ProductService {
-    static async getAllProducts() {
-        const allRecipes = await db.select().from(schema.recipes).where(eq(schema.recipes.isActive, true));
+    static async getAllProducts(outletId?: number) {
+        let recipesQuery = db.select().from(schema.recipes).where(eq(schema.recipes.isActive, true));
+        
+        if (outletId) {
+            recipesQuery = db.select().from(schema.recipes).where(
+                and(
+                    eq(schema.recipes.isActive, true),
+                    eq(schema.recipes.outletId, outletId)
+                )
+            );
+        }
+
+        const allRecipes = await recipesQuery;
         const recipeIds = allRecipes.map((r: typeof schema.recipes.$inferSelect) => r.id);
         
         let allIngredients: (typeof schema.recipeIngredients.$inferSelect)[] = [];
@@ -64,12 +75,15 @@ export class ProductService {
         });
     }
 
-    static async getProductPhoto(id: number) {
+    static async getProductPhoto(id: number, outletId?: number) {
+        let filters = [eq(schema.recipes.id, id)];
+        if (outletId) filters.push(eq(schema.recipes.outletId, outletId));
+
         const [recipe] = await db.select({
             imageUrl: schema.recipes.imageUrl
         })
         .from(schema.recipes)
-        .where(eq(schema.recipes.id, id))
+        .where(and(...filters))
         .limit(1);
 
         return recipe?.imageUrl || null;
@@ -84,7 +98,7 @@ export class ProductService {
 
         return await db.transaction(async (tx: any) => {
             try {
-                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients } = data;
+                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients, outletId } = data;
                 const [newRecipe] = await tx.insert(schema.recipes).values({
                     name,
                     category,
@@ -93,6 +107,7 @@ export class ProductService {
                     margin: toNumericString(margin),
                     overhead: toNumericString(overhead || 10),
                     imageUrl,
+                    outletId: outletId || 1
                 }).returning();
 
                 if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
@@ -126,13 +141,18 @@ export class ProductService {
 
         const result: any = await db.transaction(async (tx: any) => {
             try {
-                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients } = data;
+                const { name, category, price, priceStand, margin, overhead, imageUrl, ingredients, outletId } = data;
 
-                // 1. Fetch old recipe to check for image updates
+                // 1. Fetch old recipe to check for image updates & ensure outlet isolation
+                let selectFilters = [eq(schema.recipes.id, id)];
+                if (outletId) selectFilters.push(eq(schema.recipes.outletId, outletId));
+
                 const [oldRecipe] = await tx.select({ imageUrl: schema.recipes.imageUrl })
                     .from(schema.recipes)
-                    .where(eq(schema.recipes.id, id))
+                    .where(and(...selectFilters))
                     .limit(1);
+
+                if (!oldRecipe) throw new Error('Produk tidak ditemukan atau akses ditolak');
 
                 // 2. Update main recipe data
                 const updatePayload: any = {};
@@ -203,11 +223,16 @@ export class ProductService {
         return result;
     }
 
-    static async deleteProduct(id: number) {
+    static async deleteProduct(id: number, outletId?: number) {
+        let filters = [eq(schema.recipes.id, id)];
+        if (outletId) filters.push(eq(schema.recipes.outletId, outletId));
+
         const [recipe] = await db.select({ imageUrl: schema.recipes.imageUrl })
             .from(schema.recipes)
-            .where(eq(schema.recipes.id, id))
+            .where(and(...filters))
             .limit(1);
+
+        if (!recipe) throw new Error('Produk tidak ditemukan atau akses ditolak');
 
         const result = await db.update(schema.recipes)
             .set({ isActive: false })

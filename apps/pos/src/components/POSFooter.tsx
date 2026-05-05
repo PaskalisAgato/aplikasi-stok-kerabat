@@ -88,18 +88,18 @@ export const POSFooter: React.FC<POSFooterProps> = ({
             {/* Cash Payment Section */}
             {paymentMethod === 'CASH' && (
                 <div className="bg-black/10 rounded-xl p-2 border border-white/5 space-y-2">
-                    <div className="flex flex-wrap gap-1.5">
-                        {[10000, 20000, 50000, 100000, finalTotal].map((amount, idx) => (
+                    <div className="flex flex-wrap gap-1">
+                        {[10000, 20000, 50000, 75000, 100000, finalTotal].map((amount, idx) => (
                             <button 
                                 key={idx}
                                 onClick={() => setAmountPaid(amount)}
-                                className={`flex-1 min-w-[60px] py-1.5 rounded-md border font-bold text-[13px] transition-all active:scale-95 ${
+                                className={`flex-1 min-w-[55px] py-2 rounded-lg border font-black text-xs transition-all active:scale-95 ${
                                     amountPaid === amount 
-                                        ? 'bg-primary border-primary text-slate-900 shadow-md' 
-                                        : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:bg-white/5'
+                                        ? 'bg-primary border-primary text-slate-900 shadow-lg shadow-primary/20 scale-105 z-10' 
+                                        : 'bg-[var(--bg-app)] border-[var(--border-dim)] text-[var(--text-main)] hover:border-primary/50'
                                 }`}
                             >
-                                {amount === finalTotal ? 'PAS' : `${amount / 1000}k`}
+                                {amount === finalTotal ? 'PAS' : `${amount >= 1000 ? amount / 1000 + 'k' : amount}`}
                             </button>
                         ))}
                     </div>
@@ -176,7 +176,7 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                         id="btn-checkout"
                         onClick={() => handleCheckout(true)}
                         disabled={isCheckingOut || totalItems === 0 || (paymentMethod === 'CASH' && amountPaid < finalTotal)}
-                        className={`flex-1 h-12 rounded-lg font-bold text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                        className={`flex-1 h-12 rounded-lg font-bold text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 relative ${
                             (paymentMethod === 'CASH' && amountPaid >= finalTotal) || paymentMethod !== 'CASH'
                                 ? 'bg-primary text-slate-950 shadow-primary/20' 
                                 : 'bg-white/5 text-[var(--text-muted)] border border-white/5'
@@ -190,27 +190,30 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                         ) : (
                             <>
                                 <span className="material-symbols-outlined text-xl">payments</span>
-                                {paymentMethod === 'CASH' && amountPaid < finalTotal ? 'Uang Kurang' : 'Bayar Sekarang'}
+                                <span>{paymentMethod === 'CASH' && amountPaid < finalTotal ? 'Uang Kurang' : 'Bayar Sekarang'}</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-40 border border-current px-1 rounded">F1</span>
                             </>
                         )}
                     </button>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 text-primary font-black uppercase">
                     {currentBillId && totalItems > 0 && (
                         <button 
                             onClick={handleUpdateBill}
-                            className="flex-1 py-3 bg-primary/20 text-primary rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-primary hover:text-slate-950 transition-all flex items-center justify-center gap-1.5"
+                            className="flex-1 py-3 bg-primary/20 text-primary rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-primary hover:text-slate-950 transition-all flex items-center justify-center gap-1.5 relative group"
                         >
-                            <span className="material-symbols-outlined text-sm">add_circle</span> Simpan ke Bill
+                            <span className="material-symbols-outlined text-sm">add_circle</span> Simpan Bill
+                            <span className="hidden group-hover:inline ml-1 opacity-50 px-1 border border-primary/30 rounded text-[7px]">F2</span>
                         </button>
                     )}
                     {!currentBillId && totalItems > 0 && (
                         <button 
                             onClick={handleSaveBill}
-                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5"
+                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5 relative group"
                         >
-                            <span className="material-symbols-outlined text-sm">save</span> Simpan Bill Baru
+                            <span className="material-symbols-outlined text-sm">save</span> Bill Baru
+                            <span className="hidden group-hover:inline ml-1 opacity-50 px-1 border border-white/30 rounded text-[7px]">F2</span>
                         </button>
                     )}
                 </div>

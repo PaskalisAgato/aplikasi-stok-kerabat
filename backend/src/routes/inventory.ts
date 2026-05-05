@@ -16,6 +16,9 @@ const CACHE_TTL = 30 * 1000; // 30 seconds
 // GET Export Excel
 inventoryRouter.get('/export', async (req: Request, res: Response) => {
     try {
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+
         const items = await db.select({
             id: schema.inventory.id,
             name: schema.inventory.name,
@@ -24,7 +27,9 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
             currentStock: schema.inventory.currentStock,
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit
-        }).from(schema.inventory);
+        }).from(schema.inventory)
+        .where(and(eq(schema.inventory.outletId, outletId), eq(schema.inventory.isDeleted, false)));
+
         const movements = await db.select({
             id: schema.stockMovements.id,
             inventoryId: schema.stockMovements.inventoryId,
@@ -36,6 +41,7 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
         })
         .from(schema.stockMovements)
         .innerJoin(schema.inventory, eq(schema.stockMovements.inventoryId, schema.inventory.id))
+        .where(eq(schema.inventory.outletId, outletId))
         .orderBy(desc(schema.stockMovements.createdAt));
 
         const allSuppliers = await db.select().from(schema.suppliers);
@@ -196,17 +202,19 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         const categoryFilter = req.query.category as string;
         const idsParam = req.query.ids as string;
 
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+
         // Hardened IDs parsing: numeric filter, uniqueness, and max limit of 50
         let targetIds: number[] = [];
         if (idsParam) {
             const parsedIds = idsParam.split(',')
                 .map(id => parseInt(id.trim()))
                 .filter(id => !isNaN(id));
-            // Take unique IDs and limit to 50 to prevent heavy queries
             targetIds = [...new Set(parsedIds)].slice(0, 50);
         }
 
-        const cacheKey = `list_${limit}_${offset}_${search}_${statusFilter || ''}_${categoryFilter || ''}_${idsParam || ''}`;
+        const cacheKey = `list_${outletId}_${limit}_${offset}_${search}_${statusFilter || ''}_${categoryFilter || ''}_${idsParam || ''}`;
 
         // 1. Check In-Memory Cache
         const cached = inventoryCache.get(cacheKey);
@@ -216,11 +224,14 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         }
 
         // 2. Build Base Where Clause (Optimized indexing handles this)
-        let filters = [eq(schema.inventory.isDeleted, false)];
+        let filters = [
+            eq(schema.inventory.isDeleted, false),
+            eq(schema.inventory.outletId, outletId)
+        ];
         
         if (targetIds.length > 0) {
             // Priority: If IDs are requested, we fetch exactly those IDs
-            filters.push(sql`${schema.inventory.id} IN ${targetIds}`);
+            filters.push(inArray(schema.inventory.id, targetIds));
         } else if (search) {
             // Search filtering
             filters.push(ilike(schema.inventory.name, `%${search}%`));
@@ -372,6 +383,9 @@ inventoryRouter.get('/:id/price-logs', requireAuth, async (req: Request, res: Re
 // GET Waste Summary (Phase 4 Optimized SQL)
 inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
     try {
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -389,7 +403,8 @@ inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
         .where(
             and(
                 eq(schema.stockMovements.type, 'WASTE'),
-                gte(schema.stockMovements.createdAt, thirtyDaysAgo)
+                gte(schema.stockMovements.createdAt, thirtyDaysAgo),
+                eq(schema.inventory.outletId, outletId)
             )
         );
 
@@ -565,10 +580,10 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
 // POST new inventory item
     inventoryRouter.post('/', validateBase64Image('imageUrl'), async (req: Request, res: Response) => {
     try {
-        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock } = req.body;
+        const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock, outletId } = req.body;
         
-        if (!name || !category || !unit) {
-             return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
+        if (!name || !category || !unit || !outletId) {
+             return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap (termasuk outletId)' });
         }
 
         const wadah = parseFloat(containerWeight?.toString() || '0') || 0;
@@ -592,7 +607,8 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
             discountPrice: discountPrice?.toString() || '0',
             containerWeight: containerWeight?.toString() || '0',
             containerId: containerId ? parseInt(containerId.toString()) : null,
-            imageUrl
+            imageUrl,
+            outletId: parseInt(outletId.toString())
         }).returning({
             id: schema.inventory.id,
             name: schema.inventory.name

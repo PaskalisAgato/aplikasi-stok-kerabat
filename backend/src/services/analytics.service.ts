@@ -519,5 +519,171 @@ export class AnalyticsService {
             };
         });
     }
+
+    /**
+     * Promotion Budget Analysis
+     */
+    static async getPromoAnalytics(range: { start: Date; end: Date }) {
+        const { start, end } = range;
+
+        // 1. All Active Disks Statistics
+        const promoStats = await db.select({
+            id: schema.discounts.id,
+            name: schema.discounts.name,
+            type: schema.discounts.type,
+            budgetUsed: schema.discounts.budgetUsed,
+            budgetLimit: schema.discounts.budgetLimit,
+            totalUsed: schema.discounts.totalUsed,
+            totalQuota: schema.discounts.totalQuota,
+            isActive: schema.discounts.isActive
+        })
+        .from(schema.discounts)
+        .orderBy(desc(schema.discounts.priority));
+
+        // 2. Spending Trend within Range
+        const spendingTrend = await db.select({
+            date: sql<string>`DATE(${schema.sales.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta')`,
+            totalSpent: sql<number>`SUM(CAST(${schema.sales.discountTotal} AS DECIMAL))`,
+            count: count(schema.sales.id)
+        })
+        .from(schema.sales)
+        .where(and(
+            gte(schema.sales.createdAt, start),
+            lte(schema.sales.createdAt, end),
+            eq(schema.sales.isDeleted, false),
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.status, 'PAID'),
+            sql`CAST(${schema.sales.discountTotal} AS DECIMAL) > 0`
+        ))
+        .groupBy(sql`DATE(${schema.sales.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta')`)
+        .orderBy(sql`DATE(${schema.sales.createdAt} AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') ASC`);
+
+        return {
+            promos: promoStats.map(p => ({
+                ...p,
+                budgetUsed: parseFloat(p.budgetUsed || '0'),
+                budgetLimit: p.budgetLimit ? parseFloat(p.budgetLimit) : null,
+                usagePercent: p.budgetLimit ? (parseFloat(p.budgetUsed || '0') / parseFloat(p.budgetLimit) * 100).toFixed(1) : 'Unlimited'
+            })),
+            trend: spendingTrend
+        };
+    }
+
+    /**
+     * Dead Menu Analytics: Active recipes with zero sales in the given period
+     */
+    static async getDeadMenus(range: { start: Date; end: Date }, outletId?: number) {
+        const { start, end } = range;
+        
+        // 1. Get all active recipes
+        const activeRecipes = await db.select({
+            id: schema.recipes.id,
+            name: schema.recipes.name,
+            category: schema.recipes.category,
+            price: schema.recipes.price
+        })
+        .from(schema.recipes)
+        .where(and(
+            eq(schema.recipes.isDeleted, false),
+            eq(schema.recipes.isActive, true),
+            outletId ? eq(schema.recipes.outletId, outletId) : undefined
+        ));
+
+        // 2. Get sold recipe IDs in this range
+        const soldRecipes = await db.select({
+            recipeId: schema.saleItems.recipeId
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .where(and(
+            gte(schema.sales.createdAt, start),
+            lte(schema.sales.createdAt, end),
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.isDeleted, false),
+            outletId ? eq(schema.sales.outletId, outletId) : undefined
+        ))
+        .groupBy(schema.saleItems.recipeId);
+
+        const soldIds = new Set(soldRecipes.map(r => r.recipeId));
+        return activeRecipes.filter(r => !soldIds.has(r.id));
+    }
+
+    /**
+     * Inventory Variance Analysis: Theoretical vs Actual Consumption
+     */
+    static async getInventoryVariance(range: { start: Date; end: Date }, outletId?: number) {
+        const { start, end } = range;
+
+        // 1. Calculate Theoretical Consumption (Sales * BOM)
+        const theoretical = await db.select({
+            inventoryId: schema.recipeIngredients.inventoryId,
+            inventoryName: schema.inventory.name,
+            unit: schema.inventory.unit,
+            theoreticalQty: sql<number>`SUM(${schema.saleItems.quantity} * ${schema.recipeIngredients.quantity})`
+        })
+        .from(schema.saleItems)
+        .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+        .innerJoin(schema.recipeIngredients, eq(schema.saleItems.recipeId, schema.recipeIngredients.recipeId))
+        .innerJoin(schema.inventory, eq(schema.recipeIngredients.inventoryId, schema.inventory.id))
+        .where(and(
+            gte(schema.sales.createdAt, start),
+            lte(schema.sales.createdAt, end),
+            eq(schema.sales.isVoided, false),
+            eq(schema.sales.isDeleted, false),
+            outletId ? eq(schema.sales.outletId, outletId) : undefined
+        ))
+        .groupBy(schema.recipeIngredients.inventoryId, schema.inventory.name, schema.inventory.unit);
+
+        // 2. Calculate Actual Outgoing (Stock Movements: OUT, WASTE)
+        const actualOutgoing = await db.select({
+            inventoryId: schema.stockMovements.inventoryId,
+            actualQty: sql<number>`SUM(${schema.stockMovements.quantity})`
+        })
+        .from(schema.stockMovements)
+        .where(and(
+            gte(schema.stockMovements.createdAt, start),
+            lte(schema.stockMovements.createdAt, end),
+            sql`${schema.stockMovements.type} IN ('OUT', 'WASTE')`
+        ))
+        .groupBy(schema.stockMovements.inventoryId);
+
+        const actualMap = new Map(actualOutgoing.map(a => [a.inventoryId, Number(a.actualQty)]));
+
+        return theoretical.map(t => {
+            const actual = actualMap.get(t.inventoryId) || 0;
+            const variance = actual - Number(t.theoreticalQty); // Positive = Leakage/Waste higher than sales
+            const variancePercent = Number(t.theoreticalQty) > 0 ? (variance / Number(t.theoreticalQty)) * 100 : 0;
+
+            return {
+                ...t,
+                theoreticalQty: Number(t.theoreticalQty),
+                actualQty: actual,
+                variance,
+                variancePercent
+            };
+        });
+    }
+
+    /**
+     * Cross-Outlet Performance Summary
+     */
+    static async getCrossOutletSummary() {
+        return await db.select({
+            outletId: schema.outlets.id,
+            outletName: schema.outlets.name,
+            revenue: sql<number>`COALESCE(SUM(CAST(${schema.sales.totalAmount} AS DECIMAL)), 0)`,
+            transactionCount: count(schema.sales.id),
+            avgOrder: sql<number>`COALESCE(AVG(CAST(${schema.sales.totalAmount} AS DECIMAL)), 0)`
+        })
+        .from(schema.outlets)
+        .leftJoin(schema.sales, and(
+            eq(schema.outlets.id, schema.sales.outletId),
+            eq(schema.sales.isDeleted, false),
+            eq(schema.sales.status, 'PAID'),
+            eq(schema.sales.isVoided, false)
+        ))
+        .groupBy(schema.outlets.id, schema.outlets.name)
+        .orderBy(desc(sql`SUM(CAST(${schema.sales.totalAmount} AS DECIMAL))`));
+    }
 }
 

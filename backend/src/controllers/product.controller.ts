@@ -4,7 +4,8 @@ import { ProductService } from '../services/product.service.js';
 export class ProductController {
     static async getAll(req: Request, res: Response) {
         try {
-            const products = await ProductService.getAllProducts();
+            const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+            const products = await ProductService.getAllProducts(outletId);
             res.json(products);
         } catch (error) {
             console.error('Error in ProductController.getAll:', error);
@@ -17,7 +18,8 @@ export class ProductController {
             const id = parseInt(req.params.id as string);
             if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid' });
 
-            const photo = await ProductService.getProductPhoto(id);
+            const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+            const photo = await ProductService.getProductPhoto(id, outletId);
             if (!photo) {
                 return res.status(404).json({ error: 'Foto tidak ditemukan' });
             }
@@ -30,7 +32,7 @@ export class ProductController {
 
     static async create(req: Request, res: Response) {
         try {
-            const { name, category, price } = req.body;
+            const { name, category, price, outletId } = req.body;
             if (!name || !category || price === undefined) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
@@ -62,8 +64,7 @@ export class ProductController {
             res.status(500).json({ 
                 success: false,
                 error: true,
-                message: 'Gagal memperbarui produk',
-                details: error.message
+                message: error.message || 'Gagal memperbarui produk'
             });
         }
     }
@@ -73,11 +74,12 @@ export class ProductController {
             const id = parseInt(req.params.id as string);
             if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
             
-            await ProductService.deleteProduct(id);
+            const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+            await ProductService.deleteProduct(id, outletId);
             res.json({ success: true, message: 'Product deleted' });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error in ProductController.delete:', error);
-            res.status(500).json({ error: 'Failed to delete product' });
+            res.status(500).json({ error: error.message || 'Failed to delete product' });
         }
     }
 }

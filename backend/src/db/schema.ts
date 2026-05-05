@@ -2,6 +2,28 @@ import { pgTable, serial, text, integer, decimal, timestamp, boolean, uuid, inde
 import { relations } from 'drizzle-orm';
 
 // -----------------------------------------------------------------------------
+// 0. TENANTS & OUTLETS (SaaS Architecture)
+// -----------------------------------------------------------------------------
+export const tenants = pgTable('tenants', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    ownerId: text('owner_id').notNull().references(() => users.id),
+    subscriptionStatus: text('subscription_status').default('active').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const outlets = pgTable('outlets', {
+    id: serial('id').primaryKey(),
+    tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+    name: text('name').notNull(),
+    address: text('address'),
+    timezone: text('timezone').default('Asia/Jakarta').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    tenantIdx: index('outlets_tenant_idx').on(t.tenantId)
+}));
+
+// -----------------------------------------------------------------------------
 // 1. AUTH & USERS (Better Auth Integration)
 // -----------------------------------------------------------------------------
 export const users = pgTable('user', {
@@ -76,6 +98,7 @@ export const inventory = pgTable('inventory', {
     discountPrice: decimal('discount_price', { precision: 12, scale: 2 }).notNull().default('0'),
     containerWeight: decimal('container_weight', { precision: 12, scale: 2 }).notNull().default('0'),
     containerId: integer('container_id').references((): any => containers.id), // New: Link to container master
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     isDeleted: boolean('is_deleted').default(false).notNull(),
@@ -85,7 +108,8 @@ export const inventory = pgTable('inventory', {
     createdIdx: index('inventory_created_at_idx').on(t.createdAt),
     stockIdx: index('inventory_stock_idx').on(t.currentStock), // New: Speed up status filtering
     minStockIdx: index('inventory_min_stock_idx').on(t.minStock), // New: Speed up status filtering
-    isDeletedIdx: index('inventory_is_deleted_idx').on(t.isDeleted) // New: Speed up active filtering
+    isDeletedIdx: index('inventory_is_deleted_idx').on(t.isDeleted), // New: Speed up active filtering
+    outletIdx: index('inventory_outlet_idx').on(t.outletId)
 }));
 
 export const stockMovements = pgTable('stock_movements', {
@@ -140,6 +164,7 @@ export const recipes = pgTable('recipes', {
     imageUrl: text('image_url'),
     externalImageUrl: text('external_image_url'),
     costPrice: decimal('cost_price', { precision: 12, scale: 2 }).notNull().default('0'), // HPP
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     isDeleted: boolean('is_deleted').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull()
 });
@@ -209,6 +234,7 @@ export const discounts = pgTable('discounts', {
 
 export const shifts = pgTable('shifts', {
     id: serial('id').primaryKey(),
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     userId: text('user_id').notNull().references(() => users.id),
     startTime: timestamp('start_time').defaultNow().notNull(),
     endTime: timestamp('end_time'),
@@ -227,11 +253,13 @@ export const shifts = pgTable('shifts', {
 }, (t: any) => ({
     userIdx: index('shifts_user_idx').on(t.userId),
     statusIdx: index('shifts_status_idx').on(t.status),
-    isDeletedIdx: index('shifts_is_deleted_idx').on(t.isDeleted)
+    isDeletedIdx: index('shifts_is_deleted_idx').on(t.isDeleted),
+    outletIdx: index('shifts_outlet_idx').on(t.outletId)
 }));
 
 export const sales = pgTable('sales', {
     id: serial('id').primaryKey(),
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     shiftId: integer('shift_id').references(() => shifts.id),
     userId: text('user_id').notNull().references(() => users.id), // Cashier
     subTotal: decimal('sub_total', { precision: 12, scale: 2 }).notNull(),
@@ -264,7 +292,8 @@ export const sales = pgTable('sales', {
     shiftIdx: index('sales_shift_idx').on(t.shiftId),
     userIdx: index('sales_user_idx').on(t.userId),
     createdIdx: index('sales_created_at_idx').on(t.createdAt),
-    voidIdx: index('sales_is_voided_idx').on(t.isVoided)
+    voidIdx: index('sales_is_voided_idx').on(t.isVoided),
+    outletIdx: index('sales_outlet_idx').on(t.outletId)
 }));
 
 export const saleItems = pgTable('sale_items', {
@@ -285,6 +314,7 @@ export const expenses = pgTable('expenses', {
     title: text('title').notNull(),
     vendor: text('vendor'), // New: Vendor name
     category: text('category').notNull(), // 'Bahan Baku', 'Operasional', 'Pemeliharaan'
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     userId: text('user_id').references(() => users.id),
     shiftId: integer('shift_id').references(() => shifts.id), // Link to shift
@@ -299,7 +329,8 @@ export const expenses = pgTable('expenses', {
     createdIdx: index('expenses_created_at_idx').on(t.createdAt),
     userIdx: index('expenses_user_id_idx').on(t.userId),
     shiftIdx: index('expenses_shift_id_idx').on(t.shiftId),
-    expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate)
+    expenseDateIdx: index('expenses_expense_date_idx').on(t.expenseDate),
+    outletIdx: index('expenses_outlet_idx').on(t.outletId)
 }));
 
 export const cashLedger = pgTable('cash_ledger', {
@@ -354,14 +385,17 @@ export const expenseCategories = pgTable('expense_categories', {
 // -----------------------------------------------------------------------------
 export const auditLogs = pgTable('audit_logs', {
     id: serial('id').primaryKey(),
+    outletId: integer('outlet_id').references(() => outlets.id), // Nullable for system-wide logs
     userId: text('user_id').notNull().references(() => users.id),
     action: text('action').notNull(), // e.g. 'UPDATE_RECIPE_PRICE', 'STOCK_MANUAL_ADJUST'
     tableName: text('table_name').notNull(),
     oldData: text('old_data'), // Stored as JSON string representation
     newData: text('new_data'), // Stored as JSON string representation
+    hash: text('hash'), // SHA-256 tamper detection hash
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
-    userIdx: index('audit_logs_user_idx').on(t.userId)
+    userIdx: index('audit_logs_user_idx').on(t.userId),
+    outletIdx: index('audit_logs_outlet_idx').on(t.outletId)
 }));
 
 // -----------------------------------------------------------------------------
@@ -379,6 +413,7 @@ export const shiftSettings = pgTable('shift_settings', {
 export const workShifts = pgTable('work_shifts', {
     id: serial('id').primaryKey(),
     userId: text('user_id').notNull().references(() => users.id),
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     date: timestamp('date').notNull(),
     startTime: text('start_time').notNull(), // e.g. "08:00"
     endTime: text('end_time').notNull(), // e.g. "17:00"
@@ -387,12 +422,14 @@ export const workShifts = pgTable('work_shifts', {
     updatedAt: timestamp('updatedAt').notNull()
 }, (t: any) => ({
     userIdx: index('work_shifts_user_idx').on(t.userId),
-    dateIdx: index('work_shifts_date_idx').on(t.date)
+    dateIdx: index('work_shifts_date_idx').on(t.date),
+    outletIdx: index('work_shifts_outlet_idx').on(t.outletId)
 }));
 
 export const attendance = pgTable('attendance', {
     id: serial('id').primaryKey(),
     userId: text('user_id').notNull().references(() => users.id),
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     date: timestamp('date').notNull(),
     checkIn: timestamp('check_in'),
     checkOut: timestamp('check_out'),
@@ -409,7 +446,8 @@ export const attendance = pgTable('attendance', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     userIdx: index('attendance_user_idx').on(t.userId),
-    dateIdx: index('attendance_date_idx').on(t.date)
+    dateIdx: index('attendance_date_idx').on(t.date),
+    outletIdx: index('attendance_outlet_idx').on(t.outletId)
 }));
 
 export const shiftRequests = pgTable('shift_requests', {
@@ -581,6 +619,7 @@ export const expressSessions = pgTable('express_sessions', {
 // -----------------------------------------------------------------------------
 export const ownerIncome = pgTable('owner_income', {
     id: serial('id').primaryKey(),
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
     title: text('title').notNull(),           // Keterangan/judul uang masuk
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(), // Nominal
     source: text('source').default('OWNER').notNull(), // Sumber dana: 'OWNER', 'INVESTOR', 'LOAN', etc.
@@ -591,5 +630,6 @@ export const ownerIncome = pgTable('owner_income', {
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     incomeDateIdx: index('owner_income_date_idx').on(t.incomeDate),
-    isDeletedIdx: index('owner_income_is_deleted_idx').on(t.isDeleted)
+    isDeletedIdx: index('owner_income_is_deleted_idx').on(t.isDeleted),
+    outletIdx: index('owner_income_outlet_idx').on(t.outletId)
 }));

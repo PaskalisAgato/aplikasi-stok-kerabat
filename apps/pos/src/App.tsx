@@ -29,6 +29,7 @@ const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
 const PrinterSettings = React.lazy(() => import('@shared/components/PrinterSettings'));
 const PrintQueueManager = React.lazy(() => import('./PrintQueueManager'));
 const SyncQueuePage = React.lazy(() => import('./SyncQueuePage'));
+const KDSView = React.lazy(() => import('./features/kds/components/KDSView').then(m => ({ default: m.KDSView })));
 
 export default function App() {
     const { showNotification } = useNotification();
@@ -79,7 +80,7 @@ export default function App() {
     const { isCheckingOut, handleCheckout: checkoutLogic } = useCheckout();
 
     // UI View State
-    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue'>('pos');
+    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue' | 'kds'>('pos');
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [amountPaid, setAmountPaid] = useState(0);
@@ -207,6 +208,11 @@ export default function App() {
     }, [openBills, currentBillId, sales, customerInfo, setSales, setCustomerInfo]);
 
     // Handlers
+    const navigateTo = (newView: any) => {
+        setView(newView);
+        setIsActionMenuOpen(false);
+    };
+
     const handleCheckout = async () => {
         // If Admin and no active shift, and haven't selected a target shift yet
         if (session?.user?.role === 'Admin' && !activeShift && !selectedShiftForAdmin) {
@@ -229,8 +235,8 @@ export default function App() {
             setSelectedShiftForAdmin(null);
             resetCart();
             resetLoyaltyState();
-            setVoucherCode('');
             setAmountPaid(0);
+            setVoucherCode('');
 
             if (currentBillId) {
                 setOpenBills(prev => prev.filter(b => b.id !== currentBillId));
@@ -266,10 +272,43 @@ export default function App() {
         setIsOpeningShift(true);
     };
 
-    const navigateTo = (newView: any) => {
-        setView(newView);
-        setIsActionMenuOpen(false);
-    };
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // F1: Pay
+            if (e.key === 'F1') {
+                const btn = document.getElementById('btn-checkout');
+                if (btn && !btn.hasAttribute('disabled')) {
+                    e.preventDefault();
+                    (btn as any).click();
+                }
+            }
+            // F2: Save Bill
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (currentBillId) onUpdateBillHandle();
+                else onSaveBill();
+            }
+            // Alt+S: Focus Search
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                const searchInput = document.querySelector('input[placeholder*="Cari menu"]') as HTMLInputElement;
+                if (searchInput) searchInput.focus();
+            }
+            // Esc: Clear
+            if (e.key === 'Escape') {
+                if (isActionMenuOpen) setIsActionMenuOpen(false);
+                else {
+                    setSales({});
+                    setCurrentBillId(null);
+                    setCustomerInfo('');
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [currentBillId, isActionMenuOpen, onSaveBill, onUpdateBillHandle]);
 
     return (
         <Layout
@@ -470,6 +509,17 @@ export default function App() {
                             </button>
                         </div>
                     </>
+                ) : view === 'kds' ? (
+                    <React.Suspense fallback={<div className="h-full flex items-center justify-center bg-slate-900 text-white">Loading KDS...</div>}>
+                        <KDSView />
+                        {/* Internal Navigation for KDS */}
+                        <div className="fixed top-8 right-8 z-[60]">
+                           <button onClick={() => setView('pos')} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-full border border-slate-700 shadow-xl transition-all active:scale-95 group flex items-center gap-2">
+                               <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-400">arrow_back</span>
+                               <span className="text-xs font-bold text-slate-400 group-hover:text-white mr-2">Kembali ke POS</span>
+                           </button>
+                        </div>
+                    </React.Suspense>
                 ) : (
                     <React.Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>}>
                         {view === 'history' && <TransactionHistory onBack={() => navigateTo('pos')} />}

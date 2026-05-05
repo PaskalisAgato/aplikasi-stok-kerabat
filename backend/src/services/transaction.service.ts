@@ -1,5 +1,7 @@
 import { eq, sql, desc, and, inArray, gte, lte } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
+import { KdsService } from './kds.service.js';
+import { AuditService } from './audit.service.js';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { CashierShiftService } from './cashierShift.service.js';
@@ -168,6 +170,7 @@ export class TransactionService {
         const recipeIds = items.map((i: any) => i.recipeId);
         const dbRecipes = await db.select({ 
             id: schema.recipes.id, 
+            name: schema.recipes.name,
             price: schema.recipes.price, 
             priceStand: schema.recipes.priceStand, 
             costPrice: schema.recipes.costPrice 
@@ -459,7 +462,23 @@ export class TransactionService {
                 }
             }
 
-            return { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
+            const result = { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
+
+            // Trigger KDS Notification (Async-like)
+            KdsService.notifyNewOrder(activeShift?.outletId || 1, {
+                id: finalizedSaleId,
+                customerInfo: data.customerInfo || 'Pelanggan',
+                items: items.map((i: any) => ({
+                    recipeId: i.recipeId,
+                    name: dbRecipes.find((r: any) => r.id === i.recipeId)?.name || 'Menu',
+                    quantity: i.quantity,
+                    notes: i.notes
+                })),
+                status: data.status || 'PAID',
+                timestamp: new Date()
+            });
+
+            return result;
         });
     }
 
@@ -509,8 +528,13 @@ export class TransactionService {
                 totalAmount: newTotalAmount,
             }).where(eq(schema.sales.id, saleId));
 
-            // 3. Deduct stock for NEW items
             const recipeIds = items.map((i: any) => i.recipeId);
+            const dbRecipes = await tx.select({ 
+                id: schema.recipes.id, 
+                name: schema.recipes.name 
+            }).from(schema.recipes).where(inArray(schema.recipes.id, recipeIds));
+
+            // 3. Deduct stock for NEW items
             const allBomDeps = await tx.select({
                 recipeId: schema.recipeIngredients.recipeId,
                 inventoryId: schema.recipeIngredients.inventoryId,
@@ -563,7 +587,23 @@ export class TransactionService {
                 createdAt: new Date()
             });
 
-            return { success: true, updatedTotal: newTotalAmount };
+            const result = { success: true, updatedTotal: newTotalAmount };
+
+            // Trigger KDS Notification for ADDED items
+            KdsService.notifyNewOrder(activeShift?.outletId || 1, {
+                id: saleId,
+                type: 'ADDITION',
+                customerInfo: oldSale.customerInfo || 'Pelanggan',
+                items: items.map((i: any) => ({
+                    recipeId: i.recipeId,
+                    name: dbRecipes.find((r: any) => r.id === i.recipeId)?.name || 'Menu',
+                    quantity: i.quantity,
+                    notes: i.notes
+                })),
+                timestamp: new Date()
+            });
+
+            return result;
         });
     }
 
@@ -846,22 +886,14 @@ export class TransactionService {
                     });
                 }
 
-                // Log to Void Logs
-                await tx.insert(schema.voidLogs).values({
-                    transactionId: sale.id,
-                    userId: userId,
-                    reason: reason,
-                    approvedBy: adminId, // Use REAL admin ID
-                });
-
-                // Audit Log
-                await tx.insert(schema.auditLogs).values({
+                // Log to Immutable Audit Logs
+                await AuditService.logAction({
                     userId,
+                    outletId: sale.outletId,
                     action: 'VOID_TRANSACTION_HARDENED',
                     tableName: 'sales',
-                    oldData: JSON.stringify({ sale, items: oldItems }),
-                    newData: JSON.stringify({ isVoided: true, voidReason: reason, adminApproval: adminId }),
-                    createdAt: new Date()
+                    oldData: sale,
+                    newData: { id, reason, voidedBy: userId, isVoided: true }
                 });
             });
         }

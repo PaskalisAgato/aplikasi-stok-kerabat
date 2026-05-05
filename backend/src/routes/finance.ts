@@ -15,8 +15,8 @@ export const financeRouter = Router();
 // GET all expenses with pagination
 financeRouter.get('/expenses', async (req: Request, res: Response) => {
     try {
-        const { limit: qLimit, offset: qOffset, startDate, endDate } = req.query;
-        console.log(`[API] GET /finance/expenses | Params: limit=${qLimit}, offset=${qOffset}, start=${startDate}, end=${endDate}`);
+        const { limit: qLimit, offset: qOffset, startDate, endDate, outletId: qOutletId } = req.query;
+        console.log(`[API] GET /finance/expenses | Params: limit=${qLimit}, offset=${qOffset}, start=${startDate}, end=${endDate}, outlet=${qOutletId}`);
         
         const limit = parseInt(qLimit as string) || 20;
         const offset = parseInt(qOffset as string) || 0;
@@ -24,6 +24,9 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         // 1. Build dynamic where clause
         const filters = [eq(schema.expenses.isDeleted, false)];
         
+        if (qOutletId) {
+            filters.push(eq(schema.expenses.outletId, parseInt(qOutletId as string)));
+        }
         if (startDate) {
             let startStr = startDate as string;
             // If it doesn't specify a timezone explicitly (like Z or +07:00), force +07:00 (WIB)
@@ -484,35 +487,39 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
     try {
         const jakartaDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
         const today = new Date(`${jakartaDate}T00:00:00+07:00`);
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
+
+        const baseFilters = [eq(schema.sales.isDeleted, false)];
+        if (outletId) baseFilters.push(eq(schema.sales.outletId, outletId));
+        const baseWhere = and(...baseFilters);
 
         // 1. Optimized Revenue Calculation (Native SQL SUM)
         const revenueResult = await db.select({ 
             total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)` 
         })
         .from(schema.sales)
-        .where(eq(schema.sales.isDeleted, false));
+        .where(baseWhere);
         
         const revenue = Number(revenueResult[0].total);
         
-        // 2. Optimized Today's Revenue (Native SQL SUM)
+        // 2. Today's Revenue
+        const todayFilters = [gte(schema.sales.createdAt, today), eq(schema.sales.isDeleted, false)];
+        if (outletId) todayFilters.push(eq(schema.sales.outletId, outletId));
         const todayRevenueResult = await db.select({ 
             total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)` 
         })
         .from(schema.sales)
-        .where(
-            and(
-                gte(schema.sales.createdAt, today),
-                eq(schema.sales.isDeleted, false)
-            )
-        );
+        .where(and(...todayFilters));
         const revenueToday = Number(todayRevenueResult[0].total);
 
-        // 3. Optimized Total Expenses (Native SQL SUM)
+        // 3. Expenses
+        const expenseFilters = [eq(schema.expenses.isDeleted, false)];
+        if (outletId) expenseFilters.push(eq(schema.expenses.outletId, outletId));
         const expenseResult = await db.select({ 
             total: sql<number>`COALESCE(SUM(${schema.expenses.amount}), 0)` 
         })
         .from(schema.expenses)
-        .where(eq(schema.expenses.isDeleted, false));
+        .where(and(...expenseFilters));
         
         const totalExpenses = Number(expenseResult[0].total);
 

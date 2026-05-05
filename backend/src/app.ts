@@ -10,6 +10,8 @@ import pgSession from 'connect-pg-simple';
 
 // @ts-ignore - TS NodeNext resolution workaround
 import { toNodeHandler } from 'better-auth/node';
+import { KdsController } from './controllers/kds.controller.js';
+import * as schema from './db/schema.js';
 import { auth } from './config/auth.js';
 
 // Route Imports
@@ -186,6 +188,8 @@ app.use('/api/cashier-shifts', cashierShiftRoutes);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/containers', containersRouter);
 app.use('/api/print', printRoutes);
+app.get('/api/kds/events', KdsController.getEvents);
+app.post('/api/kds/poke', KdsController.poke);
 app.use('/uploads', express.static('uploads'));
 
 // Better Auth Managed Endpoints (Regex)

@@ -467,6 +467,15 @@ export const apiClient = {
         }
         return apiFetch<any>(url);
     },
+    getDeadMenus: (params: { startDate: string; endDate: string; outletId?: number }) => {
+        const query = new URLSearchParams(params as any).toString();
+        return apiFetch<any>(`/analytics/dead-menu?${query}`);
+    },
+    getInventoryVariance: (params: { startDate: string; endDate: string; outletId?: number }) => {
+        const query = new URLSearchParams(params as any).toString();
+        return apiFetch<any>(`/analytics/variance?${query}`);
+    },
+    getCrossOutletSummary: () => apiFetch<any>('/analytics/cross-outlet'),
 
     // ---- GENERIC HELPERS ----
     get: (path: string) => apiFetch<any>(path),

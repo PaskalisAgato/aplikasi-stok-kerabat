@@ -61,4 +61,42 @@ export class AnalyticsController {
             res.status(500).json({ success: false, message: 'Gagal memuat laporan harian' });
         }
     }
+
+    static async getDeadMenus(req: Request, res: Response) {
+        try {
+            const { startDate, endDate, outletId } = req.query;
+            const start = new Date(`${startDate}T00:00:00+07:00`);
+            const end = new Date(`${endDate}T23:59:59.999+07:00`);
+
+            const data = await AnalyticsService.getDeadMenus({ start, end }, outletId ? parseInt(outletId as string) : undefined);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Gagal memuat data menu mati' });
+        }
+    }
+
+    static async getInventoryVariance(req: Request, res: Response) {
+        try {
+            const { startDate, endDate, outletId } = req.query;
+            const start = new Date(`${startDate}T00:00:00+07:00`);
+            const end = new Date(`${endDate}T23:59:59.999+07:00`);
+
+            const data = await AnalyticsService.getInventoryVariance({ start, end }, outletId ? parseInt(outletId as string) : undefined);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Gagal memuat data varians inventori' });
+        }
+    }
+
+    static async getCrossOutletSummary(req: Request, res: Response) {
+        try {
+            const data = await AnalyticsService.getCrossOutletSummary();
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Gagal memuat ringkasan lintas outlet' });
+        }
+    }
 }
