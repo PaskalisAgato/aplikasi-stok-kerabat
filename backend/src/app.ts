@@ -145,7 +145,12 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/api/health', async (req: Request, res: Response) => {
     try {
         await UserService.getAllUsersPublic();
-        res.json({ success: true, database: 'connected', time: new Date().toISOString() });
+        res.json({ 
+            success: true, 
+            version: "1.2.0",
+            database: 'connected', 
+            time: new Date().toISOString() 
+        });
     } catch (e: any) {
         res.status(500).json({ success: false, database: 'error', message: e.message });
     }
