@@ -6,12 +6,18 @@ import { desc, eq, and, inArray } from 'drizzle-orm';
 
 export class UserService {
     static async loginByPin(role: string, pin: string) {
+        // When 'Admin' is requested, also accept Owner and Supervisor (they have equivalent admin access)
+        const allowedRoles = role === 'Admin' 
+            ? ['Admin', 'Owner', 'Supervisor'] 
+            : [role];
+
         const [user] = await db.select()
             .from(users)
             .where(
                 and(
-                    eq(users.role, role),
-                    eq(users.pin, pin)
+                    inArray(users.role, allowedRoles),
+                    eq(users.pin, pin),
+                    eq(users.isDeleted, false)
                 )
             )
             .limit(1);

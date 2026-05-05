@@ -16,8 +16,7 @@ const CACHE_TTL = 30 * 1000; // 30 seconds
 // GET Export Excel
 inventoryRouter.get('/export', async (req: Request, res: Response) => {
     try {
-        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
-        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : 1;
 
         const items = await db.select({
             id: schema.inventory.id,
@@ -202,8 +201,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
         const categoryFilter = req.query.category as string;
         const idsParam = req.query.ids as string;
 
-        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
-        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : 1;
 
         // Hardened IDs parsing: numeric filter, uniqueness, and max limit of 50
         let targetIds: number[] = [];
@@ -383,8 +381,7 @@ inventoryRouter.get('/:id/price-logs', requireAuth, async (req: Request, res: Re
 // GET Waste Summary (Phase 4 Optimized SQL)
 inventoryRouter.get('/waste/summary', async (req: Request, res: Response) => {
     try {
-        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
-        if (!outletId) return res.status(400).json({ success: false, message: 'outletId required' });
+        const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : 1;
 
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -582,8 +579,8 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
     try {
         const { name, category, unit, minStock, idealStock, pricePerUnit, discountPrice, containerWeight, containerId, imageUrl, currentStock, physicalStock, outletId } = req.body;
         
-        if (!name || !category || !unit || !outletId) {
-             return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap (termasuk outletId)' });
+        if (!name || !category || !unit) {
+             return res.status(400).json({ success: false, message: 'Kolom yang wajib diisi tidak lengkap' });
         }
 
         const wadah = parseFloat(containerWeight?.toString() || '0') || 0;
