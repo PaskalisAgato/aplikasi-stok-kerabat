@@ -462,7 +462,32 @@ export class TransactionService {
                 }
             }
 
+            // ── Phase 5: Mark QR Voucher as Redeemed ─────────────────────────
+            if (saleValues.status === 'PAID' && data.voucherCode && data.voucherCode.startsWith('KKT-')) {
+                try {
+                    const { VoucherService } = await import('./voucher_barcode.service.js');
+                    await VoucherService.redeemVoucher(
+                        data.voucherCode, 
+                        activeShift?.outletId || 1, 
+                        finalizedSaleId
+                    );
+                } catch (vRedeemErr: any) {
+                    console.warn('[QR Voucher Redemption] Failed:', vRedeemErr.message);
+                }
+            }
+
             const result = { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
+
+            // 9. Auto-Generate Voucher for STAND orders
+            if (isStand && finalizedSaleId) {
+                try {
+                    const { VoucherService } = await import('./voucher_barcode.service.js');
+                    const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1);
+                    (result as any).voucher = voucher;
+                } catch (vErr) {
+                    console.warn('[Voucher Generation] Failed:', vErr);
+                }
+            }
 
             // Trigger KDS Notification (Async-like)
             KdsService.notifyNewOrder(activeShift?.outletId || 1, {

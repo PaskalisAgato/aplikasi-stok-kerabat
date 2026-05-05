@@ -102,7 +102,7 @@ export function useCheckout() {
             };
 
             PrintService.printTransaction(printData, { skipChecker: !!currentBillId });
-            await syncEngine.enqueue('CHECKOUT', { ...checkoutData, status: 'PAID', customerInfo });
+            const syncResult = await syncEngine.enqueue('CHECKOUT', { ...checkoutData, status: 'PAID', customerInfo });
 
             await db.auditLog.add({
                 action: 'CHECKOUT',
@@ -116,7 +116,7 @@ export function useCheckout() {
             syncEngine.forceSync().catch(console.error);
             showNotification(`Transaksi Berhasil! Kembalian: Rp ${(paymentMethod === 'CASH' ? Math.max(0, amountPaid - finalTotal) : 0).toLocaleString('id-ID')}`, "success");
             
-            return { success: true };
+            return { success: true, ...syncResult };
         } catch (error) {
             console.error('Checkout failed', error);
             showNotification('Gagal menyimpan transaksi.', "error");

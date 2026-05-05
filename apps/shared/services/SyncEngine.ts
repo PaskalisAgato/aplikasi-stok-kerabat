@@ -11,6 +11,7 @@ class SyncEngine {
   private lastError: string | null = null;
   private listeners: ((count: number) => void)[] = [];
   private stateListeners: ((state: { isPulling: boolean, isPushing: boolean, lastError: string | null }) => void)[] = [];
+  private actionResolvers = new Map<string, { resolve: (val: any) => void; reject: (err: any) => void }>();
 
   private readonly PULL_INTERVAL_MS = 60000; // Pull every 1 minute
   private readonly MAX_RETRIES = 3; // Reduced for Enterprise Hardening Phase
@@ -172,10 +173,12 @@ class SyncEngine {
 
   /**
    * Enqueue a new action for background synchronization (STRICT FIFO)
+   * Returns a promise that resolves when THIS specific action is synced/rejected by server.
    */
-  public async enqueue(type: OfflineAction['type'], payload: any, customIdempotencyKey?: string) {
+  public async enqueue(type: OfflineAction['type'], payload: any, customIdempotencyKey?: string): Promise<any> {
+    const id = crypto.randomUUID();
     const action: Omit<OfflineAction, 'sequence_number'> = {
-      id: crypto.randomUUID(),
+      id,
       type,
       payload,
       sync_status: 'PENDING',
@@ -185,10 +188,17 @@ class SyncEngine {
     };
     
     await db.offlineActions.add(action as OfflineAction);
-    console.log(`[SyncEngine] Enqueued ${type} action. Starting processQueue...`);
+    console.log(`[SyncEngine] Enqueued ${type} action. [ID: ${id}]`);
     
-    // Non-blocking trigger
+    // Create a promise to track this specific action's completion
+    const waitPromise = new Promise((resolve, reject) => {
+      this.actionResolvers.set(id, { resolve, reject });
+    });
+
+    // Non-blocking trigger of the queue processor
     this.processQueue();
+
+    return waitPromise;
   }
 
   public stop() {
@@ -262,6 +272,7 @@ class SyncEngine {
   }
 
   private async syncAction(action: OfflineAction): Promise<boolean> {
+    const resolver = this.actionResolvers.get(action.id);
     try {
       // Phase Hardening: Use unique 'id' for all lookups to avoid PK mismatch
       await db.offlineActions.where('id').equals(action.id).modify({ last_attempt_at: new Date().toISOString() });
@@ -300,6 +311,12 @@ class SyncEngine {
       // 8. On success, remove from queue using unique ID
       await db.offlineActions.where('id').equals(action.id).delete();
       
+      // Resolve the waiter
+      if (resolver) {
+          resolver.resolve(response);
+          this.actionResolvers.delete(action.id);
+      }
+      
       return true;
     } catch (error: any) {
       console.error(`[SyncEngine] Failed to sync ${action.type}`, error);
@@ -308,6 +325,10 @@ class SyncEngine {
       if (error.message?.includes('sudah dibatalkan sebelumnya')) {
           console.log(`[SyncEngine] VOID SUCCESS / SKIPPED (Detected via Error Message) [ID: ${action.id}]`);
           await db.offlineActions.where('id').equals(action.id).delete();
+          if (resolver) { 
+              resolver.resolve({ success: true, message: 'Already voided' });
+              this.actionResolvers.delete(action.id);
+          }
           return true;
       }
 
@@ -317,6 +338,10 @@ class SyncEngine {
         console.warn('[SyncEngine] Unauthorized. Stopping sync engine.');
         // Notify UI to re-auth
         window.dispatchEvent(new CustomEvent('sync-auth-failed'));
+        if (resolver) {
+            resolver.reject(error);
+            this.actionResolvers.delete(action.id);
+        }
         return false; 
       }
 
@@ -329,6 +354,10 @@ class SyncEngine {
             retry_count: action.retry_count + 1
           });
          this.lastError = null; // Clear error since we bypassed it
+         if (resolver) {
+             resolver.reject(error);
+             this.actionResolvers.delete(action.id);
+         }
          return true; // Return true to continue the queue processing past this corrupted item
       }
 
@@ -344,6 +373,11 @@ class SyncEngine {
           });
       }
       
+      if (nextStatus === 'FAILED_PERMANENT' && resolver) {
+          resolver.reject(error);
+          this.actionResolvers.delete(action.id);
+      }
+
       // If it's a network retry (PENDING), return false to strictly halt the queue 
       // If FAILED_PERMANENT, return true to skip it and keep processing others
       return nextStatus === 'FAILED_PERMANENT'; 

@@ -23,6 +23,8 @@ import { SplitModal } from './components/SplitModal';
 import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './components/ShiftModals';
 import ShiftRequired from './components/ShiftRequired';
 import { ShiftSelectionModal } from './components/ShiftSelectionModal';
+import { VoucherQRModal } from './components/VoucherQRModal';
+import { VoucherRedeemModal } from './components/VoucherRedeemModal';
 
 // Lazy Loaded Pages
 const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
@@ -115,6 +117,9 @@ export default function App() {
     const [splitMode, setSplitMode] = useState<'table' | 'pay'>('table');
     const [splitTargetInfo, setSplitTargetInfo] = useState('');
     const [selectedSplitItems, setSelectedSplitItems] = useState<Record<number, number>>({});
+
+    const [generatedVoucher, setGeneratedVoucher] = useState<any>(null);
+    const [isVoucherRedeemModalOpen, setIsVoucherRedeemModalOpen] = useState(false);
 
     // Initialization
     useEffect(() => {
@@ -238,6 +243,10 @@ export default function App() {
             setAmountPaid(0);
             setVoucherCode('');
 
+            if (result?.voucher) {
+                setGeneratedVoucher(result.voucher);
+            }
+
             if (currentBillId) {
                 setOpenBills(prev => prev.filter(b => b.id !== currentBillId));
             }
@@ -327,9 +336,10 @@ export default function App() {
                         selectedDiscounts, setSelectedDiscounts, toggleDiscount, loadDiscounts, availableDiscounts,
                         voucherCode, setVoucherCode,
                         activeShift, pendingSyncs, setIsHandoverShiftOpen, setIsCloseShiftOpen,
-                        getSummary: (id) => apiClient.get(`/cashier-shifts/summary/${id}`),
+                        getSummary: (id: number) => apiClient.get(`/cashier-shifts/summary/${id}`),
                         setShiftSummaryData, showNotification, isActionMenuOpen, setIsActionMenuOpen,
-                        navigateTo, view, printQueueCount, pointsToRedeem
+                        navigateTo, view, printQueueCount, pointsToRedeem,
+                        setIsVoucherModalOpen: setIsVoucherRedeemModalOpen
                     }}
                 />
             }
@@ -625,6 +635,19 @@ export default function App() {
                     attendance={attendance}
                 />
             )}
+            <VoucherQRModal 
+                isOpen={!!generatedVoucher}
+                onClose={() => setGeneratedVoucher(null)}
+                voucher={generatedVoucher}
+            />
+            <VoucherRedeemModal 
+                isOpen={isVoucherRedeemModalOpen}
+                onClose={() => setIsVoucherRedeemModalOpen(false)}
+                onApplyVoucher={(code) => {
+                    setVoucherCode(code);
+                    showNotification('Voucher berhasil diterapkan!', 'success');
+                }}
+            />
         </Layout>
     );
 }

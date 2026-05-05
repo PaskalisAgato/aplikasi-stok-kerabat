@@ -50,12 +50,12 @@ export class DiscountService {
         const updateData: any = {};
         if (data.name !== undefined) updateData.name = data.name;
         if (data.type !== undefined) updateData.type = data.type;
-        if (data.value !== undefined) updateData.value = data.value.toString();
+        if (data.value !== undefined) updateData.value = data.value?.toString() || '0';
         if (data.conditions !== undefined) updateData.conditions = JSON.stringify(data.conditions);
         if (data.isActive !== undefined) updateData.isActive = data.isActive;
         if (data.isStackable !== undefined) updateData.isStackable = data.isStackable;
         if (data.isExclusive !== undefined) updateData.isExclusive = data.isExclusive;
-        if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase.toString();
+        if (data.minPurchase !== undefined) updateData.minPurchase = data.minPurchase?.toString() || '0';
         if (data.startDate !== undefined) updateData.startDate = data.startDate ? new Date(data.startDate) : null;
         if (data.endDate !== undefined) updateData.endDate = data.endDate ? new Date(data.endDate) : null;
         // Financial Controls
@@ -184,9 +184,8 @@ export class DiscountService {
                  continue;
             }
 
-            // ── Voucher logic: skip auto-apply if voucherCode is set ─────
+            // ── Voucher skip logic: don't auto-apply if it's a fixed discount record with a voucherCode ─────
             if (discount.voucherCode) {
-                // Only apply if the user explicitly entered this code
                 if (!voucherCode || voucherCode.toUpperCase().trim() !== discount.voucherCode) {
                     continue;
                 }

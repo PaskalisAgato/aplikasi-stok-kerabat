@@ -44,6 +44,7 @@ interface POSHeaderExtrasProps {
     pointsToRedeem: number;
     voucherCode: string;
     setVoucherCode: (code: string) => void;
+    setIsVoucherModalOpen: (open: boolean) => void;
 }
 
 export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
@@ -65,7 +66,8 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
     showNotification,
     isActionMenuOpen, setIsActionMenuOpen,
     navigateTo, view, printQueueCount,
-    pointsToRedeem, voucherCode, setVoucherCode
+    pointsToRedeem, voucherCode, setVoucherCode,
+    setIsVoucherModalOpen
 }) => {
     return (
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
@@ -276,6 +278,17 @@ export const POSHeaderExtras: React.FC<POSHeaderExtrasProps> = ({
                         </>,
                         document.body
                     )}
+                </div>
+
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsVoucherModalOpen(true)}
+                        className={`h-11 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg border bg-[var(--secondary)] border-white/5 text-[#fefae0]/80 hover:text-[#fefae0]`}
+                        title="Scan Voucher QR"
+                    >
+                        <span className="material-symbols-outlined text-xl font-black">qr_code_scanner</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-widest font-black">Scan QR</span>
+                    </button>
                 </div>
             </div>
 

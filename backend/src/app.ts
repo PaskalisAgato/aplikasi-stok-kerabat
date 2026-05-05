@@ -33,6 +33,7 @@ import { printRoutes } from './routes/print.routes.js';
 import { memberRoutes } from './routes/member.routes.js';
 import { discountRoutes } from './routes/discount.routes.js';
 import { loyaltyRoutes } from './routes/loyalty.routes.js';
+import { voucherRoutes } from './routes/voucher_barcode.routes.js';
 
 // Controller Imports (Static instead of Dynamic Await)
 import { UserController } from './controllers/user.controller.js';
@@ -176,6 +177,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/discounts', discountRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/vouchers', voucherRoutes);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/audit', auditRouter);

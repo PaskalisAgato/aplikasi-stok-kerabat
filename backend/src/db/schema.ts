@@ -633,3 +633,24 @@ export const ownerIncome = pgTable('owner_income', {
     isDeletedIdx: index('owner_income_is_deleted_idx').on(t.isDeleted),
     outletIdx: index('owner_income_outlet_idx').on(t.outletId)
 }));
+
+// -----------------------------------------------------------------------------
+// 12. STAND VOUCHERS (Offline Conversion O2O)
+// -----------------------------------------------------------------------------
+export const standVouchers = pgTable('stand_vouchers', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    code: text('code').notNull().unique(), // e.g. KKT-A92F1X
+    sourceTransactionId: integer('source_transaction_id').references(() => sales.id), // Sale ID at the stand
+    benefitType: text('benefit_type').notNull().default('discount'), // 'discount', 'free_item'
+    discountValue: decimal('discount_value', { precision: 12, scale: 2 }).default('0'), // e.g. 20 (percent)
+    status: text('status').default('unused').notNull(), // 'unused', 'redeemed', 'expired'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    locationSource: integer('location_source').references(() => outlets.id), // Generated outlet
+    locationRedeemed: integer('location_redeemed').references(() => outlets.id), // Redeemed outlet
+    redeemedTransactionId: integer('redeemed_transaction_id'), 
+    redeemedAt: timestamp('redeemed_at')
+}, (t: any) => ({
+    codeIdx: index('voucher_code_idx').on(t.code),
+    statusIdx: index('voucher_status_idx').on(t.status)
+}));
