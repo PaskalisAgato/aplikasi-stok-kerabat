@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getSessionManually } from '../lib/session.js';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 export const requireAdminPin = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,14 +17,20 @@ export const requireAdminPin = async (req: Request, res: Response, next: NextFun
             return res.status(400).json({ success: false, error: 'PIN Admin dibutuhkan untuk tindakan ini.' });
         }
 
-        // Find an admin with this PIN
+        // Find an admin/owner/supervisor with this PIN
         const admins = await db.select().from(schema.users)
-            .where(eq(schema.users.pin, adminPin))
+            .where(
+                and(
+                    eq(schema.users.pin, adminPin),
+                    inArray(schema.users.role, ['Admin', 'Owner', 'Supervisor']),
+                    eq(schema.users.isDeleted, false)
+                )
+            )
             .limit(1);
 
         const admin = admins[0];
 
-        if (!admin || admin.role !== 'Admin') {
+        if (!admin) {
             return res.status(403).json({ success: false, error: 'PIN Admin tidak valid. Coba lagi.' });
         }
 
