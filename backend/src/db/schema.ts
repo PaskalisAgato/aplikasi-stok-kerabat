@@ -385,7 +385,7 @@ export const expenseCategories = pgTable('expense_categories', {
 // -----------------------------------------------------------------------------
 export const auditLogs = pgTable('audit_logs', {
     id: serial('id').primaryKey(),
-    outletId: integer('outlet_id').references(() => outlets.id), // Nullable for system-wide logs
+    outletId: integer('outlet_id').default(1).references(() => outlets.id), // Nullable for system-wide logs, defaults to main outlet
     userId: text('user_id').notNull().references(() => users.id),
     action: text('action').notNull(), // e.g. 'UPDATE_RECIPE_PRICE', 'STOCK_MANUAL_ADJUST'
     tableName: text('table_name').notNull(),
