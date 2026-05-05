@@ -16,7 +16,8 @@ export class UserService {
             .where(
                 and(
                     inArray(users.role, allowedRoles),
-                    eq(users.pin, pin)
+                    eq(users.pin, pin),
+                    eq(users.isDeleted, false)
                 )
             )
             .limit(1);
@@ -30,7 +31,8 @@ export class UserService {
             .where(
                 and(
                     eq(users.pin, pin),
-                    inArray(users.role, ['Admin', 'Owner', 'Supervisor'])
+                    inArray(users.role, ['Admin', 'Owner', 'Supervisor']),
+                    eq(users.isDeleted, false)
                 )
             )
             .limit(1);
