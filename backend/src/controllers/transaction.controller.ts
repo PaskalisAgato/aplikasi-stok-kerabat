@@ -120,7 +120,7 @@ export class TransactionController {
                 console.error('Failed to log checkout error to systemLogs', auditErr);
             }
 
-            res.status(500).json({ success: false, message: 'Transaksi gagal: ' + error.message });
+            res.status(500).json({ success: false, message: 'Transaksi Gagal [V3]: ' + error.message });
         }
     }
 

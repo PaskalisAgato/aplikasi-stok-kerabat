@@ -1,7 +1,7 @@
 {
   "name": "backend",
-  "version": "1.0.1",
-  "description": "Kerabat Backend - Deployment Verification v1.0.1",
+  "version": "1.2.0",
+  "description": "Kerabat Backend v1.2.0 - Critical Audit Log Fix",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
