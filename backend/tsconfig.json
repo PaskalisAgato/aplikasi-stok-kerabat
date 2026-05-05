@@ -10,8 +10,8 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "composite": true,
-    "incremental": true
+    "composite": false,
+    "incremental": false
   },
   "include": ["src/**/*"],
   "exclude": ["src/seed.ts"]

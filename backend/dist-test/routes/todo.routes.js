@@ -1,0 +1,20 @@
+import { Router } from 'express';
+import { TodoController } from '../controllers/todo.controller.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { validateBase64Image } from '../middleware/validateImage.js';
+const router = Router();
+// Everyone (Admin & Employee) can get active todos
+router.get('/', requireAuth, TodoController.getTodos);
+// Admin only: CRUD & History
+router.post('/', requireAdmin, TodoController.createTodo);
+router.put('/:id', requireAdmin, TodoController.updateTodo);
+router.delete('/:id', requireAdmin, TodoController.deleteTodo);
+router.get('/history', requireAdmin, TodoController.getHistory);
+router.get('/:id/photo', requireAuth, TodoController.getPhoto);
+router.delete('/history/clear', requireAdmin, TodoController.clearHistory);
+// Employee: Mark as completed
+router.post('/:id/complete', requireAuth, validateBase64Image('photoProof'), TodoController.completeTodo);
+// Settings
+router.get('/settings', requireAuth, TodoController.getSettings);
+router.put('/settings', requireAdmin, TodoController.updateSetting);
+export { router as todoRoutes };
