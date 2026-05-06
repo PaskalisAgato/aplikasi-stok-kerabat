@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { VoucherService } from '../services/voucher_barcode.service.js';
+import { db } from '../config/db.js';
+import * as schema from '../db/schema.js';
+import { eq } from 'drizzle-orm';
 
 export class VoucherController {
     /**
@@ -51,6 +54,31 @@ export class VoucherController {
         try {
             const stats = await VoucherService.getVoucherAnalytics();
             res.json({ success: true, data: stats });
+        } catch (e: any) {
+            res.status(500).json({ success: false, message: e.message });
+        }
+    }
+
+    /**
+     * Get voucher generated for a specific transaction (for UI polling after checkout)
+     */
+    static async getByTransaction(req: Request, res: Response) {
+        try {
+            const transactionId = parseInt(req.params.transactionId as string);
+            if (isNaN(transactionId)) {
+                return res.status(400).json({ success: false, message: 'Invalid transaction ID' });
+            }
+            const [voucher] = await db
+                .select()
+                .from(schema.standVouchers)
+                .where(eq(schema.standVouchers.sourceTransactionId, transactionId))
+                .orderBy(schema.standVouchers.createdAt)
+                .limit(1);
+
+            if (!voucher) {
+                return res.json({ success: true, voucher: null });
+            }
+            res.json({ success: true, voucher });
         } catch (e: any) {
             res.status(500).json({ success: false, message: e.message });
         }

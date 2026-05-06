@@ -116,7 +116,27 @@ export function useCheckout() {
             syncEngine.forceSync().catch(console.error);
             showNotification(`Transaksi Berhasil! Kembalian: Rp ${(paymentMethod === 'CASH' ? Math.max(0, amountPaid - finalTotal) : 0).toLocaleString('id-ID')}`, "success");
             
-            return { success: true, ...syncResult };
+            // Fetch voucher directly from API (independent of SyncEngine response)
+            // This guarantees the voucher is retrieved even when idempotency cache is hit
+            let generatedVoucher = (syncResult as any)?.voucher || null;
+            if (!generatedVoucher) {
+                try {
+                    const { apiClient } = await import('@shared/apiClient');
+                    // Wait briefly for backend to finish generating the voucher
+                    await new Promise(r => setTimeout(r, 1000));
+                    const transactionNumericId = (syncResult as any)?.data?.transactionId;
+                    if (transactionNumericId) {
+                        const vRes = await apiClient.get(`/vouchers/by-transaction/${transactionNumericId}`) as any;
+                        if (vRes?.voucher) {
+                            generatedVoucher = vRes.voucher;
+                        }
+                    }
+                } catch (vFetchErr) {
+                    console.warn('[Voucher Fetch] Failed to fetch voucher post-checkout:', vFetchErr);
+                }
+            }
+            
+            return { success: true, ...syncResult, voucher: generatedVoucher };
         } catch (error) {
             console.error('Checkout failed', error);
             showNotification('Gagal menyimpan transaksi.', "error");

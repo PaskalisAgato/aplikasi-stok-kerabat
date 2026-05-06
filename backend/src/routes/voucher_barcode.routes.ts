@@ -16,4 +16,7 @@ router.post('/redeem', requireAuth, VoucherController.redeem);
 // Admin Dashboard: Tracking
 router.get('/analytics', requireAdmin, VoucherController.analytics);
 
+// POS: Get voucher generated for a specific transactionId
+router.get('/by-transaction/:transactionId', requireAuth, VoucherController.getByTransaction);
+
 export { router as voucherRoutes };
