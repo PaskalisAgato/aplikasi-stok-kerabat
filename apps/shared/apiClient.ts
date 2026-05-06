@@ -194,11 +194,12 @@ export async function apiFetch<T = unknown>(
             if (rawData.success === true) {
                 // Preserve the success flag and any message/original data
                 const normalized = {
+                    ...rawData, // Preserve everything else like voucher, transactionId, etc
                     success: true,
                     message: rawData.message,
                     data: rawData.data,
                     // If rawData itself already has meta, use it, otherwise create fallback
-                    meta: rawData.meta || { total: Array.isArray(rawData.data) ? rawData.data.length : 1, limit: 100, page: 1 },
+                    meta: rawData.meta || { total: Array.isArray(rawData.data) ? (rawData.data as any[]).length : 1, limit: 100, page: 1 },
                     ...(rawData.summary ? { summary: rawData.summary } : {})
                 };
                 finalData = normalized;
