@@ -90,7 +90,8 @@ export class TransactionController {
             const responseBody = { 
                 success: true, 
                 message: 'Transaksi berhasil diselesaikan',
-                data: { transactionId: result.transactionId }
+                data: { transactionId: result.transactionId },
+                voucher: (result as any).voucher
             };
 
             // 2. HARDENING: Cache response for idempotency
