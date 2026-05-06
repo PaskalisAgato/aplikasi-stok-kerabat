@@ -410,8 +410,11 @@ export class DiscountService {
                         ))
                         .limit(1);
 
-                    const qrValue = qrTemplate ? parseFloat(qrTemplate.value) : 20;
-                    const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : { category: 'Kopi' };
+                    const qrValueDB = parseFloat(vResult.voucher?.discountValue || '20');
+                    const qrTypeDB = vResult.voucher?.benefitType === 'nominal' ? 'nominal' : 'percent';
+
+                    const qrValue = (qrTemplate && parseFloat(qrTemplate.value) > 0) ? parseFloat(qrTemplate.value) : qrValueDB;
+                    const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; // Default apply to all if no template rule
                     
                     // Filter items by category or productIds from template
                     let targetItems = itemsWithMetadata;
@@ -423,15 +426,21 @@ export class DiscountService {
                     }
 
                     const qrBaseSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
-                    const qrDiscountValue = qrValue || 20;
-                    const qrDiscountAmount = Math.floor(qrBaseSubtotal * (qrDiscountValue / 100));
+                    
+                    // Evaluate discount type
+                    let qrDiscountAmount = 0;
+                    if (qrTypeDB === 'nominal' || (qrTemplate && qrTemplate.type === 'nominal')) {
+                        qrDiscountAmount = Math.min(qrValue, qrBaseSubtotal);
+                    } else {
+                        qrDiscountAmount = Math.floor(qrBaseSubtotal * (qrValue / 100));
+                    }
 
                     if (qrDiscountAmount > 0) {
                         applicable.push({
                             id: qrTemplate?.id || -999,
-                            name: qrTemplate?.name || `QR Voucher (${voucherCode})`,
-                            type: 'percent',
-                            value: qrDiscountValue.toString(),
+                            name: qrTemplate?.name || `QR Voucher Discount (${voucherCode})`,
+                            type: qrTypeDB,
+                            value: qrValue.toString(),
                             discountAmount: qrDiscountAmount,
                             priority: 100,
                             isStackable: true,

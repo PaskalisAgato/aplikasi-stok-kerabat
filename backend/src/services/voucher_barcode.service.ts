@@ -19,7 +19,7 @@ export class VoucherService {
     /**
      * Create a new voucher for a stand transaction
      */
-    static async generateVoucher(transactionId: number, locationSource: number) {
+    static async generateVoucher(transactionId: number, locationSource: number, discountValue: string = '20', benefitType: string = 'percent') {
         const code = this.generateCode();
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 3); // 3 hours validity
@@ -27,8 +27,8 @@ export class VoucherService {
         const [voucher] = await db.insert(schema.standVouchers).values({
             code,
             sourceTransactionId: transactionId,
-            benefitType: 'discount',
-            discountValue: '20', // Default 20%
+            benefitType,
+            discountValue,
             expiresAt,
             locationSource,
             status: 'unused'

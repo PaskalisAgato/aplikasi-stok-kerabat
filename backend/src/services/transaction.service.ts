@@ -485,12 +485,20 @@ export class TransactionService {
 
             const result = { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
 
-            // 9. Auto-Generate Voucher for STAND orders
-            if (isStand && finalizedSaleId) {
+            // 9. Voucher Generation Rules
+            // Rule 1: All orders >= 30,000 get a Rp 5.000 nominal discount barcode for next purchase.
+            // Rule 2: (Legacy fallback) If it's STAND order and < 30,000, keep generating the 20% discount barcode.
+            if (finalizedSaleId) {
                 try {
                     const { VoucherService } = await import('./voucher_barcode.service.js');
-                    const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1);
-                    (result as any).voucher = voucher;
+                    
+                    if (expectedTotal >= 30000) {
+                        const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1, '5000', 'nominal');
+                        (result as any).voucher = voucher;
+                    } else if (isStand) {
+                        const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1, '20', 'percent');
+                        (result as any).voucher = voucher;
+                    }
                 } catch (vErr) {
                     console.warn('[Voucher Generation] Failed:', vErr);
                 }
@@ -561,7 +569,7 @@ export class TransactionService {
             }
 
             const saleItemsInsertData = items.map((item: any) => {
-                const freshPrice = priceMap.get(item.recipeId) || 0;
+                const freshPrice = Number(priceMap.get(item.recipeId) || 0);
                 const qty = parseInt(item.quantity?.toString() || '1');
                 const subtotal = freshPrice * (isNaN(qty) ? 1 : qty);
                 
