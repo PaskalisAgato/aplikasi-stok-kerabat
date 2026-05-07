@@ -417,7 +417,7 @@ export class DiscountService {
                     const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; 
 
                     // Validation: Order Source Restrict (e.g. only STAND or only DIRECT)
-                    if (qrConditions.orderSources && Array.isArray(qrConditions.orderSources)) {
+                    if (qrConditions.orderSources && Array.isArray(qrConditions.orderSources) && qrConditions.orderSources.length > 0) {
                         const isSourceAllowed = qrConditions.orderSources.some((s: string) => s.toUpperCase() === orderSource?.toUpperCase());
                         if (!isSourceAllowed) {
                             console.log(`[QR Voucher Eval] Rejected: Order source ${orderSource} not in allowed:`, qrConditions.orderSources);
@@ -438,7 +438,9 @@ export class DiscountService {
                     
                     // Evaluate discount type
                     let qrDiscountAmount = 0;
-                    if (qrTypeDB === 'nominal' || (qrTemplate && qrTemplate.type === 'nominal')) {
+                    const isNominal = qrTypeDB === 'nominal' || (qrTemplate && qrTemplate.type === 'nominal') || qrValue > 100;
+                    
+                    if (isNominal) {
                         qrDiscountAmount = Math.min(qrValue, qrBaseSubtotal);
                     } else {
                         qrDiscountAmount = Math.floor(qrBaseSubtotal * (qrValue / 100));

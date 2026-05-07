@@ -526,11 +526,18 @@ export class TransactionService {
 
                     // If transaction total meets the minimum spend rule defined in Admin
                     if (expectedTotal >= minPurchase) {
+                        // Intelligent benefit type detection if it's a template
+                        let benefitType = qrTemplate.type === 'qr_voucher' ? 'percent' : qrTemplate.type;
+                        const val = parseFloat(qrTemplate.value);
+                        if (qrTemplate.type === 'qr_voucher' && val > 100) {
+                            benefitType = 'nominal';
+                        }
+
                         const voucher = await VoucherService.generateVoucher(
                             resultData.transactionId, 
                             outletId, 
                             qrTemplate.value, 
-                            qrTemplate.type === 'qr_voucher' ? 'percent' : qrTemplate.type, 
+                            benefitType, 
                             expiryHours
                         );
                         (resultData as any).voucher = voucher;
