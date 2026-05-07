@@ -364,6 +364,7 @@ function DiscountTab() {
     minPurchase: '', discountCap: '', budgetLimit: '',
     totalQuota: '', limitPerUser: '',
     priority: 5, voucherCode: '',
+    orderSources: [] as string[],
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -411,6 +412,7 @@ function DiscountTab() {
       minPurchase: d.minPurchase || '', discountCap: d.discountCap || '', budgetLimit: d.budgetLimit || '',
       totalQuota: d.totalQuota?.toString() || '', limitPerUser: d.limitPerUser?.toString() || '',
       priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
+      orderSources: cond.orderSources || [],
     });
     setError(''); setModal('edit');
   };
@@ -440,6 +442,10 @@ function DiscountTab() {
       c.discountType = 'percent'; // Default for bundling if no flat price
     }
     if (form.type === 'member') { c.minLevel = form.minLevel; c.discountType = 'percent'; }
+    if (form.orderSources && form.orderSources.length > 0) {
+      c.orderSources = form.orderSources;
+    }
+
     return Object.keys(c).length > 0 ? c : null;
   };
 
@@ -691,10 +697,38 @@ function DiscountTab() {
              </section>
 
              {/* Dynamic Section: Bundling Picker etc */}
-             {['bundling', 'percent', 'nominal', 'time-based', 'mix_and_match'].includes(form.type) && (
+             {['qr_voucher', 'bundling', 'percent', 'nominal', 'time-based', 'mix_and_match'].includes(form.type) && (
                 <section className="p-5 glass-lite rounded-3xl border-dashed border-2 border-[var(--border-dim)] space-y-4">
                    <div className="flex justify-between items-center">
-                     <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Target Menu Terspesifik (Kosong = Seluruh Menu)</h5>
+                     <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Pembatasan Target</h5>
+                   </div>
+                   
+                   <Field label="Berlaku Untuk Order Source (Khusus)">
+                      <div className="flex gap-2">
+                        {['DIRECT', 'STAND'].map(src => (
+                          <label key={src} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all ${form.orderSources.includes(src) ? 'bg-primary text-slate-900' : 'bg-white/5 text-[var(--text-muted)]'}`}>
+                            <input 
+                              type="checkbox" 
+                              className="hidden"
+                              checked={form.orderSources.includes(src)}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setForm((f: any) => ({
+                                  ...f,
+                                  orderSources: checked 
+                                    ? [...f.orderSources, src]
+                                    : f.orderSources.filter((s: string) => s !== src)
+                                }));
+                              }}
+                            />
+                            {src === 'DIRECT' ? '🏠 Toko Langsung' : '⛺ Harga Stand'}
+                          </label>
+                        ))}
+                      </div>
+                   </Field>
+
+                   <div className="pt-2 border-t border-white/5">
+                     <h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-3">Menu Terspesifik (Kosong = Seluruh Menu)</h5>
                    </div>
                    
                    {form.type === 'mix_and_match' && (
