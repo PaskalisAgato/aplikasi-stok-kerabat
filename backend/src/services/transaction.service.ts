@@ -248,7 +248,7 @@ export class TransactionService {
             throw new Error('Shift belum dibuka. Silakan buka shift kasir terlebih dahulu di menu utama.');
         }
 
-        return await db.transaction(async (tx: any) => {
+        const resultData = await db.transaction(async (tx: any) => {
             let finalizedSaleId: number;
             let finalizedTotalAmount: string;
 
@@ -485,25 +485,8 @@ export class TransactionService {
 
             const result = { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };
 
-            // 9. Voucher Generation Rules
-            // Rule 1: All orders >= 30,000 get a Rp 5.000 nominal discount barcode for next purchase.
-            // Rule 2: (Legacy fallback) If it's STAND order and < 30,000, keep generating the 20% discount barcode.
-            if (finalizedSaleId) {
-                try {
-                    const { VoucherService } = await import('./voucher_barcode.service.js');
-                    
-                    if (expectedTotal >= 30000) {
-                        const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1, '5000', 'nominal');
-                        (result as any).voucher = voucher;
-                    } else if (isStand) {
-                        const voucher = await VoucherService.generateVoucher(finalizedSaleId, activeShift?.outletId || 1, '20', 'percent');
-                        (result as any).voucher = voucher;
-                    }
-                } catch (vErr) {
-                    console.warn('[Voucher Generation] Failed:', vErr);
-                }
-            }
-
+            // Note: Voucher generation removed from inside the uncommitted transaction block 
+            // since it inherently triggers Foreign Key constraints on finalizedSaleId.
             // Trigger KDS Notification (Async-like)
             KdsService.notifyNewOrder(activeShift?.outletId || 1, {
                 id: finalizedSaleId,
@@ -520,6 +503,26 @@ export class TransactionService {
 
             return result;
         });
+
+        // 9. Voucher Generation Rules
+        // Post-commit generation to avoid Foreign Key violations with uncommitted sales ID
+        if (resultData.success && resultData.transactionId) {
+            try {
+                const { VoucherService } = await import('./voucher_barcode.service.js');
+                
+                if (expectedTotal >= 30000) {
+                    const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '5000', 'nominal');
+                    (resultData as any).voucher = voucher;
+                } else if (isStand) {
+                    const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '20', 'percent');
+                    (resultData as any).voucher = voucher;
+                }
+            } catch (vErr) {
+                console.error('[Voucher Generation Error] Failed post-commit:', vErr);
+            }
+        }
+
+        return resultData;
     }
 
     // 3.1 ADD ITEMS TO EXISTING OPEN BILL
