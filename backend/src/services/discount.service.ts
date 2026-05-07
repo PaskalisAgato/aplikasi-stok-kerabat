@@ -414,7 +414,16 @@ export class DiscountService {
                     const qrTypeDB = vResult.voucher?.benefitType === 'nominal' ? 'nominal' : 'percent';
 
                     const qrValue = (qrTemplate && parseFloat(qrTemplate.value) > 0) ? parseFloat(qrTemplate.value) : qrValueDB;
-                    const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; // Default apply to all if no template rule
+                    const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; 
+
+                    // Validation: Order Source Restrict (e.g. only STAND or only DIRECT)
+                    if (qrConditions.orderSources && Array.isArray(qrConditions.orderSources)) {
+                        const isSourceAllowed = qrConditions.orderSources.some((s: string) => s.toUpperCase() === orderSource?.toUpperCase());
+                        if (!isSourceAllowed) {
+                            console.log(`[QR Voucher Eval] Rejected: Order source ${orderSource} not in allowed:`, qrConditions.orderSources);
+                            return applicable; 
+                        }
+                    }
                     
                     // Filter items by category or productIds from template
                     let targetItems = itemsWithMetadata;
