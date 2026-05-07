@@ -233,7 +233,8 @@ export default function App() {
             selectedShiftForAdmin,
             isEmployee: session?.user?.role === 'Karyawan',
             attendance,
-            orderSource
+            orderSource,
+            voucherCode
         });
 
         if (result?.success) {

@@ -26,12 +26,14 @@ export function useCheckout() {
         isEmployee?: boolean;
         attendance?: any;
         orderSource: string;
+        voucherCode?: string;
     }) => {
         const {
             totalSalesValue, finalTotal, paymentMethod, amountPaid,
             activeCartItems, sales, customerInfo, currentBillId,
             selectedMember, selectedDiscounts, pointsToRedeem,
-            itemNotes, activeShift, selectedShiftForAdmin, isEmployee, attendance, orderSource
+            itemNotes, activeShift, selectedShiftForAdmin, isEmployee, attendance, orderSource,
+            voucherCode
         } = params;
 
         if (totalSalesValue === 0) return;
@@ -76,6 +78,7 @@ export function useCheckout() {
                 pointsEarned,
                 sourceId: currentBillId,
                 orderSource,
+                voucherCode: voucherCode || null,
                 createdAt: new Date().toISOString(),
             };
 
