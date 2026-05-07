@@ -510,12 +510,40 @@ export class TransactionService {
             try {
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 
-                if (expectedTotal >= 30000) {
-                    const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '5000', 'nominal');
-                    (resultData as any).voucher = voucher;
-                } else if (isStand) {
-                    const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '20', 'percent');
-                    (resultData as any).voucher = voucher;
+                // Fetch dynamic settings from a record with type 'qr_voucher'
+                const [qrTemplate] = await db.select()
+                    .from(schema.discounts)
+                    .where(and(
+                        eq(schema.discounts.type, 'qr_voucher'),
+                        eq(schema.discounts.isActive, true)
+                    ))
+                    .limit(1);
+
+                if (qrTemplate) {
+                    const cond = qrTemplate.conditions ? JSON.parse(qrTemplate.conditions) : {};
+                    const minPurchase = parseFloat(qrTemplate.minPurchase || '0');
+                    const expiryHours = parseInt(cond.expiryHours || '3');
+
+                    // If transaction total meets the minimum spend rule defined in Admin
+                    if (expectedTotal >= minPurchase) {
+                        const voucher = await VoucherService.generateVoucher(
+                            resultData.transactionId, 
+                            outletId, 
+                            qrTemplate.value, 
+                            qrTemplate.type === 'qr_voucher' ? 'percent' : qrTemplate.type, 
+                            expiryHours
+                        );
+                        (resultData as any).voucher = voucher;
+                    }
+                } else {
+                    // Fallback to legacy hardcoded rules if no active template record is found
+                    if (expectedTotal >= 30000) {
+                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '5000', 'nominal', 3);
+                        (resultData as any).voucher = voucher;
+                    } else if (isStand) {
+                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '20', 'percent', 3);
+                        (resultData as any).voucher = voucher;
+                    }
                 }
             } catch (vErr) {
                 console.error('[Voucher Generation Error] Failed post-commit:', vErr);

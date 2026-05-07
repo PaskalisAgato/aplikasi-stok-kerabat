@@ -365,6 +365,7 @@ function DiscountTab() {
     totalQuota: '', limitPerUser: '',
     priority: 5, voucherCode: '',
     orderSources: [] as string[],
+    expiryHours: '3',
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -413,6 +414,7 @@ function DiscountTab() {
       totalQuota: d.totalQuota?.toString() || '', limitPerUser: d.limitPerUser?.toString() || '',
       priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
       orderSources: cond.orderSources || [],
+      expiryHours: (cond.expiryHours || 3).toString(),
     });
     setError(''); setModal('edit');
   };
@@ -444,6 +446,9 @@ function DiscountTab() {
     if (form.type === 'member') { c.minLevel = form.minLevel; c.discountType = 'percent'; }
     if (form.orderSources && form.orderSources.length > 0) {
       c.orderSources = form.orderSources;
+    }
+    if (form.expiryHours) {
+      c.expiryHours = parseInt(form.expiryHours);
     }
 
     return Object.keys(c).length > 0 ? c : null;
@@ -703,29 +708,38 @@ function DiscountTab() {
                      <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Pembatasan Target</h5>
                    </div>
                    
-                   <Field label="Berlaku Untuk Order Source (Khusus)">
-                      <div className="flex gap-2">
-                        {['DIRECT', 'STAND'].map(src => (
-                          <label key={src} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all ${form.orderSources.includes(src) ? 'bg-primary text-slate-900' : 'bg-white/5 text-[var(--text-muted)]'}`}>
-                            <input 
-                              type="checkbox" 
-                              className="hidden"
-                              checked={form.orderSources.includes(src)}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setForm((f: any) => ({
-                                  ...f,
-                                  orderSources: checked 
-                                    ? [...f.orderSources, src]
-                                    : f.orderSources.filter((s: string) => s !== src)
-                                }));
-                              }}
-                            />
-                            {src === 'DIRECT' ? '🏠 Toko Langsung' : '⛺ Harga Stand'}
-                          </label>
-                        ))}
-                      </div>
-                   </Field>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Field label="Berlaku Untuk Order Source (Khusus)">
+                          <div className="flex gap-2">
+                            {['DIRECT', 'STAND'].map(src => (
+                              <label key={src} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all ${form.orderSources.includes(src) ? 'bg-primary text-slate-900' : 'bg-white/5 text-[var(--text-muted)]'}`}>
+                                <input 
+                                  type="checkbox" 
+                                  className="hidden"
+                                  checked={form.orderSources.includes(src)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setForm((f: any) => ({
+                                      ...f,
+                                      orderSources: checked 
+                                        ? [...f.orderSources, src]
+                                        : f.orderSources.filter((s: string) => s !== src)
+                                    }));
+                                  }}
+                                />
+                                {src === 'DIRECT' ? '🏠 Toko' : '⛺ Stand'}
+                              </label>
+                            ))}
+                          </div>
+                      </Field>
+
+                      <Field label="Masa Berlaku Voucher (Jam)">
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">⏰</span>
+                            <input type="number" value={form.expiryHours} onChange={e => setForm((f: any) => ({ ...f, expiryHours: e.target.value }))} placeholder="e.g. 3" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
+                          </div>
+                      </Field>
+                   </div>
 
                    <div className="pt-2 border-t border-white/5">
                      <h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-3">Menu Terspesifik (Kosong = Seluruh Menu)</h5>
