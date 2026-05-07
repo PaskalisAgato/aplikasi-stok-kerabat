@@ -43,25 +43,25 @@ export class VoucherService {
     static async validateVoucher(code: string) {
         const [voucher] = await db.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, code.toUpperCase())).limit(1);
 
-        if (!voucher) return { valid: false, message: 'Voucher tidak valid' };
-        if (voucher.status === 'redeemed') return { valid: false, message: 'Voucher sudah digunakan' };
+        if (!voucher) return { isValid: false, message: 'Voucher tidak valid' };
+        if (voucher.status === 'redeemed') return { isValid: false, message: 'Voucher sudah digunakan' };
         if (new Date() > voucher.expiresAt) {
             // Update status to expired if it's not already
             if (voucher.status !== 'expired') {
                 await db.update(schema.standVouchers).set({ status: 'expired' }).where(eq(schema.standVouchers.id, voucher.id));
             }
-            return { valid: false, message: 'Voucher sudah kadaluwarsa' };
+            return { isValid: false, message: 'Voucher sudah kadaluwarsa' };
         }
 
-        return { valid: true, voucher };
+        return { isValid: true, voucher };
     }
 
     /**
      * Redeem a voucher
      */
     static async redeemVoucher(code: string, locationRedeemed: number, transactionId: number) {
-        const { valid, voucher, message } = await this.validateVoucher(code);
-        if (!valid || !voucher) throw new Error(message || 'Voucher tidak valid');
+        const { isValid, voucher, message } = await this.validateVoucher(code);
+        if (!isValid || !voucher) throw new Error(message || 'Voucher tidak valid');
 
         const [updated] = await db.update(schema.standVouchers).set({
             status: 'redeemed',
