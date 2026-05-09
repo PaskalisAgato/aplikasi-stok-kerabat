@@ -534,6 +534,13 @@ export class TransactionService {
         // Post-commit generation to avoid Foreign Key violations with uncommitted sales ID
         if (resultData.success && resultData.transactionId) {
             try {
+                // Determine reliable outletId from shift context
+                let finalOutletId = outletId || 0;
+                if (!finalOutletId && shiftId) {
+                    const [shift] = await db.select().from(schema.cashierShifts).where(eq(schema.cashierShifts.id, shiftId)).limit(1);
+                    if (shift) finalOutletId = shift.outletId;
+                }
+
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 
                 // Fetch dynamic settings from a record with type 'qr_voucher'
@@ -571,7 +578,7 @@ export class TransactionService {
 
                         const voucher = await VoucherService.generateVoucher(
                             resultData.transactionId, 
-                            outletId, 
+                            finalOutletId, 
                             qrTemplate.value, 
                             benefitType, 
                             expiryHours
@@ -581,10 +588,10 @@ export class TransactionService {
                 } else {
                     // Fallback to legacy hardcoded rules if no active template record is found
                     if (expectedTotal >= 30000) {
-                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '5000', 'nominal', 3);
+                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, finalOutletId, '5000', 'nominal', 3);
                         (resultData as any).voucher = voucher;
                     } else if (isStand) {
-                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, outletId, '20', 'percent', 3);
+                        const voucher = await VoucherService.generateVoucher(resultData.transactionId, finalOutletId, '20', 'percent', 3);
                         (resultData as any).voucher = voucher;
                     }
                 }
