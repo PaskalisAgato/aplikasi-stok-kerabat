@@ -249,6 +249,32 @@ export class TransactionService {
         }
 
         const resultData = await db.transaction(async (tx: any) => {
+            // ATOMIC TRANSACTION LOCK FOR BARCODE PROMO
+            if (data.voucherRuleCode) {
+                const { PromoEngine } = await import('./promo-engine.js');
+                const ruleArr = await tx.select().from(schema.discountRules)
+                    .where(eq(schema.discountRules.code, data.voucherRuleCode))
+                    .for('update')
+                    .limit(1);
+
+                if (ruleArr.length === 0) throw new Error("Barcode promo tidak valid atau tidak ditemukan");
+                const rule = ruleArr[0];
+
+                const evalResult = PromoEngine.evaluate(serverCalculatedSubTotal, rule);
+
+                if (!evalResult.valid) {
+                    throw new Error("Promo Barcode ditolak: " + evalResult.reason);
+                }
+                
+                if (Math.abs(evalResult.discountAmount - clientDiscountTotal) > 2) {
+                    throw new Error(`Kalkulasi promo tidak valid. Server: Rp${evalResult.discountAmount}, Client: Rp${clientDiscountTotal}`);
+                }
+
+                await tx.update(schema.discountRules)
+                    .set({ usedCount: sql`${schema.discountRules.usedCount} + 1` })
+                    .where(eq(schema.discountRules.id, rule.id));
+            }
+
             let finalizedSaleId: number;
             let finalizedTotalAmount: string;
 

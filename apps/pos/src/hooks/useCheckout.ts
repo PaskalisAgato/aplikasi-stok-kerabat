@@ -79,6 +79,7 @@ export function useCheckout() {
                 sourceId: currentBillId,
                 orderSource,
                 voucherCode: voucherCode || null,
+                voucherRuleCode: selectedDiscounts?.find(d => typeof d.id === 'string')?.name || null,
                 createdAt: new Date().toISOString(),
             };
 

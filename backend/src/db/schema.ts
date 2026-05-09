@@ -654,3 +654,26 @@ export const standVouchers = pgTable('stand_vouchers', {
     codeIdx: index('voucher_code_idx').on(t.code),
     statusIdx: index('voucher_status_idx').on(t.status)
 }));
+
+// -----------------------------------------------------------------------------
+// 13. PROMO ENGINE SCHEMAS (NEW)
+// -----------------------------------------------------------------------------
+export const discountRules = pgTable('discount_rules', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    code: text('code').notNull().unique(), // e.g. BUKBER20
+    type: text('type').notNull(), // 'fixed' | 'percentage'
+    value: decimal('value', { precision: 12, scale: 2 }).notNull().default('0'),
+    minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).notNull().default('0'),
+    maxDiscount: decimal('max_discount', { precision: 12, scale: 2 }), // optional cap
+    startDate: timestamp('start_date'),
+    endDate: timestamp('end_date'),
+    usageLimit: integer('usage_limit'),
+    usedCount: integer('used_count').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    stackable: boolean('stackable').notNull().default(false),
+    configVersion: integer('config_version').notNull().default(1),
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
+}, (t: any) => ({
+    codeIdx: index('discount_rules_code_idx').on(t.code),
+    activeIdx: index('discount_rules_active_idx').on(t.active)
+}));

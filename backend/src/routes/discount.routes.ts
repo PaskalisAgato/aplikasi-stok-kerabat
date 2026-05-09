@@ -48,6 +48,16 @@ router.post('/', requireAdmin, async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/discounts/rules/active (Barcode POS Pull Sync)
+router.get('/rules/active', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const rules = await DiscountService.getActiveDiscountRules();
+        res.json({ success: true, data: rules });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // PUT /api/discounts/:id (admin only)
 router.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     try {

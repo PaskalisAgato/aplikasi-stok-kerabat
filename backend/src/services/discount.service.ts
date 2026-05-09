@@ -13,6 +13,11 @@ export class DiscountService {
             .orderBy(desc(schema.discounts.priority));
     }
 
+    static async getActiveDiscountRules() {
+        return await db.select().from(schema.discountRules)
+            .where(eq(schema.discountRules.active, true));
+    }
+
     static async getDiscountById(id: number) {
         const [d] = await db.select().from(schema.discounts).where(eq(schema.discounts.id, id)).limit(1);
         return d || null;

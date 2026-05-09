@@ -80,6 +80,7 @@ export class VoucherController {
             }
             res.json({ success: true, voucher });
         } catch (e: any) {
+            console.error('[Get Voucher Error]', e, e?.stack);
             res.status(500).json({ success: false, message: e.message });
         }
     }

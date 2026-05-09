@@ -24,7 +24,8 @@ import { OpenShiftModal, CloseShiftModal, HandoverShiftModal } from './component
 import ShiftRequired from './components/ShiftRequired';
 import { ShiftSelectionModal } from './components/ShiftSelectionModal';
 import { VoucherQRModal } from './components/VoucherQRModal';
-import { VoucherRedeemModal } from './components/VoucherRedeemModal';
+import { PromoScanner } from './components/PromoScanner';
+import { PromoDebugConsole } from './components/PromoDebugConsole';
 
 // Lazy Loaded Pages
 const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
@@ -653,14 +654,23 @@ export default function App() {
                 onClose={() => setGeneratedVoucher(null)}
                 voucher={generatedVoucher}
             />
-            <VoucherRedeemModal 
-                isOpen={isVoucherRedeemModalOpen}
-                onClose={() => setIsVoucherRedeemModalOpen(false)}
-                onApplyVoucher={(code) => {
-                    setVoucherCode(code);
-                    showNotification('Voucher berhasil diterapkan!', 'success');
-                }}
-            />
+            {isVoucherRedeemModalOpen && (
+                <PromoScanner 
+                    subtotal={totalSalesValue}
+                    onClose={() => setIsVoucherRedeemModalOpen(false)}
+                    onApplyPromo={(discountAmount, promoData) => {
+                        toggleDiscount({ 
+                            id: promoData.id, 
+                            name: promoData.code, 
+                            type: promoData.type,
+                            value: promoData.value,
+                            discountAmount: discountAmount 
+                        });
+                        showNotification('Promo berhasil diterapkan!', 'success');
+                    }}
+                />
+            )}
+            <PromoDebugConsole />
         </Layout>
     );
 }
