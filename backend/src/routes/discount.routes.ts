@@ -15,6 +15,16 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/discounts/rules/active (Barcode POS Pull Sync)
+router.get('/rules/active', requireAuth, async (req: Request, res: Response) => {
+    try {
+        const rules = await DiscountService.getActiveDiscountRules();
+        res.json({ success: true, data: rules });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // GET /api/discounts/:id
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     try {
@@ -45,16 +55,6 @@ router.post('/', requireAdmin, async (req: Request, res: Response) => {
         res.status(201).json({ success: true, data: discount });
     } catch (e: any) {
         res.status(400).json({ success: false, message: e.message });
-    }
-});
-
-// GET /api/discounts/rules/active (Barcode POS Pull Sync)
-router.get('/rules/active', requireAuth, async (req: Request, res: Response) => {
-    try {
-        const rules = await DiscountService.getActiveDiscountRules();
-        res.json({ success: true, data: rules });
-    } catch (e: any) {
-        res.status(500).json({ success: false, message: e.message });
     }
 });
 
