@@ -45,7 +45,8 @@ export function useCheckout() {
         }
 
         // Shift Selection: Admin must have a shift or have selected an active one
-        const effectiveShiftId = activeShift?.id || selectedShiftForAdmin?.id;
+        const effectiveShift = selectedShiftForAdmin || activeShift;
+        const effectiveShiftId = effectiveShift?.id;
         if (!effectiveShiftId) {
             showNotification('Gagal! Transaksi membutuhkan shift aktif. Silahkan buka shift atau pilih kasir berjalan.', 'error');
             return;
@@ -76,7 +77,7 @@ export function useCheckout() {
                 discountTotal: (totalSalesValue - finalTotal),
                 pointsUsed: pointsToRedeem,
                 pointsEarned,
-                sourceId: currentBillId,
+                sourceId: effectiveShift?.outletId || 1,
                 orderSource,
                 voucherCode: voucherCode || null,
                 voucherRuleCode: selectedDiscounts?.find(d => typeof d.id === 'string')?.name || null,
