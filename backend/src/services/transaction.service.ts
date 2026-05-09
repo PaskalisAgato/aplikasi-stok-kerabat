@@ -537,7 +537,7 @@ export class TransactionService {
                 // Determine reliable outletId from shift context
                 let finalOutletId = outletId || 0;
                 if (!finalOutletId && shiftId) {
-                    const [shift] = await db.select().from(schema.cashierShifts).where(eq(schema.cashierShifts.id, shiftId)).limit(1);
+                    const [shift] = await db.select().from(schema.shifts).where(eq(schema.shifts.id, shiftId)).limit(1);
                     if (shift) finalOutletId = shift.outletId;
                 }
 
