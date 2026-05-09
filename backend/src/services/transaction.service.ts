@@ -550,8 +550,18 @@ export class TransactionService {
                     const minPurchase = parseFloat(qrTemplate.minPurchase || '0');
                     const expiryHours = parseInt(cond.expiryHours || '3');
 
-                    // If transaction total meets the minimum spend rule defined in Admin
-                    if (expectedTotal >= minPurchase) {
+                    // Check if cond has productIds and enforce it
+                    let itemConditionMet = true;
+                    if (cond && cond.productIds && Array.isArray(cond.productIds)) {
+                        const targetIds = cond.productIds.map(Number);
+                        const hasAll = targetIds.every((tid: number) => items.some((i: any) => i.recipeId === tid));
+                        if (!hasAll) {
+                            itemConditionMet = false;
+                        }
+                    }
+
+                    // If transaction total meets the minimum spend rule defined in Admin AND item constraints match
+                    if (expectedTotal >= minPurchase && itemConditionMet) {
                         // Intelligent benefit type detection if it's a template
                         let benefitType = qrTemplate.type === 'qr_voucher' ? 'percent' : qrTemplate.type;
                         const val = parseFloat(qrTemplate.value);
