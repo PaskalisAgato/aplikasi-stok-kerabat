@@ -45,18 +45,28 @@ export function usePromo() {
             // Fallback for Dynamic Vouchers generated remotely (KKT-xxxx)
             try {
                 const res = await apiClient.post('/discounts/evaluate', { voucherCode: normalizedCode, items, orderSource });
+                console.log('[Promo Debug] Evaluate Response:', res);
                 const validRules = res?.data;
+                console.log('[Promo Debug] Valid Rules Array:', validRules);
                 
                 if (validRules && Array.isArray(validRules) && validRules.length > 0) {
                     // Try to match the returned rule specifically to our voucher code
-                    const matched = validRules.find((r: any) => r.voucherCode === normalizedCode || r.code === normalizedCode);
+                    const matched = validRules.find((r: any) => {
+                        console.log(`[Promo Debug] Comparing ${r.voucherCode} or ${r.code} against ${normalizedCode}`);
+                        return r.voucherCode === normalizedCode || r.code === normalizedCode;
+                    });
                     if (matched) {
+                        console.log('[Promo Debug] Match Found!', matched);
                         return {
                             valid: true,
                             discountAmount: matched.discountAmount,
                             promoData: matched
                         };
+                    } else {
+                        console.warn('[Promo Debug] No match in returned array for:', normalizedCode);
                     }
+                } else {
+                    console.warn('[Promo Debug] validRules is empty or not an array:', validRules);
                 }
             } catch (err: any) {
                 return { valid: false, reason: err?.response?.data?.message || "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
