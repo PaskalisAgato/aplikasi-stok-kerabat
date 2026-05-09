@@ -34,6 +34,7 @@ export class VoucherService {
             status: 'unused'
         }).returning();
 
+        console.log(`[Voucher] Successfully generated: ${code} for sale ${transactionId} at location ${locationSource}`);
         return voucher;
     }
 
