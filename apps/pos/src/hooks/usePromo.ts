@@ -45,7 +45,7 @@ export function usePromo() {
             // Fallback for Dynamic Vouchers generated remotely (KKT-xxxx)
             try {
                 const res = await apiClient.post('/discounts/evaluate', { voucherCode: normalizedCode, items, orderSource });
-                const validRules = res?.data?.data;
+                const validRules = res?.data;
                 
                 if (validRules && Array.isArray(validRules) && validRules.length > 0) {
                     // Try to match the returned rule specifically to our voucher code
