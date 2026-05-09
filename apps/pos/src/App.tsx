@@ -657,6 +657,7 @@ export default function App() {
             {isVoucherRedeemModalOpen && (
                 <PromoScanner 
                     subtotal={totalSalesValue}
+                    items={activeCartItems}
                     onClose={() => setIsVoucherRedeemModalOpen(false)}
                     onApplyPromo={(discountAmount, promoData) => {
                         toggleDiscount({ 

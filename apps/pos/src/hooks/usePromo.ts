@@ -37,7 +37,7 @@ export function usePromo() {
     /**
      * Validate and apply a barcode using deterministic engine rules
      */
-    const validateBarcode = (code: string, subtotal: number): PromoValidationResult => {
+    const validateBarcode = (code: string, subtotal: number, items: any[] = []): PromoValidationResult => {
         const normalizedCode = code.toUpperCase().trim();
         const rule = activeRules.find(r => r.code.toUpperCase() === normalizedCode);
         
@@ -45,7 +45,7 @@ export function usePromo() {
             return { valid: false, reason: "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
         }
 
-        return PromoEngine.evaluate(subtotal, rule);
+        return PromoEngine.evaluate(subtotal, items, rule);
     };
 
     return {

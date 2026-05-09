@@ -665,6 +665,7 @@ export const discountRules = pgTable('discount_rules', {
     value: decimal('value', { precision: 12, scale: 2 }).notNull().default('0'),
     minPurchase: decimal('min_purchase', { precision: 12, scale: 2 }).notNull().default('0'),
     maxDiscount: decimal('max_discount', { precision: 12, scale: 2 }), // optional cap
+    conditions: text('conditions'), // JSON structure for productIds, categories, bundles
     startDate: timestamp('start_date'),
     endDate: timestamp('end_date'),
     usageLimit: integer('usage_limit'),

@@ -4,18 +4,19 @@ import { usePromo } from '../hooks/usePromo';
 
 interface PromoScannerProps {
     subtotal: number;
+    items?: any[];
     onApplyPromo: (discountAmount: number, promoData: any) => void;
     onClose: () => void;
 }
 
-export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, onApplyPromo, onClose }) => {
+export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = [], onApplyPromo, onClose }) => {
     const { validateBarcode } = usePromo();
     const [scannedCode, setScannedCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
     const handleValidate = () => {
         if (!scannedCode) return;
-        const result = validateBarcode(scannedCode, subtotal);
+        const result = validateBarcode(scannedCode, subtotal, items);
         if (result.valid) {
             setErrorMsg('');
             // Optional: You could show a success state before applying and closing.
