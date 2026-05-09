@@ -35,13 +35,32 @@ export function usePromo() {
     }, [syncRules]);
 
     /**
-     * Validate and apply a barcode using deterministic engine rules
+     * Validate and apply a barcode using deterministic engine rules or remote verification
      */
-    const validateBarcode = (code: string, subtotal: number, items: any[] = []): PromoValidationResult => {
+    const validateBarcode = async (code: string, subtotal: number, items: any[] = []): Promise<PromoValidationResult> => {
         const normalizedCode = code.toUpperCase().trim();
         const rule = activeRules.find(r => r.code.toUpperCase() === normalizedCode);
         
         if (!rule) {
+            // Fallback for Dynamic Vouchers generated remotely (KKT-xxxx)
+            try {
+                const res = await apiClient.post('/discounts/evaluate', { voucherCode: normalizedCode, items });
+                const validRules = res?.data?.data;
+                
+                if (validRules && Array.isArray(validRules) && validRules.length > 0) {
+                    // Try to match the returned rule specifically to our voucher code
+                    const matched = validRules.find((r: any) => r.voucherCode === normalizedCode || r.code === normalizedCode);
+                    if (matched) {
+                        return {
+                            valid: true,
+                            discountAmount: matched.discountAmount,
+                            promoData: matched
+                        };
+                    }
+                }
+            } catch (err: any) {
+                return { valid: false, reason: err?.response?.data?.message || "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
+            }
             return { valid: false, reason: "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
         }
 

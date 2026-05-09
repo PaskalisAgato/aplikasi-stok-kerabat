@@ -13,17 +13,24 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
     const { validateBarcode } = usePromo();
     const [scannedCode, setScannedCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleValidate = () => {
-        if (!scannedCode) return;
-        const result = validateBarcode(scannedCode, subtotal, items);
-        if (result.valid) {
-            setErrorMsg('');
-            // Optional: You could show a success state before applying and closing.
-            onApplyPromo(result.discountAmount, result.promoData);
-            onClose();
-        } else {
-            setErrorMsg(result.reason || 'Kode tidak valid');
+    const handleValidate = async () => {
+        if (!scannedCode || isLoading) return;
+        setIsLoading(true);
+        setErrorMsg('');
+        try {
+            const result = await validateBarcode(scannedCode, subtotal, items);
+            if (result.valid) {
+                onApplyPromo(result.discountAmount, result.promoData);
+                onClose();
+            } else {
+                setErrorMsg(result.reason || 'Kode tidak valid');
+            }
+        } catch (e: any) {
+            setErrorMsg('Terjadi kesalahan jaringan.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -46,6 +53,7 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
                         type="text"
                         placeholder="Scan atau ketik kode..."
                         className="w-full p-4 text-lg font-bold border-2 border-slate-200 rounded-xl focus:border-primary outline-none text-center tracking-widest uppercase"
+                        disabled={isLoading}
                         value={scannedCode}
                         onChange={(e) => setScannedCode(e.target.value.toUpperCase())}
                         onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
@@ -61,9 +69,10 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
 
                 <button 
                     onClick={handleValidate}
-                    className="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg hover:brightness-110 active:scale-95 transition-all"
+                    disabled={isLoading}
+                    className="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
                 >
-                    Validasi Promo
+                    {isLoading ? 'Memvalidasi...' : 'Validasi Promo'}
                 </button>
             </div>
         </div>
