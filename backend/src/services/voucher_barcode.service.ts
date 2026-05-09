@@ -44,7 +44,7 @@ export class VoucherService {
         const cleanCode = (code || '').trim().toUpperCase();
         const [voucher] = await db.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, cleanCode)).limit(1);
  
-        if (!voucher) return { isValid: false, valid: false, message: 'Voucher tidak valid' };
+        if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak valid (lookup: ${cleanCode})` };
         if (voucher.status === 'redeemed') return { isValid: false, valid: false, message: 'Voucher sudah digunakan' };
         if (new Date() > voucher.expiresAt) {
             // Update status to expired if it's not already
