@@ -406,18 +406,23 @@ export class DiscountService {
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 
                 if (!vResult.valid) {
-                    throw new Error(vResult.message || "Voucher tidak valid");
+                    throw new Error(`VALIDATION_FAILED: ${vResult.message} (${voucherCode})`);
                 }
                 
                 if (vResult.valid) {
                     // Phase 6: Fetch dynamic settings from a record with type 'qr_voucher'
-                    const [qrTemplate] = await db.select()
+                    const qrTemplates = await db.select()
                         .from(schema.discounts)
                         .where(and(
                             eq(schema.discounts.type, 'qr_voucher'),
                             eq(schema.discounts.isActive, true)
-                        ))
-                        .limit(1);
+                        ));
+                    
+                    const qrTemplate = qrTemplates[0];
+                    if (!qrTemplate) {
+                         // Don't throw, just use defaults from voucher record, but log it
+                         console.log('[QR Voucher] No template found, using defaults.');
+                    }
 
                     const qrValueDB = parseFloat(vResult.voucher?.discountValue || '20');
                     const qrTypeDB = vResult.voucher?.benefitType === 'nominal' ? 'nominal' : 'percent';
@@ -470,10 +475,13 @@ export class DiscountService {
                             isExclusive: false,
                             voucherCode: voucherCode
                         });
+                    } else {
+                        throw new Error(`DISCOUNT_ZERO: Subtotal ${qrBaseSubtotal} matching category ${qrConditions.category || 'any'}`);
                     }
                 }
-            } catch (vErr) {
+            } catch (vErr: any) {
                 console.warn('[QR Voucher Eval] Failed:', vErr);
+                throw vErr; // Propagate the specific error
             }
         }
 
