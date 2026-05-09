@@ -432,10 +432,13 @@ export class DiscountService {
                     
                     // Filter items by category or productIds from template
                     let targetItems = itemsWithMetadata;
+                    // Intentionally ignore `qrConditions.productIds` here, because those are GENERATION constraints 
+                    // (e.g. Must buy Matcha + Butterscotch to get the voucher). 
+                    // Only apply category restrictions if strictly necessary for redemption.
                     if (qrConditions.category) {
                         targetItems = itemsWithMetadata.filter(i => i.category.toLowerCase().includes(qrConditions.category.toLowerCase()));
-                    } else if (qrConditions.productIds) {
-                        const tIds = qrConditions.productIds.map(Number);
+                    } else if (qrConditions.redemptionProductIds) {
+                        const tIds = qrConditions.redemptionProductIds.map(Number);
                         targetItems = itemsWithMetadata.filter(i => tIds.includes(i.recipeId));
                     }
 
