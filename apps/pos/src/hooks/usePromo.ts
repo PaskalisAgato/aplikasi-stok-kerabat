@@ -37,14 +37,14 @@ export function usePromo() {
     /**
      * Validate and apply a barcode using deterministic engine rules or remote verification
      */
-    const validateBarcode = async (code: string, subtotal: number, items: any[] = []): Promise<PromoValidationResult> => {
+    const validateBarcode = async (code: string, subtotal: number, items: any[] = [], orderSource?: string): Promise<PromoValidationResult> => {
         const normalizedCode = code.toUpperCase().trim();
         const rule = activeRules.find(r => r.code.toUpperCase() === normalizedCode);
         
         if (!rule) {
             // Fallback for Dynamic Vouchers generated remotely (KKT-xxxx)
             try {
-                const res = await apiClient.post('/discounts/evaluate', { voucherCode: normalizedCode, items });
+                const res = await apiClient.post('/discounts/evaluate', { voucherCode: normalizedCode, items, orderSource });
                 const validRules = res?.data?.data;
                 
                 if (validRules && Array.isArray(validRules) && validRules.length > 0) {

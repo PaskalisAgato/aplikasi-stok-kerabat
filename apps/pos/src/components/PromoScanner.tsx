@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { QrCode, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { QrCode, X, AlertCircle } from 'lucide-react';
 import { usePromo } from '../hooks/usePromo';
 
 interface PromoScannerProps {
     subtotal: number;
     items?: any[];
+    orderSource?: string;
     onApplyPromo: (discountAmount: number, promoData: any) => void;
     onClose: () => void;
 }
 
-export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = [], onApplyPromo, onClose }) => {
+export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = [], orderSource, onApplyPromo, onClose }) => {
     const { validateBarcode } = usePromo();
     const [scannedCode, setScannedCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
@@ -20,7 +21,7 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
         setIsLoading(true);
         setErrorMsg('');
         try {
-            const result = await validateBarcode(scannedCode, subtotal, items);
+            const result = await validateBarcode(scannedCode, subtotal, items, orderSource);
             if (result.valid) {
                 onApplyPromo(result.discountAmount, result.promoData);
                 onClose();

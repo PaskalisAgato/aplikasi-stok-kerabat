@@ -405,6 +405,10 @@ export class DiscountService {
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 
+                if (!vResult.valid) {
+                    throw new Error(vResult.message || "Voucher tidak valid");
+                }
+                
                 if (vResult.valid) {
                     // Phase 6: Fetch dynamic settings from a record with type 'qr_voucher'
                     const [qrTemplate] = await db.select()
