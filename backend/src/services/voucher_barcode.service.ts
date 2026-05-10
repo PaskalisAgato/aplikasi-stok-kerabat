@@ -19,7 +19,7 @@ export class VoucherService {
     /**
      * Create a new voucher for a stand transaction
      */
-    static async generateVoucher(transactionId: number, locationSource: number, discountValue: string = '20', benefitType: string = 'percent', expiryHours: number = 3) {
+    static async generateVoucher(transactionId: number, locationSource: number, discountValue: string = '20', benefitType: string = 'percent', expiryHours: number = 24) {
         const code = this.generateCode();
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + expiryHours); 
@@ -43,9 +43,14 @@ export class VoucherService {
      */
     static async validateVoucher(code: string) {
         const cleanCode = (code || '').trim().toUpperCase();
+        
+        // Diagnostic: List all codes in the system to check visibility
+        const allVouchers = await db.select({ code: schema.standVouchers.code }).from(schema.standVouchers);
+        const knownCodes = allVouchers.map(v => v.code).join(', ');
+
         const [voucher] = await db.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, cleanCode)).limit(1);
  
-        if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak valid (lookup: ${cleanCode})` };
+        if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak ditemukan (lookup: ${cleanCode}). Kode terdaftar di DB: [${knownCodes}]` };
         if (voucher.status === 'redeemed') return { isValid: false, valid: false, message: 'Voucher sudah digunakan' };
         if (new Date() > voucher.expiresAt) {
             // Update status to expired if it's not already
