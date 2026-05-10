@@ -4,19 +4,17 @@ import * as schema from './src/db/schema.js';
 import { eq, desc } from 'drizzle-orm';
 
 async function debugVouchers() {
-    const searchCode = process.argv[2] || 'KKT-VXG82S';
-    console.log(`\n--- Inspecting Voucher: ${searchCode} ---`);
-    const [found] = await db.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, searchCode)).limit(1);
-    
-    if (found) {
-        console.table([found]);
+    console.log('\n--- Inspecting Discount ID 11 ---');
+    const [template] = await db.select().from(schema.discounts).where(eq(schema.discounts.id, 11)).limit(1);
+    if (template) {
+        console.table([template]);
     } else {
-        console.log(`Voucher ${searchCode} not found.`);
+        console.log('Discount ID 11 not found.');
     }
-    
-    console.log('\n--- Latest 5 Transactions ---');
-    const latestSales = await db.select().from(schema.sales).orderBy(desc(schema.sales.id)).limit(5);
-    console.table(latestSales);
+
+    console.log('\n--- Inspecting All Discount Rules ---');
+    const rules = await db.select().from(schema.discountRules);
+    console.table(rules);
 
     process.exit(0);
 }
