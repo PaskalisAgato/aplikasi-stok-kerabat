@@ -255,11 +255,11 @@ export class TransactionService {
 
         let serverVerifiedDiscountTotal = 0;
         if (uniqueAppliedIds.length > 0) {
-            const dbDiscounts = await db.select().from(schema.discounts).where(inArray(schema.discounts.id, uniqueAppliedIds));
+            const dbDiscounts = await db.select().from(schema.discounts).where(inArray(schema.discounts.id, uniqueAppliedIds as any[]));
             
             for (const d of dbDiscounts) {
                 // Safeguard: qr_voucher template MUST NOT be used without a valid voucherCode
-                if (d.type === 'qr_voucher') {
+                if ((d as any).type === 'qr_voucher') {
                     if (!data.voucherCode) {
                         throw new Error(`Kecurangan Terdeteksi: Diskon "${d.name}" memerlukan kode voucher yang valid.`);
                     }
