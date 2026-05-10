@@ -435,6 +435,14 @@ export class DiscountService {
 
                     const qrValueDB = parseFloat(vResult.voucher?.discountValue || '20');
                     const qrTypeDB = vResult.voucher?.benefitType === 'nominal' ? 'nominal' : 'percent';
+                    const qrStatusDB = vResult.voucher?.status || 'unused';
+
+                    if (qrStatusDB === 'redeemed') {
+                        throw new Error('Validasi Gagal: Voucher sudah digunakan sebelumnya');
+                    }
+                    if (vResult.voucher?.expiresAt && new Date() > new Date(vResult.voucher.expiresAt)) {
+                        throw new Error('Validasi Gagal: Voucher sudah kadaluwarsa');
+                    }
 
                     const qrValue = (qrTemplate && parseFloat(qrTemplate.value) > 0) ? parseFloat(qrTemplate.value) : qrValueDB;
                     const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; 
