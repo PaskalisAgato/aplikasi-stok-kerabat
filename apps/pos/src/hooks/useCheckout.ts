@@ -77,7 +77,7 @@ export function useCheckout() {
                 discountTotal: (totalSalesValue - finalTotal),
                 pointsUsed: pointsToRedeem,
                 pointsEarned,
-                sourceId: effectiveShift?.outletId || 1,
+                sourceId: currentBillId,
                 orderSource,
                 voucherCode: voucherCode || null,
                 voucherRuleCode: selectedDiscounts?.find(d => typeof d.id === 'string')?.name || null,
