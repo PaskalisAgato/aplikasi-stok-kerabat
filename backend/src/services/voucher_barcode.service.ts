@@ -41,7 +41,7 @@ export class VoucherService {
     /**
      * Validate voucher by code
      */
-    static async validateVoucher(code: string, tx?: any) {
+    static async validateVoucher(code: string, tx?: any, currentSaleId?: number) {
         const cleanCode = (code || '').trim().toUpperCase();
         const baseDb = tx || db;
         
@@ -52,7 +52,12 @@ export class VoucherService {
         const [voucher] = await query.limit(1);
  
         if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak ditemukan (lookup: ${cleanCode})` };
-        if (voucher.status === 'redeemed') return { isValid: false, valid: false, message: 'Voucher sudah digunakan' };
+        if (voucher.status === 'redeemed') {
+            if (currentSaleId && (voucher as any).redeemedTransactionId === currentSaleId) {
+                return { isValid: true, valid: true, voucher }; 
+            }
+            return { isValid: false, valid: false, message: 'Voucher sudah digunakan' };
+        }
         if (new Date() > voucher.expiresAt) {
             // Update status to expired if it's not already
             if (voucher.status !== 'expired') {

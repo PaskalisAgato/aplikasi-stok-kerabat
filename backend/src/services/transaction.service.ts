@@ -276,6 +276,12 @@ export class TransactionService {
                 // Safeguard: qr_voucher template MUST NOT be used without a valid voucherCode
                 if ((d as any).type === 'qr_voucher') {
                     if (!inheritedVoucherCode) {
+                        // Relax for legacy bills: If it's a transition and it's an old bill, we let it pass 
+                        // but we won't be able to "redeem" it officially (it will stay unused/expired in stand_vouchers)
+                        if (sourceId) {
+                            console.warn(`[Voucher] Legacy bill ${sourceId} used discount ID ${d.id} without voucherCode. Allowing but untracked.`);
+                            continue;
+                        }
                         throw new Error(`Kecurangan Terdeteksi: Diskon "${d.name}" memerlukan kode voucher yang valid.`);
                     }
                     // The voucherCode logic itself is handled inside the transaction block below
@@ -311,9 +317,9 @@ export class TransactionService {
 
         const resultData = await db.transaction(async (tx: any) => {
             // 1. ATOMIC VOUCHER REDEMPTION (Dynamic KKT-Voucher)
-            if (data.voucherCode) {
+            if (inheritedVoucherCode) {
                 const { VoucherService } = await import('./voucher_barcode.service.js');
-                const vResult = await VoucherService.validateVoucher(data.voucherCode, tx);
+                const vResult = await VoucherService.validateVoucher(inheritedVoucherCode, tx, sourceId);
                 
                 if (!vResult.valid || !vResult.voucher) {
                     throw new Error(`Voucher Gagal: ${vResult.message}`);
@@ -334,11 +340,11 @@ export class TransactionService {
                      // Note: We don't throw here yet to avoid rigidness, but normally we should.
                 }
 
-                // Mark as REDEEMED atomically
+                // Mark as REDEEMED atomically (We'll update the final saleId later)
                 await VoucherService.redeemVoucher(
-                    data.voucherCode, 
+                    inheritedVoucherCode, 
                     outletId, 
-                    -1, // Placeholder until finalizedSaleId is known
+                    sourceId || -1, 
                     tx
                 );
             }
