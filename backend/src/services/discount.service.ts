@@ -405,8 +405,12 @@ export class DiscountService {
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 
-                if (!vResult.valid) {
+                if (!vResult.valid || !vResult.voucher) {
                     throw new Error(`VALIDATION_FAILED: ${vResult.message} (${voucherCode})`);
+                }
+
+                if (vResult.voucher.status === 'redeemed') {
+                    throw new Error(`Voucher Gagal: Voucher ${voucherCode} sudah pernah digunakan.`);
                 }
                 
                 if (vResult.valid) {
