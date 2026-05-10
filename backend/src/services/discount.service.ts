@@ -189,6 +189,23 @@ export class DiscountService {
                  continue;
             }
 
+            // ── Skip if limit per user reached ────────────────────────────
+            if (discount.limitPerUser !== null && memberId) {
+                const usedByMember = await db.select({ count: sql<number>`count(*)` })
+                    .from(schema.sales)
+                    .where(and(
+                        eq(schema.sales.memberId, memberId),
+                        sql`(${schema.sales.discountId} = ${discount.id} OR 
+                             ${schema.sales.discountIds} LIKE ${'%' + discount.id + '%'} OR
+                             (${discount.voucherCode ? sql`${schema.sales.voucherCode} = ${discount.voucherCode}` : sql`false`}))`
+                    ));
+                const count = usedByMember[0]?.count || 0;
+                if (count >= discount.limitPerUser) {
+                    console.log(`[PROMO SKIP] "${discount.name}" - User limit reached (${count}/${discount.limitPerUser}) for member ${memberId}`);
+                    continue;
+                }
+            }
+
             // ── HARD EXCLUSION: qr_voucher templates should NEVER be auto-applied ──
             if (discount.type === 'qr_voucher') {
                 continue; 
