@@ -450,7 +450,11 @@ export class DiscountService {
                         targetItems = itemsWithMetadata.filter(i => tIds.includes(i.recipeId));
                     }
 
-                    const qrBaseSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
+                    const qrBaseSubtotal = targetItems.reduce((s, i) => {
+                        const price = parseFloat(i.price?.toString() || '0');
+                        const qty = parseFloat(i.quantity?.toString() || '0');
+                        return s + (price * qty);
+                    }, 0);
                     console.log(`[QR Eval] Base Subtotal for match: ${qrBaseSubtotal}`);
                     
                     // Evaluate discount type
