@@ -69,7 +69,7 @@ export function usePromo() {
                     console.warn('[Promo Debug] validRules is empty or not an array:', validRules);
                 }
             } catch (err: any) {
-                return { valid: false, reason: err?.response?.data?.message || "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
+                return { valid: false, reason: err?.message || err?.response?.data?.message || "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
             }
             return { valid: false, reason: "Kode promo tidak ditemukan atau tidak aktif", discountAmount: 0 };
         }
