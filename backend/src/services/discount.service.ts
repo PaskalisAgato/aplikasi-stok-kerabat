@@ -431,19 +431,18 @@ export class DiscountService {
                     const qrConditions = qrTemplate?.conditions ? JSON.parse(qrTemplate.conditions) : {}; 
 
                     // Validation: Order Source Restrict (e.g. only STAND or only DIRECT)
+                    console.log(`[QR Eval] Checking Source: ${orderSource}, Allowed:`, qrConditions.orderSources);
                     if (qrConditions.orderSources && Array.isArray(qrConditions.orderSources) && qrConditions.orderSources.length > 0) {
                         const isSourceAllowed = qrConditions.orderSources.some((s: string) => s.toUpperCase() === orderSource?.toUpperCase());
                         if (!isSourceAllowed) {
                             console.log(`[QR Voucher Eval] Rejected: Order source ${orderSource} not in allowed:`, qrConditions.orderSources);
-                            return applicable; 
+                            throw new Error(`ORDER_SOURCE_NOT_ALLOWED: Order source ${orderSource} not in ${JSON.stringify(qrConditions.orderSources)}`);
                         }
                     }
                     
                     // Filter items by category or productIds from template
                     let targetItems = itemsWithMetadata;
-                    // Intentionally ignore `qrConditions.productIds` here, because those are GENERATION constraints 
-                    // (e.g. Must buy Matcha + Butterscotch to get the voucher). 
-                    // Only apply category restrictions if strictly necessary for redemption.
+                    console.log(`[QR Eval] Checking Category: ${qrConditions.category}, RedemptionIds:`, qrConditions.redemptionProductIds);
                     if (qrConditions.category) {
                         targetItems = itemsWithMetadata.filter(i => i.category.toLowerCase().includes(qrConditions.category.toLowerCase()));
                     } else if (qrConditions.redemptionProductIds) {
@@ -452,27 +451,31 @@ export class DiscountService {
                     }
 
                     const qrBaseSubtotal = targetItems.reduce((s, i) => s + (Number(i.price) * i.quantity), 0);
+                    console.log(`[QR Eval] Base Subtotal for match: ${qrBaseSubtotal}`);
                     
                     // Evaluate discount type
                     let qrDiscountAmount = 0;
                     const isNominal = qrTypeDB === 'nominal' || (qrTemplate && qrTemplate.type === 'nominal') || qrValue > 100;
                     
                     if (isNominal) {
-                        qrDiscountAmount = Math.min(qrValue, qrBaseSubtotal);
+                        qrDiscountAmount = qrValue;
                     } else {
-                        qrDiscountAmount = Math.floor(qrBaseSubtotal * (qrValue / 100));
+                        qrDiscountAmount = (qrBaseSubtotal * qrValue) / 100;
                     }
 
+                    console.log(`[QR Eval] Final Discount Amount: ${qrDiscountAmount}`);
+                    
                     if (qrDiscountAmount > 0) {
                         applicable.push({
                             id: qrTemplate?.id || -999,
                             name: qrTemplate?.name || `QR Voucher Discount (${voucherCode})`,
                             type: qrTypeDB,
                             value: qrValue.toString(),
-                            discountAmount: qrDiscountAmount,
+                            discountAmount: Math.round(qrDiscountAmount),
                             priority: 100,
                             isStackable: true,
                             isExclusive: false,
+                            conditions: qrConditions,
                             voucherCode: voucherCode
                         });
                     } else {
