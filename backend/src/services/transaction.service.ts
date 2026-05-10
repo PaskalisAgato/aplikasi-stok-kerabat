@@ -249,9 +249,9 @@ export class TransactionService {
         }
 
         // 4. HARDENING: Re-verify all applied discounts (NO MORE BLIND TRUST)
-        const appliedIds = Array.isArray(data.discountIds) ? data.discountIds.map(Number) : [];
+        const appliedIds: number[] = Array.isArray(data.discountIds) ? data.discountIds.map(Number) : [];
         if (data.discountId) appliedIds.push(Number(data.discountId));
-        const uniqueAppliedIds = [...new Set(appliedIds)].filter(id => !isNaN(id) && id > 0);
+        const uniqueAppliedIds = [...new Set(appliedIds)].filter((id: number) => !isNaN(id) && id > 0);
 
         let serverVerifiedDiscountTotal = 0;
         if (uniqueAppliedIds.length > 0) {
