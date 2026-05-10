@@ -7,10 +7,11 @@ interface PromoScannerProps {
     items?: any[];
     orderSource?: string;
     onApplyPromo: (discountAmount: number, promoData: any) => void;
+    onSetVoucherCode: (code: string) => void;
     onClose: () => void;
 }
 
-export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = [], orderSource, onApplyPromo, onClose }) => {
+export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = [], orderSource, onApplyPromo, onSetVoucherCode, onClose }) => {
     const { validateBarcode } = usePromo();
     const [scannedCode, setScannedCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
@@ -23,6 +24,7 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
         try {
             const result = await validateBarcode(scannedCode, subtotal, items, orderSource);
             if (result.valid) {
+                onSetVoucherCode(scannedCode);
                 onApplyPromo(result.discountAmount, result.promoData);
                 onClose();
             } else {

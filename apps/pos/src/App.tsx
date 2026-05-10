@@ -660,6 +660,7 @@ export default function App() {
                     items={activeCartItems}
                     orderSource={orderSource}
                     onClose={() => setIsVoucherRedeemModalOpen(false)}
+                    onSetVoucherCode={setVoucherCode}
                     onApplyPromo={(discountAmount, promoData) => {
                         toggleDiscount({ 
                             id: promoData.id, 
