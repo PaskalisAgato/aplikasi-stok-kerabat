@@ -493,12 +493,17 @@ export class DiscountService {
                             code: voucherCode // Added for frontend matching compatibility
                         });
                     } else {
-                        throw new Error(`DISCOUNT_ZERO: Subtotal ${qrBaseSubtotal} matching category ${qrConditions.category || 'any'}`);
+                        const reason = qrConditions.category 
+                            ? `Voucher ini hanya berlaku untuk kategori: ${qrConditions.category}`
+                            : (qrConditions.redemptionProductIds ? 'Voucher ini hanya berlaku untuk menu tertentu.' : 'Voucher tidak dapat diterapkan pada menu ini.');
+                        throw new Error(`Validasi Gagal: ${reason}`);
                     }
                 }
             } catch (vErr: any) {
                 console.warn('[QR Voucher Eval] Failed:', vErr);
-                throw vErr; // Propagate the specific error
+                // Simplify the message for the user if it's our known format
+                const msg = vErr.message?.includes('Validasi Gagal:') ? vErr.message : `Voucher Tidak Valid: ${vErr.message}`;
+                throw new Error(msg);
             }
         }
 
