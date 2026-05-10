@@ -34,6 +34,16 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
         }
     };
 
+    const handleClearErrors = async () => {
+        if (confirm('Hapus semua antrean yang gagal/ditolak?')) {
+            const errors = actions.filter(a => a.sync_status === 'REJECTED' || a.sync_status === 'FAILED_PERMANENT');
+            for (const err of errors) {
+                await syncEngine.cancelAction(err.id);
+            }
+            await loadActions();
+        }
+    };
+
     const handleRetryItem = async (id: string) => {
         await syncEngine.retryAction(id);
         await loadActions();
@@ -64,13 +74,22 @@ export default function SyncQueuePage({ onBack }: { onBack: () => void }) {
 
                 <div className="flex flex-wrap items-center gap-3">
                     {actions.length > 0 && (
-                        <button 
-                            onClick={handleClearAll}
-                            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 border border-red-500/20"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-                            Hapus Semua
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleClearErrors}
+                                className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 border border-amber-500/20"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">cleaning_services</span>
+                                Bersihkan Eror
+                            </button>
+                            <button 
+                                onClick={handleClearAll}
+                                className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95 border border-red-500/20"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                                Hapus Semua
+                            </button>
+                        </div>
                     )}
                     <button 
                         onClick={handleRetry}
