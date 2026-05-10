@@ -352,6 +352,17 @@ export class TransactionService {
                     sourceId || -1, 
                     tx
                 );
+
+                // CRITICAL: Increment global usage counter for the parent discount template
+                // This ensures totalQuota and budgetUsed are tracked correctly
+                if (data.discountId) {
+                    await tx.update(schema.discounts)
+                        .set({ 
+                            totalUsed: sql`${schema.discounts.totalUsed} + 1`,
+                            budgetUsed: sql`${schema.discounts.budgetUsed} + ${clientDiscountTotal}`
+                        })
+                        .where(eq(schema.discounts.id, data.discountId));
+                }
             }
 
             // 2. ATOMIC BARCODE REDEMPTION (Static Rules)
