@@ -189,6 +189,11 @@ export class DiscountService {
                  continue;
             }
 
+            // ── HARD EXCLUSION: qr_voucher templates should NEVER be auto-applied ──
+            if (discount.type === 'qr_voucher') {
+                continue; 
+            }
+
             // ── Voucher skip logic: don't auto-apply if it's a fixed discount record with a voucherCode ─────
             if (discount.voucherCode) {
                 if (!voucherCode || voucherCode.toUpperCase().trim() !== discount.voucherCode) {
