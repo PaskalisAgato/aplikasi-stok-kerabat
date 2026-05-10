@@ -52,8 +52,8 @@ export function usePromo() {
                 if (validRules && Array.isArray(validRules) && validRules.length > 0) {
                     // Try to match the returned rule specifically to our voucher code
                     const matched = validRules.find((r: any) => {
-                        console.log(`[Promo Debug] Comparing ${r.voucherCode} or ${r.code} against ${normalizedCode}`);
-                        return r.voucherCode === normalizedCode || r.code === normalizedCode;
+                        console.log(`[Promo Debug] Comparing ${r.voucherCode} or ${r.code} or ${r.id} against ${normalizedCode}`);
+                        return r.voucherCode === normalizedCode || r.code === normalizedCode || r.id?.toString() === normalizedCode;
                     });
                     if (matched) {
                         console.log('[Promo Debug] Match Found!', matched);

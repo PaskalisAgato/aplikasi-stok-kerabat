@@ -146,9 +146,10 @@ export function useCheckout() {
             
             console.log('[Voucher Debug] Final generatedVoucher =', generatedVoucher);
             return { success: true, ...syncResult, voucher: generatedVoucher };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Checkout failed', error);
-            showNotification('Gagal menyimpan transaksi.', "error");
+            const msg = error?.response?.data?.message || error?.message || 'Gagal menyimpan transaksi.';
+            showNotification(msg, "error");
             return { success: false };
         } finally {
             setIsCheckingOut(false);

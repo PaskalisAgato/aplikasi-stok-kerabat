@@ -121,7 +121,8 @@ export class TransactionController {
                 console.error('Failed to log checkout error to systemLogs', auditErr);
             }
 
-            res.status(500).json({ success: false, message: 'Transaksi Gagal [V3]: ' + error.message });
+            const statusCode = error.message?.includes('Validasi Voucher Gagal') ? 400 : 500;
+            res.status(statusCode).json({ success: false, message: 'Transaksi Gagal [V3]: ' + error.message, isValidationError: statusCode === 400 });
         }
     }
 

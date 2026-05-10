@@ -282,7 +282,7 @@ export class TransactionService {
                             console.warn(`[Voucher] Legacy bill ${sourceId} used discount ID ${d.id} without voucherCode. Allowing but untracked.`);
                             continue;
                         }
-                        throw new Error(`Kecurangan Terdeteksi: Diskon "${d.name}" memerlukan kode voucher yang valid.`);
+                        throw new Error(`Validasi Voucher Gagal: Diskon "${d.name}" memerlukan kode voucher yang valid.`);
                     }
                     // The voucherCode logic itself is handled inside the transaction block below
                     continue; 
@@ -616,12 +616,12 @@ export class TransactionService {
 
             // ── Phase 5: Mark QR Voucher as Redeemed ─────────────────────────
             if (saleValues.status === 'PAID' && data.voucherCode && data.voucherCode.startsWith('KKT-')) {
-            // Mark voucher with the finalized sale ID if it was used
-            if (data.voucherCode) {
-                await tx.update(schema.standVouchers)
-                    .set({ redeemedTransactionId: finalizedSaleId })
-                    .where(eq(schema.standVouchers.code, data.voucherCode));
-            }
+                try {
+                    const { VoucherService } = await import('./voucher_barcode.service.js');
+                    await VoucherService.redeemVoucher(data.voucherCode, outletId, finalizedSaleId);
+                } catch (vRedeemErr: any) {
+                    console.warn('[QR Voucher Redemption] Failed for code:', data.voucherCode, vRedeemErr.message);
+                }
             }
 
             const result = { success: true, transactionId: finalizedSaleId, totalAmount: finalizedTotalAmount };

@@ -300,6 +300,7 @@ class SyncEngine {
       const response: any = useDelete 
           ? await apiClient.deleteWithIdempotency(path, action.idempotency_key, action.payload)
           : await apiClient.postWithIdempotency(path, action.payload, action.idempotency_key);
+        
 
       // Handle custom business success (already voided)
       if (response?.alreadyVoided) {
@@ -346,19 +347,16 @@ class SyncEngine {
       }
 
       // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
-      // 404 treated as possibly transient (deploy lag) but subject to max retries.
+      // Business Validation Error (like voucher invalid) should be PURGED, not kept as REJECTED.
       if (error.status >= 400 && error.status < 500 && error.status !== 404) {
-         await db.offlineActions.where('id').equals(action.id).modify({ 
-            sync_status: 'REJECTED', // Mark as failed definitively
-            failure_reason: error.message || 'Server rejected payload logically',
-            retry_count: action.retry_count + 1
-          });
-         this.lastError = null; // Clear error since we bypassed it
+         console.warn(`[SyncEngine] Business Validation Error (${error.status}). Purging action ${action.id} from queue.`);
+         await db.offlineActions.where('id').equals(action.id).delete();
+         this.lastError = null; // Clear error since we handled it by purging
          if (resolver) {
              resolver.reject(error);
              this.actionResolvers.delete(action.id);
          }
-         return true; // Return true to continue the queue processing past this corrupted item
+         return true; // Continue queue
       }
 
       const nextRetryCount = action.retry_count + 1;

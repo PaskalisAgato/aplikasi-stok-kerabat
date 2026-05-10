@@ -489,7 +489,8 @@ export class DiscountService {
                             isStackable: true,
                             isExclusive: false,
                             conditions: qrConditions,
-                            voucherCode: voucherCode
+                            voucherCode: voucherCode,
+                            code: voucherCode // Added for frontend matching compatibility
                         });
                     } else {
                         throw new Error(`DISCOUNT_ZERO: Subtotal ${qrBaseSubtotal} matching category ${qrConditions.category || 'any'}`);
