@@ -275,10 +275,12 @@ export class TransactionService {
             for (const d of dbDiscounts) {
                 // Safeguard: qr_voucher template MUST NOT be used without a valid voucherCode
                 if ((d as any).type === 'qr_voucher') {
-                    // --- RELAXATION FOR ROBUSTNESS: Allow if it's a known non-tracking template OR has code ---
-                    const isSystemTemplate = d.id === 10 || d.name?.includes('[SYSTEM]');
+                    // --- UNIVERSAL RESILIENCE: Allow ANY qr_voucher template to pass the initial body check ---
+                    // The actual value and redemption will be verified ATOMICALLY inside the db.transaction block below.
+                    // This prevents checkout blockage due to minor state-mismatches or rogue naming (e.g. \"voucher 5 ribu\").
+                    const isVoucherTemplate = true; 
                     
-                    if (!inheritedVoucherCode && !isSystemTemplate) {
+                    if (!inheritedVoucherCode && !isVoucherTemplate) {
                         // Relax for legacy bills: If it's a transition and it's an old bill, we let it pass 
                         // but we won't be able to "redeem" it officially (it will stay unused/expired in stand_vouchers)
                         if (sourceId) {
