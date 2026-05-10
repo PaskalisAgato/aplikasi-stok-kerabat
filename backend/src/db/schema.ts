@@ -287,6 +287,8 @@ export const sales = pgTable('sales', {
     pointsUsed: integer('points_used').default(0).notNull(),
     pointsEarned: integer('points_earned').default(0).notNull(),
     orderSource: text('order_source').default('DIRECT').notNull(), // 'DIRECT', 'GRABFOOD', 'GOFOOD', 'SHOPEEFOOD'
+    voucherCode: text('voucher_code'), // NEW: Link to stand_vouchers
+    voucherRuleCode: text('voucher_rule_code'), // NEW: Link to discount_rules
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     shiftIdx: index('sales_shift_idx').on(t.shiftId),

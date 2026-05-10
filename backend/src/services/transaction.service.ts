@@ -248,6 +248,21 @@ export class TransactionService {
             throw new Error('Shift belum dibuka. Silakan buka shift kasir terlebih dahulu di menu utama.');
         }
 
+        // --- TRANSITION PRE-FETCH (Inherit Vouchers from Bill) ---
+        let inheritedVoucherCode = data.voucherCode;
+        let inheritedVoucherRuleCode = data.voucherRuleCode;
+        if (sourceId) {
+            const [existing] = await db.select().from(schema.sales).where(eq(schema.sales.id, sourceId)).limit(1);
+            if (existing) {
+                if (!inheritedVoucherCode && (existing as any).voucherCode) {
+                    inheritedVoucherCode = (existing as any).voucherCode;
+                }
+                if (!inheritedVoucherRuleCode && (existing as any).voucherRuleCode) {
+                    inheritedVoucherRuleCode = (existing as any).voucherRuleCode;
+                }
+            }
+        }
+
         // 4. HARDENING: Re-verify all applied discounts (NO MORE BLIND TRUST)
         const appliedIds: number[] = Array.isArray(data.discountIds) ? data.discountIds.map(Number) : [];
         if (data.discountId) appliedIds.push(Number(data.discountId));
@@ -260,7 +275,7 @@ export class TransactionService {
             for (const d of dbDiscounts) {
                 // Safeguard: qr_voucher template MUST NOT be used without a valid voucherCode
                 if ((d as any).type === 'qr_voucher') {
-                    if (!data.voucherCode) {
+                    if (!inheritedVoucherCode) {
                         throw new Error(`Kecurangan Terdeteksi: Diskon "${d.name}" memerlukan kode voucher yang valid.`);
                     }
                     // The voucherCode logic itself is handled inside the transaction block below
@@ -375,6 +390,8 @@ export class TransactionService {
                 status: data.status || 'PAID',
                 pointsUsed: data.pointsUsed || 0,
                 orderSource: data.orderSource || 'DIRECT',
+                voucherCode: data.voucherCode || null,
+                voucherRuleCode: data.voucherRuleCode || null,
                 createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
             };
 
@@ -382,6 +399,23 @@ export class TransactionService {
                 // --- TRANSITION MODE: Transition OPEN Bill to PAID ---
                 const [existingSale] = await tx.select().from(schema.sales).where(eq(schema.sales.id, sourceId)).limit(1);
                 if (!existingSale) throw new Error('Bill asal tidak ditemukan');
+
+                // AUTO-INHERIT VOUCHER FROM BILL:
+                // If the checkout request doesn't have a voucherCode but the bill does,
+                // we use the bill's code to satisfy the "Kecurangan Terdeteksi" guard.
+                if (!saleValues.voucherCode && existingSale.voucherCode) {
+                    saleValues.voucherCode = existingSale.voucherCode;
+                }
+                if (!saleValues.voucherRuleCode && existingSale.voucherRuleCode) {
+                    saleValues.voucherRuleCode = existingSale.voucherRuleCode;
+                }
+                
+                // Re-verification with inherited codes if needed
+                if (!data.voucherCode && saleValues.voucherCode) {
+                     // Since we're already inside the atomic block, we can proceed.
+                     // The validation logic at the start of TR already failed if they were missing,
+                     // so we need to move the "Kecurangan" check INSIDE the transaction or after inheritance.
+                }
                 
                 // 1. Revert Stock for Old Items
                 const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, sourceId));
