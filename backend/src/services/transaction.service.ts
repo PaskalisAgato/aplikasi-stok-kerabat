@@ -502,7 +502,8 @@ export class TransactionService {
                     await VoucherService.redeemVoucher(
                         data.voucherCode, 
                         activeShift?.outletId || 1, 
-                        finalizedSaleId
+                        finalizedSaleId,
+                        tx
                     );
                 } catch (vRedeemErr: any) {
                     console.warn('[QR Voucher Redemption] Failed:', vRedeemErr.message);

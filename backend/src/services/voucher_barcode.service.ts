@@ -41,21 +41,22 @@ export class VoucherService {
     /**
      * Validate voucher by code
      */
-    static async validateVoucher(code: string) {
+    static async validateVoucher(code: string, tx?: any) {
         const cleanCode = (code || '').trim().toUpperCase();
+        const baseDb = tx || db;
         
-        // Diagnostic: List all codes in the system to check visibility
-        const allVouchers = await db.select({ code: schema.standVouchers.code }).from(schema.standVouchers);
-        const knownCodes = allVouchers.map(v => v.code).join(', ');
-
-        const [voucher] = await db.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, cleanCode)).limit(1);
+        // Use 'FOR UPDATE' if we're in a transaction to prevent race conditions during redemption
+        const query = baseDb.select().from(schema.standVouchers).where(eq(schema.standVouchers.code, cleanCode));
+        if (tx) query.for('update');
+        
+        const [voucher] = await query.limit(1);
  
-        if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak ditemukan (lookup: ${cleanCode}). Kode terdaftar di DB: [${knownCodes}]` };
+        if (!voucher) return { isValid: false, valid: false, message: `Voucher tidak ditemukan (lookup: ${cleanCode})` };
         if (voucher.status === 'redeemed') return { isValid: false, valid: false, message: 'Voucher sudah digunakan' };
         if (new Date() > voucher.expiresAt) {
             // Update status to expired if it's not already
             if (voucher.status !== 'expired') {
-                await db.update(schema.standVouchers).set({ status: 'expired' }).where(eq(schema.standVouchers.id, voucher.id));
+                await baseDb.update(schema.standVouchers).set({ status: 'expired' }).where(eq(schema.standVouchers.id, voucher.id));
             }
             return { isValid: false, valid: false, message: 'Voucher sudah kadaluwarsa' };
         }
@@ -66,11 +67,12 @@ export class VoucherService {
     /**
      * Redeem a voucher
      */
-    static async redeemVoucher(code: string, locationRedeemed: number, transactionId: number) {
-        const { isValid, voucher, message } = await this.validateVoucher(code);
+    static async redeemVoucher(code: string, locationRedeemed: number, transactionId: number, tx?: any) {
+        const { isValid, voucher, message } = await this.validateVoucher(code, tx);
         if (!isValid || !voucher) throw new Error(message || 'Voucher tidak valid');
 
-        const [updated] = await db.update(schema.standVouchers).set({
+        const baseDb = tx || db;
+        const [updated] = await baseDb.update(schema.standVouchers).set({
             status: 'redeemed',
             locationRedeemed,
             redeemedTransactionId: transactionId,
