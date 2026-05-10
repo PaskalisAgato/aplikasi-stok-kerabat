@@ -54,6 +54,22 @@ export function useCheckout() {
 
         setIsCheckingOut(true);
         try {
+            // --- NEW: PRE-CHECK VOUCHER VALIDITY BEFORE ENQUEUEING ---
+            if (voucherCode) {
+                try {
+                    const { apiClient } = await import('@shared/apiClient');
+                    const validation = await (apiClient as any).get(`/vouchers/validate/${voucherCode}`);
+                    if (!validation || !validation.isValid) {
+                        showNotification(`Voucher Tidak Valid: ${validation?.message || 'Kode voucher tidak ditemukan atau sudah terpakai.'}`, "error");
+                        setIsCheckingOut(false);
+                        return { success: false };
+                    }
+                } catch (vErr: any) {
+                    console.error('[Voucher Pre-check Error]', vErr);
+                    // If server is unreachable, we allow it to proceed to SyncEngine with offline logic
+                }
+            }
+
             const transactionId = crypto.randomUUID();
             const pointsEarned = selectedMember ? Math.floor(finalTotal / 10000) : 0;
             const newPointBalance = selectedMember ? (selectedMember.points - pointsToRedeem + pointsEarned) : undefined;
