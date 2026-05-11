@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getSessionManually } from '../lib/session.js';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 
 export const requireAdminPin = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,7 +23,7 @@ export const requireAdminPin = async (req: Request, res: Response, next: NextFun
                 and(
                     eq(schema.users.pin, adminPin),
                     inArray(schema.users.role, ['Admin', 'Owner', 'Supervisor']),
-                    eq(schema.users.isDeleted, false)
+                    sql`${schema.users.isDeleted} = false`
                 )
             )
             .limit(1);

@@ -680,3 +680,44 @@ export const discountRules = pgTable('discount_rules', {
     codeIdx: index('discount_rules_code_idx').on(t.code),
     activeIdx: index('discount_rules_active_idx').on(t.active)
 }));
+
+// -----------------------------------------------------------------------------
+// 14. VOUCHER TEMPLATES & PROMO VOUCHERS
+// -----------------------------------------------------------------------------
+export const voucherTemplates = pgTable('voucher_templates', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    backgroundImageUrl: text('background_image_url'),
+    qrConfig: text('qr_config'), // JSON string: { x, y, size }
+    textConfig: text('text_config'), // JSON string: { promoName: { x, y }, menuName: { x, y } }
+    outletId: integer('outlet_id').notNull().default(1).references(() => outlets.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const promoVoucherBatches = pgTable('promo_voucher_batches', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    templateId: uuid('template_id').references(() => voucherTemplates.id),
+    promoName: text('promo_name').notNull(),
+    quantity: integer('quantity').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdBy: text('created_by').references(() => users.id)
+});
+
+export const promoVouchers = pgTable('promo_vouchers', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    batchId: uuid('batch_id').references(() => promoVoucherBatches.id),
+    code: text('code').notNull().unique(),
+    status: text('status').default('unused').notNull(), // 'unused', 'redeemed', 'expired'
+    menuName: text('menu_name'),
+    normalPrice: decimal('normal_price', { precision: 12, scale: 2 }),
+    voucherPrice: decimal('voucher_price', { precision: 12, scale: 2 }),
+    discountNominal: decimal('discount_nominal', { precision: 12, scale: 2 }),
+    expiresAt: timestamp('expires_at').notNull(),
+    redeemedAt: timestamp('redeemed_at'),
+    redeemedTransactionId: integer('redeemed_transaction_id').references(() => sales.id),
+    createdAt: timestamp('created_at').defaultNow().notNull()
+}, (t: any) => ({
+    codeIdx: index('promo_voucher_code_idx').on(t.code),
+    statusIdx: index('promo_voucher_status_idx').on(t.status)
+}));

@@ -1,16 +1,16 @@
-import { eq, inArray, and } from 'drizzle-orm';
+import { eq, inArray, and, sql } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export class ProductService {
     static async getAllProducts(outletId?: number) {
-        let recipesQuery = db.select().from(schema.recipes).where(eq(schema.recipes.isActive, true));
+        let recipesQuery = db.select().from(schema.recipes).where(sql`${schema.recipes.isActive} = true`);
         
         if (outletId) {
             recipesQuery = db.select().from(schema.recipes).where(
                 and(
-                    eq(schema.recipes.isActive, true),
+                    sql`${schema.recipes.isActive} = true`,
                     eq(schema.recipes.outletId, outletId)
                 )
             );

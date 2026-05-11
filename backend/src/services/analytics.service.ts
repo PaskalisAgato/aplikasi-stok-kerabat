@@ -23,7 +23,7 @@ export class AnalyticsService {
         .from(schema.sales)
         .where(and(
             gte(schema.sales.createdAt, todayStart),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ));
 
@@ -36,8 +36,8 @@ export class AnalyticsService {
         .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
         .where(and(
             gte(schema.sales.createdAt, todayStart), 
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ));
 
@@ -47,7 +47,7 @@ export class AnalyticsService {
             cashierExpenses: sql<number>`COALESCE(SUM(CASE WHEN ${schema.expenses.fundSource} = 'CASHIER' THEN CAST(${schema.expenses.amount} AS DECIMAL) ELSE 0 END), 0)`
         })
         .from(schema.expenses)
-        .where(and(gte(schema.expenses.createdAt, todayStart), eq(schema.expenses.isDeleted, false)));
+        .where(and(gte(schema.expenses.createdAt, todayStart), sql`${schema.expenses.isDeleted} = false`));
 
         // 4. Initial Cash from OPEN shifts (Real-time in Drawer)
         const activeShiftsCash = await db.select({
@@ -104,7 +104,7 @@ export class AnalyticsService {
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
         .where(and(
             gte(schema.sales.createdAt, todayStart),
-            eq(schema.sales.isDeleted, false)
+            sql`${schema.sales.isDeleted} = false`
         ))
         .orderBy(desc(schema.sales.createdAt))
         .limit(limit);
@@ -164,7 +164,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ));
 
@@ -180,7 +180,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.expenses.createdAt, start),
             lte(schema.expenses.createdAt, end),
-            eq(schema.expenses.isDeleted, false)
+            sql`${schema.expenses.isDeleted} = false`
         ));
         const totalExpenses = Number(expenseData[0]?.total || 0);
         const cashierExpensesTotal = Number(expenseData[0]?.cashierTotal || 0);
@@ -194,8 +194,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ));
         const totalSelling = Number(profitData[0]?.totalSelling || 0);
@@ -210,7 +210,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.ownerIncome.incomeDate, start),
             lte(schema.ownerIncome.incomeDate, end),
-            eq(schema.ownerIncome.isDeleted, false)
+            sql`${schema.ownerIncome.isDeleted} = false`
         ));
         const totalOwnerIncome = Number(ownerIncomeResult[0]?.total || 0);
 
@@ -224,7 +224,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.expenses.expenseDate, start),
             lte(schema.expenses.expenseDate, end),
-            eq(schema.expenses.isDeleted, false)
+            sql`${schema.expenses.isDeleted} = false`
         ));
         const cashierExpenses = Number(expenseBreakdown[0]?.cashierTotal || 0);
         const ownerCashExpenses = Number(expenseBreakdown[0]?.ownerCashTotal || 0);
@@ -240,7 +240,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.shifts.startTime, start),
             lte(schema.shifts.startTime, end),
-            eq(schema.shifts.isDeleted, false),
+            sql`${schema.shifts.isDeleted} = false`,
             isNull(schema.shiftHandover.id)
         ));
         const totalInitialCash = Number(shiftInitialResult[0]?.total || 0);
@@ -255,7 +255,7 @@ export class AnalyticsService {
             gte(schema.shifts.endTime, start),
             lte(schema.shifts.endTime, end),
             eq(schema.shifts.status, 'CLOSED'),
-            eq(schema.shifts.isDeleted, false),
+            sql`${schema.shifts.isDeleted} = false`,
             isNull(schema.shiftHandover.id)
         ));
         const totalCollectedCash = Number(shiftCollectedResult[0]?.total || 0);
@@ -298,8 +298,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ))
         .groupBy(schema.recipes.name)
@@ -316,8 +316,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false)
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`
         ))
         .groupBy(schema.sales.paymentMethod);
 
@@ -332,8 +332,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID')
         ))
         .groupBy(schema.users.name)
@@ -356,7 +356,7 @@ export class AnalyticsService {
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
             eq(schema.sales.isVoided, true),
-            eq(schema.sales.isDeleted, false)
+            sql`${schema.sales.isDeleted} = false`
         ))
         .limit(10);
 
@@ -381,7 +381,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.shifts.endTime, start),
             lte(schema.shifts.endTime, end),
-            eq(schema.shifts.isDeleted, false),
+            sql`${schema.shifts.isDeleted} = false`,
             sql`CAST(${schema.shifts.discrepancy} AS DECIMAL) != 0`
         ))
         .limit(10);
@@ -419,7 +419,7 @@ export class AnalyticsService {
                 total: totalExpenses,
                 recent: await db.select()
                     .from(schema.expenses)
-                    .where(and(gte(schema.expenses.createdAt, start), lte(schema.expenses.createdAt, end), eq(schema.expenses.isDeleted, false)))
+                    .where(and(gte(schema.expenses.createdAt, start), lte(schema.expenses.createdAt, end), sql`${schema.expenses.isDeleted} = false`))
                     .orderBy(desc(schema.expenses.createdAt))
                     .limit(5)
             }
@@ -484,7 +484,7 @@ export class AnalyticsService {
         .where(and(
             gte(schema.shifts.startTime, start),
             lte(schema.shifts.startTime, end),
-            eq(schema.shifts.isDeleted, false)
+            sql`${schema.shifts.isDeleted} = false`
         ))
         .orderBy(desc(schema.shifts.startTime));
 
@@ -550,8 +550,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isDeleted, false),
-            eq(schema.sales.isVoided, false),
+            sql`${schema.sales.isDeleted} = false`,
+            sql`${schema.sales.isVoided} = false`,
             eq(schema.sales.status, 'PAID'),
             sql`CAST(${schema.sales.discountTotal} AS DECIMAL) > 0`
         ))
@@ -584,7 +584,7 @@ export class AnalyticsService {
         })
         .from(schema.recipes)
         .where(and(
-            eq(schema.recipes.isDeleted, false),
+            sql`${schema.recipes.isDeleted} = false`,
             eq(schema.recipes.isActive, true),
             outletId ? eq(schema.recipes.outletId, outletId) : undefined
         ));
@@ -598,8 +598,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             outletId ? eq(schema.sales.outletId, outletId) : undefined
         ))
         .groupBy(schema.saleItems.recipeId);
@@ -628,8 +628,8 @@ export class AnalyticsService {
         .where(and(
             gte(schema.sales.createdAt, start),
             lte(schema.sales.createdAt, end),
-            eq(schema.sales.isVoided, false),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isVoided} = false`,
+            sql`${schema.sales.isDeleted} = false`,
             outletId ? eq(schema.sales.outletId, outletId) : undefined
         ))
         .groupBy(schema.recipeIngredients.inventoryId, schema.inventory.name, schema.inventory.unit);
@@ -678,9 +678,9 @@ export class AnalyticsService {
         .from(schema.outlets)
         .leftJoin(schema.sales, and(
             eq(schema.outlets.id, schema.sales.outletId),
-            eq(schema.sales.isDeleted, false),
+            sql`${schema.sales.isDeleted} = false`,
             eq(schema.sales.status, 'PAID'),
-            eq(schema.sales.isVoided, false)
+            sql`${schema.sales.isVoided} = false`
         ))
         .groupBy(schema.outlets.id, schema.outlets.name)
         .orderBy(desc(sql`SUM(CAST(${schema.sales.totalAmount} AS DECIMAL))`));

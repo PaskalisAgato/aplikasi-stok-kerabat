@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { db } from '../config/db.js';
 import { users } from '../db/schema.js';
 import * as schema from '../db/schema.js';
-import { desc, eq, and, inArray } from 'drizzle-orm';
+import { desc, eq, and, inArray, sql } from 'drizzle-orm';
 
 export class UserService {
     static async loginByPin(role: string, pin: string) {
@@ -17,7 +17,7 @@ export class UserService {
                 and(
                     inArray(users.role, allowedRoles),
                     eq(users.pin, pin),
-                    eq(users.isDeleted, false)
+                    sql`${users.isDeleted} = false`
                 )
             )
             .limit(1);
@@ -32,7 +32,7 @@ export class UserService {
                 and(
                     eq(users.pin, pin),
                     inArray(users.role, ['Admin', 'Owner', 'Supervisor']),
-                    eq(users.isDeleted, false)
+                    sql`${users.isDeleted} = false`
                 )
             )
             .limit(1);
@@ -40,7 +40,7 @@ export class UserService {
     }
 
     static async getAllUsers() {
-        return await db.select().from(users).where(eq(users.isDeleted, false)).orderBy(desc(users.createdAt));
+        return await db.select().from(users).where(sql`${users.isDeleted} = false`).orderBy(desc(users.createdAt));
     }
 
     static async getAllUsersPublic() {
@@ -51,7 +51,7 @@ export class UserService {
             email: users.email,
             status: users.status,
             createdAt: users.createdAt
-        }).from(users).where(eq(users.isDeleted, false)).orderBy(desc(users.createdAt));
+        }).from(users).where(sql`${users.isDeleted} = false`).orderBy(desc(users.createdAt));
     }
 
     static async createUser(data: any, currentUserId: string) {

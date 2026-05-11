@@ -10,7 +10,7 @@ export class TransactionService {
 
     // 1. GET ALL TRANSACTIONS WITH PAGINATION & FILTERING
     static async getAllTransactions(limit = 100, offset = 0, startDate?: string, endDate?: string) {
-        const filters = [eq(schema.sales.isDeleted, false)];
+        const filters = [sql`${schema.sales.isDeleted} = false`];
         
         if (startDate) {
             filters.push(gte(schema.sales.createdAt, new Date(startDate)));
@@ -75,7 +75,7 @@ export class TransactionService {
         })
         .from(schema.sales)
         .innerJoin(schema.users, eq(schema.sales.userId, schema.users.id))
-        .where(and(eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false)))
+        .where(and(eq(schema.sales.status, 'OPEN'), sql`${schema.sales.isDeleted} = false` ))
         .orderBy(desc(schema.sales.createdAt));
 
         const billIds = _bills.map(b => b.id);
@@ -124,7 +124,7 @@ export class TransactionService {
         .where(
             and(
                 eq(schema.sales.id, id),
-                eq(schema.sales.isDeleted, false)
+                sql`${schema.sales.isDeleted} = false`
             )
         )
         .limit(1);
@@ -1219,7 +1219,7 @@ export class TransactionService {
             // SOFT DELETE ALL SALES
             await tx.update(schema.sales)
                 .set({ isDeleted: true })
-                .where(eq(schema.sales.isDeleted, false));
+                .where(sql`${schema.sales.isDeleted} = false`);
 
             // Log Audit
             const activeShift = await CashierShiftService.getActiveShift(adminId);
@@ -1252,7 +1252,7 @@ export class TransactionService {
 
         return await db.transaction(async (tx: any) => {
             // 1. Fetch target bill
-            const targetBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, targetId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+            const targetBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, targetId), eq(schema.sales.status, 'OPEN'), sql`${schema.sales.isDeleted} = false`)).limit(1);
             if (targetBillArr.length === 0) throw new Error('Bill tujuan tidak ditemukan atau sudah dibayar');
             const targetBill = targetBillArr[0];
 
@@ -1261,7 +1261,7 @@ export class TransactionService {
                 and(
                     inArray(schema.sales.id, sourceIds),
                     eq(schema.sales.status, 'OPEN'),
-                    eq(schema.sales.isDeleted, false)
+                    sql`${schema.sales.isDeleted} = false`
                 )
             );
 
@@ -1324,7 +1324,7 @@ export class TransactionService {
 
         return await db.transaction(async (tx: any) => {
             // 1. Fetch source bill
-            const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), eq(schema.sales.isDeleted, false))).limit(1);
+            const sourceBillArr = await tx.select().from(schema.sales).where(and(eq(schema.sales.id, sourceId), eq(schema.sales.status, 'OPEN'), sql`${schema.sales.isDeleted} = false`)).limit(1);
             if (sourceBillArr.length === 0) {
                 console.error(`Source bill ${sourceId} not found or already paid`);
                 throw new Error('Bill sumber tidak ditemukan atau sudah dibayar');
@@ -1427,7 +1427,7 @@ export class TransactionService {
     // 6. EXPORT TRANSACTIONS TO EXCEL
     static async exportTransactionsExcel(startDate?: string, endDate?: string) {
         // A. Fetch Data
-        const filters = [eq(schema.sales.isDeleted, false)];
+        const filters = [sql`${schema.sales.isDeleted} = false`];
         if (startDate) filters.push(gte(schema.sales.createdAt, new Date(startDate)));
         if (endDate) {
             const end = new Date(endDate);
@@ -1550,7 +1550,7 @@ export class TransactionService {
             { header: 'Profit/Margin', key: 'profit', width: 15 }
         ];
 
-        const activeRecipes = await db.select().from(schema.recipes).where(eq(schema.recipes.isDeleted, false));
+        const activeRecipes = await db.select().from(schema.recipes).where(sql`${schema.recipes.isDeleted} = false`);
         activeRecipes.forEach(r => {
             const cost = parseFloat(r.costPrice || '0');
             const price = parseFloat(r.price || '0');

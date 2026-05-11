@@ -22,7 +22,7 @@ financeRouter.get('/expenses', async (req: Request, res: Response) => {
         const offset = parseInt(qOffset as string) || 0;
 
         // 1. Build dynamic where clause
-        const filters = [eq(schema.expenses.isDeleted, false)];
+        const filters = [sql`${schema.expenses.isDeleted} = false`];
         
         if (qOutletId) {
             filters.push(eq(schema.expenses.outletId, parseInt(qOutletId as string)));
@@ -211,7 +211,7 @@ financeRouter.get('/expenses/export', async (req: Request, res: Response) => {
         console.log(`[API] GET /finance/expenses/export | Params: start=${startDate}, end=${endDate}`);
 
         // 1. Build the same filter as the list endpoint
-        const filters = [eq(schema.expenses.isDeleted, false)];
+        const filters = [sql`${schema.expenses.isDeleted} = false`];
         
         if (startDate) {
             let startStr = startDate as string;
@@ -315,7 +315,7 @@ financeRouter.get('/expenses/:id', requireAuth, async (req: Request, res: Respon
         }).from(schema.expenses).where(
             and(
                 eq(schema.expenses.id, id),
-                eq(schema.expenses.isDeleted, false)
+                sql`${schema.expenses.isDeleted} = false`
             )
         ).limit(1);
         if (!expense) return res.status(404).json({ success: false, message: 'Pengeluaran tidak ditemukan' });
@@ -490,7 +490,7 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         const today = new Date(`${jakartaDate}T00:00:00+07:00`);
         const outletId = req.query.outletId ? parseInt(req.query.outletId as string) : undefined;
 
-        const baseFilters = [eq(schema.sales.isDeleted, false)];
+        const baseFilters = [sql`${schema.sales.isDeleted} = false`];
         if (outletId) baseFilters.push(eq(schema.sales.outletId, outletId));
         const baseWhere = and(...baseFilters);
 
@@ -504,7 +504,7 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         const revenue = Number(revenueResult[0].total);
         
         // 2. Today's Revenue
-        const todayFilters = [gte(schema.sales.createdAt, today), eq(schema.sales.isDeleted, false)];
+        const todayFilters = [gte(schema.sales.createdAt, today), sql`${schema.sales.isDeleted} = false`];
         if (outletId) todayFilters.push(eq(schema.sales.outletId, outletId));
         const todayRevenueResult = await db.select({ 
             total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)` 
@@ -514,7 +514,7 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
         const revenueToday = Number(todayRevenueResult[0].total);
 
         // 3. Expenses
-        const expenseFilters = [eq(schema.expenses.isDeleted, false)];
+        const expenseFilters = [sql`${schema.expenses.isDeleted} = false`];
         if (outletId) expenseFilters.push(eq(schema.expenses.outletId, outletId));
         const expenseResult = await db.select({ 
             total: sql<number>`COALESCE(SUM(${schema.expenses.amount}), 0)` 
@@ -542,7 +542,7 @@ financeRouter.get('/reports', requireAdmin, async (req: Request, res: Response) 
             total: sql<number>`COALESCE(SUM(${schema.sales.totalAmount}), 0)`
         })
         .from(schema.sales)
-        .where(eq(schema.sales.isDeleted, false))
+        .where(sql`${schema.sales.isDeleted} = false`)
         .groupBy(schema.sales.orderSource);
 
         res.json({
@@ -578,7 +578,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .where(
             and(
                 gte(schema.sales.createdAt, thirtyDaysAgo),
-                eq(schema.sales.isDeleted, false)
+                sql`${schema.sales.isDeleted} = false`
             )
         );
 
@@ -622,7 +622,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .where(
             and(
                 gte(schema.sales.createdAt, thirtyDaysAgo),
-                eq(schema.sales.isDeleted, false),
+                sql`${schema.sales.isDeleted} = false`,
                 eq(schema.sales.isVoided, false)
             )
         );
@@ -643,7 +643,7 @@ financeRouter.get('/hpp', requireAdmin, async (req: Request, res: Response) => {
         .where(
             and(
                 gte(schema.sales.createdAt, thirtyDaysAgo),
-                eq(schema.sales.isDeleted, false)
+                sql`${schema.sales.isDeleted} = false`
             )
         )
         .groupBy(schema.inventory.id, schema.inventory.name)
@@ -763,7 +763,7 @@ financeRouter.get('/profit-loss', requireAdmin, async (req: Request, res: Respon
             const d = new Date(`${endDate}T23:59:59.999+07:00`);
             if (!isNaN(d.getTime())) salesFilters.push(lte(schema.sales.createdAt, d));
         }
-        salesFilters.push(eq(schema.sales.isDeleted, false));
+        salesFilters.push(sql`${schema.sales.isDeleted} = false`);
         const salesWhereClause = and(...salesFilters);
 
         // 2. Build date filter for Expenses
@@ -776,7 +776,7 @@ financeRouter.get('/profit-loss', requireAdmin, async (req: Request, res: Respon
             const d = new Date(`${endDate}T23:59:59.999+07:00`);
             if (!isNaN(d.getTime())) expenseFilters.push(lte(schema.expenses.expenseDate, d));
         }
-        expenseFilters.push(eq(schema.expenses.isDeleted, false));
+        expenseFilters.push(sql`${schema.expenses.isDeleted} = false`);
         const expenseWhereClause = and(...expenseFilters);
 
         // 3. Calculate Total Expenses

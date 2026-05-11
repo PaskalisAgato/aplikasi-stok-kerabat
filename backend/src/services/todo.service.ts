@@ -56,7 +56,7 @@ export class TodoService {
         // 1. Get counts for both
         const [onceOffCount] = await db.select({ count: sql<number>`count(*)` })
             .from(todos)
-            .where(and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)));
+            .where(and(eq(todos.status, 'Completed'), sql`${todos.isRecurring} = false`));
             
         const [recurringCount] = await db.select({ count: sql<number>`count(*)` })
             .from(todoCompletions);

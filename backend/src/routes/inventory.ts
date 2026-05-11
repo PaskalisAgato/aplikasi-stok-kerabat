@@ -27,7 +27,7 @@ inventoryRouter.get('/export', async (req: Request, res: Response) => {
             minStock: schema.inventory.minStock,
             pricePerUnit: schema.inventory.pricePerUnit
         }).from(schema.inventory)
-        .where(and(eq(schema.inventory.outletId, outletId), eq(schema.inventory.isDeleted, false)));
+        .where(and(eq(schema.inventory.outletId, outletId), sql`${schema.inventory.isDeleted} = false`));
 
         const movements = await db.select({
             id: schema.stockMovements.id,
@@ -223,7 +223,7 @@ inventoryRouter.get('/', async (req: Request, res: Response) => {
 
         // 2. Build Base Where Clause (Optimized indexing handles this)
         let filters = [
-            eq(schema.inventory.isDeleted, false),
+            sql`${schema.inventory.isDeleted} = false`,
             eq(schema.inventory.outletId, outletId)
         ];
         
@@ -342,7 +342,7 @@ inventoryRouter.get('/:id', async (req: Request, res: Response) => {
         .where(
             and(
                 eq(schema.inventory.id, id),
-                eq(schema.inventory.isDeleted, false)
+                sql`${schema.inventory.isDeleted} = false`
             )
         )
         .limit(1);

@@ -166,8 +166,8 @@ export class CashierShiftService {
                 eq(schema.sales.shiftId, shiftId), 
                 ne(schema.sales.paymentMethod, 'CASH'), 
                 eq(schema.sales.status, 'PAID'),
-                eq(schema.sales.isVoided, false),
-                eq(schema.sales.isDeleted, false)
+                sql`${schema.sales.isVoided} = false`,
+                sql`${schema.sales.isDeleted} = false`
             ))
         };
 
