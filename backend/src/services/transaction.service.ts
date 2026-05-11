@@ -359,17 +359,6 @@ export class TransactionService {
 
                 // Validation and price check complete. 
                 // We'll mark as REDEEMED later after finalizedSaleId is known to avoid redundant calls.
-
-                // CRITICAL: Increment global usage counter for the parent discount template
-                // This ensures totalQuota and budgetUsed are tracked correctly
-                if (data.discountId) {
-                    await tx.update(schema.discounts)
-                        .set({ 
-                            totalUsed: sql`${schema.discounts.totalUsed} + 1`,
-                            budgetUsed: sql`${schema.discounts.budgetUsed} + ${clientDiscountTotal}`
-                        })
-                        .where(eq(schema.discounts.id, data.discountId));
-                }
             }
 
             // 2. ATOMIC BARCODE REDEMPTION (Static Rules)
@@ -630,7 +619,7 @@ export class TransactionService {
             if (saleValues.status === 'PAID' && data.discountIds && Array.isArray(data.discountIds) && data.discountIds.length > 0) {
                 try {
                     const { DiscountService } = await import('./discount.service.js');
-                    await DiscountService.redeemDiscounts(data.discountIds, clientDiscountTotal);
+                    await DiscountService.redeemDiscounts(data.discountIds, clientDiscountTotal, tx);
                 } catch (e: any) {
                     // Non-critical: log but don't fail the transaction
                     console.warn('[Discount Tracking] Failed to update discount usage counters:', e.message);

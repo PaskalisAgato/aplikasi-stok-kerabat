@@ -110,11 +110,12 @@ export class DiscountService {
      * After a successful checkout, increment usage counters.
      * Called from TransactionService after a sale is recorded.
      */
-    static async redeemDiscounts(discountIds: number[], discountAmount: number) {
+    static async redeemDiscounts(discountIds: number[], discountAmount: number, tx?: any) {
         if (!discountIds || discountIds.length === 0) return;
+        const baseDb = tx || db;
         const amountPerDiscount = discountIds.length > 0 ? discountAmount / discountIds.length : 0;
         for (const id of discountIds) {
-            await db.update(schema.discounts).set({
+            await baseDb.update(schema.discounts).set({
                 totalUsed: sql`${schema.discounts.totalUsed} + 1`,
                 budgetUsed: sql`${schema.discounts.budgetUsed} + ${amountPerDiscount.toFixed(2)}`
             }).where(eq(schema.discounts.id, id));

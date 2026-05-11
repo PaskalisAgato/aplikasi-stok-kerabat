@@ -348,7 +348,8 @@ class SyncEngine {
 
       // Logical Server Reject (400, 422, etc). It shouldn't block the queue forever!
       // Business Validation Error (like voucher invalid) should be PURGED, not kept as REJECTED.
-      if (error.status >= 400 && error.status < 500 && error.status !== 404) {
+      // 408 (Timeout) and 429 (Rate Limit) must be retried and NOT purged!
+      if (error.status >= 400 && error.status < 500 && error.status !== 404 && error.status !== 408 && error.status !== 429) {
          console.warn(`[SyncEngine] Business Validation Error (${error.status}). Purging action ${action.id} from queue.`);
          await db.offlineActions.where('id').equals(action.id).delete();
          this.lastError = null; // Clear error since we handled it by purging
