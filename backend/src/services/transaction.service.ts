@@ -345,13 +345,8 @@ export class TransactionService {
                      // Note: We don't throw here yet to avoid rigidness, but normally we should.
                 }
 
-                // Mark as REDEEMED atomically (We'll update the final saleId later)
-                await VoucherService.redeemVoucher(
-                    inheritedVoucherCode, 
-                    outletId, 
-                    sourceId || -1, 
-                    tx
-                );
+                // Validation and price check complete. 
+                // We'll mark as REDEEMED later after finalizedSaleId is known to avoid redundant calls.
 
                 // CRITICAL: Increment global usage counter for the parent discount template
                 // This ensures totalQuota and budgetUsed are tracked correctly
@@ -630,13 +625,14 @@ export class TransactionService {
                 }
             }
 
-            // ── Phase 5: Mark QR Voucher as Redeemed ─────────────────────────
-            if (saleValues.status === 'PAID' && data.voucherCode && data.voucherCode.startsWith('KKT-')) {
+            // ── Phase 5: Consolidated QR Voucher Redemption ─────────────────
+            // This replaces previous redundant calls to ensure atomicity and correct reference ID
+            if (saleValues.status === 'PAID' && inheritedVoucherCode && inheritedVoucherCode.startsWith('KKT-')) {
                 try {
                     const { VoucherService } = await import('./voucher_barcode.service.js');
-                    await VoucherService.redeemVoucher(data.voucherCode, outletId, finalizedSaleId);
+                    await VoucherService.redeemVoucher(inheritedVoucherCode, outletId, finalizedSaleId, tx);
                 } catch (vRedeemErr: any) {
-                    console.warn('[QR Voucher Redemption] Failed for code:', data.voucherCode, vRedeemErr.message);
+                    console.warn('[QR Voucher Redemption] Failed for code:', inheritedVoucherCode, vRedeemErr.message);
                 }
             }
 
