@@ -35,7 +35,7 @@ APPS=(
   "attendance-history:apps/attendance-history"
   "todo-list:apps/todo-list"
   "members:apps/members"
-  "printer-settings:apps/printer-settings",
+  "printer-settings:apps/printer-settings"
   "vouchers:apps/vouchers"
 )
 
