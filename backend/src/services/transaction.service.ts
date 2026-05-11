@@ -310,9 +310,21 @@ export class TransactionService {
         }
 
         // Additional: If it's a dynamic voucher, add its calculated value to verified total
-        // (This will be double-checked inside the transaction too)
-        if (data.voucherCode && !data.voucherRuleCode) {
-             // We'll let the atomic block handle the final math
+        if (inheritedVoucherCode && !inheritedVoucherRuleCode) {
+            try {
+                const { VoucherService } = await import('./voucher_barcode.service.js');
+                const vRes = await VoucherService.validateVoucher(inheritedVoucherCode, db, sourceId);
+                if (vRes.valid && vRes.voucher) {
+                    const vValue = parseFloat(vRes.voucher.discountValue || '0');
+                    if (vRes.voucher.benefitType === 'nominal') {
+                        serverVerifiedDiscountTotal += vValue;
+                    } else {
+                        serverVerifiedDiscountTotal += Math.round((serverCalculatedSubTotal * vValue) / 100);
+                    }
+                }
+            } catch (vErr) {
+                console.warn('[Voucher Pre-verify] Failed to pre-verify voucher before transaction:', vErr);
+            }
         }
 
         if (clientDiscountTotal > serverVerifiedDiscountTotal + 1000) { // Allowed 1000 IDR tolerance for rounding/complexity
@@ -394,9 +406,9 @@ export class TransactionService {
                 outletId,
                 shiftId: shiftIdToUse,
                 userId: userId,
-                memberId: data.memberId || null,
+                memberId: (data.memberId && !isNaN(Number(data.memberId))) ? Number(data.memberId) : null,
                 customerInfo: data.customerInfo || null,
-                discountId: data.discountId || null, // Keep for backwards compatibility
+                discountId: (data.discountId && !isNaN(Number(data.discountId))) ? Number(data.discountId) : null,
                 discountIds: Array.isArray(data.discountIds) ? JSON.stringify(data.discountIds) : null,
                 subTotal: serverCalculatedSubTotal.toString(),
                 totalAmount: expectedTotal.toString(), // Using server calculated/verified total

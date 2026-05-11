@@ -22,7 +22,12 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
         setIsLoading(true);
         setErrorMsg('');
         try {
-            const result = await validateBarcode(scannedCode, subtotal, items, orderSource);
+            const mappedItems = items.map(i => ({
+                recipeId: i.id || i.recipeId,
+                quantity: i.quantity,
+                price: i.price
+            }));
+            const result = await validateBarcode(scannedCode, subtotal, mappedItems, orderSource);
             if (result.valid) {
                 onSetVoucherCode(scannedCode);
                 onApplyPromo(result.discountAmount, result.promoData);
