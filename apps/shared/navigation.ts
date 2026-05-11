@@ -60,8 +60,14 @@ export const getBaseUrl = () => {
     return 'http://localhost';
 };
 
-export const getTargetUrl = (link: NavLink) => {
+export const getTargetUrl = (linkOrPort: NavLink | number) => {
     if (typeof window !== 'undefined') {
+        const link = typeof linkOrPort === 'number' 
+            ? NAV_LINKS.find(l => l.port === linkOrPort)
+            : linkOrPort;
+
+        if (!link) return '#';
+
         const hostname = window.location.hostname;
         const port = link.port;
 
@@ -89,5 +95,7 @@ export const getTargetUrl = (link: NavLink) => {
         url.hash = '';
         return url.toString();
     }
-    return `http://localhost:${link.port}/`;
+    return typeof linkOrPort === 'number' 
+        ? `http://localhost:${linkOrPort}/` 
+        : `http://localhost:${linkOrPort.port}/`;
 };
