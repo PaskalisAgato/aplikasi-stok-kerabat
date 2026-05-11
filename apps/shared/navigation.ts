@@ -3,6 +3,7 @@ export interface NavLink {
     icon: string;
     port: number;
     requiredRole: 'Admin' | 'Karyawan';
+    queryParams?: string;
 }
 
 export const NAV_LINKS: NavLink[] = [
@@ -24,6 +25,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Pengaturan Printer', icon: 'print', port: 5192, requiredRole: 'Karyawan' },
     { label: 'Member & Diskon', icon: 'loyalty', port: 5193, requiredRole: 'Karyawan' },
     { label: 'Manajemen Voucher', icon: 'confirmation_number', port: 5201, requiredRole: 'Admin' },
+    { label: 'Generate Voucher', icon: 'add_circle', port: 5201, requiredRole: 'Admin', queryParams: '?view=generator' },
 ];
 
 
@@ -58,9 +60,10 @@ export const getBaseUrl = () => {
     return 'http://localhost';
 };
 
-export const getTargetUrl = (port: number) => {
+export const getTargetUrl = (link: NavLink) => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
+        const port = link.port;
 
         // Is this a local development environment (localhost, 127.0.0.1, or local IP)?
         const isLocalhost = hostname === 'localhost' || 
@@ -71,7 +74,8 @@ export const getTargetUrl = (port: number) => {
         if (!isLocalhost) {
             // Production environment (Consolidated Vercel Project)
             const appName = PORT_TO_APP[port];
-            const targetPath = appName && appName !== 'pos' ? `/${appName}/` : '/';
+            const query = link.queryParams || '';
+            const targetPath = appName && appName !== 'pos' ? `/${appName}/${query}` : `/${query}`;
             const absoluteUrl = `${window.location.origin}${targetPath}`;
             console.log(`[Navigation] Port ${port} -> Target ${targetPath} -> Absolute ${absoluteUrl}`);
             return targetPath;
@@ -81,9 +85,9 @@ export const getTargetUrl = (port: number) => {
         const url = new URL(window.location.href);
         url.port = port.toString();
         url.pathname = '/';
-        url.search = '';
+        url.search = link.queryParams || '';
         url.hash = '';
         return url.toString();
     }
-    return `http://localhost:${port}/`;
+    return `http://localhost:${link.port}/`;
 };

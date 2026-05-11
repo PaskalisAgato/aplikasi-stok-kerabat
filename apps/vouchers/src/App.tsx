@@ -288,6 +288,14 @@ const DashboardView = () => {
 // --- Main App ---
 const App = () => {
   const [currentView, setView] = useState<View>('dashboard');
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view') as View;
+    if (viewParam && ['dashboard', 'editor', 'generator', 'scan', 'history'].includes(viewParam)) {
+      setView(viewParam);
+    }
+  }, []);
 
   const renderView = () => {
     switch (currentView) {

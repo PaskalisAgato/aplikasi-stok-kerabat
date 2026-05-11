@@ -90,8 +90,8 @@ const NavDrawer: React.FC<NavDrawerProps> = ({ open, onClose, currentPort }) => 
 
                 <nav className="flex-1 overflow-y-auto px-6 py-4 space-y-3 hide-scrollbar">
                     {filteredLinks.map((link) => {
-                        const isActive = currentPort === link.port;
-                        const targetUrl = getTargetUrl(link.port);
+                        const isActive = currentPort === link.port && (link.queryParams || '') === (window.location.search || '');
+                        const targetUrl = getTargetUrl(link);
 
                         return (
                             <a
