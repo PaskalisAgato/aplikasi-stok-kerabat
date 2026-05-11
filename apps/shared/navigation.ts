@@ -23,6 +23,7 @@ export const NAV_LINKS: NavLink[] = [
     { label: 'Daftar Tugas', icon: 'checklist', port: 5191, requiredRole: 'Karyawan' },
     { label: 'Pengaturan Printer', icon: 'print', port: 5192, requiredRole: 'Karyawan' },
     { label: 'Member & Diskon', icon: 'loyalty', port: 5193, requiredRole: 'Karyawan' },
+    { label: 'Manajemen Voucher', icon: 'confirmation_number', port: 5201, requiredRole: 'Admin' },
 ];
 
 
@@ -46,6 +47,7 @@ export const PORT_TO_APP: Record<number, string> = {
     5191: 'todo-list',
     5192: 'printer-settings',
     5193: 'members',
+    5201: 'vouchers',
 };
 
 export const getBaseUrl = () => {
