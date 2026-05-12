@@ -68,9 +68,13 @@ export class VoucherPromoService {
     }) {
         const { templateId, promoName, quantity, menuName, normalPrice, voucherPrice, discountNominal, expiryDays = 30, createdBy } = data;
 
+        // Sanitize templateId: only use if it's a valid UUID format, otherwise null
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const validTemplateId = templateId && UUID_REGEX.test(templateId) ? templateId : null;
+
         // 1. Create Batch record
         const [batch] = await db.insert(schema.promoVoucherBatches).values({
-            templateId: templateId as any,
+            templateId: validTemplateId as any,
             promoName,
             quantity,
             createdBy
