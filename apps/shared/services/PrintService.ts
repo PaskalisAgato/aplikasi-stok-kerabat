@@ -509,7 +509,7 @@ export class PrintService {
         encoder.newline();
 
         // QR Code
-        encoder.align('center').qrcode(data.code || 'KKT-SAMPLE', 1, 6, 'L');
+        encoder.align('center').qrcode(data.code || 'KKT-SAMPLE', 2, 5, 'l');
         encoder.newline();
 
         // Code and Value
