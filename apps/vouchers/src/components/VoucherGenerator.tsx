@@ -14,6 +14,7 @@ import {
   QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { apiFetch } from '@shared/apiClient';
 
 export const VoucherGenerator = () => {
   const [step, setStep] = useState(1);
@@ -39,26 +40,21 @@ export const VoucherGenerator = () => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/vouchers/generate', {
+      await apiFetch('/vouchers/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           quantity: parseInt(formData.quantity)
         })
       });
-      const json = await res.json();
-      if (json.success) {
-        setSuccess(true);
-      } else {
-        alert('Generation failed: ' + json.message);
-      }
-    } catch (e) {
-      alert('Error connecting to Marketing Factory.');
+      setSuccess(true);
+    } catch (e: any) {
+      alert('Generation failed: ' + (e?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
