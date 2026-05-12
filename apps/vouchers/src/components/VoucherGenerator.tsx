@@ -21,6 +21,8 @@ export const VoucherGenerator = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [batchId, setBatchId] = useState<number | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   
   const [formData, setFormData] = useState({
     promoName: '',
@@ -41,13 +43,17 @@ export const VoucherGenerator = () => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      await apiFetch('/vouchers/promo/generate', {
+      const response = await apiFetch('/vouchers/promo/generate', {
         method: 'POST',
         body: JSON.stringify({
           ...formData,
           quantity: parseInt(formData.quantity)
         })
       });
+      
+      if (response && response.data && response.data.batch) {
+        setBatchId(response.data.batch.id);
+      }
       setSuccess(true);
     } catch (e: any) {
       alert('Generation failed: ' + (e?.message || 'Unknown error'));
@@ -65,6 +71,32 @@ export const VoucherGenerator = () => {
       }, true);
     } catch (e: any) {
       alert('Print failed: ' + (e?.message || 'Unknown error'));
+    }
+  };
+
+  const handlePrintAll = async () => {
+    if (!batchId) return;
+    setIsPrinting(true);
+    try {
+      const response = await apiFetch(`/vouchers/promo/batches/${batchId}/vouchers`);
+      const vouchers = response.data || [];
+      
+      for (const v of vouchers) {
+        await PrintService.printVoucher({
+          promoName: formData.promoName,
+          code: v.code,
+          voucherPrice: parseInt(v.voucherPrice || formData.voucherPrice),
+          expiryDays: parseInt(formData.expiryDays),
+          menuName: v.menuName || formData.menuName
+        }, false);
+        // Small delay between prints for hardware stability
+        await new Promise(r => setTimeout(r, 800));
+      }
+      alert(`Berhasil mengirim ${vouchers.length} voucher ke antrean print.`);
+    } catch (e: any) {
+      alert('Batch print failed: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -411,9 +443,17 @@ export const VoucherGenerator = () => {
               <div className="flex flex-col gap-3 relative z-10">
                 <button 
                   onClick={handlePrintTest}
-                  className="btn-primary w-full text-[10px]"
+                  disabled={isPrinting}
+                  className="btn-primary w-full text-[10px] opacity-70"
                 >
-                  <Printer className="w-4 h-4 mr-2" /> Cetak Test Thermal
+                  <Printer className="w-4 h-4 mr-2" /> Cetak 1 Voucher (Test)
+                </button>
+                <button 
+                  onClick={handlePrintAll}
+                  disabled={isPrinting}
+                  className="btn-primary w-full text-[10px] bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20"
+                >
+                  <Printer className="w-4 h-4 mr-2" /> {isPrinting ? 'Mencetak...' : `Cetak Semua (${formData.quantity})`}
                 </button>
                 <button 
                   onClick={() => { setSuccess(false); setStep(1); }}

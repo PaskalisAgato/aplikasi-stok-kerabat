@@ -11,6 +11,8 @@ import { VoucherGenerator } from './components/VoucherGenerator';
 import { ScanValidator } from './components/ScanValidator';
 import PrinterSettings from '@shared/components/PrinterSettings';
 import { Settings } from 'lucide-react';
+import { apiFetch } from '@shared/apiClient';
+import { PrintService } from '@shared/services/PrintService';
 
 // --- Types ---
 type View = 'dashboard' | 'editor' | 'generator' | 'scan' | 'history';
@@ -20,14 +22,22 @@ const DashboardView = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [batches, setBatches] = useState<any[]>([]);
+
   useEffect(() => {
-    fetch('/api/vouchers/analytics')
-      .then(res => res.json())
+    // Stats
+    apiFetch('/vouchers/promo/stats')
       .then(json => {
         if (json.success) setData(json.data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Batches
+    apiFetch('/vouchers/promo/batches')
+      .then(json => {
+        if (json.success) setBatches(json.data);
+      });
   }, []);
 
   if (loading) return (
@@ -88,31 +98,47 @@ const DashboardView = () => {
                 header: 'Batch Details', 
                 render: (item) => (
                   <div>
-                    <p className="text-sm font-black uppercase text-[var(--text-main)]">Promo Ramadhan Berkah {item.id}</p>
-                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID: BCH-928{item.id}</p>
+                    <p className="text-sm font-black uppercase text-[var(--text-main)]">{item.promoName}</p>
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID: {item.id.toString().substring(0, 8).toUpperCase()}</p>
                   </div>
                 ) 
               },
               { 
                 header: 'Quantity', 
                 className: 'text-center',
-                render: () => <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-black">500</span>
+                render: (item) => <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-black">{item.quantity}</span>
               },
               { 
                 header: 'Date', 
-                render: (item) => <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">1{item.id} Mei 2026</span>
+                render: (item) => <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">{new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
               },
               { 
-                header: 'Status', 
+                header: 'Actions', 
                 className: 'text-right',
-                render: () => (
-                  <span className="px-3 py-1 rounded-full bg-[var(--success)]/10 text-[var(--success)] text-[10px] font-black uppercase tracking-tighter border border-[var(--success)]/20">
-                    Active
-                  </span>
+                render: (item) => (
+                  <button 
+                    onClick={async () => {
+                      const res = await apiFetch(`/vouchers/promo/batches/${item.id}/vouchers`);
+                      const vouchers = res.data || [];
+                      for (const v of vouchers) {
+                        await PrintService.printVoucher({
+                          promoName: item.promoName,
+                          code: v.code,
+                          voucherPrice: parseInt(v.voucherPrice),
+                          menuName: v.menuName
+                        }, false);
+                        await new Promise(r => setTimeout(r, 600));
+                      }
+                      alert(`Sent ${vouchers.length} vouchers to print queue.`);
+                    }}
+                    className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm font-black">print</span>
+                  </button>
                 )
               }
             ]}
-            data={[ {id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5} ]}
+            data={batches}
           />
         </div>
 
