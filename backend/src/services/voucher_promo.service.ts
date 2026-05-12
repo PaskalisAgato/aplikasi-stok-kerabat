@@ -123,32 +123,43 @@ export class VoucherPromoService {
     }
 
     /**
-     * Validate and Redeem Voucher
+     * Non-destructive validation for POS evaluation
      */
-    static async redeemVoucher(code: string, transactionId?: number) {
-        // 0. Anti-Fraud Check: Check HMAC Signature first (offline check)
+    static async validateVoucher(code: string, tx?: any) {
         if (!this.verifyCode(code)) {
-            throw new Error('Invalid voucher signature. Suspicious activity detected.');
+            return { valid: false, message: 'Invalid signature' };
         }
 
-        // 1. Database Check
-        const [voucher] = await db.select()
+        const baseDb = tx || db;
+        const [voucher] = await baseDb.select()
             .from(schema.promoVouchers)
             .where(eq(schema.promoVouchers.code, code))
             .limit(1);
 
-        if (!voucher) throw new Error('Voucher code not found.');
-        if (voucher.status !== 'unused') throw new Error(`Voucher already ${voucher.status}.`);
+        if (!voucher) return { valid: false, message: 'Voucher not found' };
+        if (voucher.status !== 'unused') return { valid: false, message: `Voucher sudah ${voucher.status}` };
+        
         if (new Date() > new Date(voucher.expiresAt)) {
-            // Auto update status if expired
-            await db.update(schema.promoVouchers)
-                .set({ status: 'expired' })
-                .where(eq(schema.promoVouchers.id, voucher.id));
-            throw new Error('Voucher has expired.');
+            return { valid: false, message: 'Voucher sudah kadaluwarsa' };
         }
 
+        return { valid: true, voucher };
+    }
+
+    /**
+     * Mark a voucher as redeemed
+     */
+    static async redeemVoucher(code: string, transactionId: number, tx?: any) {
+        const vCheck = await this.validateVoucher(code, tx);
+        if (!vCheck.valid || !vCheck.voucher) {
+            throw new Error(vCheck.message || 'Gagal memvalidasi voucher');
+        }
+
+        const voucher = vCheck.voucher;
+        const baseDb = tx || db;
+
         // 2. Atomic Redemption
-        const [updated] = await db.update(schema.promoVouchers)
+        const [updated] = await baseDb.update(schema.promoVouchers)
             .set({ 
                 status: 'redeemed',
                 redeemedAt: new Date(),
@@ -156,11 +167,11 @@ export class VoucherPromoService {
             })
             .where(and(
                 eq(schema.promoVouchers.id, voucher.id),
-                eq(schema.promoVouchers.status, 'unused') // Re-verify status for atomicity
+                eq(schema.promoVouchers.status, 'unused')
             ))
             .returning();
 
-        if (!updated) throw new Error('Failed to redeem voucher. Possible concurrent usage.');
+        if (!updated) throw new Error('Voucher gagal di-redeem (kemungkinan sudah terpakai di transaksi lain).');
 
         return updated;
     }

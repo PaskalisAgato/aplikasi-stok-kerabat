@@ -1,6 +1,7 @@
 import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
+import { VoucherPromoService } from './voucher_promo.service.js';
 
 export class DiscountService {
     static async getAllDiscounts(activeOnly = false) {
@@ -422,9 +423,72 @@ export class DiscountService {
             }
         }
 
-        // ── Phase 5/6: QR Voucher (Stand 2 Outlet) Injection ────────────────
+        // ── Phase 5/6: Voucher Injection (Promo or Barcode) ────────────────
         if (voucherCode && voucherCode.startsWith('KKT-')) {
             try {
+                // 1. Try Marketing Promo Voucher System First
+                const pResult = await VoucherPromoService.validateVoucher(voucherCode);
+                if (pResult.valid && pResult.voucher) {
+                    const v = pResult.voucher;
+                    let promoDiscountAmount = 0;
+                    let promoName = v.menuName ? `Voucher: ${v.menuName}` : 'Marketing Promo Voucher';
+
+                    if (v.menuName) {
+                        // Find item in cart. Use fuzzy matching if needed, or exact menuName
+                        const cartItem = itemsWithMetadata.find(i => 
+                            i.category.toLowerCase().includes(v.menuName!.toLowerCase()) ||
+                            v.menuName!.toLowerCase().includes(i.category.toLowerCase()) ||
+                            // or match by searching in recipes name (though we don't have recipe name here, only ID)
+                            // Wait, itemsWithMetadata has category but not recipe name.
+                            // I should have included recipe name in itemsWithMetadata!
+                            true // Temporary: allow if any item exists, we'll fix recipe name below
+                        );
+                        
+                        // Let's resolve recipe name to be sure
+                        const recipesInCart = await db.select({ id: schema.recipes.id, name: schema.recipes.name })
+                            .from(schema.recipes)
+                            .where(inArray(schema.recipes.id, cartProductIds));
+                        
+                        const matchedRecipe = recipesInCart.find(r => 
+                            r.name.toLowerCase().includes(v.menuName!.toLowerCase()) ||
+                            v.menuName!.toLowerCase().includes(r.name.toLowerCase())
+                        );
+
+                        if (matchedRecipe) {
+                            const cartItemMatch = itemsWithMetadata.find(i => i.recipeId === matchedRecipe.id);
+                            if (cartItemMatch) {
+                                if (v.voucherPrice) {
+                                    promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - parseFloat(v.voucherPrice)) * cartItemMatch.quantity;
+                                } else if (v.discountNominal) {
+                                    promoDiscountAmount = parseFloat(v.discountNominal) * cartItemMatch.quantity;
+                                }
+                            }
+                        }
+                    } else if (v.discountNominal) {
+                        // Flat transaction discount
+                        promoDiscountAmount = parseFloat(v.discountNominal);
+                    }
+
+                    if (promoDiscountAmount > 0) {
+                        applicable.push({
+                            id: -1001, // Unique ID for Promo Vouchers
+                            name: promoName,
+                            type: 'nominal',
+                            value: promoDiscountAmount.toString(),
+                            discountAmount: Math.round(promoDiscountAmount),
+                            priority: 200,
+                            isStackable: true,
+                            isExclusive: false,
+                            voucherCode: voucherCode,
+                            code: voucherCode
+                        });
+                        return applicable; // Usually marketing vouchers are one per txn and top priority
+                    } else {
+                        throw new Error(`Item ${v.menuName} tidak ditemukan di keranjang belanja.`);
+                    }
+                }
+
+                // 2. Fallback to existing Barcode Voucher System
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 const vResult = await VoucherService.validateVoucher(voucherCode);
                 

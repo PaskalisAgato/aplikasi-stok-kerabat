@@ -5,6 +5,7 @@ import { AuditService } from './audit.service.js';
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
 import { CashierShiftService } from './cashierShift.service.js';
+import { VoucherPromoService } from './voucher_promo.service.js';
 
 export class TransactionService {
 
@@ -627,11 +628,18 @@ export class TransactionService {
             }
 
             // ── Phase 5: Consolidated QR Voucher Redemption ─────────────────
-            // This replaces previous redundant calls to ensure atomicity and correct reference ID
+            // This handles both Marketing Promo Vouchers and Legacy Barcode Vouchers
             if (saleValues.status === 'PAID' && inheritedVoucherCode && inheritedVoucherCode.startsWith('KKT-')) {
                 try {
-                    const { VoucherService } = await import('./voucher_barcode.service.js');
-                    await VoucherService.redeemVoucher(inheritedVoucherCode, outletId, finalizedSaleId, tx);
+                    // 1. Try Marketing Promo Voucher System
+                    const pCheck = await VoucherPromoService.validateVoucher(inheritedVoucherCode, tx);
+                    if (pCheck.valid) {
+                        await VoucherPromoService.redeemVoucher(inheritedVoucherCode, finalizedSaleId, tx);
+                    } else {
+                        // 2. Fallback to Legacy Barcode Voucher System
+                        const { VoucherService } = await import('./voucher_barcode.service.js');
+                        await VoucherService.redeemVoucher(inheritedVoucherCode, outletId, finalizedSaleId, tx);
+                    }
                 } catch (vRedeemErr: any) {
                     console.warn('[QR Voucher Redemption] Failed for code:', inheritedVoucherCode, vRedeemErr.message);
                 }
