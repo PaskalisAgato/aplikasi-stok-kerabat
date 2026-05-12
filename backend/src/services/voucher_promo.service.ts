@@ -222,7 +222,7 @@ export class VoucherPromoService {
 
         // Revenue Impact (Sum of transaction totals where these vouchers were used)
         const revenueImpact = await db.select({
-            totalRevenue: sql<number>`sum(${schema.sales.totalPrice})`,
+            totalRevenue: sql<number>`sum(${schema.sales.totalAmount})`,
             totalDiscountUsed: sql<number>`sum(${schema.promoVouchers.discountNominal})`
         })
         .from(schema.promoVouchers)
