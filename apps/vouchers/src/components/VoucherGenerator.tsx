@@ -40,7 +40,7 @@ export const VoucherGenerator = () => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      await apiFetch('/vouchers/generate', {
+      await apiFetch('/vouchers/promo/generate', {
         method: 'POST',
         body: JSON.stringify({
           ...formData,
