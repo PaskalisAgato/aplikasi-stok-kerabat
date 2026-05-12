@@ -466,6 +466,68 @@ export class PrintService {
         });
     }
 
+    public static async printVoucher(data: any, isManual = false): Promise<boolean> {
+        const settings = await this.getSettings();
+        if (settings.length === 0) {
+            if (isManual) this.browserPrint(data as any); // Fallback to browser print if no hardware
+            return true;
+        }
+
+        const printer = settings.find(p => p.autoPrint !== false) || settings[0];
+        const buffer = this.encodeVoucher(data, printer);
+
+        if (printer.connectionType === 'bluetooth') {
+            return this.sendToBluetooth(buffer);
+        } else if (printer.connectionType === 'serial') {
+            return this.sendToSerial(buffer);
+        } else if (printer.connectionType === 'bridge') {
+            await this.enqueuePrintJob(data as any, printer, isManual);
+            return true;
+        }
+        return false;
+    }
+
+    private static encodeVoucher(data: any, config: PrinterConfig): Uint8Array {
+        const encoder = new EscPosEncoder();
+        const width = config.width || 32;
+
+        const padCenter = (text: string, w: number) => {
+            const _t = text.trim();
+            if (_t.length >= w) return _t;
+            return ' '.repeat(Math.floor((w - _t.length) / 2)) + _t;
+        };
+
+        encoder.initialize();
+        
+        // Header
+        encoder.bold(true).align('center').line(config.headerTitle || 'KERABAT KOPI TIAM').bold(false);
+        encoder.align('center').line('PROMO VOUCHER');
+        encoder.line('--------------------------------');
+
+        // Promo Name
+        encoder.bold(true).line(padCenter(data.promoName?.toUpperCase() || 'DISKON SPESIAL', width)).bold(false);
+        encoder.newline();
+
+        // QR Code
+        encoder.align('center').qrcode(data.code || 'KKT-SAMPLE', 1, 6, 'L');
+        encoder.newline();
+
+        // Code and Value
+        encoder.line(data.code || 'KKT-SAMPLE');
+        encoder.bold(true).line(`Rp ${(data.voucherPrice || 0).toLocaleString('id-ID')}`).bold(false);
+        
+        if (data.menuName) {
+            encoder.line(`Berlaku: ${data.menuName}`);
+        }
+
+        encoder.line('--------------------------------');
+        encoder.line(`Masa Berlaku: ${data.expiryDays || 30} Hari`);
+        encoder.line('Syarat & Ketentuan Berlaku');
+        
+        encoder.newline().newline().cut();
+        return encoder.encode();
+    }
+
     public static async testPrint(config: PrinterConfig): Promise<boolean> {
         const encoder = new EscPosEncoder();
         encoder.initialize()

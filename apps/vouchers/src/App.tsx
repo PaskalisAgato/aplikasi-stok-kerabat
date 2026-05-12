@@ -9,6 +9,8 @@ import { ModernTable } from '../../shared/components/ModernTable';
 import { TemplateEditor } from './components/TemplateEditor';
 import { VoucherGenerator } from './components/VoucherGenerator';
 import { ScanValidator } from './components/ScanValidator';
+import PrinterSettings from '@shared/components/PrinterSettings';
+import { Settings } from 'lucide-react';
 
 // --- Types ---
 type View = 'dashboard' | 'editor' | 'generator' | 'scan' | 'history';
@@ -145,6 +147,7 @@ const DashboardView = () => {
 // --- Main App ---
 const App = () => {
   const [currentView, setView] = useState<View>('dashboard');
+  const [showPrinterSettings, setShowPrinterSettings] = useState(false);
   
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -185,6 +188,15 @@ const App = () => {
       currentPort={5201}
       title={getTitle()}
       subtitle="Enterprise Marketing Suite"
+      headerExtras={
+        <button 
+          onClick={() => setShowPrinterSettings(true)}
+          className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-slate-900 transition-all"
+          title="Printer Settings"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+      }
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -197,6 +209,11 @@ const App = () => {
           {renderView()}
         </motion.div>
       </AnimatePresence>
+
+      <PrinterSettings 
+        isOpen={showPrinterSettings}
+        onClose={() => setShowPrinterSettings(false)}
+      />
     </Layout>
   );
 };

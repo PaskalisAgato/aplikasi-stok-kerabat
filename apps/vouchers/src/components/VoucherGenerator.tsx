@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '@shared/apiClient';
+import { PrintService } from '@shared/services/PrintService';
 
 export const VoucherGenerator = () => {
   const [step, setStep] = useState(1);
@@ -52,6 +53,18 @@ export const VoucherGenerator = () => {
       alert('Generation failed: ' + (e?.message || 'Unknown error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePrintTest = async () => {
+    try {
+      await PrintService.printVoucher({
+        ...formData,
+        code: 'KKT-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        voucherPrice: parseInt(formData.voucherPrice),
+      }, true);
+    } catch (e: any) {
+      alert('Print failed: ' + (e?.message || 'Unknown error'));
     }
   };
 
@@ -396,7 +409,10 @@ export const VoucherGenerator = () => {
                 <p className="text-[var(--text-muted)] mt-3 leading-relaxed font-bold">Berhasil menerbitkan {formData.quantity} voucher unik untuk kampanye Anda.</p>
               </div>
               <div className="flex flex-col gap-3 relative z-10">
-                <button className="btn-primary w-full text-[10px]">
+                <button 
+                  onClick={handlePrintTest}
+                  className="btn-primary w-full text-[10px]"
+                >
                   <Printer className="w-4 h-4 mr-2" /> Cetak Test Thermal
                 </button>
                 <button 
