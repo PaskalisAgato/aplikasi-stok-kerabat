@@ -1,15 +1,17 @@
+@import "../../shared/global.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-[#050505] text-white font-sans antialiased;
+    @apply bg-[var(--bg-app)] text-[var(--text-main)] font-sans antialiased;
   }
 }
 
 .glass {
-  @apply bg-white/[0.03] border border-white/10 backdrop-blur-md;
+  @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] backdrop-blur-md shadow-xl;
 }
 
 .premium-gradient {

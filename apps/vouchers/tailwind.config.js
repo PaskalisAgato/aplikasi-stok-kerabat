@@ -12,19 +12,7 @@ export default {
         outfit: ["Outfit", "sans-serif"],
       },
       colors: {
-        primary: {
-          50: '#f8f8f8',
-          100: '#e8e8e8',
-          200: '#d3d3d3',
-          300: '#b3b3b3',
-          400: '#8e8e8e',
-          500: '#707070',
-          600: '#555555',
-          700: '#404040',
-          800: '#2a2a2a',
-          900: '#1a1a1a',
-          950: '#0a0a0a',
-        }
+        // Inherit primary from shared global.css or base theme
       },
       borderRadius: {
         '2xl': '1rem',
