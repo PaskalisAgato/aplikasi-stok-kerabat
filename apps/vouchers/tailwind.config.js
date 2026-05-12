@@ -12,7 +12,12 @@ export default {
         outfit: ["Outfit", "sans-serif"],
       },
       colors: {
-        // Inherit primary from shared global.css or base theme
+        "primary": "var(--primary)",
+        "background-app": "var(--bg-app)",
+        "surface": "var(--bg-surface)",
+        "text-main": "var(--text-main)",
+        "text-muted": "var(--text-muted)",
+        "border-dim": "var(--border-dim)",
       },
       borderRadius: {
         '2xl': '1rem',
