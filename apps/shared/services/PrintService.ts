@@ -481,7 +481,7 @@ export class PrintService {
         } else if (printer.connectionType === 'serial') {
             return this.sendToSerial(buffer);
         } else if (printer.connectionType === 'bridge') {
-            await this.enqueuePrintJob(data as any, printer, isManual);
+            await this.enqueuePrintJob(data, printer, isManual, buffer);
             return true;
         }
         return false;
@@ -841,9 +841,9 @@ Terima Kasih!
         URL.revokeObjectURL(url);
     }
 
-    private static async enqueuePrintJob(data: PrintData, config: PrinterConfig, isManual = false) {
-        // Pre-encode the receipt here using frontend settings
-        const buffer = this.encodeReceipt(data, { config });
+    private static async enqueuePrintJob(data: any, config: PrinterConfig, isManual = false, preEncodedBuffer?: Uint8Array) {
+        // Use pre-encoded buffer if provided, otherwise encode as receipt
+        const buffer = preEncodedBuffer || this.encodeReceipt(data, { config });
         const bufferBase64 = btoa(String.fromCharCode(...buffer));
 
         // Pivot: Instead of local bridge, we send to cloud queue via SyncEngine
