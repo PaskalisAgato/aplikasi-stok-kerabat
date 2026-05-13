@@ -441,10 +441,11 @@ export class DiscountService {
                         // Priority 1: Find voucher item in cart using the name we fetched
                         // We use the names from recipes table which we just resolved into itemsWithMetadata
                         const cartItemMatch = itemsWithMetadata.find(i => {
-                            const itemName = i.name.toLowerCase().trim();
-                            const targetName = v.menuName!.toLowerCase().trim();
+                            const itemName = i.name.toLowerCase().replace(/\s+/g, '').trim();
+                            const targetName = v.menuName!.toLowerCase().replace(/\s+/g, '').trim();
                             const isMatch = itemName === targetName || itemName.includes(targetName) || targetName.includes(itemName);
-                            console.log(`[Voucher Match] Checking "${itemName}" against target "${targetName}" -> Match: ${isMatch}`);
+                            console.log(`[Voucher Match Debug] Original Item: "${i.name}" vs Original Target: "${v.menuName}"`);
+                            console.log(`[Voucher Match Debug] Normalized: "${itemName}" vs "${targetName}" -> Match: ${isMatch}`);
                             return isMatch;
                         });
 
