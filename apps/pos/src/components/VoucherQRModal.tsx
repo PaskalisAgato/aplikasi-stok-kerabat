@@ -23,7 +23,7 @@ export const VoucherQRModal: React.FC<VoucherQRModalProps> = ({ isOpen, onClose,
     };
 
     const handleWhatsAppShare = () => {
-        const text = `Halo! Ini voucher QR Kerabat Kopi Tiam Anda: ${voucher.code}\n\nBerlaku hingga: ${new Date(voucher.expiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}\n\nTunjukkan QR ini di Outlet Utama untuk mendapatkan promo spesial!`;
+        const text = `Halo! Ini voucher QR Kerabat Kopi Tiam Anda: ${voucher.code}\n\nBerlaku hingga: ${new Date(voucher.expiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}\n\nTunjukkan QR ini di Outlet Utama untuk mendapatkan promo spesial!`;
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -72,7 +72,7 @@ export const VoucherQRModal: React.FC<VoucherQRModalProps> = ({ isOpen, onClose,
                             )}
                         </div>
                         <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
-                            Berlaku Hingga: {new Date(voucher.expiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            Berlaku Hingga: {new Date(voucher.expiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                     </div>
                 </div>
