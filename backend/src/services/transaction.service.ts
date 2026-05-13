@@ -313,14 +313,49 @@ export class TransactionService {
         // Additional: If it's a dynamic voucher, add its calculated value to verified total
         if (inheritedVoucherCode && !inheritedVoucherRuleCode) {
             try {
-                const { VoucherService } = await import('./voucher_barcode.service.js');
-                const vRes = await VoucherService.validateVoucher(inheritedVoucherCode, db, sourceId);
-                if (vRes.valid && vRes.voucher) {
-                    const vValue = parseFloat(vRes.voucher.discountValue || '0');
-                    if (vRes.voucher.benefitType === 'nominal') {
-                        serverVerifiedDiscountTotal += vValue;
+                if (inheritedVoucherCode.startsWith('KKT-')) {
+                    // 1. Try Marketing Promo Voucher
+                    const vRes = await VoucherPromoService.validateVoucher(inheritedVoucherCode);
+                    if (vRes.valid && vRes.voucher) {
+                        const v = vRes.voucher;
+                        if (v.menuName) {
+                            // Find matching item in cart using the same ultra-normalized logic
+                            const targetName = v.menuName.toLowerCase().replace(/[^\w]/g, '').trim();
+                            const cartItemMatch = items.find((i: any) => {
+                                const recipe = dbRecipes.find(r => r.id === i.recipeId);
+                                if (!recipe) return false;
+                                const itemName = recipe.name.toLowerCase().replace(/[^\w]/g, '').trim();
+                                return itemName === targetName || itemName.includes(targetName) || targetName.includes(itemName);
+                            });
+                            
+                            if (cartItemMatch) {
+                                const vPrice = v.voucherPrice ? parseFloat(v.voucherPrice.toString()) : 0;
+                                const dNominal = v.discountNominal ? parseFloat(v.discountNominal.toString()) : 0;
+                                const matchedRecipe = dbRecipes.find(r => r.id === cartItemMatch.recipeId);
+                                const itemPrice = matchedRecipe ? ((isStand && parseFloat(matchedRecipe.priceStand) > 0) ? parseFloat(matchedRecipe.priceStand) : parseFloat(matchedRecipe.price)) : 0;
+                                const itemQty = Math.max(1, parseInt(cartItemMatch.quantity?.toString() || '1'));
+                                
+                                if (vPrice > 0) {
+                                    serverVerifiedDiscountTotal += (itemPrice - vPrice) * itemQty;
+                                } else if (dNominal > 0) {
+                                    serverVerifiedDiscountTotal += dNominal * itemQty;
+                                }
+                            }
+                        } else if (v.discountNominal) {
+                            serverVerifiedDiscountTotal += parseFloat(v.discountNominal.toString());
+                        }
                     } else {
-                        serverVerifiedDiscountTotal += Math.round((serverCalculatedSubTotal * vValue) / 100);
+                        // 2. Fallback to Legacy Barcode Voucher (if not valid as Marketing)
+                        const { VoucherService } = await import('./voucher_barcode.service.js');
+                        const vbRes = await VoucherService.validateVoucher(inheritedVoucherCode, db, sourceId);
+                        if (vbRes.valid && vbRes.voucher) {
+                            const vValue = parseFloat(vbRes.voucher.discountValue || '0');
+                            if (vbRes.voucher.benefitType === 'nominal') {
+                                serverVerifiedDiscountTotal += vValue;
+                            } else {
+                                serverVerifiedDiscountTotal += Math.round((serverCalculatedSubTotal * vValue) / 100);
+                            }
+                        }
                     }
                 }
             } catch (vErr) {
