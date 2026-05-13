@@ -37,7 +37,7 @@ async function debug() {
         });
 
         // 3. Search target item in recipes
-        const targetMenu = voucher.menuName || batch?.menuName;
+        const targetMenu = voucher.menuName;
         console.log(`\n--- Searching for Recipes matching "${targetMenu}" ---`);
         const matchingRecipes = await db.select()
             .from(schema.recipes)

@@ -141,10 +141,14 @@ export class DiscountService {
         const currentDay = now.getDay(); // 0=Sun, 6=Sat
         const cartProductIds = cartItems.map(i => i.recipeId);
         
-        // Fetch recipes to know their categories
-        let cartRecipes: { id: number, category: string }[] = [];
+        // Fetch recipes to know their categories and names
+        let cartRecipes: { id: number, category: string, name: string }[] = [];
         if (cartProductIds.length > 0) {
-            cartRecipes = await db.select({ id: schema.recipes.id, category: schema.recipes.category })
+            cartRecipes = await db.select({ 
+                id: schema.recipes.id, 
+                category: schema.recipes.category,
+                name: schema.recipes.name 
+            })
                 .from(schema.recipes)
                 .where(inArray(schema.recipes.id, cartProductIds));
         }
@@ -155,6 +159,7 @@ export class DiscountService {
             return { 
                 ...item, 
                 recipeId, // Coerce to number
+                name: r?.name || 'Unknown',
                 category: r?.category || 'Unknown' 
             };
         });
@@ -433,34 +438,21 @@ export class DiscountService {
                     let promoName = v.menuName ? `Voucher: ${v.menuName}` : 'Marketing Promo Voucher';
 
                     if (v.menuName) {
-                        // Find item in cart. Use fuzzy matching if needed, or exact menuName
-                        const cartItem = itemsWithMetadata.find(i => 
-                            i.category.toLowerCase().includes(v.menuName!.toLowerCase()) ||
-                            v.menuName!.toLowerCase().includes(i.category.toLowerCase()) ||
-                            // or match by searching in recipes name (though we don't have recipe name here, only ID)
-                            // Wait, itemsWithMetadata has category but not recipe name.
-                            // I should have included recipe name in itemsWithMetadata!
-                            true // Temporary: allow if any item exists, we'll fix recipe name below
-                        );
-                        
-                        // Let's resolve recipe name to be sure
-                        const recipesInCart = await db.select({ id: schema.recipes.id, name: schema.recipes.name })
-                            .from(schema.recipes)
-                            .where(inArray(schema.recipes.id, cartProductIds));
-                        
-                        const matchedRecipe = recipesInCart.find(r => 
-                            r.name.toLowerCase().includes(v.menuName!.toLowerCase()) ||
-                            v.menuName!.toLowerCase().includes(r.name.toLowerCase())
-                        );
+                        // Priority 1: Find voucher item in cart using the name we fetched
+                        // We use the names from recipes table which we just resolved into itemsWithMetadata
+                        const cartItemMatch = itemsWithMetadata.find(i => {
+                            const itemName = i.name.toLowerCase().trim();
+                            const targetName = v.menuName!.toLowerCase().trim();
+                            const isMatch = itemName === targetName || itemName.includes(targetName) || targetName.includes(itemName);
+                            console.log(`[Voucher Match] Checking "${itemName}" against target "${targetName}" -> Match: ${isMatch}`);
+                            return isMatch;
+                        });
 
-                        if (matchedRecipe) {
-                            const cartItemMatch = itemsWithMetadata.find(i => i.recipeId === matchedRecipe.id);
-                            if (cartItemMatch) {
-                                if (v.voucherPrice) {
-                                    promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - parseFloat(v.voucherPrice)) * cartItemMatch.quantity;
-                                } else if (v.discountNominal) {
-                                    promoDiscountAmount = parseFloat(v.discountNominal) * cartItemMatch.quantity;
-                                }
+                        if (cartItemMatch) {
+                            if (v.voucherPrice) {
+                                promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - parseFloat(v.voucherPrice)) * cartItemMatch.quantity;
+                            } else if (v.discountNominal) {
+                                promoDiscountAmount = parseFloat(v.discountNominal) * cartItemMatch.quantity;
                             }
                         }
                     } else if (v.discountNominal) {
