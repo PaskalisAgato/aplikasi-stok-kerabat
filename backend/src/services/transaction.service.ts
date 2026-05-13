@@ -747,12 +747,18 @@ export class TransactionService {
                             benefitType = 'nominal';
                         }
 
+                        const expiryHours = parseInt(cond.expiryHours || '3');
+                        const expiresAtOverride = (qrTemplate.endDate && new Date(qrTemplate.endDate) > new Date()) 
+                            ? new Date(qrTemplate.endDate) 
+                            : undefined;
+
                         const voucher = await VoucherService.generateVoucher(
                             resultData.transactionId, 
                             finalOutletId, 
                             qrTemplate.value, 
                             benefitType, 
-                            expiryHours
+                            expiryHours,
+                            expiresAtOverride
                         );
                         (resultData as any).voucher = voucher;
                     }

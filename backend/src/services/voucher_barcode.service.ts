@@ -19,10 +19,12 @@ export class VoucherService {
     /**
      * Create a new voucher for a stand transaction
      */
-    static async generateVoucher(transactionId: number, locationSource: number, discountValue: string = '20', benefitType: string = 'percent', expiryHours: number = 24) {
+    static async generateVoucher(transactionId: number, locationSource: number, discountValue: string = '20', benefitType: string = 'percent', expiryHours: number = 24, expiresAtOverride?: Date) {
         const code = this.generateCode();
-        const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + expiryHours); 
+        const expiresAt = expiresAtOverride || new Date();
+        if (!expiresAtOverride) {
+            expiresAt.setHours(expiresAt.getHours() + expiryHours); 
+        }
 
         const [voucher] = await db.insert(schema.standVouchers).values({
             code,
