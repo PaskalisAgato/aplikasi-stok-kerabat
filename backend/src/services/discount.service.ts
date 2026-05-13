@@ -457,13 +457,14 @@ export class DiscountService {
                             const vPrice = v.voucherPrice ? parseFloat(v.voucherPrice.toString()) : 0;
                             const dNominal = v.discountNominal ? parseFloat(v.discountNominal.toString()) : 0;
                             const itemPrice = parseFloat(cartItemMatch.price.toString());
+                            const itemQty = Math.max(1, parseInt(cartItemMatch.quantity?.toString() || '1'));
                             
-                            console.log(`[Voucher Discount Debug] Found match: ${cartItemMatch.name}. ItemPrice=${itemPrice}, vPrice=${vPrice}, dNominal=${dNominal}`);
+                            console.log(`[Voucher Discount Debug] Found match: ${cartItemMatch.name}. ItemPrice=${itemPrice}, Qty=${itemQty}, vPrice=${vPrice}, dNominal=${dNominal}`);
                             
                             if (vPrice > 0) {
-                                promoDiscountAmount = (itemPrice - vPrice) * cartItemMatch.quantity;
+                                promoDiscountAmount = (itemPrice - vPrice) * itemQty;
                             } else if (dNominal > 0) {
-                                promoDiscountAmount = dNominal * cartItemMatch.quantity;
+                                promoDiscountAmount = dNominal * itemQty;
                             }
                             console.log(`[Voucher Discount Debug] Calculated Final Amount: ${promoDiscountAmount}`);
                             

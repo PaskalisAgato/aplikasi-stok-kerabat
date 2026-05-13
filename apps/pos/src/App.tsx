@@ -657,7 +657,7 @@ export default function App() {
             {isVoucherRedeemModalOpen && (
                 <PromoScanner 
                     subtotal={totalSalesValue}
-                    items={activeCartItems}
+                    items={activeCartItems.map(i => ({ ...i, quantity: sales[i.id] }))}
                     orderSource={orderSource}
                     onClose={() => setIsVoucherRedeemModalOpen(false)}
                     onSetVoucherCode={setVoucherCode}
