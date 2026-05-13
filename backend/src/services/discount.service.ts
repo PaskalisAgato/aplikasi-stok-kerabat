@@ -454,15 +454,25 @@ export class DiscountService {
                         });
 
                         if (cartItemMatch) {
-                            if (v.voucherPrice) {
-                                promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - parseFloat(v.voucherPrice)) * cartItemMatch.quantity;
-                            } else if (v.discountNominal) {
-                                promoDiscountAmount = parseFloat(v.discountNominal) * cartItemMatch.quantity;
+                            const vPrice = v.voucherPrice ? parseFloat(v.voucherPrice.toString()) : 0;
+                            const dNominal = v.discountNominal ? parseFloat(v.discountNominal.toString()) : 0;
+                            
+                            console.log(`[Voucher Discount Debug] Found match: ${cartItemMatch.name}. Parsed: vPrice=${vPrice}, dNominal=${dNominal}`);
+                            
+                            if (vPrice > 0) {
+                                promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - vPrice) * cartItemMatch.quantity;
+                            } else if (dNominal > 0) {
+                                promoDiscountAmount = dNominal * cartItemMatch.quantity;
+                            }
+                            console.log(`[Voucher Discount Debug] Calculated Final Amount: ${promoDiscountAmount}`);
+                            
+                            if (promoDiscountAmount <= 0) {
+                                throw new Error(`Voucher ini tidak memberikan potongan harga untuk item ${v.menuName} (Potongan: Rp 0).`);
                             }
                         }
                     } else if (v.discountNominal) {
                         // Flat transaction discount
-                        promoDiscountAmount = parseFloat(v.discountNominal);
+                        promoDiscountAmount = parseFloat(v.discountNominal.toString());
                     }
 
                     if (promoDiscountAmount > 0) {
