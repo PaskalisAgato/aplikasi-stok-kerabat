@@ -144,18 +144,22 @@ export class DiscountService {
         // Fetch recipes to know their categories and names
         let cartRecipes: { id: number, category: string, name: string }[] = [];
         if (cartProductIds.length > 0) {
+            console.log(`[Voucher Debug] Resolving Metadata for IDs: ${cartProductIds.join(', ')}`);
             cartRecipes = await db.select({ 
                 id: schema.recipes.id, 
                 category: schema.recipes.category,
                 name: schema.recipes.name 
             })
                 .from(schema.recipes)
-                .where(inArray(schema.recipes.id, cartProductIds));
+                .where(inArray(schema.recipes.id, cartProductIds.map(id => Number(id))));
+            console.log(`[Voucher Debug] Resolved ${cartRecipes.length} recipes from DB.`);
+            cartRecipes.forEach(r => console.log(` - Resolved: ID ${r.id} -> Name: "${r.name}"`));
         }
 
         const itemsWithMetadata = cartItems.map(item => {
             const recipeId = Number(item.recipeId);
             const r = cartRecipes.find(cr => Number(cr.id) === recipeId);
+            if (!r) console.warn(`[Voucher Debug] WARNING: No recipe found in DB for recipeId: ${recipeId}`);
             return { 
                 ...item, 
                 recipeId, // Coerce to number
