@@ -66,7 +66,8 @@ export const VoucherGenerator = () => {
     try {
       await PrintService.printVoucher({
         ...formData,
-        code: 'KKT-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        promoName: `[TEST] ${formData.promoName}`,
+        code: 'KKT-TEST-' + Math.random().toString(36).substr(2, 4).toUpperCase(),
         voucherPrice: parseInt(formData.voucherPrice),
       }, true);
     } catch (e: any) {
