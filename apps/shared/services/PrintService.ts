@@ -490,41 +490,66 @@ export class PrintService {
     private static encodeVoucher(data: any, config: PrinterConfig): Uint8Array {
         const encoder = new EscPosEncoder();
         const width = config.width || 32;
-
-        const padCenter = (text: string, w: number) => {
-            const _t = text.trim();
-            if (_t.length >= w) return _t;
-            return ' '.repeat(Math.floor((w - _t.length) / 2)) + _t;
-        };
+        const divider = '-'.repeat(width);
 
         encoder.initialize();
         
-        // Header
-        encoder.bold(true).align('center').line(config.headerTitle || 'KERABAT KOPI TIAM').bold(false);
-        encoder.align('center').line('PROMO VOUCHER');
-        encoder.line('--------------------------------');
+        // --- HEADER ---
+        encoder.align('center')
+               .bold(true)
+               .size('small') // Slight emphasis for brand
+               .line(config.headerTitle || 'KERABAT KOPI TIAM')
+               .size('normal')
+               .line('PROMO VOUCHER')
+               .bold(false)
+               .line(divider);
 
-        // Promo Name
-        encoder.bold(true).line(padCenter(data.promoName?.toUpperCase() || 'DISKON SPESIAL', width)).bold(false);
-        encoder.newline();
-
-        // QR Code
-        encoder.align('center').qrcode(data.code || 'KKT-SAMPLE', 2, 5, 'l');
-        encoder.newline();
-
-        // Code and Value
-        encoder.line(data.code || 'KKT-SAMPLE');
-        encoder.bold(true).line(`Rp ${(data.voucherPrice || 0).toLocaleString('id-ID')}`).bold(false);
+        // --- PROMO TITLE ---
+        encoder.align('center')
+               .bold(true)
+               .line(data.promoName?.toUpperCase() || 'DISKON SPESIAL')
+               .bold(false);
         
+        encoder.newline();
+
+        // --- QR CODE ---
+        // Consistent size and margin
+        encoder.align('center')
+               .qrcode(data.code || 'KKT-SAMPLE', 2, 5, 'l');
+        
+        encoder.newline();
+
+        // --- VOUCHER VALUE & CODE ---
+        encoder.align('center')
+               .bold(true)
+               .size('double')
+               .line(`Rp ${(data.voucherPrice || 0).toLocaleString('id-ID')}`)
+               .size('normal')
+               .line(data.code || 'KKT-SAMPLE')
+               .bold(false);
+
         if (data.menuName) {
-            encoder.line(`Berlaku: ${data.menuName}`);
+            encoder.align('center')
+                   .italic(true)
+                   .line(`Berlaku: ${data.menuName}`)
+                   .italic(false);
         }
 
-        encoder.line('--------------------------------');
-        encoder.line(`Masa Berlaku: ${data.expiryDays || 30} Hari`);
-        encoder.line('Syarat & Ketentuan Berlaku');
-        
-        encoder.newline().newline().cut();
+        encoder.newline();
+        encoder.align('center').line(divider);
+
+        // --- FOOTER / INFO ---
+        encoder.align('center')
+               .size('small')
+               .line(`Berlaku s/d: ${data.expiryDate || '30 Hari'}`)
+               .line('Syarat & Ketentuan Berlaku')
+               .line('Terima Kasih!')
+               .size('normal');
+
+        encoder.newline()
+               .newline()
+               .cut();
+
         return encoder.encode();
     }
 
