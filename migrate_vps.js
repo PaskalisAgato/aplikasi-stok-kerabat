@@ -67,28 +67,53 @@ async function migrate() {
 
         // 3. Migrate Promo Voucher Batches
         console.log('--- Migrating Promo Voucher Batches ---');
-        const { rows: batches } = await supabaseClient.query('SELECT * FROM promo_voucher_batches');
-        console.log(`Found ${batches.length} batches.`);
-        for (const b of batches) {
-            await vpsClient.query(
-                `INSERT INTO promo_voucher_batches (id, template_id, promo_name, quantity, created_at, created_by) 
-                 VALUES ($1, $2, $3, $4, $5, $6)
-                 ON CONFLICT (id) DO UPDATE SET promo_name = EXCLUDED.promo_name`,
-                [b.id, b.template_id, b.promo_name, b.quantity, b.created_at, b.created_by]
-            ).catch(e => console.error(`Error migrating batch ${b.id}:`, e.message));
+        try {
+            const { rows: batches } = await supabaseClient.query('SELECT * FROM promo_voucher_batches');
+            console.log(`Found ${batches.length} batches.`);
+            for (const b of batches) {
+                await vpsClient.query(
+                    `INSERT INTO promo_voucher_batches (id, template_id, promo_name, quantity, created_at, created_by) 
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    ON CONFLICT (id) DO UPDATE SET promo_name = EXCLUDED.promo_name`,
+                    [b.id, b.template_id, b.promo_name, b.quantity, b.created_at, b.created_by]
+                ).catch(e => console.error(`Error migrating batch ${b.id}:`, e.message));
+            }
+        } catch (e: any) {
+            console.warn('⚠️ Skip Migrating Promo Voucher Batches:', e.message);
         }
 
         // 4. Migrate Promo Vouchers
         console.log('--- Migrating Promo Vouchers ---');
-        const { rows: promos } = await supabaseClient.query('SELECT * FROM promo_vouchers');
-        console.log(`Found ${promos.length} promo vouchers.`);
-        for (const p of promos) {
-            await vpsClient.query(
-                `INSERT INTO promo_vouchers (id, batch_id, code, status, menu_name, normal_price, voucher_price, discount_nominal, expires_at, redeemed_at, redeemed_transaction_id, created_at) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                 ON CONFLICT (code) DO UPDATE SET status = EXCLUDED.status`,
-                [p.id, p.batch_id, p.code, p.status, p.menu_name, p.normal_price, p.voucher_price, p.discount_nominal, p.expires_at, p.redeemed_at, p.redeemed_transaction_id, p.createdAt || p.created_at]
-            ).catch(e => console.error(`Error migrating promo ${p.code}:`, e.message));
+        try {
+            const { rows: promos } = await supabaseClient.query('SELECT * FROM promo_vouchers');
+            console.log(`Found ${promos.length} promo vouchers.`);
+            for (const p of promos) {
+                await vpsClient.query(
+                    `INSERT INTO promo_vouchers (id, batch_id, code, status, menu_name, normal_price, voucher_price, discount_nominal, expires_at, redeemed_at, redeemed_transaction_id, created_at) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                    ON CONFLICT (code) DO UPDATE SET status = EXCLUDED.status`,
+                    [p.id, p.batch_id, p.code, p.status, p.menu_name, p.normal_price, p.voucher_price, p.discount_nominal, p.expires_at, p.redeemed_at, p.redeemed_transaction_id, p.createdAt || p.created_at]
+                ).catch(e => console.error(`Error migrating promo ${p.code}:`, e.message));
+            }
+        } catch (e: any) {
+            console.warn('⚠️ Skip Migrating Promo Vouchers:', e.message);
+        }
+
+        // 5. Migrate Stand Vouchers (Legacy fallback)
+        console.log('--- Migrating Stand Vouchers ---');
+        try {
+            const { rows: stands } = await supabaseClient.query('SELECT * FROM stand_vouchers');
+            console.log(`Found ${stands.length} stand vouchers.`);
+            for (const s of stands) {
+                await vpsClient.query(
+                    `INSERT INTO stand_vouchers (id, template_id, code, status, created_at) 
+                     VALUES ($1, $2, $3, $4, $5)
+                     ON CONFLICT (code) DO UPDATE SET status = EXCLUDED.status`,
+                    [s.id, s.template_id, s.code, s.status, s.createdAt || s.created_at]
+                ).catch(e => console.error(`Error migrating stand voucher ${s.code}:`, e.message));
+            }
+        } catch (e: any) {
+            console.warn('⚠️ Skip Migrating Stand Vouchers:', e.message);
         }
 
         console.log('🚀 Migration completed!');
