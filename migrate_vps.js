@@ -78,7 +78,7 @@ async function migrate() {
                     [b.id, b.template_id, b.promo_name, b.quantity, b.created_at, b.created_by]
                 ).catch(e => console.error(`Error migrating batch ${b.id}:`, e.message));
             }
-        } catch (e: any) {
+        } catch (e) {
             console.warn('⚠️ Skip Migrating Promo Voucher Batches:', e.message);
         }
 
@@ -95,7 +95,7 @@ async function migrate() {
                     [p.id, p.batch_id, p.code, p.status, p.menu_name, p.normal_price, p.voucher_price, p.discount_nominal, p.expires_at, p.redeemed_at, p.redeemed_transaction_id, p.createdAt || p.created_at]
                 ).catch(e => console.error(`Error migrating promo ${p.code}:`, e.message));
             }
-        } catch (e: any) {
+        } catch (e) {
             console.warn('⚠️ Skip Migrating Promo Vouchers:', e.message);
         }
 
@@ -112,7 +112,7 @@ async function migrate() {
                     [s.id, s.template_id, s.code, s.status, s.createdAt || s.created_at]
                 ).catch(e => console.error(`Error migrating stand voucher ${s.code}:`, e.message));
             }
-        } catch (e: any) {
+        } catch (e) {
             console.warn('⚠️ Skip Migrating Stand Vouchers:', e.message);
         }
 
