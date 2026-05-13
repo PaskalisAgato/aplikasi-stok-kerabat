@@ -90,7 +90,8 @@ router.post('/evaluate', requireAuth, async (req: Request, res: Response) => {
         const applicable = await DiscountService.evaluateDiscounts(items, memberLevel, memberId, voucherCode, orderSource);
         res.json({ success: true, data: applicable });
     } catch (e: any) {
-        res.status(500).json({ success: false, message: e.message });
+        const statusCode = e.message?.includes('VALIDATION_FAILED') ? 400 : 500;
+        res.status(statusCode).json({ success: false, message: e.message });
     }
 });
 

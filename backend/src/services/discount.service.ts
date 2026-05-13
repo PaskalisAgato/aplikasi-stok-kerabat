@@ -426,9 +426,8 @@ export class DiscountService {
         // ── Phase 5/6: Voucher Injection (Promo or Barcode) ────────────────
         if (voucherCode && voucherCode.startsWith('KKT-')) {
             try {
-                // 1. Try Marketing Promo Voucher System First
-                const pResult = await VoucherPromoService.validateVoucher(voucherCode);
-                if (pResult.valid && pResult.voucher) {
+                const pResult = (await VoucherPromoService.validateVoucher(voucherCode).catch(() => ({ valid: false }))) as any;
+                if (pResult?.valid && pResult.voucher) {
                     const v = pResult.voucher;
                     let promoDiscountAmount = 0;
                     let promoName = v.menuName ? `Voucher: ${v.menuName}` : 'Marketing Promo Voucher';
@@ -488,12 +487,12 @@ export class DiscountService {
                     }
                 }
 
-                // 2. Fallback to existing Barcode Voucher System
                 const { VoucherService } = await import('./voucher_barcode.service.js');
-                const vResult = await VoucherService.validateVoucher(voucherCode);
+                const vResult = (await VoucherService.validateVoucher(voucherCode).catch(err => ({ valid: false, message: err.message }))) as any;
                 
                 if (!vResult.valid || !vResult.voucher) {
-                    throw new Error(`VALIDATION_FAILED: ${vResult.message} (${voucherCode})`);
+                    // console.warn(`[Voucher Eval] Validation failed: ${vResult.message}`);
+                    throw new Error(`VALIDATION_FAILED: ${vResult.message || 'Voucher tidak ditemukan'} (${voucherCode})`);
                 }
 
                 if (vResult.voucher.status === 'redeemed') {
