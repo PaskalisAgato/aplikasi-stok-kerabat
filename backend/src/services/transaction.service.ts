@@ -714,17 +714,36 @@ export class TransactionService {
 
                 const { VoucherService } = await import('./voucher_barcode.service.js');
                 
-                // Fetch dynamic settings from a record with type 'qr_voucher'
-                const [qrTemplate] = await db.select()
+                // Fetch dynamic settings from all active records with type 'qr_voucher'
+                const allTemplates = await db.select()
                     .from(schema.discounts)
                     .where(and(
                         eq(schema.discounts.type, 'qr_voucher'),
                         eq(schema.discounts.isActive, true)
-                    ))
-                    .limit(1);
+                    ));
+
+                // Find the best matching template
+                // Priority: Template with productIds that match current items > Generic Template
+                let qrTemplate = null;
+                for (const t of allTemplates) {
+                    const cond = t.conditions ? JSON.parse(t.conditions) : {};
+                    if (cond && cond.productIds && Array.isArray(cond.productIds)) {
+                        const targetIds = cond.productIds.map(Number);
+                        const hasMatch = targetIds.some((tid: number) => items.some((i: any) => i.recipeId === tid));
+                        if (hasMatch) {
+                            qrTemplate = t;
+                            break; // Found specialized match
+                        }
+                    }
+                }
+                
+                // Fallback to first if no specific product match found
+                if (!qrTemplate && allTemplates.length > 0) qrTemplate = allTemplates[0];
 
                 if (qrTemplate) {
                     const cond = qrTemplate.conditions ? JSON.parse(qrTemplate.conditions) : {};
+                    console.log(`[Voucher Generation] Selected Template: "${qrTemplate.name}" (ID: ${qrTemplate.id})`);
+                    
                     const minPurchase = parseFloat(qrTemplate.minPurchase || '0');
                     const expiryHours = parseInt(cond.expiryHours || '3');
 
