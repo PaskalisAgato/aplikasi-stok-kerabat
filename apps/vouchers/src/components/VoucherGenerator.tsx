@@ -11,7 +11,9 @@ import {
   FileDown,
   Loader2,
   AlertCircle,
-  QrCode
+  QrCode,
+  Search,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '@shared/apiClient';
@@ -33,6 +35,41 @@ export const VoucherGenerator = () => {
     quantity: '50',
     templateId: ''
   });
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [isFetchingProducts, setIsFetchingProducts] = useState(false);
+
+  React.useEffect(() => {
+    const loadProducts = async () => {
+      setIsFetchingProducts(true);
+      try {
+        const response = await apiFetch('/products');
+        // Handle both possible response structures
+        const data = response.data || response || [];
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error('Failed to fetch products:', e);
+      } finally {
+        setIsFetchingProducts(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  const handleSelectProduct = (product: any) => {
+    setSelectedProductId(product.id);
+    setFormData({
+      ...formData,
+      menuName: product.name,
+      normalPrice: product.price?.toString() || ''
+    });
+  };
+
+  const filteredProducts = products.filter(p => 
+    !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   const templates = [
     { id: '1', name: 'Terracotta Classic', usage: 'High' },
@@ -159,17 +196,68 @@ export const VoucherGenerator = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] px-1">Menu Utama</label>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Menu Utama</label>
+                      {selectedProductId && (
+                        <button 
+                          onClick={() => {
+                            setSelectedProductId(null);
+                            setFormData({...formData, menuName: '', normalPrice: ''});
+                          }}
+                          className="text-[9px] font-black text-red-500 uppercase flex items-center gap-1 hover:opacity-70"
+                        >
+                          <X className="w-3 h-3" /> Reset Pilihan
+                        </button>
+                      )}
+                    </div>
+                    
                     <div className="relative group">
-                      <Package className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-40 group-focus-within:opacity-100 transition-opacity" />
+                      <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-40 group-focus-within:opacity-100 transition-opacity" />
                       <input 
                         type="text" 
-                        placeholder="Highlight menu anda"
+                        placeholder="Cari menu untuk dipilih..."
                         className="w-full bg-primary/5 border border-primary/10 p-4 pl-14 rounded-2xl focus:outline-none focus:border-primary/30 transition-all font-bold text-[var(--text-main)] placeholder:opacity-30"
-                        value={formData.menuName}
-                        onChange={e => setFormData({...formData, menuName: e.target.value})}
+                        value={productSearch}
+                        onChange={e => setProductSearch(e.target.value)}
                       />
+                    </div>
+
+                    <div className="bg-primary/5 rounded-2xl border border-primary/10 p-2 overflow-hidden">
+                      {isFetchingProducts ? (
+                        <div className="py-8 flex flex-col items-center justify-center opacity-40">
+                          <Loader2 className="w-5 h-5 animate-spin mb-2" />
+                          <p className="text-[9px] font-black uppercase tracking-widest">Memuat Menu...</p>
+                        </div>
+                      ) : filteredProducts.length === 0 ? (
+                        <div className="py-8 text-center opacity-30 text-[9px] font-black uppercase tracking-widest">
+                          Menu tidak ditemukan
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 max-h-[180px] overflow-y-auto p-1 custom-scrollbar">
+                          {filteredProducts.map((p) => (
+                            <button
+                              key={p.id}
+                              onClick={() => handleSelectProduct(p)}
+                              className={`p-3 rounded-xl text-left transition-all border group relative overflow-hidden ${
+                                selectedProductId === p.id
+                                  ? 'bg-primary border-primary text-white shadow-lg'
+                                  : 'bg-white/5 border-primary/5 hover:border-primary/30 text-[var(--text-main)]'
+                              }`}
+                            >
+                              <p className="text-[10px] font-black uppercase truncate">{p.name}</p>
+                              <p className={`text-[8px] font-bold mt-0.5 ${selectedProductId === p.id ? 'text-white/70' : 'text-primary/60'}`}>
+                                Rp {parseFloat(p.price || '0').toLocaleString()}
+                              </p>
+                              {selectedProductId === p.id && (
+                                <div className="absolute top-1 right-1">
+                                  <Check className="w-3 h-3" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
