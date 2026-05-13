@@ -25,8 +25,9 @@ export const PromoScanner: React.FC<PromoScannerProps> = ({ subtotal, items = []
             const mappedItems = items.map(i => ({
                 recipeId: i.id || i.recipeId,
                 quantity: i.quantity,
-                price: i.price
+                price: i.price || 0
             }));
+            console.log('[Promo Debug] Validating Code:', scannedCode, 'with items:', mappedItems, 'subtotal:', subtotal);
             const result = await validateBarcode(scannedCode, subtotal, mappedItems, orderSource);
             if (result.valid) {
                 onSetVoucherCode(scannedCode);

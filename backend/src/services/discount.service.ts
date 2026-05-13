@@ -456,19 +456,26 @@ export class DiscountService {
                         if (cartItemMatch) {
                             const vPrice = v.voucherPrice ? parseFloat(v.voucherPrice.toString()) : 0;
                             const dNominal = v.discountNominal ? parseFloat(v.discountNominal.toString()) : 0;
+                            const itemPrice = parseFloat(cartItemMatch.price.toString());
                             
-                            console.log(`[Voucher Discount Debug] Found match: ${cartItemMatch.name}. Parsed: vPrice=${vPrice}, dNominal=${dNominal}`);
+                            console.log(`[Voucher Discount Debug] Found match: ${cartItemMatch.name}. ItemPrice=${itemPrice}, vPrice=${vPrice}, dNominal=${dNominal}`);
                             
                             if (vPrice > 0) {
-                                promoDiscountAmount = (parseFloat(cartItemMatch.price.toString()) - vPrice) * cartItemMatch.quantity;
+                                promoDiscountAmount = (itemPrice - vPrice) * cartItemMatch.quantity;
                             } else if (dNominal > 0) {
                                 promoDiscountAmount = dNominal * cartItemMatch.quantity;
                             }
                             console.log(`[Voucher Discount Debug] Calculated Final Amount: ${promoDiscountAmount}`);
                             
                             if (promoDiscountAmount <= 0) {
+                                if (itemPrice === 0) {
+                                    throw new Error(`Harga item ${v.menuName} di keranjang adalah Rp 0. Tidak bisa menerapkan potongan.`);
+                                }
                                 throw new Error(`Voucher ini tidak memberikan potongan harga untuk item ${v.menuName} (Potongan: Rp 0).`);
                             }
+                        } else {
+                            // Only throw if we had a specific target menu but it wasn't matched
+                            throw new Error(`Item ${v.menuName} tidak ditemukan di keranjang belanja.`);
                         }
                     } else if (v.discountNominal) {
                         // Flat transaction discount
