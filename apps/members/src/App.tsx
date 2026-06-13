@@ -368,6 +368,7 @@ function DiscountTab() {
     expiryHours: '3',
     isFlatPriceMode: false,
     isPromoCodeMode: false,
+    isMemberRestricted: false,
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -419,6 +420,7 @@ function DiscountTab() {
       expiryHours: (cond.expiryHours || 3).toString(),
       isFlatPriceMode: !!cond.flatPrice || d.type === 'bundling',
       isPromoCodeMode: !!d.voucherCode,
+      isMemberRestricted: cond.minLevel && cond.minLevel !== 'bronze',
     });
     setError(''); setModal('edit');
   };
@@ -447,7 +449,7 @@ function DiscountTab() {
     if (form.type === 'bundling') {
       c.discountType = 'percent'; // Default for bundling if no flat price
     }
-    if (form.type === 'member') { c.minLevel = form.minLevel; c.discountType = 'percent'; }
+    if (form.isMemberRestricted) { c.minLevel = form.minLevel; }
     if (form.orderSources && form.orderSources.length > 0) {
       c.orderSources = form.orderSources;
     }
@@ -644,38 +646,65 @@ function DiscountTab() {
                   </Field>
                 </div>
                 
-                {/* Promo Code Mode Toggle */}
-                <div className="bg-black/10 p-4 pt-3 rounded-2xl border border-[var(--border-dim)]">
-                  <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden">
-                    <button 
-                      onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: false }))}
-                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isPromoCodeMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                    >
-                      Berlaku Otomatis
-                    </button>
-                    <button 
-                      onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: true }))}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isPromoCodeMode ? 'bg-amber-500 text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                    >
-                      <span className="material-symbols-outlined text-xs">confirmation_number</span>
-                      Klaim Pakai Kode (Promo Code)
-                    </button>
-                  </div>
-                  {form.isPromoCodeMode && (
-                    <div className="mt-4 animate-[fadeIn_0.2s_ease-out]">
-                      <Field label="Buat Kode Promo Unik (e.g. BUKBER20, DISKONGILA)">
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500 material-symbols-outlined">key</span>
-                          <input 
-                            value={form.voucherCode} 
-                            onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} 
-                            placeholder="Ketik kode di sini..." 
-                            className="w-full bg-[var(--bg-app)] border-2 border-amber-500/30 rounded-xl py-4 pl-12 pr-4 text-center font-mono text-xl tracking-[0.2em] font-black text-amber-500 placeholder:opacity-30 focus:border-amber-500 transition-all uppercase" 
-                          />
-                        </div>
-                      </Field>
+                {/* Promo Code & Member Mode Toggle */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/10 p-3 rounded-2xl border border-[var(--border-dim)]">
+                    <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden mb-2">
+                      <button 
+                        onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: false }))}
+                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isPromoCodeMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        Otomatis
+                      </button>
+                      <button 
+                        onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: true }))}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isPromoCodeMode ? 'bg-amber-500 text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        <span className="material-symbols-outlined text-[10px]">key</span>
+                        Perlu Kode
+                      </button>
                     </div>
-                  )}
+                    {form.isPromoCodeMode && (
+                      <div className="animate-[fadeIn_0.2s_ease-out]">
+                        <input 
+                          value={form.voucherCode} 
+                          onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} 
+                          placeholder="Ketik KODE Promo" 
+                          className="w-full bg-[var(--bg-app)] border border-amber-500/30 rounded-lg py-2 px-3 text-center font-mono text-sm tracking-widest font-black text-amber-500 placeholder:opacity-30 focus:border-amber-500 uppercase" 
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-black/10 p-3 rounded-2xl border border-[var(--border-dim)]">
+                    <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden mb-2">
+                      <button 
+                        onClick={() => setForm((f: any) => ({ ...f, isMemberRestricted: false }))}
+                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isMemberRestricted ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        Semua Orang
+                      </button>
+                      <button 
+                        onClick={() => setForm((f: any) => ({ ...f, isMemberRestricted: true }))}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isMemberRestricted ? 'bg-fuchsia-500 text-white shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        <span className="material-symbols-outlined text-[10px]">card_membership</span>
+                        Khusus Member
+                      </button>
+                    </div>
+                    {form.isMemberRestricted && (
+                      <div className="animate-[fadeIn_0.2s_ease-out]">
+                        <select 
+                          value={form.minLevel} 
+                          onChange={e => setForm((f: any) => ({ ...f, minLevel: e.target.value }))} 
+                          className="w-full bg-[var(--bg-app)] border border-fuchsia-500/30 rounded-lg py-2.5 px-3 text-center text-xs font-black text-fuchsia-400 focus:border-fuchsia-500 outline-none"
+                        >
+                          <option value="silver">🥇 Tier SILVER ke Atas</option>
+                          <option value="gold">💎 Khusus Tier GOLD</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="bg-black/20 p-4 pt-3 rounded-2xl border border-[var(--border-dim)] space-y-4">
@@ -810,7 +839,20 @@ function DiscountTab() {
                    </div>
 
                    <div className="pt-2 border-t border-white/5">
-                     <h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-3">Menu Terspesifik (Kosong = Seluruh Menu)</h5>
+                     <div className="flex items-center gap-2 mb-3">
+                       <h5 className="text-[10px] font-black uppercase tracking-widest text-primary flex-1">Pembatasan Menu / Produk Default</h5>
+                     </div>
+                     {!form.productIds ? (
+                       <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs font-bold text-primary flex items-center gap-2">
+                         <span className="material-symbols-outlined text-sm">info</span>
+                         Karena tidak ada menu yang dipilih, promo ini akan berlaku untuk SELURUH pesanan belanjaan! Pilih menu secara spesifik di bawah jika diskon hanya untuk menu tertentu.
+                       </div>
+                     ) : form.type === 'bundling' ? (
+                       <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-xs font-bold text-purple-400 flex items-center gap-2">
+                         <span className="material-symbols-outlined text-sm">package</span>
+                         Mode Paket Combo Aktif: Harga Final (Rp {form.flatPrice || '0'}) HANYA akan menyala saat kasir memasukkan SEMUA menu di bawah ini ke dalam keranjang sekaligus. Tambahkan syarat menu yang harus dimunculkan di keranjang!
+                       </div>
+                     ) : null}
                    </div>
                    
                    {form.type === 'mix_and_match' && (
@@ -837,17 +879,7 @@ function DiscountTab() {
                 </section>
              )}
 
-             {form.type === 'member' && (
-                <Field label="Minimal Member Level">
-                  <select value={form.minLevel} onChange={e => setForm((f: any) => ({ ...f, minLevel: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none">
-                    <option value="bronze">🥈 Tier Bronze ke Atas</option>
-                    <option value="silver">🥇 Tier Silver ke Atas</option>
-                    <option value="gold">💎 Khusus Tier Gold</option>
-                  </select>
-                </Field>
-             )}
-
-             <div className="pt-6 border-t border-[var(--border-dim)] space-y-4">
+              <div className="pt-6 border-t border-[var(--border-dim)] space-y-4">
                 {error && <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black text-center uppercase tracking-widest">{error}</div>}
                 <div className="flex gap-4">
                   <button onClick={() => setModal(null)} className="flex-1 py-4 text-sm font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-colors">Batal</button>
