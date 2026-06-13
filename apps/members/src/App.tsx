@@ -421,11 +421,9 @@ function DiscountTab() {
 
   const buildConditions = () => {
     const c: any = {};
-    if (form.type === 'time-based') {
-      if (form.days.length > 0) c.days = form.days;
-      if (form.startHour !== '') c.startHour = parseInt(form.startHour);
-      if (form.endHour !== '') c.endHour = parseInt(form.endHour);
-    }
+    if (form.days.length > 0) c.days = form.days;
+    if (form.startHour !== '') c.startHour = parseInt(form.startHour);
+    if (form.endHour !== '') c.endHour = parseInt(form.endHour);
     
     // Allow productIds on most types so we can target specific items
     if (form.productIds) {
@@ -681,7 +679,6 @@ function DiscountTab() {
                   <Field label="Tanggal Mulai"><input type="date" value={form.startDate} onChange={e => setForm((f: any) => ({ ...f, startDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
                   <Field label="Tanggal Selesai"><input type="date" value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
                 </div>
-                {form.type === 'time-based' && (
                   <div className="space-y-4 pt-4 border-t border-[var(--border-dim)]">
                     <Field label="Hari Aktif (Kosong = Setiap Hari)">
                       <div className="flex flex-wrap gap-2">
@@ -694,11 +691,10 @@ function DiscountTab() {
                       </div>
                     </Field>
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Jam Mulai (e.g. 15)"><input type="number" min={0} max={23} value={form.startHour} onChange={e => setForm((f: any) => ({ ...f, startHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3" /></Field>
-                      <Field label="Jam Selesai (e.g. 17)"><input type="number" min={0} max={24} value={form.endHour} onChange={e => setForm((f: any) => ({ ...f, endHour: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3" /></Field>
+                      <Field label="Jam Mulai (e.g. 15)"><input type="number" min={0} max={23} value={form.startHour} onChange={e => setForm((f: any) => ({ ...f, startHour: e.target.value }))} placeholder="Kosong = Bebas" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 placeholder:opacity-30" /></Field>
+                      <Field label="Jam Selesai (e.g. 17)"><input type="number" min={0} max={24} value={form.endHour} onChange={e => setForm((f: any) => ({ ...f, endHour: e.target.value }))} placeholder="Kosong = Bebas" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 placeholder:opacity-30" /></Field>
                     </div>
                   </div>
-                )}
              </section>
 
              {/* Dynamic Section: Bundling Picker etc */}

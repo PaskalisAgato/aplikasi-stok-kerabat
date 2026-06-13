@@ -239,6 +239,21 @@ export class DiscountService {
                 continue;
             }
 
+            // ── Time & Day range validity ────────────────────────────────────────
+            if (conditions.days && conditions.days.length > 0) {
+                if (!conditions.days.includes(currentDay)) {
+                     console.log(`[PROMO SKIP] "${discount.name}" - Not valid on this day`);
+                     continue;
+                }
+            }
+            
+            if (conditions.startHour !== undefined && conditions.endHour !== undefined) {
+                if (currentHour < conditions.startHour || currentHour >= conditions.endHour) {
+                     console.log(`[PROMO SKIP] "${discount.name}" - Not valid at this hour (${currentHour} not in ${conditions.startHour}-${conditions.endHour})`);
+                     continue;
+                }
+            }
+
             // ── Minimum purchase ───────────────────────────────────────────
             const minPurchase = parseFloat(discount.minPurchase || '0');
             if (subtotal < minPurchase) {
@@ -289,6 +304,7 @@ export class DiscountService {
             switch (discount.type) {
                 case 'percent':
                 case 'nominal':
+                case 'time-based': // Time-based is now just an alias for percent/nominal with time constraints
                     if (targetItems.length > 0) {
                         applies = true;
                         discountAmount = calcAmount(targetedSubtotal);
@@ -297,18 +313,6 @@ export class DiscountService {
                         discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
                     }
                     break;
-
-                case 'time-based': {
-                    const dayMatch = !conditions.days || conditions.days.length === 0 || conditions.days.includes(currentDay);
-                    const hourMatch = conditions.startHour === undefined ||
-                        (currentHour >= conditions.startHour && currentHour < conditions.endHour);
-                    applies = dayMatch && hourMatch && targetItems.length > 0;
-                    if (applies) {
-                        discountAmount = calcAmount(targetedSubtotal);
-                        if (discount.discountCap) discountAmount = Math.min(discountAmount, parseFloat(discount.discountCap));
-                    }
-                    break;
-                }
 
                 case 'bundling': {
                     if (!conditions.productIds || !Array.isArray(conditions.productIds)) break;
