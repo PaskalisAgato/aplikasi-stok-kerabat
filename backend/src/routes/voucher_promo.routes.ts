@@ -18,6 +18,10 @@ router.post('/generate', requireAdmin, VoucherPromoController.generateBatch);
 router.get('/batches', requireAdmin, VoucherPromoController.getBatches);
 router.get('/batches/:id/vouchers', requireAdmin, VoucherPromoController.getBatchVouchers);
 
+// Delete batch & individual voucher
+router.delete('/batches/:id', requireAdmin, VoucherPromoController.deleteBatch);
+router.delete('/vouchers/:id', requireAdmin, VoucherPromoController.deleteVoucher);
+
 // Analytics & Security
 router.get('/analytics', requireAdmin, VoucherPromoController.getAnalytics);
 router.post('/redeem', requireAuth, VoucherPromoController.redeemVoucher);

@@ -79,4 +79,24 @@ export class VoucherPromoController {
             res.status(400).json({ success: false, message: e.message });
         }
     }
+
+    static async deleteBatch(req: Request, res: Response) {
+        try {
+            const id = req.params.id as string;
+            await VoucherPromoService.deleteBatch(id);
+            res.json({ success: true, message: 'Batch voucher berhasil dihapus' });
+        } catch (e: any) {
+            res.status(500).json({ success: false, message: e.message });
+        }
+    }
+
+    static async deleteVoucher(req: Request, res: Response) {
+        try {
+            const id = req.params.id as string;
+            await VoucherPromoService.deleteVoucher(id);
+            res.json({ success: true, message: 'Voucher berhasil dihapus' });
+        } catch (e: any) {
+            res.status(500).json({ success: false, message: e.message });
+        }
+    }
 }

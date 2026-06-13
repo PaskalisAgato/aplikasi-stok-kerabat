@@ -217,6 +217,26 @@ export class VoucherPromoService {
     }
 
     /**
+     * Delete a batch and all its associated vouchers
+     */
+    static async deleteBatch(batchId: string) {
+        // First delete all child vouchers (no cascade defined in schema)
+        await db.delete(schema.promoVouchers)
+            .where(eq(schema.promoVouchers.batchId, batchId as any));
+        // Then delete the batch itself
+        await db.delete(schema.promoVoucherBatches)
+            .where(eq(schema.promoVoucherBatches.id, batchId as any));
+    }
+
+    /**
+     * Delete an individual voucher by ID
+     */
+    static async deleteVoucher(voucherId: string) {
+        await db.delete(schema.promoVouchers)
+            .where(eq(schema.promoVouchers.id, voucherId as any));
+    }
+
+    /**
      * Get advanced analytics for marketing
      */
     static async getVoucherAnalytics() {

@@ -793,6 +793,172 @@ function DiscountTab() {
   );
 }
 
+// ─── Voucher Tab ──────────────────────────────────────────────────────────────
+interface VoucherBatch {
+  id: string;
+  promoName: string;
+  quantity: number;
+  createdAt: string;
+}
+
+function VoucherTab() {
+  const [batches, setBatches] = useState<VoucherBatch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
+  const [batchVouchers, setBatchVouchers] = useState<Record<string, any[]>>({});
+  const [loadingVouchers, setLoadingVouchers] = useState<Record<string, boolean>>({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch('/vouchers/promo/batches');
+      setBatches(res.data || []);
+    } catch (e: any) { console.error(e); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDeleteBatch = async (batch: VoucherBatch) => {
+    if (!confirm(`Hapus batch "${batch.promoName}" beserta ${batch.quantity} voucher di dalamnya?`)) return;
+    try {
+      await apiFetch(`/vouchers/promo/batches/${batch.id}`, { method: 'DELETE' });
+      load();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const toggleBatch = async (batchId: string) => {
+    if (expandedBatch === batchId) { setExpandedBatch(null); return; }
+    setExpandedBatch(batchId);
+    if (!batchVouchers[batchId]) {
+      setLoadingVouchers(prev => ({ ...prev, [batchId]: true }));
+      try {
+        const res = await apiFetch(`/vouchers/promo/batches/${batchId}/vouchers`);
+        setBatchVouchers(prev => ({ ...prev, [batchId]: res.data || [] }));
+      } catch (e: any) { console.error(e); }
+      finally { setLoadingVouchers(prev => ({ ...prev, [batchId]: false })); }
+    }
+  };
+
+  const handleDeleteVoucher = async (voucher: any, batchId: string) => {
+    if (!confirm(`Hapus voucher "${voucher.code}"?`)) return;
+    try {
+      await apiFetch(`/vouchers/promo/vouchers/${voucher.id}`, { method: 'DELETE' });
+      setBatchVouchers(prev => ({ ...prev, [batchId]: (prev[batchId] || []).filter(v => v.id !== voucher.id) }));
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const STATUS_COLORS: Record<string, string> = {
+    unused: '#22c55e',
+    redeemed: '#f59e0b',
+    expired: '#ef4444',
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse">
+          <div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
+          <p className="font-black uppercase tracking-widest text-[10px]">Memuat data voucher...</p>
+        </div>
+      ) : batches.length === 0 ? (
+        <div className="glass rounded-[2rem] p-12 text-center border-dashed border-2 border-[var(--border-dim)]">
+          <span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">confirmation_number</span>
+          <h3 className="font-display text-xl font-bold mb-1">Belum ada batch voucher</h3>
+          <p className="text-sm text-[var(--text-muted)]">Generate voucher terlebih dahulu melalui menu Voucher Generator.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {batches.map(batch => (
+            <div key={batch.id} className="card !rounded-3xl overflow-hidden border border-[var(--border-dim)]">
+              {/* Batch header row */}
+              <div className="flex items-center gap-4 p-5">
+                <div className="size-12 rounded-2xl flex items-center justify-center bg-amber-500/10 text-amber-500 shrink-0">
+                  <span className="material-symbols-outlined text-xl">confirmation_number</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-sm text-[var(--text-main)] truncate">{batch.promoName}</p>
+                  <p className="text-[10px] font-bold text-[var(--text-muted)] mt-0.5">
+                    {batch.quantity} voucher &bull; {new Date(batch.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => toggleBatch(batch.id)}
+                    className="size-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"
+                    title="Lihat Detail Voucher"
+                  >
+                    <span className="material-symbols-outlined text-sm">{expandedBatch === batch.id ? 'expand_less' : 'expand_more'}</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBatch(batch)}
+                    className="size-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                    title="Hapus Batch"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Voucher list (expanded) */}
+              {expandedBatch === batch.id && (
+                <div className="border-t border-[var(--border-dim)] bg-black/20">
+                  {loadingVouchers[batch.id] ? (
+                    <div className="flex items-center justify-center py-8 text-[var(--text-muted)] gap-3">
+                      <div className="size-5 border-2 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin"></div>
+                      <span className="text-xs font-bold">Memuat voucher...</span>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-[var(--border-dim)]">
+                            {['Kode Voucher', 'Menu', 'Harga Voucher', 'Status', 'Kadaluwarsa', 'Aksi'].map(h => (
+                              <th key={h} className="px-4 py-3 text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--border-dim)]">
+                          {(batchVouchers[batch.id] || []).map(v => (
+                            <tr key={v.id} className="hover:bg-white/5 transition-colors group">
+                              <td className="px-4 py-3 font-mono font-bold text-amber-400">{v.code}</td>
+                              <td className="px-4 py-3 text-[var(--text-muted)] font-medium truncate max-w-[120px]">{v.menuName || '—'}</td>
+                              <td className="px-4 py-3 font-bold text-[var(--primary)]">{v.voucherPrice ? formatRp(parseFloat(v.voucherPrice)) : '—'}</td>
+                              <td className="px-4 py-3">
+                                <span className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider" style={{ background: `${STATUS_COLORS[v.status] || '#94a3b8'}22`, color: STATUS_COLORS[v.status] || '#94a3b8' }}>
+                                  {v.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-[var(--text-muted)] font-medium">{new Date(v.expiresAt).toLocaleDateString('id-ID')}</td>
+                              <td className="px-4 py-3">
+                                <button
+                                  onClick={() => handleDeleteVoucher(v, batch.id)}
+                                  disabled={v.status === 'redeemed'}
+                                  className="size-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100"
+                                  title={v.status === 'redeemed' ? 'Tidak dapat menghapus voucher yang sudah digunakan' : 'Hapus Voucher'}
+                                >
+                                  <span className="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {(batchVouchers[batch.id] || []).length === 0 && (
+                        <p className="text-center text-[var(--text-muted)] text-xs py-8">Tidak ada voucher ditemukan.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LoyaltyTab() {
   const [settings, setSettings] = useState({ pointRatio: '', pointValue: '' });
   const [loading, setLoading] = useState(true);
@@ -882,13 +1048,14 @@ function LoyaltyTab() {
 }
 
 export default function App() {
-  const [tab, setTab] = useState<'members' | 'discounts' | 'loyalty'>('members');
+  const [tab, setTab] = useState<'members' | 'discounts' | 'vouchers' | 'loyalty'>('members');
 
   const headerTabs = (
     <nav className="flex p-1.5 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
        {[
          ['members', 'person_search', 'Daftar Member'],
          ['discounts', 'celebration', 'Promo & Bundling'],
+         ['vouchers', 'confirmation_number', 'Voucher'],
          ['loyalty', 'auto_fix', 'Aturan Poin']
        ].map(([key, icon, label]) => (
          <button
@@ -914,7 +1081,7 @@ export default function App() {
         {headerTabs}
       </div>
       <div className="relative">
-        {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : <LoyaltyTab />}
+        {tab === 'members' ? <MemberTab /> : tab === 'discounts' ? <DiscountTab /> : tab === 'vouchers' ? <VoucherTab /> : <LoyaltyTab />}
       </div>
     </Layout>
   );
