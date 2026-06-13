@@ -366,6 +366,7 @@ function DiscountTab() {
     priority: 5, voucherCode: '',
     orderSources: [] as string[],
     expiryHours: '3',
+    isFlatPriceMode: false,
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -415,6 +416,7 @@ function DiscountTab() {
       priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
       orderSources: cond.orderSources || [],
       expiryHours: (cond.expiryHours || 3).toString(),
+      isFlatPriceMode: !!cond.flatPrice || d.type === 'bundling',
     });
     setError(''); setModal('edit');
   };
@@ -436,7 +438,9 @@ function DiscountTab() {
       if (form.minQty) c.minQty = parseInt(form.minQty);
     }
 
-    if (form.flatPrice) c.flatPrice = form.flatPrice;
+    if (form.isFlatPriceMode && form.flatPrice) {
+      c.flatPrice = form.flatPrice;
+    }
 
     if (form.type === 'bundling') {
       c.discountType = 'percent'; // Default for bundling if no flat price
@@ -458,12 +462,13 @@ function DiscountTab() {
     setSaving(true); setError('');
     try {
       const payload = {
-        name: form.name, type: form.type, value: parseFloat(form.value),
+        name: form.name, type: form.type, 
+        value: form.isFlatPriceMode ? 0 : parseFloat(form.value || '0'),
         isActive: form.isActive, isStackable: form.isStackable, isExclusive: form.isExclusive,
         startDate: form.startDate || null, endDate: form.endDate || null,
         conditions: buildConditions(),
         minPurchase: form.minPurchase ? parseFloat(form.minPurchase) : 0,
-        discountCap: form.discountCap ? parseFloat(form.discountCap) : null,
+        discountCap: (!form.isFlatPriceMode && form.type === 'percent' && form.discountCap) ? parseFloat(form.discountCap) : null,
         budgetLimit: form.budgetLimit ? parseFloat(form.budgetLimit) : null,
         totalQuota: form.totalQuota ? parseInt(form.totalQuota) : null,
         limitPerUser: form.limitPerUser ? parseInt(form.limitPerUser) : null,
@@ -622,33 +627,65 @@ function DiscountTab() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Judul Promo"><input value={form.name} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} placeholder="e.g. Flash Sale Merdeka" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" /></Field>
                   <Field label="Tipe Diskon">
-                    <select value={form.type} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none">
-                      {Object.entries(TYPE_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                    <select 
+                      value={form.type} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setForm((f: any) => ({ ...f, type: val, isFlatPriceMode: val === 'bundling' ? true : f.isFlatPriceMode }));
+                      }} 
+                      className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none"
+                    >
+                      {Object.entries(TYPE_LABELS)
+                        .filter(([key]) => ['percent', 'nominal', 'bundling'].includes(key))
+                        .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                     </select>
                   </Field>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'}) (Opsi 1)`}>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{form.type === 'percent' ? '%' : 'Rp'}</span>
-                      <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black" />
+
+                <div className="bg-black/20 p-4 pt-3 rounded-2xl border border-[var(--border-dim)] space-y-4">
+                  <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden">
+                    <button 
+                      onClick={() => setForm((f: any) => ({ ...f, isFlatPriceMode: false }))}
+                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isFlatPriceMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                    >
+                      Potong Harga (Diskon)
+                    </button>
+                    <button 
+                      onClick={() => setForm((f: any) => ({ ...f, isFlatPriceMode: true }))}
+                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isFlatPriceMode ? 'bg-indigo-500 text-white shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                    >
+                      Ubah Harga Jadi (Spesial)
+                    </button>
+                  </div>
+
+                  {!form.isFlatPriceMode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.2s_ease-out]">
+                      <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'})`}>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{form.type === 'percent' ? '%' : 'Rp'}</span>
+                          <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-[var(--primary)] transition-all" />
+                        </div>
+                      </Field>
+                      {form.type === 'percent' && (
+                        <Field label="Plafon Potongan (Maks. Rp)">
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
+                            <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
+                          </div>
+                        </Field>
+                      )}
                     </div>
-                  </Field>
-                  <Field label="Harga Menjadi (Harga Flat Opsi 2)">
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-indigo-400">Rp</span>
-                        <input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} placeholder="Mengesampingkan nilai potongan" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-indigo-400 text-indigo-300" />
-                      </div>
-                  </Field>
+                  ) : (
+                    <div className="animate-[fadeIn_0.2s_ease-out]">
+                      <Field label="Harga Menjadi (Harga Promo Final)">
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-indigo-400">Rp</span>
+                          <input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} placeholder="Mengesampingkan harga asli produk" className="w-full bg-[var(--bg-app)] border-2 border-indigo-500/30 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-indigo-400 text-indigo-300 transition-all" />
+                        </div>
+                      </Field>
+                    </div>
+                  )}
                 </div>
-                {form.type === 'percent' && (
-                  <Field label="Plafon Potongan (Maks. Rp)">
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
-                      <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
-                    </div>
-                  </Field>
-                )}
              </section>
 
              {/* Section 2: Budget & Constraints */}
