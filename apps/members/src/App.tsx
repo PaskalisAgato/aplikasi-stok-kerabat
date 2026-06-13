@@ -367,6 +367,7 @@ function DiscountTab() {
     orderSources: [] as string[],
     expiryHours: '3',
     isFlatPriceMode: false,
+    isPromoCodeMode: false,
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -417,6 +418,7 @@ function DiscountTab() {
       orderSources: cond.orderSources || [],
       expiryHours: (cond.expiryHours || 3).toString(),
       isFlatPriceMode: !!cond.flatPrice || d.type === 'bundling',
+      isPromoCodeMode: !!d.voucherCode,
     });
     setError(''); setModal('edit');
   };
@@ -473,7 +475,7 @@ function DiscountTab() {
         totalQuota: form.totalQuota ? parseInt(form.totalQuota) : null,
         limitPerUser: form.limitPerUser ? parseInt(form.limitPerUser) : null,
         priority: parseInt(form.priority) || 5,
-        voucherCode: form.voucherCode?.trim().toUpperCase() || null,
+        voucherCode: form.isPromoCodeMode && form.voucherCode ? form.voucherCode.trim().toUpperCase() : null,
       };
       if (modal === 'create') {
         await apiFetch('/discounts', { method: 'POST', body: JSON.stringify(payload) });
@@ -641,6 +643,40 @@ function DiscountTab() {
                     </select>
                   </Field>
                 </div>
+                
+                {/* Promo Code Mode Toggle */}
+                <div className="bg-black/10 p-4 pt-3 rounded-2xl border border-[var(--border-dim)]">
+                  <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden">
+                    <button 
+                      onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: false }))}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isPromoCodeMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                    >
+                      Berlaku Otomatis
+                    </button>
+                    <button 
+                      onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: true }))}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isPromoCodeMode ? 'bg-amber-500 text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
+                    >
+                      <span className="material-symbols-outlined text-xs">confirmation_number</span>
+                      Klaim Pakai Kode (Promo Code)
+                    </button>
+                  </div>
+                  {form.isPromoCodeMode && (
+                    <div className="mt-4 animate-[fadeIn_0.2s_ease-out]">
+                      <Field label="Buat Kode Promo Unik (e.g. BUKBER20, DISKONGILA)">
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500 material-symbols-outlined">key</span>
+                          <input 
+                            value={form.voucherCode} 
+                            onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} 
+                            placeholder="Ketik kode di sini..." 
+                            className="w-full bg-[var(--bg-app)] border-2 border-amber-500/30 rounded-xl py-4 pl-12 pr-4 text-center font-mono text-xl tracking-[0.2em] font-black text-amber-500 placeholder:opacity-30 focus:border-amber-500 transition-all uppercase" 
+                          />
+                        </div>
+                      </Field>
+                    </div>
+                  )}
+                </div>
 
                 <div className="bg-black/20 p-4 pt-3 rounded-2xl border border-[var(--border-dim)] space-y-4">
                   <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden">
@@ -691,10 +727,9 @@ function DiscountTab() {
              {/* Section 2: Budget & Constraints */}
              <section className="space-y-4">
                 <div className="flex items-center gap-2"><span className="size-5 bg-emerald-500 text-slate-950 rounded-full flex items-center justify-center text-[10px] font-black">2</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Keamanan & Quota</h5></div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Min. Belanja (Rp)"><input type="number" value={form.minPurchase} onChange={e => setForm((f: any) => ({ ...f, minPurchase: e.target.value }))} placeholder="0 = Semua belanja" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
                   <Field label="Budget Maksimal (Rp)"><input type="number" value={form.budgetLimit} onChange={e => setForm((f: any) => ({ ...f, budgetLimit: e.target.value }))} placeholder="Auto-stop promo" className="w-full bg-[var(--bg-app)] border border-emerald-500/20 rounded-xl py-3 px-4 text-sm font-bold focus:border-emerald-500" /></Field>
-                  <Field label="Voucher Code"><input value={form.voucherCode} onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} placeholder="KOSONG = AUTO" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 px-4 text-sm font-black tracking-widest text-amber-500 placeholder:opacity-30" /></Field>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Kuota Total (Klaim)"><input type="number" value={form.totalQuota} onChange={e => setForm((f: any) => ({ ...f, totalQuota: e.target.value }))} placeholder="e.g. 100" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
