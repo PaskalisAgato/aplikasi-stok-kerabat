@@ -62,7 +62,7 @@ export function useBillManagement() {
             info = table;
         }
 
-        if (openBills.some(b => b.customerInfo?.toLowerCase() === info?.toLowerCase())) {
+        if (openBills.some(b => b.customerInfo?.toLowerCase() === info?.toLowerCase() && b.id !== currentBillId)) {
             showNotification(`Tagihan untuk "${info}" sudah ada di Daftar Bill Aktif.`, "warning");
             return;
         }
@@ -129,12 +129,12 @@ export function useBillManagement() {
         return { resetCart: false };
     };
 
-    const handleUpdateBill = async (activeCartItems: any[], itemNotes: Record<number, string>, orderSource: string) => {
+    const handleUpdateBill = async (activeCartItems: any[], itemNotes: Record<number, string>, orderSource: string, sales: Record<number, number>) => {
         if (!currentBillId) return;
         try {
             const items = activeCartItems.map(item => ({
                 recipeId: item.id,
-                quantity: item.qty,
+                quantity: sales[item.id] || 1,
                 price: item.price,
                 notes: itemNotes[item.id]
             }));

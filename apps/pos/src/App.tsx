@@ -196,22 +196,33 @@ export default function App() {
                     newSales[i.recipeId] = i.quantity;
                 });
 
-                // Shallow equality check to prevent infinite re-renders or unnecessary state sets
-                const salesKeys = Object.keys(sales);
-                const newSalesKeys = Object.keys(newSales);
-                const isDifferent = salesKeys.length !== newSalesKeys.length ||
-                    newSalesKeys.some(key => newSales[parseInt(key)] !== sales[parseInt(key)]);
-
-                if (isDifferent) {
-                    setSales(newSales);
-                    // Also sync customer info/table name if it changed during merge
-                    if (activeBill.customerInfo && activeBill.customerInfo !== customerInfo) {
-                        setCustomerInfo(activeBill.customerInfo);
+                // Use functional state update to safely compare without `sales` dependency
+                setSales(prevSales => {
+                    const salesKeys = Object.keys(prevSales);
+                    const newSalesKeys = Object.keys(newSales);
+                    
+                    // Only sync if the DB has fundamentally different items (e.g. after a merge)
+                    // We DO NOT want to overwrite local un-saved additions (`prevSales` having MORE items)
+                    // But we DO want to load the bill if the cart is currently empty or just switched
+                    const isNewLoad = salesKeys.length === 0;
+                    const isMergeUpdate = newSalesKeys.length > salesKeys.length;
+                    
+                    if (isNewLoad || isMergeUpdate) {
+                        return newSales;
                     }
-                }
+                    return prevSales; // Preserve local modifications!
+                });
+
+                // Sync customer info/table name if it's missing locally
+                setCustomerInfo(prevInfo => {
+                    if (activeBill.customerInfo && !prevInfo) {
+                        return activeBill.customerInfo;
+                    }
+                    return prevInfo;
+                });
             }
         }
-    }, [openBills, currentBillId, sales, customerInfo, setSales, setCustomerInfo]);
+    }, [openBills, currentBillId]);
 
     // Handlers
     const navigateTo = (newView: any) => {
@@ -267,7 +278,7 @@ export default function App() {
     };
 
     const onUpdateBillHandle = async () => {
-        const result = await handleUpdateBill(activeCartItems, itemNotes, orderSource);
+        const result = await handleUpdateBill(activeCartItems, itemNotes, orderSource, sales);
         if (result?.clearCart) resetCart();
     };
 

@@ -816,7 +816,51 @@ export class TransactionService {
             if (oldSaleArr.length === 0) throw new Error('Open transaction not found or already paid');
             const oldSale = oldSaleArr[0];
 
-            // 1. RE-VALIDATE PRICES: Use provided orderSource or fall back to oldSale's orderSource
+            // 1. Revert Stock for Old Items
+            const oldItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
+            if (oldItems.length > 0) {
+                const oldRecipeIds = oldItems.map((i: any) => i.recipeId);
+                const oldBoms = await tx.select({
+                    recipeId: schema.recipeIngredients.recipeId,
+                    inventoryId: schema.recipeIngredients.inventoryId,
+                    quantity: schema.recipeIngredients.quantity
+                }).from(schema.recipeIngredients).where(inArray(schema.recipeIngredients.recipeId, oldRecipeIds));
+
+                const oldInvIds = [...new Set(oldBoms.map((b: any) => b.inventoryId))] as number[];
+                let oldInvMap = new Map<number, string>();
+                if (oldInvIds.length > 0) {
+                    const oldInvItems = await tx.select({ id: schema.inventory.id, unit: schema.inventory.unit }).from(schema.inventory).where(inArray(schema.inventory.id, oldInvIds));
+                    oldInvMap = new Map(oldInvItems.map((i: any) => [i.id, i.unit]));
+                }
+
+                const revertMap = new Map<number, number>();
+                for (const item of oldItems) {
+                    const boms = oldBoms.filter((b: any) => b.recipeId === item.recipeId);
+                    for (const b of boms) {
+                        const unit = oldInvMap.get(b.inventoryId);
+                        if (!unit) continue;
+                        let qty = parseFloat(b.quantity) * item.quantity;
+                        if (['kg', 'l', 'liter', 'kilogram'].includes(unit.toLowerCase())) qty /= 1000;
+                        revertMap.set(b.inventoryId, (revertMap.get(b.inventoryId) || 0) + qty);
+                    }
+                }
+
+                for (const [invId, qty] of revertMap.entries()) {
+                    await tx.update(schema.inventory)
+                        .set({ currentStock: sql`${schema.inventory.currentStock} + ${qty}` })
+                        .where(eq(schema.inventory.id, invId));
+                    await tx.insert(schema.stockMovements).values({
+                        inventoryId: invId,
+                        type: 'IN',
+                        quantity: qty.toString(),
+                        reason: `Revert for Bill Update #${saleId}`
+                    });
+                }
+                // Clear Old Items
+                await tx.delete(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
+            }
+
+            // 2. RE-VALIDATE PRICES: Use provided orderSource or fall back to oldSale's orderSource
             const orderSourceToUse = providedOrderSource || oldSale.orderSource || 'DIRECT';
             const recipeIds = [...new Set(items.map((i: any) => i.recipeId))];
             
@@ -834,15 +878,15 @@ export class TransactionService {
                 return [r.id, finalPrice];
             }));
 
-            // 2. Insert new items and calculate incremental totals
-            let incrementalSubtotal = 0;
+            // 3. Insert new items and calculate absolute totals
+            let absoluteSubtotal = 0;
             for (const item of items) {
                 const price = priceMap.get(item.recipeId);
                 if (price === undefined || price === null) throw new Error(`Menu dengan ID ${item.recipeId} tidak ditemukan`);
                 
                 const qty = parseInt(item.quantity?.toString() || '1');
                 const subtotal = (price as number) * (isNaN(qty) ? 1 : qty);
-                incrementalSubtotal += (subtotal as number);
+                absoluteSubtotal += (subtotal as number);
             }
 
             const saleItemsInsertData = items.map((item: any) => {
@@ -855,14 +899,15 @@ export class TransactionService {
                     recipeId: item.recipeId,
                     quantity: isNaN(qty) ? 1 : qty,
                     subtotal: subtotal.toString(),
-                    notes: item.notes || null
+                    notes: item.notes || null,
+                    costPrice: '0' // Using 0 directly to prevent crashes, since this is open bill mode
                 };
             });
             await tx.insert(schema.saleItems).values(saleItemsInsertData);
 
-            // 3. Update parent sale totals
-            const newSubTotal = (parseFloat(oldSale.subTotal) + incrementalSubtotal).toString();
-            const newTotalAmount = (parseFloat(oldSale.totalAmount) + incrementalSubtotal).toString();
+            // 4. Update parent sale totals using absolute total
+            const newSubTotal = absoluteSubtotal.toString();
+            const newTotalAmount = absoluteSubtotal.toString();
             
             await tx.update(schema.sales).set({
                 subTotal: newSubTotal,
@@ -1340,9 +1385,38 @@ export class TransactionService {
                 .set({ saleId: targetId })
                 .where(inArray(schema.saleItems.saleId, sourceIds));
 
-            // 4. Recalculate totals for target bill
+            // 3b. Consolidate duplicate recipeId rows in the target bill
+            // (e.g. both bills had "kopi tubruk qty 1" → merge into one "kopi tubruk qty 2")
+            const allTargetItemsRaw = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, targetId));
+
+            const grouped = new Map<number, { ids: number[], totalQty: number, totalSubtotal: number, notes: string | null }>();
+            for (const item of allTargetItemsRaw) {
+                const existing = grouped.get(item.recipeId);
+                const qty = parseInt(item.quantity.toString());
+                const sub = parseFloat(item.subtotal.toString());
+                if (existing) {
+                    existing.ids.push(item.id);
+                    existing.totalQty += qty;
+                    existing.totalSubtotal += sub;
+                } else {
+                    grouped.set(item.recipeId, { ids: [item.id], totalQty: qty, totalSubtotal: sub, notes: item.notes });
+                }
+            }
+
+            for (const [, group] of grouped) {
+                if (group.ids.length > 1) {
+                    const [keepId, ...deleteIds] = group.ids;
+                    await tx.delete(schema.saleItems).where(inArray(schema.saleItems.id, deleteIds));
+                    await tx.update(schema.saleItems)
+                        .set({ quantity: group.totalQty, subtotal: group.totalSubtotal.toString() })
+                        .where(eq(schema.saleItems.id, keepId));
+                }
+            }
+
+            // 4. Recalculate totals for target bill (using consolidated items)
             const allItems = await tx.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, targetId));
             const newSubTotal = allItems.reduce((acc: number, item: any) => acc + parseFloat(item.subtotal), 0).toString();
+
             
             // 5. Update Target Bill Info
             const sourceInfos = sourceBills.map((b: any) => b.customerInfo).join(', ');
