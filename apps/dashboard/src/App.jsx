@@ -78,7 +78,9 @@ function App() {
       setIsDetailLoading(true);
       setSelectedShiftDetail({ ...report, _isLoading: true });
       const response = await apiClient.getCashierShiftSummary(report.id);
-      setSelectedShiftDetail({ ...response, cashierName: report.cashierName });
+      // response.data contains the actual shift summary (itemizedSales, totalOmzet, etc.)
+      const detail = response?.data || response;
+      setSelectedShiftDetail({ ...detail, cashierName: report.cashierName });
     } catch (error) {
        alert('Gagal mengambil rincian shift: ' + error.message);
        setSelectedShiftDetail(null);
