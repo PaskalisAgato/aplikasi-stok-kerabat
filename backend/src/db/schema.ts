@@ -224,6 +224,7 @@ export const discounts = pgTable('discounts', {
     // Audit Trail
     createdBy: text('created_by').references(() => users.id),
     updatedBy: text('updated_by').references(() => users.id),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull()
 }, (t: any) => ({
     typeIdx: index('discounts_type_idx').on(t.type),

@@ -606,7 +606,7 @@ inventoryRouter.post('/opname', requireAuth, async (req: Request, res: Response)
             containerWeight: containerWeight?.toString() || '0',
             containerId: containerId ? parseInt(containerId.toString()) : null,
             imageUrl,
-            outletId: parseInt(outletId.toString())
+            outletId: outletId ? parseInt(outletId.toString()) : 1
         }).returning({
             id: schema.inventory.id,
             name: schema.inventory.name

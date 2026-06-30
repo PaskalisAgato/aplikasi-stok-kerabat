@@ -7,10 +7,11 @@ export class DiscountService {
     static async getAllDiscounts(activeOnly = false) {
         if (activeOnly) {
             return await db.select().from(schema.discounts)
-                .where(eq(schema.discounts.isActive, true))
+                .where(and(eq(schema.discounts.isActive, true), eq(schema.discounts.isDeleted, false)))
                 .orderBy(desc(schema.discounts.priority));
         }
         return await db.select().from(schema.discounts)
+            .where(eq(schema.discounts.isDeleted, false))
             .orderBy(desc(schema.discounts.priority));
     }
 
@@ -82,7 +83,7 @@ export class DiscountService {
     }
 
     static async deleteDiscount(id: number) {
-        await db.delete(schema.discounts).where(eq(schema.discounts.id, id));
+        await db.update(schema.discounts).set({ isDeleted: true, isActive: false }).where(eq(schema.discounts.id, id));
     }
 
     /**
