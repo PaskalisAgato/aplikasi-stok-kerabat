@@ -76,12 +76,15 @@ function App() {
   const handleViewDetail = async (report) => {
     try {
       setIsDetailLoading(true);
-      setSelectedShiftDetail({ ...report, _isLoading: true });
-      const response = await apiClient.getCashierShiftSummary(report.id);
+      setSelectedShiftDetail({ shiftId: report.id, cashierName: report.cashierName }); // open modal immediately
+      // Use apiClient.get to bypass the 30s GET cache by adding cache-bust param
+      const response = await apiClient.get(`/cashier-shifts/summary/${report.id}?_t=${Date.now()}`);
       // response.data contains the actual shift summary (itemizedSales, totalOmzet, etc.)
       const detail = response?.data || response;
+      console.log('[ShiftDetail] API response:', detail);
       setSelectedShiftDetail({ ...detail, cashierName: report.cashierName });
     } catch (error) {
+       console.error('[ShiftDetail] Error:', error);
        alert('Gagal mengambil rincian shift: ' + error.message);
        setSelectedShiftDetail(null);
     } finally {
@@ -795,7 +798,7 @@ function App() {
             </div>
             
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#0b0f19]">
-               {selectedShiftDetail._isLoading ? (
+               {isDetailLoading ? (
                  <div className="py-20 flex flex-col items-center justify-center opacity-40">
                     <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4"></div>
                     <p className="text-[9px] font-black text-white uppercase tracking-widest">Mengambil Data Item...</p>
