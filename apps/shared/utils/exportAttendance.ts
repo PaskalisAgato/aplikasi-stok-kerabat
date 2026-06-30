@@ -5,115 +5,89 @@ export const exportToExcel = async (data: any[], fileName: string) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Attendance');
 
-    // 1. Define Columns
+    // 1. Define Columns untuk Tabel 1 (Daily Logs)
     worksheet.columns = [
-        { header: 'Nama Karyawan', key: 'userName', width: 25 },
         { header: 'Tanggal', key: 'dateStr', width: 15 },
-        { header: 'Hari', key: 'day', width: 10 },
-        { header: 'Shift', key: 'shift', width: 8 },
-        { header: 'Jam Masuk', key: 'checkInTime', width: 12 },
-        { header: 'Jam Keluar', key: 'checkOutTime', width: 12 },
-        { header: 'Total Jam', key: 'totalHours', width: 12 },
-        { header: 'Status', key: 'status', width: 12 },
-        { header: 'Lokasi (Alamat)', key: 'location', width: 40 },
-        { header: 'Latitude', key: 'latitude', width: 15 },
-        { header: 'Longitude', key: 'longitude', width: 15 },
-        { header: 'Keterangan', key: 'note', width: 20 },
+        { header: 'Nama Karyawan', key: 'userName', width: 25 },
+        { header: 'Jam Masuk', key: 'checkInTime', width: 15 },
+        { header: 'Jam Keluar', key: 'checkOutTime', width: 15 },
+        { header: 'Status', key: 'status', width: 15 },
     ];
 
-    // 2. Add Rows and Formatting
+    // 2. Add Rows and Formatting untuk Tabel 1
     const rows = data.map(item => {
         const date = new Date(item.date);
-        const day = date.toLocaleDateString('id-ID', { weekday: 'long' });
-        const dateStr = date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+        const dateStr = date.toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
         
         const checkIn = item.checkIn ? new Date(item.checkIn) : null;
         const checkOut = item.checkOut ? new Date(item.checkOut) : null;
         
-        const checkInTime = checkIn ? checkIn.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-        const checkOutTime = checkOut ? checkOut.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-        
-        let totalHoursInt = 0;
-        if (checkIn && checkOut) {
-            totalHoursInt = (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
-        }
-        const totalHours = totalHoursInt > 0 ? totalHoursInt.toFixed(2) : '0';
+        const checkInTime = checkIn ? checkIn.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+        const checkOutTime = checkOut ? checkOut.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
 
         return {
-            userName: item.userName,
             dateStr,
-            day,
-            shift: item.shift || '-',
+            userName: item.userName,
             checkInTime,
             checkOutTime,
-            totalHours,
-            status: item.status,
-            location: item.location || '-',
-            latitude: item.latitude || '-',
-            longitude: item.longitude || '-',
-            note: item.note || ''
+            status: item.status
         };
     });
 
     worksheet.addRows(rows);
 
-    // 3. Style Headers
+    // 3. Style Headers Tabel 1
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell((cell) => {
-        cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF1E293B' }, // Slate-800
-        };
-        cell.font = {
-            bold: true,
-            color: { argb: 'FFFFFFFF' },
-        };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' },
-        };
+        cell.font = { bold: true };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     });
 
-    // 4. Style Data Cells
+    // 4. Style Data Cells Tabel 1
     worksheet.eachRow((row, rowNumber) => {
         if (rowNumber > 1) {
             row.eachCell((cell) => {
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' },
-                };
+                cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
             });
         }
     });
 
-    // 5. Add Recap (Rekap)
+    // 5. Add Recap (Summary Tabel 2)
     worksheet.addRow([]); // Empty row
-    const rekapStart = worksheet.lastRow!.number + 1;
+    worksheet.addRow([]); // Empty row
     
-    worksheet.addRow(['REKAP ABSENSI']);
-    worksheet.mergeCells(`A${rekapStart}:C${rekapStart}`);
-    worksheet.getCell(`A${rekapStart}`).font = { bold: true, size: 14 };
+    const summaryHeader = ['Nama Karyawan', 'Total Hari Kerja', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Total Libur'];
+    const summaryHeaderRow = worksheet.addRow(summaryHeader);
+    
+    summaryHeaderRow.eachCell(cell => {
+        cell.font = { bold: true };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    });
 
-    const summary = {
-        hadir: data.filter(i => i.status === 'Hadir').length,
-        terlambat: data.filter(i => i.status === 'Terlambat').length,
-        alpha: data.filter(i => i.status === 'Alpha').length,
-        izin: data.filter(i => i.status === 'Izin').length,
-        totalHours: rows.reduce((acc, r) => acc + parseFloat(r.totalHours), 0).toFixed(2)
-    };
+    // Kalkulasi Rekap per Karyawan
+    const summaryMap: Record<string, { total: number, hadir: number, izin: number, sakit: number, alpa: number, libur: number }> = {};
+    
+    data.forEach(item => {
+        const name = item.userName || 'Unknown';
+        if (!summaryMap[name]) {
+            summaryMap[name] = { total: 0, hadir: 0, izin: 0, sakit: 0, alpa: 0, libur: 0 };
+        }
+        summaryMap[name].total += 1;
+        
+        const status = (item.status || '').toLowerCase();
+        if (status === 'hadir' || status === 'terlambat') summaryMap[name].hadir += 1;
+        else if (status === 'izin') summaryMap[name].izin += 1;
+        else if (status === 'sakit') summaryMap[name].sakit += 1;
+        else if (status === 'alpha' || status === 'alpa') summaryMap[name].alpa += 1;
+        else if (status === 'libur' || status === 'off') summaryMap[name].libur += 1;
+    });
 
-    worksheet.addRow(['Total Hadir', summary.hadir]);
-    worksheet.addRow(['Total Terlambat', summary.terlambat]);
-    worksheet.addRow(['Total Alpha', summary.alpha]);
-    worksheet.addRow(['Total Izin', summary.izin]);
-    worksheet.addRow(['Total Jam Kerja', summary.totalHours + ' Jam']);
+    Object.entries(summaryMap).forEach(([name, counts]) => {
+        const row = worksheet.addRow([name, counts.total, counts.hadir, counts.izin, counts.sakit, counts.alpa, counts.libur]);
+        row.eachCell(cell => {
+             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        });
+    });
 
     // Freeze Header
     worksheet.views = [
