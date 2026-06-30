@@ -1,4 +1,4 @@
-const DailyReportCard = ({ report, onDelete, onExport }) => {
+const DailyReportCard = ({ report, onDelete, onExport, onViewDetail }) => {
   const isProfit = report.profit >= 0;
 
   return (
@@ -151,7 +151,7 @@ const DailyReportCard = ({ report, onDelete, onExport }) => {
       {/* FOOTER: ACTIONS */}
       <div className="px-6 md:px-10 py-5 bg-white/[0.02] border-t border-white/5 flex flex-wrap md:flex-nowrap justify-end gap-2 md:gap-3 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-300">
           <button 
-            onClick={() => alert(`Laporan Shift ${report.cashierName} pada ${report.date}\nStatus: ${report.status}\nTotal Transaksi: ${report.totalTransactions}\nProfit: Rp ${report.profit.toLocaleString()}`)}
+            onClick={() => onViewDetail ? onViewDetail(report) : alert(`Laporan Shift ${report.cashierName}`)}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)]/60 hover:bg-white/10 hover:text-[var(--text-main)] transition-all border border-white/10 min-w-[80px]"
           >
               <span className="material-symbols-outlined text-lg">visibility</span>

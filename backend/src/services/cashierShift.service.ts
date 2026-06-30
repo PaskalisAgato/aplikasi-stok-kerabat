@@ -153,6 +153,22 @@ export class CashierShiftService {
             totalRefunds: cashFlow.refund,
             totalAdjustments: cashFlow.adjustment,
             totalItemsSold: Number(itemsData[0]?.totalItems || 0),
+            itemizedSales: await db.select({
+                name: schema.recipes.name,
+                price: schema.recipes.price,
+                quantity: sql<number>`sum(${schema.saleItems.quantity})`,
+                subtotal: sql<number>`sum(CAST(${schema.saleItems.subtotal} AS DECIMAL))`
+            })
+            .from(schema.saleItems)
+            .innerJoin(schema.sales, eq(schema.saleItems.saleId, schema.sales.id))
+            .innerJoin(schema.recipes, eq(schema.saleItems.recipeId, schema.recipes.id))
+            .where(and(
+                eq(schema.sales.shiftId, shiftId), 
+                eq(schema.sales.status, 'PAID'),
+                eq(schema.sales.isVoided, false),
+                eq(schema.sales.isDeleted, false)
+            ))
+            .groupBy(schema.recipes.id, schema.recipes.name, schema.recipes.price),
             ledgerAudit: cashFlow, // Detailed audit trail
             nonCashTransactions: await db.select({
                 id: schema.sales.id,

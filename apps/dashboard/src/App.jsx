@@ -27,6 +27,9 @@ function App() {
   const [incomeForm, setIncomeForm] = useState({ title: '', amount: '', source: 'OWNER', incomeDate: todayWib, notes: '' });
   const [isSubmittingIncome, setIsSubmittingIncome] = useState(false);
 
+  const [selectedShiftDetail, setSelectedShiftDetail] = useState(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+
   const fetchData = async () => {
     if (!customRange.start || !customRange.end) return;
     try {
@@ -67,6 +70,20 @@ function App() {
       setReports([]);
     } finally {
       setIsReportsLoading(false);
+    }
+  };
+
+  const handleViewDetail = async (report) => {
+    try {
+      setIsDetailLoading(true);
+      setSelectedShiftDetail({ ...report, _isLoading: true });
+      const response = await apiClient.getCashierShiftSummary(report.id);
+      setSelectedShiftDetail({ ...response, cashierName: report.cashierName });
+    } catch (error) {
+       alert('Gagal mengambil rincian shift: ' + error.message);
+       setSelectedShiftDetail(null);
+    } finally {
+       setIsDetailLoading(false);
     }
   };
 
@@ -743,6 +760,7 @@ function App() {
                           report={report} 
                           onDelete={handleDeleteReport}
                           onExport={() => exportToCSV(report)}
+                          onViewDetail={handleViewDetail}
                         />
                       ))}
                       {reports.length === 0 && (
@@ -759,6 +777,81 @@ function App() {
           </>
         )}
       </div>
+      
+      {/* SHIFT DETAIL MODAL */}
+      {selectedShiftDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+              <div>
+                 <h3 className="text-lg font-black text-[var(--text-main)] uppercase tracking-tight">Detail Shift</h3>
+                 <p className="text-[10px] text-primary font-bold uppercase mt-1 tracking-widest">Kasir: {selectedShiftDetail.cashierName || 'Unknown'}</p>
+              </div>
+              <button onClick={() => setSelectedShiftDetail(null)} className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[var(--text-main)] transition-all">
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#0b0f19]">
+               {selectedShiftDetail._isLoading ? (
+                 <div className="py-20 flex flex-col items-center justify-center opacity-40">
+                    <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4"></div>
+                    <p className="text-[9px] font-black text-white uppercase tracking-widest">Mengambil Data Item...</p>
+                 </div>
+               ) : (
+                 <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                    {/* Ringkasan Modal */}
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="p-5 rounded-2xl glass border border-white/5 flex flex-col justify-center">
+                          <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-xs">savings</span> Laci Awal (Modal)</p>
+                          <p className="text-xl font-black text-white tracking-tight"><span className="text-sm opacity-50 font-bold mr-1">Rp</span>{(selectedShiftDetail.initialCash || 0).toLocaleString()}</p>
+                       </div>
+                       <div className="p-5 rounded-2xl glass border border-white/5 text-right flex flex-col justify-center">
+                          <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2 flex items-center justify-end gap-1.5"><span className="material-symbols-outlined text-xs">trending_up</span> Penjualan Shift</p>
+                          <p className="text-xl font-black text-emerald-400 tracking-tight"><span className="text-sm opacity-50 font-bold mr-1 text-white">Rp</span>{(selectedShiftDetail.totalOmzet || 0).toLocaleString()}</p>
+                       </div>
+                    </div>
+                    
+                    {/* Itemized Sales */}
+                    <div className="glass border border-white/5 rounded-3xl p-6 relative overflow-hidden">
+                        {/* Motif glow BG */}
+                        <div className="absolute top-0 right-0 -mr-10 -mt-10 size-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div className="flex items-center justify-between mb-6 relative z-10">
+                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white/70 flex items-center gap-2">
+                               <span className="material-symbols-outlined text-primary text-base">receipt_long</span>
+                               Rincian Barang Terjual
+                            </h4>
+                            <span className="text-[10px] font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{selectedShiftDetail.totalItemsSold || 0} Item Total</span>
+                        </div>
+                        
+                        {!selectedShiftDetail.itemizedSales || selectedShiftDetail.itemizedSales.length === 0 ? (
+                            <div className="text-center opacity-30 py-10 flex flex-col items-center gap-3">
+                               <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                               <p className="text-[10px] uppercase font-black tracking-widest">Tidak ada penjualan item</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3 relative z-10 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                {selectedShiftDetail.itemizedSales.map((item, idx) => (
+                                    <div key={idx} className="flex justify-between items-center p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all group">
+                                       <div className="flex-1 min-w-0 pr-4">
+                                          <p className="text-xs font-black uppercase text-white truncate">{item.name}</p>
+                                          <p className="text-[9px] font-bold text-white/50 uppercase mt-1 tracking-wider"><span className="text-primary">{item.quantity}x</span> &bull; Rp {Number(item.price).toLocaleString()}</p>
+                                       </div>
+                                       <div className="text-right shrink-0">
+                                          <p className="text-xs md:text-sm font-black text-emerald-400 group-hover:text-emerald-300 transition-colors">Rp {Number(item.subtotal).toLocaleString()}</p>
+                                       </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                 </div>
+               )}
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
