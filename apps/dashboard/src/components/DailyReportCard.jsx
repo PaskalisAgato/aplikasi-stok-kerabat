@@ -161,8 +161,8 @@ const DailyReportCard = ({ report, onDelete, onExport, onViewDetail }) => {
             onClick={onExport}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)]/60 hover:bg-white/10 hover:text-[var(--text-main)] transition-all border border-white/10 min-w-[80px]"
           >
-              <span className="material-symbols-outlined text-lg text-primary">description</span>
-              CSV
+              <span className="material-symbols-outlined text-lg text-emerald-400">table_view</span>
+              Excel
           </button>
           <button 
             onClick={() => onDelete && onDelete(report.id)}

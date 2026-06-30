@@ -139,53 +139,95 @@ function App() {
     }
   };
 
-  const exportToCSV = (reportsOrReport) => {
-    const headers = ['Tanggal', 'Periode', 'Kasir', 'Status', 'Mulai', 'Penjualan', 'Pengeluaran', 'Laci Kasir', 'Profit', 'Transaksi'];
-    const formatCSVField = (val) => {
-      if (val === null || val === undefined) return '';
-      const str = val.toString();
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return `"${str.replace(/"/g, '""')}"`;
+  const exportToExcel = async (reportsOrReport) => {
+    const { utils, writeFile } = await import('xlsx');
+    const shiftList = Array.isArray(reportsOrReport) ? reportsOrReport : [reportsOrReport];
+    if (shiftList.length === 0) return;
+
+    const wb = utils.book_new();
+
+    for (const report of shiftList) {
+      // Fetch itemized sales for this shift
+      let items = [];
+      try {
+        const res = await apiClient.get(`/cashier-shifts/summary/${report.id}?_t=${Date.now()}`);
+        const detail = res?.data || res;
+        items = detail?.itemizedSales || [];
+      } catch (e) {
+        items = [];
       }
-      return str;
-    };
 
-    const downloadCSV = (dataReports, filename) => {
-      const rows = dataReports.map(r => [
-        r.date, 
-        `${r.startTime}-${r.endTime}`,
-        r.cashierName,
-        r.status,
-        r.initialCash,
-        r.totalSales,
-        r.totalExpenses,
-        r.cashDrawer,
-        r.profit,
-        r.totalTransactions
-      ]);
+      // ── Build worksheet rows ──────────────────────────────────────────────
+      const rows = [];
 
-      const csvRows = [
-        headers.map(formatCSVField).join(','),
-        ...rows.map(row => row.map(formatCSVField).join(','))
-      ].join('\n');
+      // Title block
+      rows.push(['LAPORAN SHIFT KASIR – STOK KERABAT', '', '', '', '']);
+      rows.push([`Kasir: ${report.cashierName}`, '', '', `Tanggal: ${report.date}`, '']);
+      rows.push([`Waktu Mulai: ${report.startTime}`, '', '', `Waktu Selesai: ${report.endTime}`, '']);
+      rows.push([`Status Shift: ${report.status}`, '', '', `Jumlah Transaksi: ${report.totalTransactions}`, '']);
+      rows.push([]); // spacer
 
-      const blob = new Blob(['\uFEFF' + csvRows], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    };
+      // Column headers
+      rows.push(['No.', 'Nama Menu / Item', 'Qty', 'Harga Satuan (Rp)', 'Subtotal (Rp)']);
 
-    if (Array.isArray(reportsOrReport)) {
-      if (reportsOrReport.length === 0) return;
-      downloadCSV(reportsOrReport, `Laporan_Harian_Kerabat_${new Date().toISOString().split('T')[0]}.csv`);
-    } else {
-      downloadCSV([reportsOrReport], `Laporan_Shift_${reportsOrReport.cashierName}_${reportsOrReport.date}.csv`);
+      // Item rows from itemized sales
+      if (items.length > 0) {
+        items.forEach((item, idx) => {
+          const qty = Number(item.quantity);
+          const subtotal = Number(item.subtotal);
+          const harga = qty > 0 ? subtotal / qty : 0;
+          rows.push([idx + 1, item.name, qty, harga, subtotal]);
+        });
+      } else {
+        rows.push(['', '(Tidak ada data item penjualan)', '', '', '']);
+      }
+
+      rows.push([]); // spacer
+
+      // Grand totals
+      rows.push(['', '', '', 'TOTAL PENJUALAN', report.totalSales]);
+      rows.push(['', '', '', 'Total Pengeluaran', report.totalExpenses]);
+      rows.push(['', '', '', 'Laci Kasir (Uang Tunai Aktual)', report.cashDrawer]);
+      rows.push(['', '', '', 'Profit / Laba Bersih', report.profit]);
+
+      // ── Create worksheet ─────────────────────────────────────────────────
+      const ws = utils.aoa_to_sheet(rows);
+
+      // Col widths
+      ws['!cols'] = [
+        { wch: 4 },   // No.
+        { wch: 32 },  // Nama Menu
+        { wch: 8 },   // Qty
+        { wch: 22 },  // Harga Satuan
+        { wch: 22 },  // Subtotal
+      ];
+
+      // Row heights: title rows taller
+      ws['!rows'] = rows.map((_, i) => (i < 5 ? { hpt: 20 } : { hpt: 18 }));
+
+      // Format numeric cells as accounting (currency)
+      const numFmt = '#,##0';
+      for (let r = 6; r < 6 + items.length; r++) {
+        ['D', 'E'].forEach(col => {
+          const ref = `${col}${r + 1}`;
+          if (ws[ref]) ws[ref].z = numFmt;
+        });
+      }
+      const totalStartRow = 6 + items.length + 2;
+      for (let r = totalStartRow; r < totalStartRow + 4; r++) {
+        const ref = `E${r + 1}`;
+        if (ws[ref]) ws[ref].z = numFmt;
+      }
+
+      const sheetName = `${report.cashierName.substring(0, 20)}_${report.date.replace(/\s/g, '_')}`.substring(0, 31);
+      utils.book_append_sheet(wb, ws, sheetName);
     }
+
+    const filename = shiftList.length === 1
+      ? `Laporan_Shift_${shiftList[0].cashierName}_${shiftList[0].date.replace(/\s/g, '_')}.xlsx`
+      : `Laporan_Shift_Kerabat_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    writeFile(wb, filename);
   };
 
   useEffect(() => {
@@ -743,7 +785,7 @@ function App() {
                     <p className="text-[10px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Real-time Shift & Financial Reports</p>
                   </div>
                   <button 
-                    onClick={() => exportToCSV(reports)}
+                    onClick={() => exportToExcel(reports)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 text-[13px] font-bold text-[var(--text-main)] hover:bg-white/10 transition-all border border-white/10 min-w-[100px]"
                   >
                     <span className="material-symbols-outlined text-lg text-primary">description</span>
@@ -764,7 +806,7 @@ function App() {
                           key={report.id} 
                           report={report} 
                           onDelete={handleDeleteReport}
-                          onExport={() => exportToCSV(report)}
+                          onExport={() => exportToExcel(report)}
                           onViewDetail={handleViewDetail}
                         />
                       ))}
