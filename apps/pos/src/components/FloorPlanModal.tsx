@@ -118,8 +118,8 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
                                 {tables.map(table => {
                                     const isOccupied = occupiedTables.has(table.name.toLowerCase().trim());
                                     
-                                    // Behaviors depending on mode
-                                    const isDisabled = mode === 'save' ? isOccupied : !isOccupied;
+                                    // Behaviors depending on mode (In Open mode: both occupied & empty are clickable!)
+                                    const isDisabled = mode === 'save' ? isOccupied : false;
                                     
                                     let styling = '';
                                     if (isOccupied) {
@@ -127,7 +127,7 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
                                             ? 'bg-red-50 text-red-600 border-2 border-red-500 hover:bg-red-100 hover:shadow-xl hover:shadow-red-500/30 cursor-pointer active:scale-95'
                                             : 'bg-red-50 text-red-400 border-2 border-red-200 cursor-not-allowed opacity-80';
                                     } else {
-                                        styling = mode === 'save'
+                                        styling = mode === 'save' || mode === 'open'
                                             ? 'bg-white text-slate-700 border-2 border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-500 cursor-pointer hover:shadow-xl hover:shadow-emerald-500/20 active:scale-95'
                                             : 'bg-slate-100/50 text-slate-400 border-2 border-slate-200 cursor-not-allowed opacity-50';
                                     }

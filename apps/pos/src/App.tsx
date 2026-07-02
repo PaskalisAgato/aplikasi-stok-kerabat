@@ -641,6 +641,11 @@ export default function App() {
                             const newSales: Record<number, number> = {};
                             bill.items?.forEach((i: any) => newSales[i.recipeId] = i.quantity);
                             setSales(newSales);
+                        } else {
+                            // Selected an empty table in map, prepare a new bill cart!
+                            setCurrentBillId(null);
+                            setCustomerInfo(info);
+                            setSales({});
                         }
                     }
                 }}
