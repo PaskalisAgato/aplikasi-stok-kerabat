@@ -620,9 +620,9 @@ function DiscountTab() {
                       {products.filter(p=>!prodSearch || (p.name || '').toLowerCase().includes(prodSearch.toLowerCase())).map(p=>{
                         const selected = form.productIds.includes(p.id.toString());
                         return (
-                          <button type="button" key={p.id} onClick={() => selected ? removeProduct(p.id.toString()) : addProduct(p.id)} className={`text-left text-xs p-2.5 rounded-xl transition-all flex justify-between items-center group border ${selected ? (wizardCategory === 'bundle' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : wizardCategory === 'code' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-primary/20 border-primary/50 text-primary') : 'bg-white/5 border-white/5 hover:border-white/20 text-[var(--text-muted)]'}`}>
-                            <span className="truncate pr-2">{p.name}</span>
-                            <span className={`shrink-0 font-black text-sm opacity-50 group-hover:opacity-100 ${selected ? 'text-red-400' : 'text-emerald-400'}`}>{selected ? '−' : '+'}</span>
+                          <button type="button" key={p.id} onClick={() => selected ? removeProduct(p.id.toString()) : addProduct(p.id)} className={`text-left text-xs p-2.5 rounded-xl transition-all flex justify-between items-center group border ${selected ? (wizardCategory === 'bundle' ? 'bg-purple-500/20 border-purple-500/50 text-purple-800' : wizardCategory === 'code' ? 'bg-amber-500/20 border-amber-500/50 text-amber-800' : 'bg-primary/20 border-primary/50 text-slate-900') : 'bg-black/5 border-black/5 hover:bg-black/10 text-slate-700'}`}>
+                            <span className="truncate pr-2 font-bold">{p.name}</span>
+                            <span className={`shrink-0 font-black text-sm opacity-50 group-hover:opacity-100 ${selected ? 'text-red-500' : 'text-emerald-500'}`}>{selected ? '−' : '+'}</span>
                           </button>
                         )
                       })}
