@@ -349,43 +349,34 @@ function MemberTab() {
 }
 
 // ─── Discount Tab ─────────────────────────────────────────────────────────────
-// ─── Discount Tab ─────────────────────────────────────────────────────────────
 function DiscountTab() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [subTab, setSubTab] = useState<'auto' | 'code' | 'bundle'>('auto');
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
   const [selected, setSelected] = useState<Discount | null>(null);
+  const [step, setStep] = useState(1);
+  const [wizardCategory, setWizardCategory] = useState<'auto' | 'code' | 'bundle' | null>(null);
+
+  const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
   const EMPTY_FORM = {
     name: '', type: 'percent', value: '', isActive: true, isStackable: false, isExclusive: false,
     startDate: '', endDate: '',
     days: [] as number[], startHour: '', endHour: '',
-    productIds: '', minLevel: 'bronze', discountType: 'percent', flatPrice: '', category: '', minQty: '',
+    productIds: [] as string[],
+    minLevel: '', isMemberRestricted: false,
+    flatPrice: '',
     minPurchase: '', discountCap: '', budgetLimit: '',
     totalQuota: '', limitPerUser: '',
     priority: 5, voucherCode: '',
     orderSources: [] as string[],
-    expiryHours: '3',
-    isFlatPriceMode: false,
-    isPromoCodeMode: false,
-    isMemberRestricted: false,
   };
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [prodSearch, setProdSearch] = useState('');
-
-  const addProductId = (id: number) => {
-    const ids = form.productIds ? form.productIds.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
-    if (!ids.includes(id.toString())) {
-      setForm((f: any) => ({ ...f, productIds: [...ids, id.toString()].join(',') }));
-    }
-  };
-
-  const removeProductId = (id: string) => {
-    const ids = form.productIds.split(',').map((s: string) => s.trim()).filter((s: string) => s && s !== id);
-    setForm((f: any) => ({ ...f, productIds: ids.join(',') }));
-  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -400,492 +391,254 @@ function DiscountTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setForm(EMPTY_FORM); setError(''); setModal('create'); };
+  const handleToggleActive = async (d: Discount) => {
+    try {
+      await apiFetch(`/discounts/${d.id}`, { method: 'PUT', body: JSON.stringify({ isActive: !d.isActive }) });
+      load();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const openCreate = () => {
+    setForm(EMPTY_FORM); setProdSearch(''); setError(''); setStep(1); setWizardCategory(null); setSelected(null); setModal('create');
+  };
 
   const openEdit = (d: Discount) => {
     let cond: any = {};
     try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
     setSelected(d);
+    let cat: 'auto' | 'code' | 'bundle' = 'auto';
+    if (d.type === 'bundling') cat = 'bundle';
+    else if (d.voucherCode) cat = 'code';
+    setWizardCategory(cat);
     setForm({
       name: d.name, type: d.type, value: d.value,
       isActive: d.isActive, isStackable: d.isStackable, isExclusive: d.isExclusive,
       startDate: d.startDate?.slice(0, 10) || '', endDate: d.endDate?.slice(0, 10) || '',
       days: cond.days || [], startHour: cond.startHour?.toString() || '', endHour: cond.endHour?.toString() || '',
-      productIds: (cond.productIds || []).join(','), minLevel: cond.minLevel || 'bronze', discountType: cond.discountType || 'percent',
-      flatPrice: cond.flatPrice || '', category: cond.category || '', minQty: cond.minQty?.toString() || '',
+      productIds: (cond.productIds || []).map(String),
+      minLevel: cond.minLevel || '', isMemberRestricted: !!cond.minLevel,
+      flatPrice: cond.flatPrice || '',
       minPurchase: d.minPurchase || '', discountCap: d.discountCap || '', budgetLimit: d.budgetLimit || '',
       totalQuota: d.totalQuota?.toString() || '', limitPerUser: d.limitPerUser?.toString() || '',
       priority: d.priority ?? 5, voucherCode: d.voucherCode || '',
       orderSources: cond.orderSources || [],
-      expiryHours: (cond.expiryHours || 3).toString(),
-      isFlatPriceMode: !!cond.flatPrice || d.type === 'bundling',
-      isPromoCodeMode: !!d.voucherCode,
-      isMemberRestricted: cond.minLevel && cond.minLevel !== 'bronze',
     });
-    setError(''); setModal('edit');
+    setError(''); setStep(2); setModal('edit');
   };
 
-  const buildConditions = () => {
-    const c: any = {};
-    if (form.days.length > 0) c.days = form.days;
-    if (form.startHour !== '') c.startHour = parseInt(form.startHour);
-    if (form.endHour !== '') c.endHour = parseInt(form.endHour);
-    
-    // Allow productIds on most types so we can target specific items
-    if (form.productIds) {
-      c.productIds = form.productIds.split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n));
-    }
-    
-    // Mix and match specific
-    if (form.type === 'mix_and_match') {
-      if (form.category) c.category = form.category;
-      if (form.minQty) c.minQty = parseInt(form.minQty);
-    }
-
-    if (form.isFlatPriceMode && form.flatPrice) {
-      c.flatPrice = form.flatPrice;
-    }
-
-    if (form.type === 'bundling') {
-      c.discountType = 'percent'; // Default for bundling if no flat price
-    }
-    if (form.isMemberRestricted) { c.minLevel = form.minLevel; }
-    if (form.orderSources && form.orderSources.length > 0) {
-      c.orderSources = form.orderSources;
-    }
-    if (form.expiryHours) {
-      c.expiryHours = parseInt(form.expiryHours);
-    }
-
-    return Object.keys(c).length > 0 ? c : null;
+  const buildPayload = () => {
+    const cond: any = {};
+    if (form.days.length > 0) cond.days = form.days;
+    if (form.startHour !== '') cond.startHour = parseInt(form.startHour);
+    if (form.endHour !== '') cond.endHour = parseInt(form.endHour);
+    if (form.productIds.length > 0) cond.productIds = form.productIds.map(Number);
+    if (form.isMemberRestricted && form.minLevel) cond.minLevel = form.minLevel;
+    if (form.flatPrice) cond.flatPrice = form.flatPrice;
+    if (form.orderSources.length > 0) cond.orderSources = form.orderSources;
+    return {
+      name: form.name, type: form.type, value: form.flatPrice ? 0 : parseFloat(form.value || '0'),
+      isActive: form.isActive, isStackable: form.isStackable, isExclusive: form.isExclusive,
+      startDate: form.startDate || null, endDate: form.endDate || null,
+      conditions: Object.keys(cond).length > 0 ? cond : null,
+      minPurchase: form.minPurchase ? parseFloat(form.minPurchase) : 0,
+      discountCap: (form.type === 'percent' && form.discountCap) ? parseFloat(form.discountCap) : null,
+      budgetLimit: form.budgetLimit ? parseFloat(form.budgetLimit) : null,
+      totalQuota: form.totalQuota ? parseInt(form.totalQuota) : null,
+      limitPerUser: form.limitPerUser ? parseInt(form.limitPerUser) : null,
+      priority: parseInt(form.priority) || 5,
+      voucherCode: wizardCategory === 'code' && form.voucherCode ? form.voucherCode.trim().toUpperCase() : null,
+    };
   };
 
   const handleSave = async () => {
-    if (!form.name) { setError('Judul promo wajib diisi'); return; }
-    if (!form.value && !form.flatPrice) { setError('Masukkan Potongan atau Harga Jadi (Flat)'); return; }
+    if (!form.name.trim()) return setError('Nama promo wajib diisi');
+    if (wizardCategory === 'bundle' && form.productIds.length < 2) return setError('Bundling perlu minimal 2 produk');
+    if (wizardCategory === 'bundle' && !form.flatPrice) return setError('Harga paket wajib diisi');
+    if (wizardCategory !== 'bundle' && !form.value && !form.flatPrice) return setError('Besar potongan wajib diisi');
+    if (wizardCategory === 'code' && !form.voucherCode.trim()) return setError('Kode promo wajib diisi');
     setSaving(true); setError('');
     try {
-      const payload = {
-        name: form.name, type: form.type, 
-        value: form.isFlatPriceMode ? 0 : parseFloat(form.value || '0'),
-        isActive: form.isActive, isStackable: form.isStackable, isExclusive: form.isExclusive,
-        startDate: form.startDate || null, endDate: form.endDate || null,
-        conditions: buildConditions(),
-        minPurchase: form.minPurchase ? parseFloat(form.minPurchase) : 0,
-        discountCap: (!form.isFlatPriceMode && form.type === 'percent' && form.discountCap) ? parseFloat(form.discountCap) : null,
-        budgetLimit: form.budgetLimit ? parseFloat(form.budgetLimit) : null,
-        totalQuota: form.totalQuota ? parseInt(form.totalQuota) : null,
-        limitPerUser: form.limitPerUser ? parseInt(form.limitPerUser) : null,
-        priority: parseInt(form.priority) || 5,
-        voucherCode: form.isPromoCodeMode && form.voucherCode ? form.voucherCode.trim().toUpperCase() : null,
-      };
-      if (modal === 'create') {
-        await apiFetch('/discounts', { method: 'POST', body: JSON.stringify(payload) });
-      } else if (modal === 'edit' && selected) {
-        await apiFetch(`/discounts/${selected.id}`, { method: 'PUT', body: JSON.stringify(payload) });
-      }
+      if (modal === 'create') await apiFetch('/discounts', { method: 'POST', body: JSON.stringify(buildPayload()) });
+      else if (modal === 'edit' && selected) await apiFetch(`/discounts/${selected.id}`, { method: 'PUT', body: JSON.stringify(buildPayload()) });
       setModal(null); load();
-    } catch (e: any) { setError(e.message); }
-    finally { setSaving(false); }
+    } catch (e: any) { setError(e.message); } finally { setSaving(false); }
   };
 
   const handleDelete = async (d: Discount) => {
-    if (!confirm(`Hapus diskon "${d.name}"?`)) return;
-    try { await apiFetch(`/discounts/${d.id}`, { method: 'DELETE' }); load(); }
-    catch (e: any) { alert(e.message); }
+    if (!confirm(`Hapus promo "${d.name}"?`)) return;
+    try { await apiFetch(`/discounts/${d.id}`, { method: 'DELETE' }); load(); } catch (e: any) { alert(e.message); }
   };
 
-  const toggleDay = (day: number) => setForm((f: any) => ({
-    ...f, days: f.days.includes(day) ? f.days.filter((d: number) => d !== day) : [...f.days, day]
-  }));
+  const toggleDay = (day: number) => setForm((f: any) => ({ ...f, days: f.days.includes(day) ? f.days.filter((d: number) => d !== day) : [...f.days, day] }));
+  const addProduct = (id: number) => { if (!form.productIds.includes(id.toString())) setForm((f: any) => ({ ...f, productIds: [...f.productIds, id.toString()] })); };
+  const removeProduct = (id: string) => setForm((f: any) => ({ ...f, productIds: f.productIds.filter((p: string) => p !== id) }));
 
+  const filtered = discounts.filter(d => {
+    let cond: any = {}; try { cond = d.conditions ? JSON.parse(d.conditions) : {}; } catch {}
+    if (subTab === 'bundle') return d.type === 'bundling';
+    if (subTab === 'code') return !!d.voucherCode && d.type !== 'bundling';
+    return !d.voucherCode && d.type !== 'bundling';
+  });
+
+  const bundleOriginal = form.productIds.reduce((sum: number, pid: string) => sum + (products.find(p => p.id.toString() === pid)?.price || products.find(p => p.id.toString() === pid)?.sellingPrice || 0), 0);
+  const bundleSaving = bundleOriginal - parseFloat(form.flatPrice || '0');
+
+  const INPUT_CLS = "w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-[var(--primary)] transition-all";
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="flex justify-start sm:justify-end">
-        <button onClick={openCreate} className="btn-primary py-3 px-6 h-12 w-full sm:w-auto">
-          <span className="material-symbols-outlined">add_circle</span>
-          <span>Buat Promo Baru</span>
-        </button>
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex p-1 bg-black/40 rounded-2xl border border-white/5 gap-1">
+          {[ ['auto', 'bolt', 'Promo Otomatis'], ['code', 'confirmation_number', 'Kode Promo'], ['bundle', 'package_2', 'Bundling & Paket'] ].map(([key, icon, label]) => (
+            <button key={key} onClick={() => setSubTab(key as any)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${subTab === key ? (key === 'auto' ? 'bg-primary text-slate-900' : key === 'code' ? 'bg-amber-500 text-slate-900' : 'bg-purple-500 text-white') : 'text-[var(--text-muted)] hover:bg-white/5'}`}>
+              <span className="material-symbols-outlined text-[13px]">{icon}</span>{label}
+            </button>
+          ))}
+        </div>
+        <button onClick={openCreate} className="btn-primary py-3 px-6 h-12 w-full sm:w-auto"><span className="material-symbols-outlined">add_circle</span><span>Buat Promo Baru</span></button>
+      </div>
+
+      <div className={`rounded-2xl p-3 flex items-center gap-3 text-[10px] font-bold border ${subTab === 'auto' ? 'bg-primary/5 border-primary/20 text-primary' : subTab === 'code' ? 'bg-amber-500/5 border-amber-500/20 text-amber-400' : 'bg-purple-500/5 border-purple-500/20 text-purple-400'}`}>
+        <span className="material-symbols-outlined text-base">info</span>
+        {subTab === 'auto' && 'Promo ini berlaku otomatis di kasir tanpa perlu kode. Dapat dibatasi berdasarkan jadwal, hari, atau level member.'}
+        {subTab === 'code' && 'Promo ini hanya aktif jika kasir memasukkan kode yang sesuai. Cocok untuk kampanye pemasaran dan voucher khusus.'}
+        {subTab === 'bundle' && 'Promo ini aktif ketika semua produk dalam paket ada di keranjang sekaligus. Harga paket menggantikan total harga normal.'}
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse">
-          <div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
-          <p className="font-black uppercase tracking-widest text-[10px]">Memuat data promosi...</p>
-        </div>
-      ) : discounts.length === 0 ? (
-        <div className="card p-12 text-center border-dashed border-2">
-          <span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">local_offer_off</span>
-          <h3 className="font-display text-xl font-bold mb-1">Belum ada promo</h3>
-          <p className="text-sm text-[var(--text-muted)]">Atur plafon diskon dan batasan penggunaan untuk menjaga profit bisnis Anda.</p>
-        </div>
+        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] animate-pulse"><div className="size-12 border-4 border-[var(--border-dim)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div><p className="font-black uppercase tracking-widest text-[10px]">Memuat...</p></div>
+      ) : filtered.length === 0 ? (
+        <div className="card p-12 text-center border-dashed border-2"><span className="material-symbols-outlined text-5xl text-[var(--text-muted)] mb-4 opacity-30">{subTab === 'auto' ? 'bolt' : subTab === 'code' ? 'confirmation_number' : 'package_2'}</span><h3 className="font-display text-xl font-bold mb-1">Belum ada promo</h3><p className="text-sm text-[var(--text-muted)]">Klik "Buat Promo Baru" untuk memulai.</p></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {discounts.map(d => {
-            let cond: any = {};
-            try { cond = d.conditions ? (JSON.parse(d.conditions) ?? {}) : {}; } catch {}
-            const budgetUsed = parseFloat(d.budgetUsed || '0');
-            const budgetLimit = d.budgetLimit ? parseFloat(d.budgetLimit) : null;
-            const budgetPct = budgetLimit ? Math.min(100, (budgetUsed / budgetLimit) * 100) : null;
-            const quotaPct = d.totalQuota ? Math.min(100, ((d.totalUsed || 0) / d.totalQuota) * 100) : null;
+          {filtered.map(d => {
+            let cond: any = {}; try { cond = d.conditions ? JSON.parse(d.conditions) : {}; } catch {}
+            const budgetUsed = parseFloat(d.budgetUsed || '0'), budgetLimit = d.budgetLimit ? parseFloat(d.budgetLimit) : null;
+            const accentColor = d.type === 'bundling' ? '#a855f7' : d.voucherCode ? '#f59e0b' : 'var(--primary)';
             return (
-              <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 overflow-hidden" style={{ borderColor: d.isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
+              <div key={d.id} className="card p-0 !rounded-3xl flex flex-col group active:scale-[0.99] transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 overflow-hidden" style={{ borderColor: d.isActive ? accentColor : '#475569' }}>
                 <div className="p-5 pb-3">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                        {d.isActive ? '● Aktif' : '○ Nonaktif'}
-                      </span>
-                      {d.isExclusive && <span className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest bg-purple-500/20 text-purple-400 border border-purple-500/30">🔒 Eksklusif</span>}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] font-black text-[var(--text-muted)] opacity-60">Prio: {d.priority ?? 5}</span>
-                      <span className="material-symbols-outlined text-sm text-[var(--text-muted)] opacity-50">{d.voucherCode ? 'confirmation_number' : 'local_offer'}</span>
+                    <button onClick={() => handleToggleActive(d)} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${d.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-400'}`}>{d.isActive ? '● Aktif' : '○ Nonaktif'}</button>
+                    {d.isExclusive && <span className="px-2 py-1 rounded-lg text-[8px] font-black bg-purple-500/20 text-purple-400">🔒 Eksklusif</span>}
+                  </div>
+                  <h4 className="font-display text-base font-black truncate">{d.name}</h4>
+                  <p className="text-[9px] font-black uppercase" style={{ color: accentColor }}>{TYPE_LABELS[d.type] || d.type}</p>
+                </div>
+                <div className="relative h-20 bg-gradient-to-br from-black/20 to-black/40 flex items-center justify-center border-y border-[var(--border-dim)]">
+                  <div className="relative z-10 flex flex-col items-center">
+                    {d.type === 'bundling' && cond.flatPrice ? (
+                      <><span className="text-2xl font-black">{formatRp(parseFloat(cond.flatPrice))}</span><span className="text-[8px] font-bold text-purple-400 mt-0.5">{(cond.productIds || []).length} Produk</span></>
+                    ) : (
+                      <><span className="text-3xl font-black">{d.type === 'percent' ? `${parseFloat(d.value)}%` : formatRp(parseFloat(d.value))}</span></>
+                    )}
+                  </div>
+                </div>
+                <div className="px-5 pt-3 space-y-2">
+                  {budgetLimit && <div className="text-[8px] font-black uppercase flex justify-between"><span className="text-[var(--text-muted)]">Budget</span><span className="text-emerald-400">{formatRp(budgetUsed)} / {formatRp(budgetLimit)}</span></div>}
+                  {d.voucherCode && <div className="bg-amber-500/10 rounded-xl p-2 flex justify-between items-center"><span className="text-[9px] font-black text-amber-400 font-mono tracking-widest">{d.voucherCode}</span><span className="text-[7px] font-black uppercase text-amber-500/60">Kode Promo</span></div>}
+                </div>
+                <div className="p-5 pt-3 flex-1 flex flex-col justify-end">
+                  <div className="pt-3 border-t border-[var(--border-dim)] flex items-center justify-between gap-2">
+                    <span className="text-[8px] text-[var(--text-muted)] italic">{d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Sekarang'}</span>
+                    <div className="flex gap-2">
+                       <button onClick={() => openEdit(d)} className="size-8 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white"><span className="material-symbols-outlined text-sm">edit</span></button>
+                       <button onClick={() => handleDelete(d)} className="size-8 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"><span className="material-symbols-outlined text-sm">delete</span></button>
                     </div>
                   </div>
-                  <h4 className="font-display text-base font-black text-[var(--text-main)] leading-tight mb-1 truncate">{d.name}</h4>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">{TYPE_LABELS[d.type] || d.type}</p>
-                </div>
-
-                <div className="relative h-20 bg-gradient-to-br from-black/20 to-black/40 flex items-center justify-center overflow-hidden border-y border-[var(--border-dim)]">
-                   <div className="absolute inset-0 opacity-10 flex items-center justify-center">
-                     <span className="material-symbols-outlined text-[5rem] font-black">percent</span>
-                   </div>
-                   <div className="relative z-10 flex flex-col items-center text-center px-4">
-                      <span className="text-3xl font-black text-[var(--text-main)] shadow-sm">
-                        {d.type === 'percent' ? `${parseFloat(d.value)}%` : formatRp(parseFloat(d.value))}
-                      </span>
-                      <div className="flex flex-wrap justify-center gap-2 mt-0.5">
-                        {d.discountCap && <span className="text-[8px] font-bold text-amber-400">Maks. {formatRp(parseFloat(d.discountCap))}</span>}
-                        {d.minPurchase && parseFloat(d.minPurchase) > 0 && <span className="text-[8px] font-bold text-emerald-400">Min. {formatRp(parseFloat(d.minPurchase))}</span>}
-                      </div>
-                   </div>
-                </div>
-
-                {/* Progress Tracking Section */}
-                <div className="px-5 pt-3 space-y-3">
-                  {budgetLimit && (
-                    <div>
-                      <div className="flex justify-between text-[8px] font-black uppercase mb-1">
-                        <span className="text-[var(--text-muted)]">Budget Terpakai</span>
-                        <span className={budgetPct! >= 90 ? 'text-red-400' : 'text-emerald-400'}>{formatRp(budgetUsed)} / {formatRp(budgetLimit)}</span>
-                      </div>
-                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${budgetPct}%`, backgroundColor: budgetPct! >= 90 ? '#f87171' : 'var(--primary)' }}></div>
-                      </div>
-                    </div>
-                  )}
-                  {d.totalQuota && (
-                    <div>
-                      <div className="flex justify-between text-[8px] font-black uppercase mb-1">
-                        <span className="text-[var(--text-muted)]">Klaim Quota</span>
-                        <span className={quotaPct! >= 90 ? 'text-red-400' : 'text-blue-400'}>{d.totalUsed || 0} / {d.totalQuota} Terpakai</span>
-                      </div>
-                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${quotaPct}%` }}></div>
-                      </div>
-                    </div>
-                  )}
-                  {d.voucherCode && (
-                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-xs text-amber-500">confirmation_number</span>
-                        <span className="text-[9px] font-black text-amber-500 tracking-widest">{d.voucherCode}</span>
-                      </div>
-                      <span className="text-[7px] font-black uppercase text-amber-500/60">Voucher Code</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-5 pt-3 flex-1 flex flex-col justify-end">
-                   <div className="space-y-1.5 mb-3">
-                     {cond.days && <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]"><span className="material-symbols-outlined text-sm">calendar_today</span><span className="font-bold">{cond.days.map((n: number) => DAYS[n]).join(', ')}</span></div>}
-                     {cond.startHour !== undefined && <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]"><span className="material-symbols-outlined text-sm">schedule</span><span className="font-bold">{cond.startHour}:00 – {cond.endHour}:00</span></div>}
-                     {cond.productIds && <div className="flex items-center gap-2 text-[10px] text-[var(--primary)]"><span className="material-symbols-outlined text-sm">inventory</span><span className="font-bold">{cond.productIds.length} Produk Bundling</span></div>}
-                   </div>
-
-                   <div className="pt-3 border-t border-[var(--border-dim)] flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="text-[8px] text-[var(--text-muted)] font-bold italic">
-                          {d.startDate ? new Date(d.startDate).toLocaleDateString('id-ID') : 'Sekarang'} – {d.endDate ? new Date(d.endDate).toLocaleDateString('id-ID') : 'Seterusnya'}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => openEdit(d)} className="size-8 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
-                        <button onClick={() => handleDelete(d)} className="size-8 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
-                      </div>
-                   </div>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
       )}
 
-      {(modal === 'create' || modal === 'edit') && (
-        <Modal title={modal === 'create' ? 'Desain Promo Baru' : 'Edit Konfigurasi Promo'} onClose={() => setModal(null)} wide>
-          <div className="space-y-8 py-2">
-             {/* Section 1: Core Identity */}
-             <section className="space-y-4">
-                <div className="flex items-center gap-2"><span className="size-5 bg-primary text-slate-950 rounded-full flex items-center justify-center text-[10px] font-black">1</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Identitas & Jenis</h5></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Judul Promo"><input value={form.name} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} placeholder="e.g. Flash Sale Merdeka" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm outline-none focus:border-[var(--primary)] transition-all" /></Field>
-                  <Field label="Tipe Diskon">
-                    <select 
-                      value={form.type} 
-                      onChange={e => {
-                        const val = e.target.value;
-                        setForm((f: any) => ({ ...f, type: val, isFlatPriceMode: val === 'bundling' ? true : f.isFlatPriceMode }));
-                      }} 
-                      className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold shadow-sm outline-none"
-                    >
-                      {Object.entries(TYPE_LABELS)
-                        .filter(([key]) => ['percent', 'nominal', 'bundling'].includes(key))
-                        .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-                    </select>
-                  </Field>
-                </div>
-                
-                {/* Promo Code & Member Mode Toggle */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-black/10 p-3 rounded-2xl border border-[var(--border-dim)]">
-                    <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden mb-2">
-                      <button 
-                        onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: false }))}
-                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isPromoCodeMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                      >
-                        Otomatis
-                      </button>
-                      <button 
-                        onClick={() => setForm((f: any) => ({ ...f, isPromoCodeMode: true }))}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isPromoCodeMode ? 'bg-amber-500 text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                      >
-                        <span className="material-symbols-outlined text-[10px]">key</span>
-                        Perlu Kode
-                      </button>
-                    </div>
-                    {form.isPromoCodeMode && (
-                      <div className="animate-[fadeIn_0.2s_ease-out]">
-                        <input 
-                          value={form.voucherCode} 
-                          onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase() }))} 
-                          placeholder="Ketik KODE Promo" 
-                          className="w-full bg-[var(--bg-app)] border border-amber-500/30 rounded-lg py-2 px-3 text-center font-mono text-sm tracking-widest font-black text-amber-500 placeholder:opacity-30 focus:border-amber-500 uppercase" 
-                        />
-                      </div>
-                    )}
+      {modal && (
+        <Modal title={modal === 'create' ? 'Buat Promo Baru' : `Edit: ${selected?.name}`} onClose={() => setModal(null)} wide>
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              {[1, 2, 3].map((s) => (
+                <React.Fragment key={s}>
+                  <div className={`size-7 rounded-full flex items-center justify-center text-[10px] font-black ${step >= s ? 'bg-primary text-slate-900' : 'bg-white/5 text-[var(--text-muted)]'}`}>{s}</div>
+                  {s < 3 && <div className={`flex-1 h-0.5 rounded-full ${step > s ? 'bg-primary' : 'bg-white/10'}`} />}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {step === 1 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[ { key: 'auto', icon: 'bolt', title: 'Promo Otomatis', bg: 'bg-primary/20 text-primary' }, { key: 'code', icon: 'confirmation_number', title: 'Kode Promo', bg: 'bg-amber-500/20 text-amber-500' }, { key: 'bundle', icon: 'package_2', title: 'Bundling', bg: 'bg-purple-500/20 text-purple-400' } ].map(cat => (
+                  <button key={cat.key} onClick={() => { setWizardCategory(cat.key as any); setForm((f: any) => ({ ...f, type: cat.key === 'bundle' ? 'bundling' : 'percent' })); setStep(2); }} className={`p-6 rounded-3xl border border-[var(--border-dim)] hover:border-white/50 text-left cursor-pointer transition-all ${cat.bg}`}>
+                    <span className="material-symbols-outlined text-3xl mb-2 block">{cat.icon}</span>
+                    <p className="font-black">{cat.title}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step === 2 && wizardCategory && (
+              <div className="space-y-4">
+                <Field label="Nama / Judul Promo"><input value={form.name} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} className={INPUT_CLS} autoFocus /></Field>
+                {wizardCategory === 'auto' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Jenis Potongan"><select value={form.type} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))} className={INPUT_CLS}><option value="percent">Persen</option><option value="nominal">Nominal</option></select></Field>
+                    <Field label="Nilai Potongan"><input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className={INPUT_CLS} /></Field>
                   </div>
-
-                  <div className="bg-black/10 p-3 rounded-2xl border border-[var(--border-dim)]">
-                    <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden mb-2">
-                      <button 
-                        onClick={() => setForm((f: any) => ({ ...f, isMemberRestricted: false }))}
-                        className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isMemberRestricted ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                      >
-                        Semua Orang
-                      </button>
-                      <button 
-                        onClick={() => setForm((f: any) => ({ ...f, isMemberRestricted: true }))}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isMemberRestricted ? 'bg-fuchsia-500 text-white shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                      >
-                        <span className="material-symbols-outlined text-[10px]">card_membership</span>
-                        Khusus Member
-                      </button>
-                    </div>
-                    {form.isMemberRestricted && (
-                      <div className="animate-[fadeIn_0.2s_ease-out]">
-                        <select 
-                          value={form.minLevel} 
-                          onChange={e => setForm((f: any) => ({ ...f, minLevel: e.target.value }))} 
-                          className="w-full bg-[var(--bg-app)] border border-fuchsia-500/30 rounded-lg py-2.5 px-3 text-center text-xs font-black text-fuchsia-400 focus:border-fuchsia-500 outline-none"
-                        >
-                          <option value="silver">🥇 Tier SILVER ke Atas</option>
-                          <option value="gold">💎 Khusus Tier GOLD</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-black/20 p-4 pt-3 rounded-2xl border border-[var(--border-dim)] space-y-4">
-                  <div className="flex gap-2 p-1 bg-black/40 rounded-xl overflow-hidden">
-                    <button 
-                      onClick={() => setForm((f: any) => ({ ...f, isFlatPriceMode: false }))}
-                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!form.isFlatPriceMode ? 'bg-primary text-slate-900 shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                    >
-                      Potong Harga (Diskon)
-                    </button>
-                    <button 
-                      onClick={() => setForm((f: any) => ({ ...f, isFlatPriceMode: true }))}
-                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${form.isFlatPriceMode ? 'bg-indigo-500 text-white shadow-md' : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'}`}
-                    >
-                      Ubah Harga Jadi (Spesial)
-                    </button>
-                  </div>
-
-                  {!form.isFlatPriceMode ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.2s_ease-out]">
-                      <Field label={`Besar Potongan (${form.type === 'percent' ? '%' : 'Rp'})`}>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary">{form.type === 'percent' ? '%' : 'Rp'}</span>
-                          <input type="number" value={form.value} onChange={e => setForm((f: any) => ({ ...f, value: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-[var(--primary)] transition-all" />
-                        </div>
-                      </Field>
-                      {form.type === 'percent' && (
-                        <Field label="Plafon Potongan (Maks. Rp)">
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">Rp</span>
-                            <input type="number" value={form.discountCap} onChange={e => setForm((f: any) => ({ ...f, discountCap: e.target.value }))} placeholder="Kosong = Tanpa Batas" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
-                          </div>
-                        </Field>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="animate-[fadeIn_0.2s_ease-out]">
-                      <Field label="Harga Menjadi (Harga Promo Final)">
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-indigo-400">Rp</span>
-                          <input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} placeholder="Mengesampingkan harga asli produk" className="w-full bg-[var(--bg-app)] border-2 border-indigo-500/30 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-indigo-400 text-indigo-300 transition-all" />
-                        </div>
-                      </Field>
-                    </div>
-                  )}
-                </div>
-             </section>
-
-             {/* Section 2: Budget & Constraints */}
-             <section className="space-y-4">
-                <div className="flex items-center gap-2"><span className="size-5 bg-emerald-500 text-slate-950 rounded-full flex items-center justify-center text-[10px] font-black">2</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Keamanan & Quota</h5></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Min. Belanja (Rp)"><input type="number" value={form.minPurchase} onChange={e => setForm((f: any) => ({ ...f, minPurchase: e.target.value }))} placeholder="0 = Semua belanja" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
-                  <Field label="Budget Maksimal (Rp)"><input type="number" value={form.budgetLimit} onChange={e => setForm((f: any) => ({ ...f, budgetLimit: e.target.value }))} placeholder="Auto-stop promo" className="w-full bg-[var(--bg-app)] border border-emerald-500/20 rounded-xl py-3 px-4 text-sm font-bold focus:border-emerald-500" /></Field>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Kuota Total (Klaim)"><input type="number" value={form.totalQuota} onChange={e => setForm((f: any) => ({ ...f, totalQuota: e.target.value }))} placeholder="e.g. 100" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
-                  <Field label="Maks. Pakai per User"><input type="number" value={form.limitPerUser} onChange={e => setForm((f: any) => ({ ...f, limitPerUser: e.target.value }))} placeholder="e.g. 1" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl py-3 px-4 text-sm font-bold" /></Field>
-                </div>
-             </section>
-
-             {/* Section 3: Priority & Rules */}
-             <section className="space-y-4">
-                <div className="flex items-center gap-2"><span className="size-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-[10px] font-black">3</span><h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Optimasi & Jadwal</h5></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label={`Prioritas: ${form.priority}/10 (Tinggi = Dulu)`}><input type="range" min={1} max={10} value={form.priority} onChange={e => setForm((f: any) => ({ ...f, priority: parseInt(e.target.value) }))} className="w-full accent-primary mt-4" /></Field>
-                  <div className="flex gap-4">
-                    <label className="flex-1 flex items-center gap-3 p-4 glass-lite rounded-2xl cursor-pointer hover:border-amber-500 transition-all border border-transparent"><input type="checkbox" checked={form.isStackable} onChange={e => setForm((f: any) => ({ ...f, isStackable: e.target.checked }))} className="size-5 accent-amber-500" /><span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Stackable</span></label>
-                    <label className="flex-1 flex items-center gap-3 p-4 glass-lite rounded-2xl cursor-pointer hover:border-purple-500 transition-all border border-transparent"><input type="checkbox" checked={form.isExclusive} onChange={e => setForm((f: any) => ({ ...f, isExclusive: e.target.checked }))} className="size-5 accent-purple-500" /><span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Exclusive</span></label>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Tanggal Mulai"><input type="date" value={form.startDate} onChange={e => setForm((f: any) => ({ ...f, startDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
-                  <Field label="Tanggal Selesai"><input type="date" value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 text-xs font-bold" /></Field>
-                </div>
-                  <div className="space-y-4 pt-4 border-t border-[var(--border-dim)]">
-                    <Field label="Hari Aktif (Kosong = Setiap Hari)">
-                      <div className="flex flex-wrap gap-2">
-                         {DAYS.map((day, idx) => (
-                           <label key={idx} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${form.days.includes(idx) ? 'bg-primary text-slate-900 shadow-md' : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10'}`}>
-                             <input type="checkbox" checked={form.days.includes(idx)} onChange={() => toggleDay(idx)} className="hidden" />
-                             {day}
-                           </label>
-                         ))}
-                      </div>
-                    </Field>
+                )}
+                {wizardCategory === 'code' && (
+                  <>
+                    <Field label="Kode Promo Unik (CAPS)"><input value={form.voucherCode} onChange={e => setForm((f: any) => ({ ...f, voucherCode: e.target.value.toUpperCase().replace(/\s/g, '') }))} className={INPUT_CLS} /></Field>
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Jam Mulai (e.g. 15)"><input type="number" min={0} max={23} value={form.startHour} onChange={e => setForm((f: any) => ({ ...f, startHour: e.target.value }))} placeholder="Kosong = Bebas" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 placeholder:opacity-30" /></Field>
-                      <Field label="Jam Selesai (e.g. 17)"><input type="number" min={0} max={24} value={form.endHour} onChange={e => setForm((f: any) => ({ ...f, endHour: e.target.value }))} placeholder="Kosong = Bebas" className="w-full bg-[var(--bg-app)] border border-[var(--border-dim)] rounded-xl p-3 placeholder:opacity-30" /></Field>
+                      <Field label="Jenis Potongan"><select value={form.flatPrice ? 'flat' : form.type} onChange={e => { const val = e.target.value; if (val === 'flat') { setForm((f: any) => ({ ...f, type: 'nominal', flatPrice: f.value || '0' })); } else { setForm((f: any) => ({ ...f, type: val, flatPrice: '' })); } }} className={INPUT_CLS}><option value="percent">Persen</option><option value="nominal">Nominal / Rupiah</option><option value="flat">Harga Jadi / Flat Price</option></select></Field>
+                      <Field label="Nilai / Harga"><input type="number" value={form.flatPrice || form.value} onChange={e => { if (form.flatPrice !== '') setForm((f: any) => ({ ...f, flatPrice: e.target.value })); else setForm((f: any) => ({ ...f, value: e.target.value })); }} className={INPUT_CLS} /></Field>
                     </div>
-                  </div>
-             </section>
+                  </>
+                )}
+                {wizardCategory === 'bundle' && (
+                  <>
+                    <Field label="Harga Paket Total (Harga Final)"><input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} className={INPUT_CLS} /></Field>
+                  </>
+                )}
+                {(wizardCategory === 'auto' || wizardCategory === 'code' || wizardCategory === 'bundle') && (
+                  <Field label="Pilih Produk Target (kosong = berlaku ke seluruh pesanan)">
+                    <div className="flex flex-wrap gap-2 p-2 bg-black/20 rounded-xl mb-2 min-h-10 border border-[var(--border-dim)]">
+                      {form.productIds.map((pid: string) => <span key={pid} className="bg-primary/20 text-primary px-2 py-1 flex gap-1 rounded text-xs font-bold">{products.find(p=>p.id.toString()===pid)?.name}<button onClick={()=>removeProduct(pid)}>×</button></span>)}
+                    </div>
+                    <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className={`${INPUT_CLS} mb-2 py-2`} />
+                    <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto custom-scrollbar">
+                      {products.filter(p=>!prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p=>( <button key={p.id} onClick={()=>addProduct(p.id)} className="text-left text-xs p-2 bg-white/5 hover:bg-white/10 rounded">{p.name}</button> ))}
+                    </div>
+                  </Field>
+                )}
+              </div>
+            )}
 
-             {/* Dynamic Section: Bundling Picker etc */}
-             {['qr_voucher', 'bundling', 'percent', 'nominal', 'time-based', 'mix_and_match'].includes(form.type) && (
-                <section className="p-5 glass-lite rounded-3xl border-dashed border-2 border-[var(--border-dim)] space-y-4">
-                   <div className="flex justify-between items-center">
-                     <h5 className="text-[10px] font-black uppercase tracking-widest text-primary">Pembatasan Target</h5>
-                   </div>
-                   
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Field label="Berlaku Untuk Order Source (Khusus)">
-                          <div className="flex gap-2">
-                            {['DIRECT', 'STAND'].map(src => (
-                              <label key={src} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all ${form.orderSources.includes(src) ? 'bg-primary text-slate-900' : 'bg-white/5 text-[var(--text-muted)]'}`}>
-                                <input 
-                                  type="checkbox" 
-                                  className="hidden"
-                                  checked={form.orderSources.includes(src)}
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setForm((f: any) => ({
-                                      ...f,
-                                      orderSources: checked 
-                                        ? [...f.orderSources, src]
-                                        : f.orderSources.filter((s: string) => s !== src)
-                                    }));
-                                  }}
-                                />
-                                {src === 'DIRECT' ? '🏠 Toko' : '⛺ Stand'}
-                              </label>
-                            ))}
-                          </div>
-                      </Field>
-
-                      <Field label="Masa Berlaku Voucher (Jam)">
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-amber-500">⏰</span>
-                            <input type="number" value={form.expiryHours} onChange={e => setForm((f: any) => ({ ...f, expiryHours: e.target.value }))} placeholder="e.g. 3" className="w-full bg-[var(--bg-app)] border border-amber-500/20 rounded-xl py-3 pl-12 pr-4 text-sm font-black focus:border-amber-500 transition-all" />
-                          </div>
-                      </Field>
-                   </div>
-
-                   <div className="pt-2 border-t border-white/5">
-                     <div className="flex items-center gap-2 mb-3">
-                       <h5 className="text-[10px] font-black uppercase tracking-widest text-primary flex-1">Pembatasan Menu / Produk Default</h5>
-                     </div>
-                     {!form.productIds ? (
-                       <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs font-bold text-primary flex items-center gap-2">
-                         <span className="material-symbols-outlined text-sm">info</span>
-                         Karena tidak ada menu yang dipilih, promo ini akan berlaku untuk SELURUH pesanan belanjaan! Pilih menu secara spesifik di bawah jika diskon hanya untuk menu tertentu.
-                       </div>
-                     ) : form.type === 'bundling' ? (
-                       <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-xs font-bold text-purple-400 flex items-center gap-2">
-                         <span className="material-symbols-outlined text-sm">package</span>
-                         Mode Paket Combo Aktif: Harga Final (Rp {form.flatPrice || '0'}) HANYA akan menyala saat kasir memasukkan SEMUA menu di bawah ini ke dalam keranjang sekaligus. Tambahkan syarat menu yang harus dimunculkan di keranjang!
-                       </div>
-                     ) : null}
-                   </div>
-                   
-                   {form.type === 'mix_and_match' && (
-                     <div className="grid grid-cols-2 gap-4 mb-4 border-b border-white/5 pb-4">
-                        <Field label="Kategori Menu (e.g. Minuman)"><input value={form.category} onChange={e => setForm((f: any) => ({ ...f, category: e.target.value }))} placeholder="Nama Kategori" className="w-full bg-[var(--bg-app)] border border-primary/20 rounded-xl p-3" /></Field>
-                        <Field label="Minimal Pembelian (Qty)"><input type="number" value={form.minQty} onChange={e => setForm((f: any) => ({ ...f, minQty: e.target.value }))} placeholder="e.g. 2" className="w-full bg-[var(--bg-app)] border border-primary/20 rounded-xl p-3" /></Field>
-                     </div>
-                   )}
-
-                   <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-black/20 rounded-2xl">
-                      {form.productIds.split(',').filter(Boolean).map((pid: string) => {
-                        const p = products.find(p => p.id.toString() === pid);
-                        return <div key={pid} className="bg-primary/10 text-primary px-3 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-2 border border-primary/20">{p?.name || `ID ${pid}`}<button onClick={() => removeProductId(pid)} className="hover:text-red-400">×</button></div>;
-                      })}
-                   </div>
-                   <div className="space-y-3">
-                      <div className="flex justify-between items-center px-1"><span className="text-[9px] font-black text-[var(--text-muted)] uppercase">Katalog Menu</span><input placeholder="Cari menu..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="bg-white/5 border-b border-white/10 text-[10px] px-2 py-1 outline-none w-32" /></div>
-                      <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                         {products.filter(p => !prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p => (
-                            <button key={p.id} onClick={() => addProductId(p.id)} className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/50 text-[10px] font-bold text-left truncate transition-all flex justify-between items-center group"><span>{p.name}</span><span className="opacity-0 group-hover:opacity-100 text-primary">+</span></button>
-                         ))}
-                      </div>
-                   </div>
-                </section>
-             )}
-
-              <div className="pt-6 border-t border-[var(--border-dim)] space-y-4">
-                {error && <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black text-center uppercase tracking-widest">{error}</div>}
-                <div className="flex gap-4">
-                  <button onClick={() => setModal(null)} className="flex-1 py-4 text-sm font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-colors">Batal</button>
-                  <button onClick={handleSave} disabled={saving} className="flex-[2] btn-primary h-14 shadow-2xl shadow-primary/20">{saving ? 'Sinkronisasi...' : (modal === 'create' ? 'Rilis Promosi' : 'Update Konfigurasi')}</button>
+            {step === 3 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Tgl Mulai"><input type="date" value={form.startDate} onChange={e=>setForm((f:any)=>({...f, startDate: e.target.value}))} className={INPUT_CLS} /></Field>
+                  <Field label="Tgl Selesai"><input type="date" value={form.endDate} onChange={e=>setForm((f:any)=>({...f, endDate: e.target.value}))} className={INPUT_CLS} /></Field>
+                  <Field label="Budget Maksimal (Rp)"><input type="number" value={form.budgetLimit} onChange={e=>setForm((f:any)=>({...f, budgetLimit: e.target.value}))} className={INPUT_CLS} /></Field>
+                  <Field label="Kuota Maksimal"><input type="number" value={form.totalQuota} onChange={e=>setForm((f:any)=>({...f, totalQuota: e.target.value}))} className={INPUT_CLS} /></Field>
                 </div>
-             </div>
+                <Field label="Hari Aktif">
+                  <div className="flex gap-2 flex-wrap">
+                    {DAYS.map((d,i) => <button key={i} onClick={()=>toggleDay(i)} className={`px-3 py-1 text-xs rounded ${form.days.includes(i) ? 'bg-primary text-slate-900' : 'bg-white/10 text-white'}`}>{d}</button>)}
+                  </div>
+                </Field>
+                <div className="flex items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2"><input type="checkbox" checked={form.isStackable} onChange={e=>setForm((f:any)=>({...f, isStackable:e.target.checked}))} /> <span className="text-xs font-bold text-amber-500">Stackable (Bisa gabung diskon lain)</span></label>
+                  <label className="flex items-center gap-2"><input type="checkbox" checked={form.isExclusive} onChange={e=>setForm((f:any)=>({...f, isExclusive:e.target.checked}))} /> <span className="text-xs font-bold text-purple-400">Exclusive (Diskon terkuat)</span></label>
+                </div>
+              </div>
+            )}
+
+            {error && <div className="p-3 bg-red-500/10 text-red-500 text-xs font-bold rounded">{error}</div>}
+            
+            <div className="flex gap-2">
+              {step > 1 ? <button onClick={() => setStep(s => s - 1)} className="px-4 py-3 bg-white/5 rounded-xl font-bold flex-1">Kembali</button> : <button onClick={() => setModal(null)} className="px-4 py-3 bg-white/5 rounded-xl font-bold flex-1">Batal</button>}
+              {step < 3 ? <button onClick={() => setStep(s => s + 1)} className="px-4 py-3 bg-primary text-slate-900 rounded-xl font-bold flex-[2]">Lanjut</button> 
+                        : <button onClick={handleSave} disabled={saving} className="px-4 py-3 bg-primary text-slate-900 rounded-xl font-bold flex-[2]">{saving ? 'Menyimpan...' : 'Simpan'}</button>}
+            </div>
           </div>
         </Modal>
       )}

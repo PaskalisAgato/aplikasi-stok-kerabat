@@ -8,7 +8,7 @@ export class AttendanceController {
             const userId = (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'Unauthorized' });
             
-            const status = await AttendanceService.getTodayAttendance(userId);
+            const status = await AttendanceService.getLatestAttendance(userId);
             res.json({ success: true, data: status });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
