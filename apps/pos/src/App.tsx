@@ -275,7 +275,19 @@ export default function App() {
     };
 
     const onSaveBill = async (explicitInfo?: string) => {
-        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin', explicitInfo);
+        let finalInfo = explicitInfo;
+        
+        if (explicitInfo === 'name') {
+            const promptedName = window.prompt('Masukkan Nama Pemesan bawa pulang:');
+            if (!promptedName?.trim()) return; // User cancelled
+            finalInfo = promptedName.trim();
+        } else if (explicitInfo === 'table') {
+            setFloorPlanMode('save');
+            setIsFloorPlanModalOpen(true);
+            return;
+        }
+
+        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin', finalInfo);
         
         if (result?.requiresInfo) {
             setFloorPlanMode('save');

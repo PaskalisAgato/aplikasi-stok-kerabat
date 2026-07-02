@@ -15,7 +15,7 @@ interface POSFooterProps {
     totalItems: number;
     handleCheckout: (skipConfirm?: boolean) => void;
     handleUpdateBill: () => void;
-    handleSaveBill: () => void;
+    handleSaveBill: (mode: 'table' | 'name') => void;
     currentBillId: string | number | null;
     setMobileTab: (tab: 'menu' | 'cart' | 'bills') => void;
     orderSource: 'DIRECT' | 'STAND' | 'GRABFOOD' | 'GOFOOD' | 'SHOPEEFOOD';
@@ -208,13 +208,21 @@ export const POSFooter: React.FC<POSFooterProps> = ({
                         </button>
                     )}
                     {!currentBillId && totalItems > 0 && (
-                        <button 
-                            onClick={handleSaveBill}
-                            className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5 relative group"
-                        >
-                            <span className="material-symbols-outlined text-sm">save</span> Bill Baru
-                            <span className="hidden group-hover:inline ml-1 opacity-50 px-1 border border-white/30 rounded text-[7px]">F2</span>
-                        </button>
+                        <>
+                            <button 
+                                onClick={() => handleSaveBill('table')}
+                                className="flex-1 py-3 bg-[var(--bg-app)] border border-primary/20 text-primary rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-primary/10 transition-all flex items-center justify-center gap-1.5 relative group"
+                            >
+                                <span className="material-symbols-outlined text-sm">table_restaurant</span> Meja
+                            </button>
+                            <button 
+                                onClick={() => handleSaveBill('name')}
+                                className="flex-1 py-3 bg-[var(--bg-app)] border border-[var(--border-dim)] text-[var(--text-main)] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white/5 transition-all flex items-center justify-center gap-1.5 relative group"
+                            >
+                                <span className="material-symbols-outlined text-sm">person_add</span> Nama
+                                <span className="hidden group-hover:inline ml-1 opacity-50 px-1 border border-white/30 rounded text-[7px]">F2</span>
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
