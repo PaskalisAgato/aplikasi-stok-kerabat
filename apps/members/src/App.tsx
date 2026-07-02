@@ -617,7 +617,7 @@ function DiscountTab() {
                        <input placeholder="Cari menu produk..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className={`${INPUT_CLS} pl-9 py-2`} />
                     </div>
                     <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1">
-                      {products.filter(p=>!prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p=>{
+                      {products.filter(p=>!prodSearch || (p.name || '').toLowerCase().includes(prodSearch.toLowerCase())).map(p=>{
                         const selected = form.productIds.includes(p.id.toString());
                         return (
                           <button type="button" key={p.id} onClick={() => selected ? removeProduct(p.id.toString()) : addProduct(p.id)} className={`text-left text-xs p-2.5 rounded-xl transition-all flex justify-between items-center group border ${selected ? (wizardCategory === 'bundle' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : wizardCategory === 'code' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-primary/20 border-primary/50 text-primary') : 'bg-white/5 border-white/5 hover:border-white/20 text-[var(--text-muted)]'}`}>
