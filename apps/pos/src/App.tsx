@@ -116,6 +116,7 @@ export default function App() {
     const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
 
     const [isFloorPlanModalOpen, setIsFloorPlanModalOpen] = useState(false);
+    const [floorPlanMode, setFloorPlanMode] = useState<'save' | 'open'>('save');
 
     const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
     const [splitSourceBill, setSplitSourceBill] = useState<any>(null);
@@ -277,6 +278,7 @@ export default function App() {
         const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin', explicitInfo);
         
         if (result?.requiresInfo) {
+            setFloorPlanMode('save');
             setIsFloorPlanModalOpen(true);
             return;
         }
@@ -375,7 +377,15 @@ export default function App() {
                             <div className={`w-full xl:w-[20%] flex-col h-full bg-[var(--bg-app)] border border-primary/5 rounded-[2.5rem] p-6 overflow-hidden shadow-xl ${mobileTab === 'bills' ? 'flex' : 'hidden xl:flex'}`}>
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Daftar Bill</h3>
-                                    <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="px-3 py-1 rounded-full bg-primary/10 text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm">Bill Baru</button>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => { setFloorPlanMode('open'); setIsFloorPlanModalOpen(true); }}
+                                            className="px-3 py-1 rounded-full bg-primary text-[9px] font-black text-white hover:bg-primary/80 transition-all shadow-sm flex items-center gap-1"
+                                        >
+                                            <span className="material-symbols-outlined text-[10px]">map</span> Meja
+                                        </button>
+                                        <button onClick={() => { setCurrentBillId(null); setCustomerInfo(''); setSales({}); }} className="px-3 py-1 rounded-full bg-primary/10 text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm">Baru</button>
+                                    </div>
                                 </div>
                                 <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-1 pb-[120px] xl:pb-0">
                                     {openBills.length === 0 ? (
@@ -617,9 +627,22 @@ export default function App() {
                 isOpen={isFloorPlanModalOpen}
                 onClose={() => setIsFloorPlanModalOpen(false)}
                 openBills={openBills}
+                mode={floorPlanMode}
                 onSelectTable={(info) => {
                     setIsFloorPlanModalOpen(false);
-                    onSaveBill(info);
+                    if (floorPlanMode === 'save') {
+                        onSaveBill(info);
+                    } else {
+                        // Open existing bill mode
+                        const bill = openBills.find(b => b.customerInfo?.toLowerCase().trim() === info.toLowerCase().trim());
+                        if (bill) {
+                            setCurrentBillId(bill.id);
+                            setCustomerInfo(bill.customerInfo);
+                            const newSales: Record<number, number> = {};
+                            bill.items?.forEach((i: any) => newSales[i.recipeId] = i.quantity);
+                            setSales(newSales);
+                        }
+                    }
                 }}
             />
 
