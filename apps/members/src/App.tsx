@@ -383,10 +383,14 @@ function DiscountTab() {
     try {
       const dRes = await apiFetch('/discounts');
       setDiscounts(dRes.data || []);
+    } catch (e: any) { console.error('[DiscountTab] Failed to load discounts:', e); }
+    try {
       const pRes = await apiFetch('/products');
-      setProducts(pRes.data || pRes || []);
-    } catch (e: any) { console.error(e); }
-    finally { setLoading(false); }
+      const productList = Array.isArray(pRes) ? pRes : (pRes.data || []);
+      console.log('[DiscountTab] Products loaded:', productList.length);
+      setProducts(productList);
+    } catch (e: any) { console.error('[DiscountTab] Failed to load products:', e); }
+    setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -616,7 +620,7 @@ function DiscountTab() {
                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-muted)]">search</span>
                        <input placeholder="Cari menu produk..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className={`${INPUT_CLS} pl-9 py-2`} />
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+                    <div className="grid grid-cols-2 gap-1.5 max-h-64 min-h-20 overflow-y-auto custom-scrollbar pr-1">
                       {products.filter(p=>!prodSearch || (p.name || '').toLowerCase().includes(prodSearch.toLowerCase())).map(p=>{
                         const selected = form.productIds.includes(p.id.toString());
                         return (
