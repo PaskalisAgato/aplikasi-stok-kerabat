@@ -618,7 +618,22 @@ export const expressSessions = pgTable('express_sessions', {
 }));
 
 // -----------------------------------------------------------------------------
-// 11. OWNER INCOME (Uang Masuk Owner)
+// 11. TABLES (Denah Meja Restoran)
+// -----------------------------------------------------------------------------
+export const tables = pgTable('tables', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    shape: text('shape').default('rect').notNull(), // 'rect' | 'circle'
+    x: integer('x').default(0).notNull(), 
+    y: integer('y').default(0).notNull(), 
+    width: integer('width').default(100).notNull(), 
+    height: integer('height').default(100).notNull(), 
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// -----------------------------------------------------------------------------
+// 12. OWNER INCOME (Uang Masuk Owner)
 // -----------------------------------------------------------------------------
 export const ownerIncome = pgTable('owner_income', {
     id: serial('id').primaryKey(),

@@ -15,6 +15,7 @@ import * as schema from './db/schema.js';
 import { auth } from './config/auth.js';
 
 // Route Imports
+import { tableRoutes } from './routes/table.routes.js';
 import { productRoutes } from './routes/product.routes.js';
 import { transactionRoutes } from './routes/transaction.routes.js';
 import { userRoutes } from './routes/user.routes.js';
@@ -177,6 +178,7 @@ app.post('/api/transactions/checkout', requireAuth, TransactionController.checko
 app.post('/api/checkout', requireAuth, TransactionController.checkout);
 
 // API Resource Routes
+app.use('/api/tables', tableRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/users', userRoutes);

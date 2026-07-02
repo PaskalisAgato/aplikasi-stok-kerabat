@@ -48,18 +48,17 @@ export function useBillManagement() {
         activeShift: any, 
         sales: Record<number, number>, 
         orderSource: string,
-        isAdmin?: boolean
+        isAdmin?: boolean,
+        explicitInfo?: string
     ) => {
         if (!activeShift && !isAdmin) {
             showNotification('Shift kasir belum dibuka. Tidak bisa menyimpan bill.', "error");
             return { success: false };
         }
 
-        let info: string | null = customerInfo;
+        let info: string | null = explicitInfo || customerInfo;
         if (!info) {
-            const table = prompt('Masukkan Nomor Meja / Nama Pelanggan:');
-            if (table === null || table === '') return;
-            info = table;
+            return { requiresInfo: true };
         }
 
         if (openBills.some(b => b.customerInfo?.toLowerCase() === info?.toLowerCase() && b.id !== currentBillId)) {

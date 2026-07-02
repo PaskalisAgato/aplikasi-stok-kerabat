@@ -26,6 +26,8 @@ import { ShiftSelectionModal } from './components/ShiftSelectionModal';
 import { VoucherQRModal } from './components/VoucherQRModal';
 import { PromoScanner } from './components/PromoScanner';
 import { PromoDebugConsole } from './components/PromoDebugConsole';
+import { FloorPlanModal } from './components/FloorPlanModal';
+import { FloorPlanEditor } from './features/floor-plan/FloorPlanEditor';
 
 // Lazy Loaded Pages
 const TransactionHistory = React.lazy(() => import('./TransactionHistory'));
@@ -83,7 +85,7 @@ export default function App() {
     const { isCheckingOut, handleCheckout: checkoutLogic } = useCheckout();
 
     // UI View State
-    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue' | 'kds'>('pos');
+    const [view, setView] = useState<'pos' | 'history' | 'printer-settings' | 'print-queue' | 'sync-queue' | 'kds' | 'floor-plan'>('pos');
     const [mobileTab, setMobileTab] = useState<'menu' | 'cart' | 'bills'>('menu');
     const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | 'CARD'>('CASH');
     const [amountPaid, setAmountPaid] = useState(0);
@@ -112,6 +114,8 @@ export default function App() {
     const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
     const [targetBillForMerge, setTargetBillForMerge] = useState<any>(null);
     const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
+
+    const [isFloorPlanModalOpen, setIsFloorPlanModalOpen] = useState(false);
 
     const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
     const [splitSourceBill, setSplitSourceBill] = useState<any>(null);
@@ -269,8 +273,14 @@ export default function App() {
         }
     };
 
-    const onSaveBill = async () => {
-        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin');
+    const onSaveBill = async (explicitInfo?: string) => {
+        const result = await saveBillLogic(activeCartItems, totalSalesValue, itemNotes, activeShift, sales, orderSource, session?.user?.role === 'Admin', explicitInfo);
+        
+        if (result?.requiresInfo) {
+            setIsFloorPlanModalOpen(true);
+            return;
+        }
+
         if (result?.success) {
             resetCart();
             setCustomerInfo('');
@@ -558,6 +568,7 @@ export default function App() {
                 ) : (
                     <React.Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>}>
                         {view === 'history' && <TransactionHistory onBack={() => navigateTo('pos')} />}
+                        {view === 'floor-plan' && <FloorPlanEditor onBack={() => navigateTo('pos')} />}
                         {view === 'printer-settings' && <PrinterSettings isOpen={true} onClose={() => navigateTo('pos')} isFullPage={true} />}
                         {view === 'print-queue' && <PrintQueueManager onBack={() => navigateTo('pos')} />}
                         {view === 'sync-queue' && <SyncQueuePage onBack={() => navigateTo('pos')} />}
@@ -602,6 +613,15 @@ export default function App() {
                 isCheckingOut={isCheckingOut}
             />
 
+            <FloorPlanModal
+                isOpen={isFloorPlanModalOpen}
+                onClose={() => setIsFloorPlanModalOpen(false)}
+                openBills={openBills}
+                onSelectTable={(info) => {
+                    setIsFloorPlanModalOpen(false);
+                    onSaveBill(info);
+                }}
+            />
 
             <OpenShiftModal
                 isOpen={!activeShift && view === 'pos' && isOpeningShift}
