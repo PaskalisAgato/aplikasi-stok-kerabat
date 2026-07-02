@@ -168,9 +168,11 @@ export class TodoService {
                     category: todo.category,
                     assignedTo: todo.assignedTo,
                     createdBy: todo.createdBy,
+                    isRecurring: true,
                     intervalType: todo.intervalType,
                     intervalValue: todo.intervalValue,
                     nextRunAt: nextRun,
+                    deadline: todo.deadline,
                     photoUploadMode: todo.photoUploadMode,
                     status: 'Pending',
                     createdAt: now
@@ -240,12 +242,11 @@ export class TodoService {
     }
 
     static async clearHistory() {
-        // Clear non-recurring history
-        await db.update(todos)
-            .set({ status: 'Pending', photoProof: null, completionTime: null, completedBy: null })
-            .where(eq(todos.status, 'Completed'));
+        // DELETE completed one-off tasks permanently (they shouldn't come back)
+        await db.delete(todos)
+            .where(and(eq(todos.status, 'Completed'), eq(todos.isRecurring, false)));
 
-        // Clear recurring history (No .returning() to avoid massive payload/memory issues)
+        // Clear recurring completion logs
         await db.delete(todoCompletions);
     }
 

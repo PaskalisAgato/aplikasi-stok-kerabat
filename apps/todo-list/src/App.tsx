@@ -40,8 +40,8 @@ function App() {
             const response = await apiClient.getTodos();
             setTodos(response.data);
             
-            // Only fetch first page of history once or when explicitly needed
-            if (role === 'Admin' && history.length === 0) {
+            // Fetch history always when syncing instead of only if history length is zero
+            if (role === 'Admin') {
                 fetchHistory(1, true);
             }
         } catch (error) {
