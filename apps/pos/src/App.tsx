@@ -634,7 +634,7 @@ export default function App() {
                         onSaveBill(info);
                     } else {
                         // Open existing bill mode
-                        const bill = openBills.find(b => b.customerInfo?.toLowerCase().trim() === info.toLowerCase().trim());
+                        const bill = openBills.find(b => String(b.customerInfo || '').toLowerCase().trim() === String(info || '').toLowerCase().trim());
                         if (bill) {
                             setCurrentBillId(bill.id);
                             setCustomerInfo(bill.customerInfo);

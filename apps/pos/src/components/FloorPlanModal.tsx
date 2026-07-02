@@ -37,7 +37,7 @@ export const FloorPlanModal: React.FC<FloorPlanModalProps> = ({
     if (!isOpen) return null;
 
     const occupiedTables = new Set(
-        openBills.map(b => b.customerInfo?.toLowerCase().trim())
+        openBills.map(b => String(b.customerInfo || '').toLowerCase().trim())
     );
 
     let maxX = 800; 
