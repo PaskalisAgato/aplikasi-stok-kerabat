@@ -598,14 +598,34 @@ function DiscountTab() {
                     <Field label="Harga Paket Total (Harga Final)"><input type="number" value={form.flatPrice} onChange={e => setForm((f: any) => ({ ...f, flatPrice: e.target.value }))} className={INPUT_CLS} /></Field>
                   </>
                 )}
-                {(wizardCategory === 'auto' || wizardCategory === 'code' || wizardCategory === 'bundle') && (
-                  <Field label="Pilih Produk Target (kosong = berlaku ke seluruh pesanan)">
-                    <div className="flex flex-wrap gap-2 p-2 bg-black/20 rounded-xl mb-2 min-h-10 border border-[var(--border-dim)]">
-                      {form.productIds.map((pid: string) => <span key={pid} className="bg-primary/20 text-primary px-2 py-1 flex gap-1 rounded text-xs font-bold">{products.find(p=>p.id.toString()===pid)?.name}<button onClick={()=>removeProduct(pid)}>×</button></span>)}
+                {wizardCategory && (
+                  <Field label={wizardCategory === 'bundle' ? "Pilih Produk untuk Paket (min. 2)" : "Pilih Produk Target (kosong = berlaku ke seluruh pesanan)"}>
+                    <div className="flex flex-wrap gap-2 p-2 bg-black/20 rounded-xl mb-2 min-h-12 border border-[var(--border-dim)]">
+                      {form.productIds.length === 0 && <span className="text-[10px] text-[var(--text-muted)] font-bold italic w-full text-center mt-1">Belum ada produk dipilih</span>}
+                      {form.productIds.map((pid: string) => {
+                        const p = products.find(p => p.id.toString() === pid);
+                        return <span key={pid} className={`px-2 py-1 flex items-center gap-1.5 rounded-lg text-[10px] font-black border ${wizardCategory === 'bundle' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : wizardCategory === 'code' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-primary/20 text-primary border-primary/30'}`}>
+                          {p?.name || `ID ${pid}`}
+                          <button type="button" onClick={() => removeProduct(pid)} className="hover:text-red-400 opacity-60 hover:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-[14px]">close</span>
+                          </button>
+                        </span>
+                      })}
                     </div>
-                    <input placeholder="Cari..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className={`${INPUT_CLS} mb-2 py-2`} />
-                    <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto custom-scrollbar">
-                      {products.filter(p=>!prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p=>( <button key={p.id} onClick={()=>addProduct(p.id)} className="text-left text-xs p-2 bg-white/5 hover:bg-white/10 rounded">{p.name}</button> ))}
+                    <div className="relative mb-2">
+                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-muted)]">search</span>
+                       <input placeholder="Cari menu produk..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className={`${INPUT_CLS} pl-9 py-2`} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+                      {products.filter(p=>!prodSearch || p.name.toLowerCase().includes(prodSearch.toLowerCase())).map(p=>{
+                        const selected = form.productIds.includes(p.id.toString());
+                        return (
+                          <button type="button" key={p.id} onClick={() => selected ? removeProduct(p.id.toString()) : addProduct(p.id)} className={`text-left text-xs p-2.5 rounded-xl transition-all flex justify-between items-center group border ${selected ? (wizardCategory === 'bundle' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : wizardCategory === 'code' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-primary/20 border-primary/50 text-primary') : 'bg-white/5 border-white/5 hover:border-white/20 text-[var(--text-muted)]'}`}>
+                            <span className="truncate pr-2">{p.name}</span>
+                            <span className={`shrink-0 font-black text-sm opacity-50 group-hover:opacity-100 ${selected ? 'text-red-400' : 'text-emerald-400'}`}>{selected ? '−' : '+'}</span>
+                          </button>
+                        )
+                      })}
                     </div>
                   </Field>
                 )}
