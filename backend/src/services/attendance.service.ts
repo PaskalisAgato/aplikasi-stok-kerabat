@@ -1,24 +1,24 @@
 import { db } from '../config/db.js';
 import * as schema from '../db/schema.js';
-import { eq, and, between, desc, sql, like } from 'drizzle-orm';
+import { eq, and, between, desc, sql, like, isNull } from 'drizzle-orm';
 import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export class AttendanceService {
-    static async getTodayAttendance(userId: string) {
+    static async getLatestAttendance(userId: string) {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tonight = new Date();
-        tonight.setHours(23, 59, 59, 999);
+        const dayStart = new Date(today);
+        dayStart.setHours(0, 0, 0, 0);
 
         const [record] = await db.select()
             .from(schema.attendance)
             .where(
                 and(
                     eq(schema.attendance.userId, userId),
-                    between(schema.attendance.date, today, tonight)
+                    eq(schema.attendance.date, dayStart)
                 )
-            ).limit(1);
-        
+            )
+            .orderBy(desc(schema.attendance.createdAt))
+            .limit(1);
         return record || null;
     }
 
@@ -29,13 +29,7 @@ export class AttendanceService {
         const dayEnd = new Date(today);
         dayEnd.setHours(23, 59, 59, 999);
 
-        // 1. Check if already checked in
-        const existing = await this.getTodayAttendance(userId);
-        if (existing?.checkIn) {
-            throw new Error('Anda sudah melakukan Check-In hari ini.');
-        }
-
-        // 2. Determine status based on shift
+        // Determine status based on shift
         let status = 'Hadir';
         const [shift] = await db.select()
             .from(schema.workShifts)
@@ -56,61 +50,74 @@ export class AttendanceService {
             }
         }
 
-        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const timestampStr = today.toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-        // 3. Insert or Update
-        if (existing) {
+        const latest = await this.getLatestAttendance(userId);
+
+        // Jika dia masih punya sesi absen aktif (belum check-out), kita biarkan dia "Check-In" lagi (update sesi terakhir)
+        if (latest && !latest.checkOut) {
             return await db.update(schema.attendance)
                 .set({ 
                     checkIn: today, 
                     status, 
-                    checkInPhoto: photoPath, 
+                    checkInPhoto: photoPath || latest.checkInPhoto, 
                     checkInTimestamp: timestampStr,
-                    location: locationData?.location,
-                    latitude: locationData?.latitude?.toString(),
-                    longitude: locationData?.longitude?.toString(),
-                    createdAt: new Date() 
+                    location: locationData?.location || latest.location,
+                    latitude: locationData?.latitude?.toString() || latest.latitude?.toString(),
+                    longitude: locationData?.longitude?.toString() || latest.longitude?.toString()
                 })
-                .where(eq(schema.attendance.id, existing.id))
+                .where(eq(schema.attendance.id, latest.id))
                 .returning();
-        } else {
-            return await db.insert(schema.attendance).values({
-                userId,
-                date: dayStart,
-                checkIn: today,
-                checkInPhoto: photoPath,
-                checkInTimestamp: timestampStr,
-                location: locationData?.location,
-                latitude: locationData?.latitude?.toString(),
-                longitude: locationData?.longitude?.toString(),
-                status,
-                createdAt: new Date()
-            }).returning();
         }
+
+        // Kalau belum absen, atau sebelumnya Jelas sudah check-out, buat absen baru! (Support banyak absen sehari / 24 jam)
+        return await db.insert(schema.attendance).values({
+            userId,
+            date: dayStart,
+            checkIn: today,
+            checkInPhoto: photoPath,
+            checkInTimestamp: timestampStr,
+            location: locationData?.location,
+            latitude: locationData?.latitude?.toString(),
+            longitude: locationData?.longitude?.toString(),
+            status,
+            createdAt: new Date()
+        }).returning();
     }
 
     static async checkOut(userId: string, photoPath?: string, locationData?: { latitude?: number; longitude?: number; location?: string }) {
-        const existing = await this.getTodayAttendance(userId);
-        if (!existing) {
-            throw new Error('Anda belum melakukan Check-In hari ini.');
-        }
-        if (existing.checkOut) {
-            throw new Error('Anda sudah melakukan Check-Out hari ini.');
-        }
+        const today = new Date();
+        const dayStart = new Date(today);
+        dayStart.setHours(0, 0, 0, 0);
+        const timestampStr = today.toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-        const timestampStr = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        // Cari sesi yang masih aktif (sudah check-in, belum check-out)
+        const [activeSession] = await db.select()
+            .from(schema.attendance)
+            .where(
+                and(
+                    eq(schema.attendance.userId, userId),
+                    eq(schema.attendance.date, dayStart),
+                    isNull(schema.attendance.checkOut)
+                )
+            )
+            .orderBy(desc(schema.attendance.createdAt))
+            .limit(1);
+
+        if (!activeSession) {
+            throw new Error('Belum ada sesi Check-In aktif yang bisa di-Checkout.');
+        }
 
         return await db.update(schema.attendance)
             .set({ 
-                checkOut: new Date(), 
-                checkOutPhoto: photoPath,
+                checkOut: today, 
+                checkOutPhoto: photoPath || activeSession.checkOutPhoto,
                 checkOutTimestamp: timestampStr,
-                // Update location if provided during logout, or keep existing from login
-                location: locationData?.location || existing.location,
-                latitude: locationData?.latitude?.toString() || existing.latitude,
-                longitude: locationData?.longitude?.toString() || existing.longitude,
+                location: locationData?.location || activeSession.location,
+                latitude: locationData?.latitude?.toString() || activeSession.latitude?.toString(),
+                longitude: locationData?.longitude?.toString() || activeSession.longitude?.toString(),
             })
-            .where(eq(schema.attendance.id, existing.id))
+            .where(eq(schema.attendance.id, activeSession.id))
             .returning();
     }
 

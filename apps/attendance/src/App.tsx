@@ -87,6 +87,12 @@ function AttendancePage() {
     const isCheckedIn = !!todayAttendance?.checkIn;
     const isCheckedOut = !!todayAttendance?.checkOut;
 
+    const statusText = isCheckedOut
+        ? `Terakhir Pulang: ${new Date(todayAttendance!.checkOut!).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+        : isCheckedIn
+        ? `Sudah Masuk: ${new Date(todayAttendance!.checkIn!).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+        : 'Belum Absen';
+
     return (
         <Layout
             currentPort={5189}
@@ -100,8 +106,7 @@ function AttendancePage() {
                     <div className="absolute top-0 left-0 w-full h-2 accent-gradient opacity-50" />
                     
                     <div className="space-y-6">
-                        {!isCheckedOut ? (
-                            <div className="relative group">
+                        <div className="relative group">
                                 <CameraCapture 
                                     ref={cameraRef}
                                     className="aspect-[4/3] w-full max-w-md mx-auto"
@@ -112,17 +117,13 @@ function AttendancePage() {
                                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Siap Mengambil Foto</p>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="size-24 mx-auto rounded-[2.5rem] flex items-center justify-center text-[var(--text-main)] shadow-2xl transition-all duration-700 bg-slate-500">
-                                <span className="material-symbols-outlined text-5xl font-black">check_circle</span>
-                            </div>
-                        )}
 
                         <div className="pt-4">
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-2">Status Hari Ini</p>
-                            <h2 className="text-4xl font-black font-display tracking-tight">
-                                {isCheckedOut ? 'Sudah Pulang' : isCheckedIn ? 'Sudah Masuk' : 'Belum Absen'}
+                            <h2 className="text-2xl font-black font-display tracking-tight">
+                                {statusText}
                             </h2>
+                            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-2">Kamu bisa absen masuk & pulang kapanpun</p>
                         </div>
                     </div>
 
@@ -143,16 +144,16 @@ function AttendancePage() {
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
                         <button 
                             onClick={() => handleStartCapture('in')}
-                            disabled={isCheckedIn || isActionLoading || isLoading || isLocating}
-                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${isCheckedIn ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed' : 'btn-primary'}`}
+                            disabled={isActionLoading || isLoading || isLocating}
+                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${(isActionLoading || isLoading || isLocating) ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed' : 'btn-primary'}`}
                         >
                             <span className="material-symbols-outlined font-black">{isLocating ? 'location_on' : 'login'}</span>
                             {isLocating ? 'MENCARI LOKASI...' : isActionLoading ? 'PROSES...' : 'ABSEN MASUK'}
                         </button>
                         <button 
                             onClick={() => handleStartCapture('out')}
-                            disabled={!isCheckedIn || isCheckedOut || isActionLoading || isLoading || isLocating}
-                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${(!isCheckedIn || isCheckedOut) ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20'}`}
+                            disabled={isActionLoading || isLoading || isLocating}
+                            className={`flex-1 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${(isActionLoading || isLoading || isLocating) ? 'bg-white/5 text-[var(--text-muted)] cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20'}`}
                         >
                             <span className="material-symbols-outlined font-black">{isLocating ? 'location_on' : 'logout'}</span>
                             {isLocating ? 'MENCARI LOKASI...' : isActionLoading ? 'PROSES...' : 'ABSEN PULANG'}
