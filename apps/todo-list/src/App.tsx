@@ -16,7 +16,7 @@ function App() {
 
     const [todos, setTodos] = useState<any[]>([]);
     const [history, setHistory] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'Opening' | 'Closing' | 'Request' | 'History'>('Opening');
+    const [activeTab, setActiveTab] = useState<'Opening Pagi' | 'Closing Pagi' | 'Opening Siang' | 'Closing Siang' | 'Opening Malam' | 'Closing Malam' | 'Request' | 'History'>('Opening Pagi');
     const [isLoading, setIsLoading] = useState(true);
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -139,9 +139,21 @@ function App() {
 
     const filteredTasks = activeTab === 'History' 
         ? history 
-        : todos.filter(t => t.category === activeTab && t.status !== 'Completed');
+        : todos.filter(t => {
+            if (t.status === 'Completed') return false;
+            // Migrasi tak kasat mata
+            const taskCat = (t.category === 'Opening') ? 'Opening Pagi' 
+                        : (t.category === 'Closing') ? 'Closing Pagi' 
+                        : t.category;
+            return taskCat === activeTab;
+        });
 
-    const categories = ['Opening', 'Closing', 'Request'];
+    const categories = [
+        'Opening Pagi', 'Closing Pagi', 
+        'Opening Siang', 'Closing Siang', 
+        'Opening Malam', 'Closing Malam', 
+        'Request'
+    ];
     if (role === 'Admin') categories.push('History');
 
     return (

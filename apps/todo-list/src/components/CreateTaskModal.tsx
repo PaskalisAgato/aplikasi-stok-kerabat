@@ -10,7 +10,7 @@ interface CreateTaskModalProps {
 export default function CreateTaskModal({ isOpen, onClose, onSave, task }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('Opening');
+    const [category, setCategory] = useState('Opening Pagi');
     const [photoUploadMode, setPhotoUploadMode] = useState<'camera' | 'gallery' | 'both'>('both');
     const [assignedTo, setAssignedTo] = useState('');
     const [deadline, setDeadline] = useState('');
@@ -35,7 +35,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
         } else {
             setTitle('');
             setDescription('');
-            setCategory('Opening');
+            setCategory('Opening Pagi');
             setPhotoUploadMode('both');
             setAssignedTo('');
             setDeadline('');
@@ -79,17 +79,17 @@ export default function CreateTaskModal({ isOpen, onClose, onSave, task }: Creat
                         {/* Category */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kategori</label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {['Opening', 'Closing', 'Request'].map(cat => (
+                            <div className="flex flex-wrap gap-2">
+                                {['Opening Pagi', 'Closing Pagi', 'Opening Siang', 'Closing Siang', 'Opening Malam', 'Closing Malam', 'Request'].map(cat => (
                                     <button
                                         key={cat}
                                         type="button"
                                         onClick={() => setCategory(cat)}
-                                        className={`h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                                        className={`flex-1 min-w-[30%] h-14 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                                             category === cat ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-muted'
                                         }`}
                                     >
-                                        {cat}
+                                        {cat === 'Request' ? 'Permintaan' : cat}
                                     </button>
                                 ))}
                             </div>
