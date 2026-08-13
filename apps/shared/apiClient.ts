@@ -478,6 +478,10 @@ export const apiClient = {
     },
     getCrossOutletSummary: () => apiFetch<any>('/analytics/cross-outlet'),
 
+    // ---- KITCHEN DISPLAY SYSTEM (KDS) ----
+    getKdsOrders: (outletId = 1) => apiFetch<ApiResponse<any>>(`/kds/orders?outletId=${outletId}`),
+    markKdsOrderDone: (orderId: number, outletId = 1) => apiFetch<any>(`/kds/orders/${orderId}/done?outletId=${outletId}`, { method: 'POST' }),
+
     // ---- GENERIC HELPERS ----
     get: (path: string) => apiFetch<any>(path),
     post: (path: string, body: any) => apiFetch<any>(path, { method: 'POST', body: JSON.stringify(body) }),
